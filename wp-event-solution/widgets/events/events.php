@@ -729,6 +729,9 @@ class Etn_Events extends Widget_Base {
     protected function render() {
         $settings = $this->get_settings();
         $style              = $settings["etn_event_style"];
+        $sanitize_filename = sanitize_file_name($style);
+        $style             = !empty($sanitize_filename) ? $sanitize_filename : 'event-1';
+
         $event_cat          = $settings["etn_event_cat"];
         $event_tag          = $settings["etn_event_tag"];
         $event_count        = $settings["etn_event_count"];
@@ -751,7 +754,9 @@ class Etn_Events extends Widget_Base {
 
 			$post_parent = Helper::show_parent_child( $show_parent_event , $show_child_event  );
 
-      include \Wpeventin::plugin_dir() . "widgets/events/style/{$style}.php";
+       if ( file_exists( \Wpeventin::plugin_dir() . "widgets/events/style/{$style}.php") ) {
+         include \Wpeventin::plugin_dir() . "widgets/events/style/{$style}.php";
+        }
     }
 
     public function get_event_category() {

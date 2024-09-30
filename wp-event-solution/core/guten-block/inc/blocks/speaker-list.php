@@ -50,6 +50,9 @@ add_action( 'init', 'etn_register_speaker_list_block' );
 function etn_speaker_list_callback( $settings ) {
 
     $style              = $settings["speaker_style"];
+    $sanitize_filename  = sanitize_file_name($style);
+    $style              = !empty($sanitize_filename) ? $sanitize_filename : 'speaker-2';
+
     $speaker_id         = $settings["speaker_id"];
     $etn_speaker_count  = $settings["etn_speaker_count"];
     $etn_speaker_col    = $settings["etn_speaker_col"];

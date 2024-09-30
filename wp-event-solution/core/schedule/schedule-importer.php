@@ -52,17 +52,19 @@ class Schedule_Importer implements Post_Importer_Interface {
         $rows = $this->data;
 
         foreach( $rows as $row ) {
+            $slots = ! empty( $row['schedule_slot'] ) ? $row['schedule_slot'] : '';
+            // error_log(print_r($row, true));
+            if ( 'text/csv' == $file_type ) {
+                $slots = json_decode( $slots, true );
+            }
+
             $args = [
                 'etn_schedule_title'    => ! empty( $row['program_title'] ) ? $row['program_title'] : '',
                 'etn_schedule_date'     => ! empty( $row['date'] ) ? $row['date'] : '',
                 'etn_schedule_day'      => ! empty( $row['day_name'] ) ? $row['day_name'] : '',
-                'etn_schedule_topics'   => ! empty( $row['schedule_slot'] ) ? $row['schedule_slot'] : ''
+                'etn_schedule_topics'   => $slots
             ];
 
-            if ( 'text/csv' == $file_type ) {
-                $args['etn_schedule_topics'] = etn_csv_column_array( $row['schedule_slot'] );
-            }
-            
             $schedule->create( $args );
         }
  

@@ -480,7 +480,12 @@ class Etn_Speakers extends Widget_Base {
         $orderby            = $settings["orderby"];
         $orderby_meta       = null;
 
-        include \Wpeventin::plugin_dir() . "widgets/speakers/style/{$style}.php";
+        $sanitize_filename = sanitize_file_name($style);
+        $style             = !empty($sanitize_filename) ? $sanitize_filename : 'speaker-1';
+
+        if ( file_exists( \Wpeventin::plugin_dir() . "widgets/speakers/style/{$style}.php") ) {
+            include \Wpeventin::plugin_dir() . "widgets/speakers/style/{$style}.php";
+        }
     }
 
     protected function get_speakers() {

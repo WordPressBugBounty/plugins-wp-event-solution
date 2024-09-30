@@ -177,7 +177,7 @@ class User_Model {
      * @return string
      */
     public function get_author_url() {
-        $user       = get_userdata( $this->id );
+        $user       = get_userdata( $this->id ); 
         $author_url = get_author_posts_url( $user->ID, $user->user_nicename );
         return esc_url($author_url);
     }        
@@ -483,16 +483,19 @@ class User_Model {
         $args       = wp_parse_args( $args, $this->data );
         $email      = ! empty( $args['etn_speaker_website_email'] ) ? $args['etn_speaker_website_email'] : '';
 
-        $user       = get_user_by( 'email', $email );
-        $is_clone   = $args['clone'];
-
-        if ( ! empty( $args['etn_speaker_title'] ) ) {
-            $args['first_name']    = $args['etn_speaker_title'];
-            $args['display_name']  = $args['etn_speaker_title'];
+        $user     = get_user_by( 'email', $email );
+        $is_clone = ! empty( $args['clone'] ) ? $args['clone'] : false;
+    
+        // If the user exists and it's not a clone, return an error
+        if ( $user && ! $is_clone ) {
+            return new \WP_Error( 'email_exists', 'A user with this email already exists.' );
         }
 
-        if ( $user && ! $is_clone  ) {
-            return $user->ID;
+        if (!empty($args['etn_speaker_title'])) {
+            $username = $this->generate_unique_username($args['etn_speaker_title']);
+            $args['user_login'] = $username;
+            $args['first_name'] = $args['etn_speaker_title'];
+            $args['display_name'] = $args['etn_speaker_title'];
         }
 
         $args['user_email'] = $email;
@@ -541,6 +544,30 @@ class User_Model {
     }
 
     /**
+     * Generate a unique username from a given title.
+     * 
+     * Replace spaces with dashes and sanitize the username.
+     * Check if the username already exists and append a number if it does.
+     * 
+     * @param string $title The title to be used for generating the username.
+     * 
+     * @return string The generated username.
+     */
+    private function generate_unique_username($title) {
+        $original_username = strtolower(str_replace(' ', '-', sanitize_user($title)));
+        $username = $original_username;
+        $counter = 1;
+    
+        // Check if the username already exists and append a number if it does
+        while (username_exists($username)) {
+            $username = $original_username . $counter;
+            $counter++;
+        }
+    
+        return $username;
+    }
+
+    /**
      * Update speaker data
      *
      * @return  void
@@ -549,7 +576,7 @@ class User_Model {
         $user = get_userdata($this->id);
     
         if ( !$user ) {
-            return new WP_Error('user_not_found', 'The user data could not be retrieved.');
+            return new \WP_Error('user_not_found', 'The user data could not be retrieved.');
         }
     
         $email = !empty($args['etn_speaker_website_email']) ? $args['etn_speaker_website_email'] : '';
@@ -646,19 +673,81 @@ class User_Model {
         require_once ABSPATH . 'wp-admin/includes/user.php';
         $user = get_userdata( $this->id );
 
-        if ( count( $user->roles ) > 1 ) {
-            if ( in_array( $user->roles, ['etn-speaker', 'etn-organizer'] ) ) {
-                $user->remove_role( $user->roles );
+        if (!$user) {
+            return new \WP_Error('user_not_found', 'The user data could not be retrieved.');
+        }
+
+        if ( $this->has_other_roles() ) {
+            $user->remove_role('etn-speaker'); 
+            $user->remove_role('etn-organizer');
+            
+            return true;
+        }
+
+         // Get the super admin user ID
+        $super_admin_id = $this->get_super_admin_id();
+
+        if (is_multisite()) {
+            require_once ABSPATH . 'wp-admin/includes/ms.php';
+            return wpmu_delete_user($this->id, $super_admin_id);
+        }
+
+        return wp_delete_user($this->id, $super_admin_id);
+    }
+
+     /* Get the ID of the super admin user.
+     *
+     * If the user is on a multisite, this will return the ID of the super admin
+     * user for the entire network. If the user is on a single site, this will
+     * return the ID of the user with the 'administrator' role.
+     *
+     * If no super admin user is found, this will return 1 (the default user ID).
+     *
+     * @return int The ID of the super admin user.
+     */
+    private function get_super_admin_id() {
+        if (is_multisite()) {
+            $super_admins = get_super_admins();
+            if (!empty($super_admins)) {
+                $super_admin = get_user_by('login', $super_admins[0]);
+                if ($super_admin) {
+                    return $super_admin->ID;
+                }
+            }
+        } else {
+            $super_admin = get_user_by('role', 'administrator');
+            if ($super_admin) {
+                return $super_admin->ID;
             }
         }
+    
+        return 1; // Default to user ID 1 if no super admin found
+    }
 
-        if ( is_multisite() ) {
-            require_once ABSPATH . 'wp-admin/includes/ms.php';
+    /**
+     * Check organizer is default WordPress user
+     *
+     * @param   integer  $user_id  Organizer id
+     *
+     * @return  bool
+     */
+    protected function has_other_roles() {
+        $user = get_userdata( $this->id );
 
-            return wpmu_delete_user( $this->id );
+        if ( ! $user ) {
+            return false;
         }
+        
+        $user_roles     = $user->roles;
 
-        return wp_delete_user( $this->id );
+        $required_roles = ['etn-speaker', 'etn-organizer'];
+
+        $has_required_roles = in_array( 'etn-speaker', $user_roles) || in_array('etn-organizer', $user_roles );
+
+        $other_roles     = array_diff( $user_roles, $required_roles );
+        $has_other_roles = ! empty( $other_roles );
+
+        return $has_required_roles && $has_other_roles;
     }
 
     /**

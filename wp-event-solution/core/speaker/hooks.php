@@ -28,6 +28,7 @@ class Hooks {
         $this->category = new Category();
         $this->action   = new Action();
         $this->settings = new Settings( 'etn', '1.0' );
+
         // custom post meta
 
         $_metabox = new \Etn\Core\Metaboxs\Speaker_meta();
@@ -54,8 +55,13 @@ class Hooks {
         add_filter( 'bulk_actions-edit-etn-speaker', [ $this, 'add_bulk_actions' ] );
 
         add_filter( 'handle_bulk_actions-edit-etn-speaker', [ $this, 'handle_export_bulk_action' ], 10, 3 );
+        add_filter('author_link', [$this, 'custom_speaker_link'], 10, 3);
+        add_action('init', [$this, 'speaker_rewrite_rules']);
 
-    }
+
+
+    } 
+ 
 
     /**
      * Override speaker title from speaker post meta
@@ -211,4 +217,49 @@ class Hooks {
         $schedule_exporter = new Speaker_Exporter();
         $schedule_exporter->export( $post_ids, $export_type );
     }
+
+    /**
+     * Add a rewrite rule to enable pretty URLs for speakers.
+     *
+     * By default, WordPress uses `author` as the slug for the author archive. This
+     * function adds a rewrite rule that allows the slug to be customized via the
+     * `etn_event_options` option.
+     *
+     * @since 1.0.0
+     * @access public
+     */
+    public function speaker_rewrite_rules() {
+        $settings_options = get_option('etn_event_options'); 
+        if (!empty($settings_options['speaker_slug'])) {
+            $slug = sanitize_title($settings_options['speaker_slug']);
+            add_rewrite_rule("^$slug/([^/]+)/?", 'index.php?author_name=$matches[1]', 'top');
+        }
+    }
+    
+    /**
+     * Change the author slug to 'speakers'
+     *
+     * @param string $link The link to the author page
+     * @param int $author_id The ID of the author
+     * @param string $author_nicename The nicename of the author
+     * @return string The modified link
+     */
+    public function custom_speaker_link($link, $author_id, $author_nicename) {  
+        $settings_options = get_option('etn_event_options'); 
+        if (!empty($settings_options['speaker_slug'])) {
+            $slug = sanitize_title($settings_options['speaker_slug']);
+            
+            // Get the user object
+            $user = get_userdata($author_id);
+    
+            // Check if the user has the role 'etn-speaker' or 'etn-organizer'
+            if (in_array('etn-speaker', (array) $user->roles) || in_array('etn-organizer', (array) $user->roles)) {
+                // Set base for speakers and organizers
+                $link = home_url("/$slug/" . $author_nicename);
+            }
+        }
+        return $link;
+    }
+
+    
 }

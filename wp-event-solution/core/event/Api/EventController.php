@@ -7,6 +7,8 @@
 namespace Eventin\Event\Api;
 
 use Error;
+use Etn\Core\Event\Event_Exporter;
+use Etn\Core\Event\Event_Importer;
 use Etn\Core\Event\Event_Model;
 use Eventin\Event\MeetingPlatforms\MeetingPlatform;
 use WP_Error;
@@ -153,6 +155,44 @@ class EventController extends WP_REST_Controller {
  
             ),
         );
+
+        register_rest_route(
+            $this->namespace,
+            '/' . $this->rest_base . '/export',
+            array(
+                'args' => array(
+                    'id' => array(
+                        'description' => __( 'Unique identifier for the post.', 'eventin' ),
+                        'type'        => 'integer',
+                    ),
+                ),
+                array(
+                    'methods'             => WP_REST_Server::READABLE,
+                    'callback'            => array( $this, 'export_items' ),
+                    'permission_callback' => array( $this, 'export_permissions_check' ),
+                ),
+ 
+            ),
+        );
+
+        register_rest_route(
+            $this->namespace,
+            '/' . $this->rest_base . '/import',
+            array(
+                'args' => array(
+                    'id' => array(
+                        'description' => __( 'Unique identifier for the post.', 'eventin' ),
+                        'type'        => 'integer',
+                    ),
+                ),
+                array(
+                    'methods'             => WP_REST_Server::CREATABLE,
+                    'callback'            => array( $this, 'import_items' ),
+                    'permission_callback' => array( $this, 'import_permissions_check' ),
+                ),
+ 
+            ),
+        );
     }
 
     /**
@@ -162,7 +202,7 @@ class EventController extends WP_REST_Controller {
      * @return WP_Error|boolean
      */
     public function get_item_permissions_check( $request ) {
-        return current_user_can( 'manage_options' );
+        return true;
     }
 
     /**
@@ -699,7 +739,7 @@ class EventController extends WP_REST_Controller {
             'zoom_event'              => get_post_meta( $id, 'etn_zoom_event', true ),
             'zoom_id'                 => get_post_meta( $id, 'etn_zoom_id', true ),
             'total_ticket'            => $event->get_total_ticket(),
-            'sold_tickets'            => get_post_meta( $id, 'etn_total_sold_tickets', true ),
+            'sold_tickets'            => $event->get_total_sold_ticket(),
             'ticket_variations'       => get_post_meta( $id, 'etn_ticket_variations', true ),
             'event_socials'           => get_post_meta( $id, 'etn_event_socials', true ),
             'google_meet'             => get_post_meta( $id, 'etn_google_meet', true ),
@@ -711,6 +751,7 @@ class EventController extends WP_REST_Controller {
             'external_link'           => get_post_meta( $id, 'external_link', true ),
             'ticket_template'         => get_post_meta( $id, 'ticket_template', true ),
             'certificate_template'    => get_post_meta( $id, 'certificate_template', true ),
+            'seat_plan'               => get_post_meta( $id, 'seat_plan', true ),
             'rsvp_settings'           => $rsvp_settings,
             'recurring_enabled'       => get_post_meta( $id, 'recurring_enabled', true ),
             'event_recurrence'        => get_post_meta( $id, 'etn_event_recurrence', true ),
@@ -1246,5 +1287,74 @@ class EventController extends WP_REST_Controller {
         $built_with_elementor =  $document->is_built_with_elementor();
         
         return $built_with_elementor;
+    }
+
+    /**
+     * Export items
+     *
+     * @return  WP_Rest_Response | WP_Error
+     */
+    public function export_items( $request ) {
+        $format = ! empty( $request['format'] ) ? sanitize_text_field( $request['format'] ) : '';
+
+        $ids    = ! empty( $request['ids'] ) ? $request['ids'] : '';
+
+        if ( ! $format ) {
+            return new WP_Error( 'format_error', __( 'Invalid data format', 'eventin' ) );
+        }
+
+        if ( ! $ids ) {
+            return new WP_Error( 'data_error', __( 'Invalid ids', 'eventin' ), ['status' => 409] );
+        }
+
+        $exporter = new Event_Exporter();
+        $exporter->export( $ids, $format );
+    }
+
+    /**
+     * Check permissions for export events
+     *
+     * @param   WP_Rest_Request  $request  [$request description]
+     *
+     * @return  bool
+     */
+    public function export_permissions_check( $request ) {
+        return current_user_can( 'manage_options' );
+    }
+
+    /**
+     * Import events
+     *
+     * @param   WP_Rest_Request  $request  [$request description]
+     *
+     * @return  [type]            [return description]
+     */
+    public function import_items( $request ) {
+        $data = $request->get_file_params();
+        $file = ! empty( $data['event_import'] ) ? $data['event_import'] : '';
+
+        if ( ! $file ) {
+            return new WP_Error( 'empty_file', __( 'You must provide a valid file.', 'eventin' ), ['status' => 409] );
+        }
+
+        $importer = new Event_Importer();
+        $importer->import( $file );
+
+        $response = [
+            'message' => __( 'Successfully imported event', 'eventin' ),
+        ];
+
+        return rest_ensure_response( $response );
+    }
+
+    /**
+     * Check permissions for export events
+     *
+     * @param   WP_Rest_Request  $request  [$request description]
+     *
+     * @return  bool
+     */
+    public function import_permissions_check( $request ) {
+        return current_user_can( 'manage_options' );
     }
 }

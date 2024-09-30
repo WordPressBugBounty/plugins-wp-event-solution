@@ -7,11 +7,12 @@ use Eventin\EventCategory\Api\EventCategoryController;
 use Eventin\Event\Api\EventTagController;
 use Eventin\Event\Api\TransactionController;
 use Eventin\Location\Api\LocationController;
+use Eventin\Order\OrderController;
+use Eventin\Order\PaymentController;
 use Eventin\Schedule\Api\ScheduleController;
 use Eventin\Settings\Api\SettingsController;
 use Eventin\Speaker\Api\SpeakerCategoryController;
 use Eventin\Speaker\Api\SpeakerController;
-use Eventin\ZoomMeeting\Api\ZoomMeetingController;
 use WP_REST_Controller;
 
 /**
@@ -34,6 +35,8 @@ class ApiManager {
         SpeakerCategoryController::class,
         EventTagController::class,
         TransactionController::class,
+        OrderController::class,
+        PaymentController::class,
     ];
 
     /**

@@ -52,6 +52,16 @@ class FrontendAssets implements AssetsInterface {
                 'deps'      => [ 'jquery' ],
                 'in_footer' => false,
             ],
+             'etn-ticket-selector' => [
+                'src'       => \Wpeventin::plugin_url( 'build/js/ticket-selector.js' ),
+                'deps'      => ['etn-packages','underscore'],
+                'in_footer' => true,
+            ],
+             'etn-checkout' => [
+                'src'       => \Wpeventin::plugin_url( 'build/js/checkout.js' ),
+                'deps'      => ['etn-packages','underscore'],
+                'in_footer' => true,
+            ],
         ];
 
         return apply_filters( 'etn_frontend_register_scripts', $scripts );

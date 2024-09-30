@@ -78,25 +78,31 @@ class Menu implements HookableInterface {
 				'title'      => __( 'Events', 'eventin' ),
 				'capability' => $this->base_capability,
 				'url'        => 'admin.php?page=' . $this->menu_slug . '#/events',
-                'position'   => 1,
-			],
-            [
-				'title'      => __( 'Schedules', 'eventin' ),
-				'capability' => $this->base_capability,
-				'url'        => 'admin.php?page=' . $this->menu_slug . '#/schedules',
                 'position'   => 2,
 			],
-            [
+			[
 				'title'      => __( 'Organizers', 'eventin' ),
 				'capability' => $this->base_capability,
 				'url'        => 'admin.php?page=' . $this->menu_slug . '#/speakers',
                 'position'   => 3,
 			],
             [
+				'title'      => __( 'Schedules', 'eventin' ),
+				'capability' => $this->base_capability,
+				'url'        => 'admin.php?page=' . $this->menu_slug . '#/schedules',
+                'position'   => 4,
+			],
+            [
+				'title'      => __( 'Bookings', 'eventin' ),
+				'capability' => $this->base_capability,
+				'url'        => 'admin.php?page=' . $this->menu_slug . '#/purchase-report',
+                'position'   => 5,
+			],
+            [
 				'title'      => __( 'Settings', 'eventin' ),
 				'capability' => $this->base_capability,
 				'url'        => 'admin.php?page=' . $this->menu_slug . '#/settings',
-                'position'   => 5,
+                'position'   => 7,
 			],
 		];
 
@@ -106,8 +112,8 @@ class Menu implements HookableInterface {
 			$this->submenus[] = [
 				'title'      => __( 'Attendees', 'eventin' ),
 				'capability' => $this->base_capability,
-				'url'        => 'edit.php?post_type=etn-attendee',
-                'position'   => 4,
+				'url'        => 'admin.php?page=' . $this->menu_slug . '#/attendees',
+                'position'   => 5,
 			];
 		}
 
@@ -116,7 +122,7 @@ class Menu implements HookableInterface {
 				'title'      => __( 'Go Pro', 'eventin' ),
 				'capability' => $this->base_capability,
 				'url'        => 'https://themewinter.com/eventin/',
-                'position'   => 9,
+                'position'   => 999999,
 			];
 		}
     }
@@ -152,6 +158,11 @@ class Menu implements HookableInterface {
 
         $this->submenus = apply_filters( 'eventin_menu', $this->submenus );
 
+
+		usort( $this->submenus, function($a, $b) {
+			return $a['position'] <=> $b['position'];
+		} );
+
 		foreach ( $this->submenus as $item ) {
 			$submenu[ $this->menu_slug ][] = [ $item['title'], $item['capability'], $item['url'] ]; // phpcs:ignore
 		}
@@ -165,26 +176,33 @@ class Menu implements HookableInterface {
 	public function render_menu_page() {
 
 		// Eventin Version four Script and Styles 
-		// wp_enqueue_script( 'etn-version-four' );
-		wp_enqueue_style( 'etn-version-four' );
+		// wp_enqueue_script( 'etn-dashboard' );
+		wp_enqueue_style( 'etn-dashboard' );
 
 
 		// Block editor styles and scripts 
 		\do_action('enqueue_block_assets');
 		$settings = etn_editor_settings();
-        wp_add_inline_script( 'etn-version-four', 'window.eventinEditorSettings = ' . wp_json_encode( $settings ) . ';' );
+        wp_add_inline_script( 'etn-dashboard', 'window.eventinEditorSettings = ' . wp_json_encode( $settings ) . ';' );
 		wp_enqueue_script('wp-edit-post');
 
 		
 		//experimental enqueue by Sajib
-		wp_enqueue_script('etn-version-four' , plugins_url('build/js/etn-version-four.js', __FILE__), array('wp-edit-post'), \Wpeventin::version(), true);
-    	wp_localize_script('etn-version-four' , 'eventinData', array(
+		wp_enqueue_script('etn-dashboard' , plugins_url('build/js/dashboard.js', __FILE__), array('wp-edit-post'), \Wpeventin::version(), true);
+    	
+		/**
+		 * @method wp_set_script_translations
+		 * It helps to load the translation file for the script
+		 */ 
+		wp_set_script_translations( 'etn-dashboard', 'eventin' );
+
+		wp_localize_script('etn-dashboard' , 'eventinData', array(
         'publicPath' => plugins_url('build/', __FILE__),
     ));
 
 	
 		
-		$versionFourView = \Wpeventin::plugin_dir() . "core/version-four/version-four.php";
+		$versionFourView = \Wpeventin::plugin_dir() . "core/admin-view/dashboard.php";
 		include $versionFourView;
 	}
 

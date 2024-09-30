@@ -6,7 +6,10 @@
  */
 namespace Eventin\Attendee\Api;
 
+use Etn\Core\Attendee\Attendee_Exporter;
+use Etn\Core\Attendee\Attendee_Importer;
 use Etn\Core\Attendee\Attendee_Model;
+use Etn\Core\Event\Event_Model;
 use WP_Error;
 use WP_Query;
 use WP_REST_Controller;
@@ -82,6 +85,22 @@ class AttendeeController extends WP_REST_Controller {
                 'schema' => array( $this, 'get_item_schema' ),
             ),
         );
+
+        register_rest_route( $this->namespace, $this->rest_base . '/export', [
+            [
+                'methods'             => WP_REST_Server::READABLE,
+                'callback'            => [$this, 'export_items'],
+                'permission_callback' => [$this, 'export_item_permissions_check'],
+            ],
+        ] );
+
+        register_rest_route( $this->namespace, $this->rest_base . '/import', [
+            [
+                'methods'             => WP_REST_Server::CREATABLE,
+                'callback'            => [$this, 'import_items'],
+                'permission_callback' => [$this, 'import_item_permissions_check'],
+            ],
+        ] );
     }
 
     /**
@@ -95,13 +114,101 @@ class AttendeeController extends WP_REST_Controller {
         $per_page = ! empty( $request['per_page'] ) ? intval( $request['per_page'] ) : 20;
         $paged    = ! empty( $request['paged'] ) ? intval( $request['paged'] ) : 1;
         $type     = ! empty( $request['type'] ) ? sanitize_text_field( $request['type'] ) : '';
+        $event_id     = ! empty( $request['event_id'] ) ? sanitize_text_field( $request['event_id'] ) : '';
+        $payment_status = ! empty( $request['payment_status'] ) ? sanitize_text_field( $request['payment_status'] ) : '';
+        $ticket_status     = ! empty( $request['ticket_status'] ) ? sanitize_text_field( $request['ticket_status'] ) : '';
+
+        $search   = ! empty( $request['search'] ) ? sanitize_text_field( $request['search'] ) : '';
 
         $args = [
             'post_type'      => 'etn-attendee',
-            'post_status'    => 'publish',
+            'post_status'    => 'any',
             'posts_per_page' => $per_page,
             'paged'          => $paged,
         ];
+
+        $meta_query = [];
+
+        if ( ! empty( $event_id ) ) {
+            $meta_query[] = [
+                'key'     => 'etn_event_id',
+                'value'   => $event_id,
+                'compare' => '=',
+            ];
+        }
+
+        if ( ! empty( $payment_status ) ) {
+            $meta_query[] = [
+                'key'     => 'etn_status',
+                'value'   => $payment_status,
+                'compare' => '=',
+            ];
+        }
+
+        if ( ! empty( $ticket_status ) ) {
+            $meta_query[] = [
+                'key'     => 'etn_attendeee_ticket_status',
+                'value'   => $ticket_status,
+                'compare' => '=',
+            ];
+        }
+
+        if ( ! empty( $meta_query ) ) {
+            $meta_query['relation'] = 'AND';
+
+            $args['meta_query'] = $meta_query; 
+        }
+
+        if ( $search ) {
+            // $args['s'] = $search;
+
+            $meta_query = array(
+                'relation' => 'OR', // 'OR' means any meta key can match
+                array(
+                    'key'     => 'etn_name',
+                    'value'   => $search,
+                    'compare' => 'LIKE'
+                ),
+                array(
+                    'key'     => 'etn_email',
+                    'value'   => $search,
+                    'compare' => 'LIKE'
+                ),
+                array(
+                    'key'     => 'etn_phone',
+                    'value'   => $search,
+                    'compare' => 'LIKE'
+                ),
+                array(
+                    'key'     => 'ticket_name',
+                    'value'   => $search,
+                    'compare' => 'LIKE'
+                ),
+                array(
+                    'key'     => 'etn_event_id',
+                    'value'   => $search,
+                    'compare' => 'LIKE'
+                ),
+                array(
+                    'key'     => 'etn_status',
+                    'value'   => $search,
+                    'compare' => 'LIKE'
+                ),
+                array(
+                    'key'     => 'order_id',
+                    'value'   => $search,
+                    'compare' => 'LIKE'
+                ),
+                array(
+                    'key'     => 'etn_attendeee_ticket_status',
+                    'value'   => $search,
+                    'compare' => '='
+                ),
+            );
+
+            $args['meta_query'] = $meta_query; 
+        }
+
         $attendees = [];
 
         $post_query   = new WP_Query();
@@ -164,8 +271,21 @@ class AttendeeController extends WP_REST_Controller {
             return $prepared_item;
         }
 
+        $prepared_item['etn_info_edit_token'] = md5('etn-attendee-info');
+
         $attendee = new Attendee_Model();
+        $attendee->set_fields( $prepared_item );
         $created  = $attendee->create( $prepared_item );
+
+        $event  = new Event_Model( $prepared_item['etn_event_id'] );
+
+        if ( $event->is_expaired() ) {
+            return new WP_Error(
+                'event_expired',
+                __( 'Please select another event. This event is already expired.', 'eventin' ),
+                array( 'status' => 400 )
+            );
+        }
 
         if ( ! $created ) {
             return new WP_Error(
@@ -213,6 +333,7 @@ class AttendeeController extends WP_REST_Controller {
         }
 
         $attendee = new Attendee_Model( $request['id'] );
+        $attendee->set_fields( $prepared_item );
         $updated  = $attendee->update( $prepared_item );
 
         if ( ! $updated ) {
@@ -335,23 +456,10 @@ class AttendeeController extends WP_REST_Controller {
      * @return WP_REST_Response $response
      */
     public function prepare_item_for_response( $item, $request ) {
-        $id = $item->id;
+        $data =  $item->get_data();
+        $data['extra_fields'] = $item->get_extra_fields();
 
-        $response = [
-            'id'             => $id,
-            'name'           => get_post_meta( $id, 'etn_name', true ),
-            'email'          => get_post_meta( $id, 'etn_email', true ),
-            'phone'          => get_post_meta( $id, 'etn_phone', true ),
-            'event_id'       => get_post_meta( $id, 'etn_event_id', true ),
-            'event_name'     => get_the_title( get_post_meta( $id, 'etn_event_id', true ) ),
-            'ticket_id'      => get_post_meta( $id, 'etn_unique_ticket_id', true ),
-            'ticket_name'    => get_post_meta( $id, 'ticket_name', true ),
-            'ticket_status'  => get_post_meta( $id, 'etn_attendeee_ticket_status', true ),
-            'ticket_price'   => get_post_meta( $id, 'etn_ticket_price', true ),
-            'payment_status' => get_post_meta( $id, 'etn_status', true ),
-        ];
-
-        return $response;
+        return $data;
     }
 
     /**
@@ -364,20 +472,20 @@ class AttendeeController extends WP_REST_Controller {
         $prepared_item = [];
         $input_data    = json_decode( $request->get_body(), true );
 
-        if ( ! empty( $input_data['name'] ) ) {
-            $prepared_item['etn_name'] = $input_data['name'];
+        if ( ! empty( $input_data['etn_name'] ) ) {
+            $prepared_item['etn_name'] = $input_data['etn_name'];
         }
 
-        if ( ! empty( $input_data['email'] ) ) {
-            $prepared_item['etn_email'] = $input_data['email'];
+        if ( ! empty( $input_data['etn_email'] ) ) {
+            $prepared_item['etn_email'] = $input_data['etn_email'];
         }
 
-        if ( ! empty( $input_data['phone'] ) ) {
-            $prepared_item['etn_phone'] = $input_data['phone'];
+        if ( ! empty( $input_data['etn_phone'] ) ) {
+            $prepared_item['etn_phone'] = $input_data['etn_phone'];
         }
 
-        if ( ! empty( $input_data['event_id'] ) ) {
-            $prepared_item['etn_event_id'] = $input_data['event_id'];
+        if ( ! empty( $input_data['etn_event_id'] ) ) {
+            $prepared_item['etn_event_id'] = $input_data['etn_event_id'];
         }
 
         if ( ! empty( $input_data['ticket_id'] ) ) {
@@ -388,18 +496,130 @@ class AttendeeController extends WP_REST_Controller {
             $prepared_item['ticket_name'] = $input_data['ticket_name'];
         }
 
-        if ( ! empty( $input_data['status'] ) ) {
-            $prepared_item['etn_attendeee_ticket_status'] = $input_data['status'];
+        if ( ! empty( $input_data['ticket_slug'] ) ) {
+            $prepared_item['ticket_slug'] = $input_data['ticket_slug'];
         }
 
-        if ( ! empty( $input_data['ticket_price'] ) ) {
-            $prepared_item['etn_ticket_price'] = $input_data['ticket_price'];
+        if ( ! empty( $input_data['etn_attendeee_ticket_status'] ) ) {
+            $prepared_item['etn_attendeee_ticket_status'] = $input_data['etn_attendeee_ticket_status'];
         }
 
-        if ( ! empty( $input_data['payment_status'] ) ) {
-            $prepared_item['etn_status'] = $input_data['payment_status'];
+        if ( ! empty( $input_data['etn_ticket_price'] ) ) {
+            $prepared_item['etn_ticket_price'] = $input_data['etn_ticket_price'];
         }
 
+        if ( ! empty( $input_data['etn_status'] ) ) {
+            $prepared_item['etn_status'] = $input_data['etn_status'];
+        }
+
+        if ( ! empty( $input_data['extra_fields'] ) ) {
+            $extra_fields = $this->prepare_attendee_extra_fields( $input_data['extra_fields'] );
+
+            if ( $extra_fields && is_array( $extra_fields ) ) {
+                $prepared_item = array_merge( $prepared_item, $extra_fields );
+            }
+        }
+
+        $prepared_item['post_status'] = 'publish';
+
+        $prepared_item['etn_unique_ticket_id'] = time();
+
+        
+        
         return $prepared_item;
+    }
+
+    /**
+     * Prepare attendee extra fields
+     *
+     * @param   array  $extra_fields Attendee extra fields
+     *
+     * @return  array Prepare extra fields data for database
+     */
+    protected function prepare_attendee_extra_fields( $extra_fields ) {
+        $prefix = 'etn_attendee_extra_field_';
+
+        $data = [];
+
+        // Add extra fields meta key prefix.
+        foreach( $extra_fields as $key => $value ) {
+            $meta_key = $prefix . $key;
+
+            $data[$meta_key] = $value;
+        }
+
+        return $data;
+    }
+
+    /**
+     * Attendee exporter
+     *
+     * @param   WP_Request  $request
+     *
+     * @return  json
+     */
+    public function export_items( $request ) {
+        $format = ! empty( $request['format'] ) ? sanitize_text_field( $request['format'] ) : '';
+
+        $ids    = ! empty( $request['ids'] ) ? $request['ids'] : '';
+
+        if ( ! $format ) {
+            return new WP_Error( 'format_error', __( 'Invalid data format', 'eventin' ) );
+        }
+
+        if ( ! $ids ) {
+            return new WP_Error( 'data_error', __( 'Invalid ids', 'eventin' ), ['status' => 409] );
+        }
+
+        $exporter = new Attendee_Exporter();
+
+        $exporter->export( $ids, $format );
+    }
+
+    /**
+     * Check export items permissions
+     *
+     * @param   WP_Rest_Request  $request  [$request description]
+     *
+     * @return  bool
+     */
+    public function export_item_permissions_check( $request ) {
+        return current_user_can( 'manage_options' );
+    }
+
+    /**
+     * Attendee exporter
+     *
+     * @param   WP_Request  $request
+     *
+     * @return  json
+     */
+    public function import_items( $request ) {
+        $data = $request->get_file_params();
+        $file = ! empty( $data['attendee_import'] ) ? $data['attendee_import'] : '';
+
+        if ( ! $file ) {
+            return new WP_Error( 'empty_file', __( 'You must provide a valid file.', 'eventin' ), ['status' => 409] );
+        }
+
+        $importer = new Attendee_Importer();
+        $importer->import( $file );
+
+        $response = [
+            'message' => __( 'Successfully imported attendee', 'eventin' ),
+        ];
+
+        return rest_ensure_response( $response );
+    }
+
+    /**
+     * Check permissions for import attendees
+     *
+     * @param   WP_Rest_Request  $request  [$request description]
+     *
+     * @return  bool
+     */
+    public function import_item_permissions_check( $request ) {
+        return current_user_can( 'manage_options' );
     }
 }

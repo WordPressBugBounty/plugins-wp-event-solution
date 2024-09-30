@@ -1151,12 +1151,15 @@ class Helper {
 
 				// Get the 'etn_schedule_topics' meta value
 				$schedule_topics = get_post_meta($post_id, 'etn_schedule_topics', true);
-				foreach($schedule_topics as $key => $value){
-					if (is_array($value['speakers']) && in_array($user_id, $value['speakers'])) {
-						// Add the post ID to the matched posts array
-						$matched_posts[] = $post_id;
+				if(!empty($schedule_topics)){
+					foreach($schedule_topics as $key => $value){
+						if (is_array($value['speakers']) && in_array($user_id, $value['speakers'])) {
+							// Add the post ID to the matched posts array
+							$matched_posts[] = $post_id;
+						}
 					}
 				}
+			
 			}
 			// Restore original Post Data
 			wp_reset_postdata();
@@ -3540,57 +3543,15 @@ class Helper {
 	 *
 	 * @return void
 	 */
-	public static function eventin_ticket_widget( $single_event_id, $class = "" ) {
-		$data        = self::single_template_options( $single_event_id );
-		$ticket_list = get_post_meta( $single_event_id, 'etn_ticket_variations', true );
-		$unique_id   = md5( md5( microtime() ) );
-
-		if ( is_array( $ticket_list ) && ! empty( $ticket_list ) ) {
-			$event_options        = ! empty( $data['event_options'] ) ? $data['event_options'] : [];
-			$etn_ticket_unlimited = ( isset( $data['etn_ticket_unlimited'] ) && $data['etn_ticket_unlimited'] == "no" ) ? true : false;
-			$is_zoom_event        = get_post_meta( $single_event_id, 'etn_zoom_event', true );
-			$event_title          = get_the_title( $single_event_id );
-			
-			$event_expire_param   = array('single_event_id' => $single_event_id );
-			$reg_deadline_expired =  \Etn\Core\Event\Helper::instance()->event_registration_deadline( $event_expire_param );
-
-			$ticket_variations_info = Helper::get_ticket_variations_info( $single_event_id, $ticket_list );
-			
-			$event_total_ticket = $ticket_variations_info['etn_total_created_tickets'];
-			$event_sold_ticket  = ! empty( get_post_meta( $single_event_id, "etn_total_sold_tickets", true ) ) ? absint( get_post_meta( $single_event_id, "etn_total_sold_tickets", true ) ) : 0;
-			$event_left_ticket  = $event_total_ticket - $event_sold_ticket;
-
-			if ( file_exists( get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'event/purchase-form/single-event-variable-ticket.php' ) ) {
-				$purchase_form_widget = get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'event/purchase-form/single-event-variable-ticket.php';
-			} elseif ( file_exists( get_template_directory() . \Wpeventin::theme_templates_dir() . 'event/purchase-form/single-event-variable-ticket.php' ) ) {
-				$purchase_form_widget = get_template_directory() . \Wpeventin::theme_templates_dir() . 'event/purchase-form/single-event-variable-ticket.php';
-			} else {
-				$purchase_form_widget = \Wpeventin::templates_dir() . 'event/purchase-form/single-event-variable-ticket.php';
-			}
-
+	public static function eventin_ticket_widget( $single_event_id, $class = "" ) { 
+	
+		if ( file_exists( get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'event/purchase-form/single-event-variable-ticket.php' ) ) {
+			$purchase_form_widget = get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'event/purchase-form/single-event-variable-ticket.php';
+		} elseif ( file_exists( get_template_directory() . \Wpeventin::theme_templates_dir() . 'event/purchase-form/single-event-variable-ticket.php' ) ) {
+			$purchase_form_widget = get_template_directory() . \Wpeventin::theme_templates_dir() . 'event/purchase-form/single-event-variable-ticket.php';
 		} else {
-
-			$etn_left_tickets     = ! empty( $data['etn_left_tickets'] ) ? $data['etn_left_tickets'] : 0;
-			$etn_ticket_unlimited = ( isset( $data['etn_ticket_unlimited'] ) && $data['etn_ticket_unlimited'] == "no" ) ? true : false;
-			$etn_ticket_price     = isset( $data['etn_ticket_price'] ) ? $data['etn_ticket_price'] : '';
-			$ticket_qty           = get_post_meta( $single_event_id, "etn_sold_tickets", true );
-			$total_sold_ticket    = isset( $ticket_qty ) ? intval( $ticket_qty ) : 0;
-			$is_zoom_event        = get_post_meta( $single_event_id, 'etn_zoom_event', true );
-			$event_options        = ! empty( $data['event_options'] ) ? $data['event_options'] : [];
-			$event_title          = get_the_title( $single_event_id );
-			$etn_min_ticket       = ! empty( get_post_meta( $single_event_id, 'etn_min_ticket', true ) ) ? get_post_meta( $single_event_id, 'etn_min_ticket', true ) : 1;
-			$etn_max_ticket       = ! empty( get_post_meta( $single_event_id, 'etn_max_ticket', true ) ) ? get_post_meta( $single_event_id, 'etn_max_ticket', true ) : $etn_left_tickets;
-			$etn_max_ticket       = min( $etn_left_tickets, $etn_max_ticket );
-
-			if ( file_exists( get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'event/purchase-form/event-ticket.php' ) ) {
-				$purchase_form_widget = get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'event/purchase-form/event-ticket.php';
-			} elseif ( file_exists( get_template_directory() . \Wpeventin::theme_templates_dir() . 'event/purchase-form/event-ticket.php' ) ) {
-				$purchase_form_widget = get_template_directory() . \Wpeventin::theme_templates_dir() . 'event/purchase-form/event-ticket.php';
-			} else {
-				$purchase_form_widget = \Wpeventin::templates_dir() . 'event/purchase-form/event-ticket.php';
-			}
-
-		}
+			$purchase_form_widget = \Wpeventin::templates_dir() . 'event/purchase-form/single-event-variable-ticket.php';
+		} 
 
 		include $purchase_form_widget;
 	}

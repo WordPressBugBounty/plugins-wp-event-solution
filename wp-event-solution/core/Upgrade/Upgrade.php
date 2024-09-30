@@ -9,6 +9,7 @@ use Eventin\Upgrade\Upgraders\V_4_0_4;
 use Eventin\Upgrade\Upgraders\V_4_0_6;
 use Eventin\Upgrade\Upgraders\V_4_0_7;
 use Eventin\Upgrade\Upgraders\V_4_0_8;
+use Eventin\Upgrade\Upgraders\V_4_0_9;
 
 /**
  * Upgrade class
@@ -28,6 +29,7 @@ class Upgrade {
         '4.0.6' => V_4_0_6::class,
         '4.0.7' => V_4_0_7::class,
         '4.0.8' => V_4_0_8::class,
+        '4.0.9' => V_4_0_9::class,
     ];
 
     /**

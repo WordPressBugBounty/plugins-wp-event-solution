@@ -18,6 +18,10 @@ class AdminProvider extends Provider {
      */
     protected $services = [
         Integration::class,
-        Menu::class
+        Menu::class,
+        EventReminder::class,
+        TemplateRender::class,
+        OrderAttendee::class,
+        OrderTicket::class,
     ];
 }

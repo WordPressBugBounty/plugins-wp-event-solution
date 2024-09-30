@@ -64,8 +64,8 @@ class AdminAssets implements AssetsInterface {
                 'deps'      => [ 'jquery' ],
                 'in_footer' => true,
             ],
-            'etn-version-four' => [
-                'src'       => \Wpeventin::plugin_url( 'build/js/etn-version-four.js' ),
+            'etn-dashboard' => [
+                'src'       => \Wpeventin::plugin_url( 'build/js/dashboard.js' ),
                 'deps'      => ['etn-packages', 'wp-format-library'],
                 'in_footer' => true,
             ],
@@ -105,8 +105,8 @@ class AdminAssets implements AssetsInterface {
             'etn-ai'    => [
                 'src' => \Wpeventin::plugin_url( 'build/css/index-ai-style.css' ),
             ],
-            'etn-version-four'    => [
-                'src' => \Wpeventin::plugin_url( 'build/css/etn-version-four.css' ),
+            'etn-dashboard'    => [
+                'src' => \Wpeventin::plugin_url( 'build/css/dashboard.css' ),
                 'deps' => ['wp-edit-blocks']
             ],
         ];

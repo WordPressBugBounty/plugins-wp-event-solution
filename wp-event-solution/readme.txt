@@ -2,8 +2,8 @@
 Contributors: themewinter, ataurr, abrasel600, rezakhan995
 Tags: event, calendar, tickets, organizer, schedule
 Requires at least: 5.2
-Tested up to: 6.6.1
-Stable tag: 4.0.8
+Tested up to: 6.6.2
+Stable tag: 4.0.10
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -26,7 +26,6 @@ Now **supercharge your events** and enjoy managing the **[event calendar](https:
 **[Live Demo](https://product.themewinter.com/eventin/) || [Documentation](https://support.themewinter.com/docs/plugins/eventin/) || [Roadmaps](https://themewinter.com/eventin-roadmaps/) || [Buy Pro](https://themewinter.com/eventin/) || [Ready Theme](https://themewinter.com/bizxpo/)**
 
 
-
 https://www.youtube.com/watch?v=vt3s7-vD8KQ
 
 💡 Need help setting up your **Event Calendar** Website? 👉 **[Let Us Know](https://themewinter.com/support/).**
@@ -45,9 +44,6 @@ https://www.youtube.com/watch?v=vt3s7-vD8KQ
 🎸 Music Trainers 
 🧩 Conference Event Organizers 
 ………and many more. 🙌
-
-
-
 
 #### Discover How to Create Multiple Events in a few seconds with Eventin Pro Events Planner: ####
 
@@ -101,7 +97,7 @@ https://www.youtube.com/watch?v=iQU9KXhMTSQ
 
 
 
-## 🚨 [Eventin PRO](https://themewinter.com/eventin/pricing/): Everything You Need in an All-in-One Event Management for WordPress ##
+ 🚨 ## [Eventin PRO](https://themewinter.com/eventin/pricing/): Everything You Need in an All-in-One Event Management for WordPress ##
 
 ## 🎯 Manage Events & RSVP: ##
 
@@ -321,6 +317,33 @@ Yes, Eventin offers a unique QR scanner solution to scan all the single/bulk tic
 
 
 == Changelog ==
+
+= 4.0.10 ( September 26, 2024 )=
+Fix : Order status blank before completing payment
+Fix : Ticket is not loading properly on safary browser
+Fix : HTML entity decoding issue
+Fix : Through fatal error if woocommerce order not exist for a purchase report
+Fix : Re-rendering issue on the checkout page
+
+= 4.0.9 ( September 24, 2024 )=
+New   : Added "Currency" tab to payment settings.
+New   : Introduced event reminder email option in settings.
+New   : Added new UI/UX for the attendee list page.
+New   : Updated manual attendee creation process using react and api.
+New   : Updated UI/UX of purchase reports.
+New   : Update all email templates with new design
+Tweak : Added option to change the slug for Speaker & Organizer
+Tweak : Added option to show/hide email on the settings page
+Tweak : Company name is now displayed on the speaker details page
+Tweak : Added header and footer to the speaker details page
+Tweak : Ticketing date range selection.
+Tweak : Displayed payment method notice when ticket variations have a price.
+Tweak : Updated design for settings and single event attendee extra fields.
+Fix   : Role-related issues
+Fix   : Updated username display. Now shows full name in the URL instead of email
+Fix   : Admin text translation issues.
+Fix 	: Add to calender couldn't set event descrion on google calander
+Fix 	: Admin shouldn't count as organizer, remove organizer role from admin user
 
 = 4.0.8 ( August 28, 2024 )=
 New 	: Speaker UI/UX updated

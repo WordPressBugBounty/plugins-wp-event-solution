@@ -110,11 +110,11 @@ public $data = [
     private function get_data( $id ) {
         if ( $id ) {
             $thumbnail_id       = get_post_thumbnail_id( $id );
-            $src                = wp_get_attachment_image_src( $thumbnail_id, 'full' )[0];
-            $image              = isset( $src ) ? esc_url( $src ) : '';
+            $src                = wp_get_attachment_image_src( $thumbnail_id, 'full' );
+            $image              = isset( $src[0] ) ? esc_url( $src[0] ) : '';
             $company_logo       = get_post_meta( $id, 'etn_speaker_company_logo', true );
-            $company_img        = wp_get_attachment_image_src( $company_logo, 'full' )[0];
-            $company_logo       = isset( $company_img ) ? esc_url( $company_img ) : '';
+            $company_img        = wp_get_attachment_image_src( $company_logo, 'full' );
+            $company_logo       = isset( $company_img[0] ) ? esc_url( $company_img[0] ) : '';
 
             return [
                 'user_name'                 => get_post_meta( $id, 'etn_speaker_title', true ),

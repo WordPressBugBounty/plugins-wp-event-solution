@@ -23,7 +23,7 @@ use Etn\Utils\Helper;
     $user_id            = is_numeric( $get_arr["attendee_id"] ) ? $get_arr["attendee_id"] : 0;
     $access_token       = $get_arr['etn_info_edit_token'];
     $attendee_data      = Helper::get_attendee_by_token( 'etn_info_edit_token', $access_token  );
-    $attendee_name      = get_the_title( $user_id );
+    $attendee_name      = get_post_meta( $user_id, 'etn_name', true );
     $attendee_email     = get_post_meta( $user_id, "etn_email", true );
     $attendee_phone     = get_post_meta( $user_id, "etn_phone", true );
     $base_url           = home_url( );

@@ -56,6 +56,11 @@ class Hooks {
 
         add_action( 'admin_init', [$this, 'etn_speaker_group_insert_to_user'] );
 
+        add_filter( 'eventin_settings', [ $this, 'update_extra_field_settings' ] );
+
+        add_action( 'eventin_after_order_create', [$this, 'fluentCrm_hook'], 10,1 );
+
+
     }
 
     /**
@@ -579,5 +584,39 @@ class Hooks {
             update_user_meta($user->ID, 'etn_speaker_category', $category_value, true);
         }
         
+    }
+
+    /**
+     * Update settins extra fields
+     *
+     * @param   array  $settings
+     *
+     * @return  array
+     */
+    public function update_extra_field_settings( $settings ) {
+        $extra_fields = $extra_fields = etn_get_option( 'extra_fields', [] ) ?: etn_get_option( 'attendee_extra_fields', [] );
+
+        $settings['extra_fields'] = $extra_fields;
+        unset($settings['attendee_extra_fields']);
+
+        return $settings;
+    }
+
+
+    public function fluentCrm_hook( $order) { 
+        
+        $event_id = $order->event_id; 
+        $fluentCRM_enable = get_post_meta( $event_id, 'fluent_crm', true );
+        $fluentcrm_webhook= get_post_meta( $event_id, 'fluent_crm_webhook', true ); 
+
+        $body = array(
+            'email' => $order->customer_email,
+            'first_name' => $order->customer_fname,
+        );  
+ 
+        if($fluentCRM_enable ==='yes' && !empty($fluentcrm_webhook)){ 
+            $response_user = wp_remote_post($fluentcrm_webhook, ['body' => $body]);
+        } 
+       
     }
 }

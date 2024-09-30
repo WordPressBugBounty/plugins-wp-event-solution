@@ -534,13 +534,18 @@ if ( ! function_exists( 'etn_get_default_email_settings' )  ) {
             'purchase_email' => [
                 'from'    => get_option( 'admin_email' ),
                 'subject' => sprintf( __( 'Event Ticket', 'eventin' ) ),
-                'body'    => __( 'You have purchased ticket(s) for %s. Attendee ticket details are as follows.', 'eventin' ),
+                'body'    => __( 'You have purchased ticket(s). Attendee ticket details are as follows.', 'eventin' ),
             ],
             'rsv_email' => [
                 'from'          => get_option( 'admin_email' ),
                 'response_type' => 'going',
                 'subject'       => sprintf( __( 'RSVP request', 'eventin' ) ),
                 'body'          => sprintf( __( 'We received your RSVP request', 'eventin' ) ),
+            ],
+            'reminder_email' => [
+                'from'    => get_option( 'admin_email' ),
+                'subject' => sprintf( __( 'Reminder email', 'eventin' ) ),
+                'body'    => __( 'Just sending you a quick reminder about our retailer meet-up you\'ve registered to attend in two days time. If you\'ve misplaced the Invitation that contained all the details. don\'t worry. Cve added them rn below for you.', 'eventin' ),
             ]
         ];
 

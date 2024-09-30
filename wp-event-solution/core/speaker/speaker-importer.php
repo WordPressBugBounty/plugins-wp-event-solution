@@ -47,27 +47,37 @@ class Speaker_Importer implements Post_Importer_Interface {
      * @return  void
      */
     private function create_speaker() {
-        $speaker    = new Speaker_Model();
         $file_type  = ! empty( $this->file['type'] ) ? $this->file['type'] : '';
         $rows       = $this->data;
-        
+
         foreach( $rows as $row ) {
+            $speaker = new User_Model();
+            $social = ! empty( $row['social'] ) ? $row['social'] : '';
+            $group  = ! empty( $row['speaker_group'] ) ? $row['speaker_group'] : '';
+
+            if ( 'text/csv' == $file_type ) {
+                $social = json_decode( $social, true );
+                $group  = json_decode( $group, true );
+            }
+
             $args = [
-                'etn_speaker_title'         => ! empty( $row['name'] ) ? $row['name'] : '',
+                'first_name'                => ! empty( $row['name'] ) ? $row['name'] : '',
+                'user_email'                => ! empty( $row['email'] ) ? $row['email'] : '',
                 'etn_speaker_designation'   => ! empty( $row['designation'] ) ? $row['designation'] : '',
-                'etn_speaker_website_email' => ! empty( $row['email'] ) ? $row['email'] : '',
                 'etn_speaker_summery'       => ! empty( $row['summary'] ) ? $row['summary'] : '',
-                'etn_speaker_socials'       => ! empty( $row['social'] ) ? $row['social'] : '',
+                'etn_speaker_social'        => $social,
                 'etn_speaker_company_logo'  => ! empty( $row['company_logo'] ) ? $row['company_logo'] : '',
-                'etn_speaker_url'           => ! empty( $row['company_url'] ) ? $row['company_url'] : '',
+                'company_url'               => ! empty( $row['company_url'] ) ? $row['company_url'] : '',
+                'etn_speaker_group'         => $group,
+                'etn_speaker_category'      => $group,
+                'etn_company_name'          => ! empty( $row['company_name'] ) ? $row['company_name'] : '',
+                'author_url'                => ! empty( $row['author_url'] ) ? $row['author_url'] : '',
+                'role'                      => ! empty( $row['role'] ) ? $row['role'] : '',
             ];
 
-            $category =  'text/csv' == $file_type ? etn_csv_column_array( $row['category'] ) : $row['category'];
-
-	    $args['etn_speaker_socials'] =  'text/csv' == $file_type ? etn_csv_column_multi_dimension_array( $row['social'] ) : $row['social'];
-
+            $args['user_login'] = $row['email'];
+    
             $speaker->create( $args );
-            $speaker->assign_post_terms( 'etn_speaker_category', $category );
         }
     }
 }

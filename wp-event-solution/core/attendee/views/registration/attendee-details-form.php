@@ -23,6 +23,8 @@ if ( $check && !empty( $post_arr["variation_picked_total_qty"] ) && !empty( $pos
 
     header("Cache-Control: no-cache, no-store, must-revalidate"); // HTTP 1.1.
 	header("Pragma: no-cache"); // HTTP 1.0.
+	header('Content-Type: text/html; charset=utf-8');
+
 
     wp_head();
     $add_to_cart_id = $post_arr["event_id"];

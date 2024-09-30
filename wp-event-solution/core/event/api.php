@@ -472,6 +472,7 @@ class Api extends \Etn\Base\Api_Handler {
 		$seat_plan_settings = get_post_meta( $event_id, 'seat_plan_settings', true );
 		$ticket_availability= get_post_meta( $event_id, 'etn_ticket_availability', true );
 		$etn_booked_seats   = get_post_meta( $event_id, '_etn_seat_unique_id', true );
+		$post				= get_post( $event_id );
 
 		if ( !empty($etn_booked_seats) ) {
 			$etn_booked_seats = explode(",",$etn_booked_seats);
@@ -518,6 +519,10 @@ class Api extends \Etn\Base\Api_Handler {
 				'seat_plan_settings' => $seat_plan_settings,
 				'id'                 => $etn_booked_seats,
 				'link'         		 => get_the_permalink( $event_id ),
+				'title'				 => $post->post_title,
+				'location'			 => get_post_meta( $event_id, 'etn_event_location', true ),			
+				'start_date'	     => get_post_meta( $event_id, 'etn_start_date', true ),			
+				'start_time'	     => get_post_meta( $event_id, 'etn_start_time', true ),			
 			],
 		];
 

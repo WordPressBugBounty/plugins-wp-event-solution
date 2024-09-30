@@ -64,8 +64,13 @@ class Attendee_Importer implements Post_Importer_Interface {
                 'etn_info_edit_token'         => md5( 'attendee-edit-info-token' ),
             ];
 
-            $args = array_merge( $args, $this->get_extra_field_data( $row ) );
+            $extra_fields = $this->get_extra_field_data( $row );
+
+            $args = array_merge( $args, $extra_fields );
+
             $attendee->create( $args );
+
+            $this->update_extra_fields( $attendee->id, $extra_fields );
         }
 
     }
@@ -98,5 +103,21 @@ class Attendee_Importer implements Post_Importer_Interface {
         }
 
         return $data;
+    }
+
+    /**
+     * Updated extra field
+     *
+     * @param   integer  $attendee_id
+     *
+     * @return  void
+     */
+    private function update_extra_fields( $attendee_id, $fields ) {
+        
+        if ( $fields ) {
+            foreach( $fields as $key => $value ) {
+                update_post_meta( $attendee_id, $key, $value );
+            }
+        }
     }
 }

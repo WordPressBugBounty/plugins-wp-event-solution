@@ -124,6 +124,11 @@ final class Bootstrap {
 			include_once \Wpeventin::plugin_dir() . 'core/guten-block/inc/init.php';
 		}
 
+		// Recurring event functions.
+		if ( file_exists( \Wpeventin::plugin_dir() . 'core/event/template-functions.php' ) ) {
+			include_once \Wpeventin::plugin_dir() . 'core/event/template-functions.php';
+		}
+
 		$payment_gateway = Helper::retrieve_payment_gateway();
 		if ( $payment_gateway == 'woocommerce' ) {
 			if ( file_exists( \Wpeventin::plugin_dir() . 'core/woocommerce/etn-product-data-store-cpt.php' ) ) {
@@ -342,12 +347,12 @@ final class Bootstrap {
 	 */
 	public function etn_version_four_page() {
 		\do_action('enqueue_block_assets');
- 		wp_enqueue_script( 'etn-version-four' );
-		wp_enqueue_style( 'etn-version-four' );
+ 		wp_enqueue_script( 'etn-dashboard' );
+		wp_enqueue_style( 'etn-dashboard' );
 		$settings = etn_editor_settings();
-        wp_add_inline_script( 'etn-version-four', 'window.eventinEditorSettings = ' . wp_json_encode( $settings ) . ';' );
+        wp_add_inline_script( 'etn-dashboard', 'window.eventinEditorSettings = ' . wp_json_encode( $settings ) . ';' );
 		wp_enqueue_script('wp-edit-post');
-		$versionFourView = \Wpeventin::plugin_dir() . "core/version-four/version-four.php";
+		$versionFourView = \Wpeventin::plugin_dir() . "core/admin-view/dashboard.php";
 		include $versionFourView;
 	}
 
@@ -408,17 +413,10 @@ final class Bootstrap {
 	 * @return void
 	 */
 	public function initialize_settings_dependent_cpt_modules() {
-
-		// add parent menu first so other menu's can be added inside it.
-		// add_action( 'admin_menu', array( $this, 'register_admin_menu' ), 98 );
-
-		// add_action( 'admin_menu', [ $this, 'add_setting_menu' ], 99 );
 		add_action( 'admin_menu', [ $this, 'add_shortcode_menu' ], 100 );
 		add_action( 'admin_menu', [ $this, 'add_wizard_menu' ], 101 );
 		add_action( 'admin_menu', [ $this, 'add_addons_menu' ], 102 );
-		// add_action( 'admin_menu', [ $this, 'version_four_page' ], 102 );
-
-
+		
 		// Initialize event module.
 		Core\Event\Hooks::instance()->init();
 		// recurring event.
@@ -427,31 +425,19 @@ final class Bootstrap {
 		// initialize event ticket registration module.
 		Core\Event\Registration::instance()->init();
 
-		// Initialize attendee information-update module.
-		Core\Attendee\InfoUpdate::instance()->init();
-
 		// Initialize schedule module.
 		Core\Schedule\Hooks::instance()->init();
 
 		// Initialize speaker module.
 		Core\Speaker\Hooks::instance()->init();
-		// Initialize attendee module.
-		Core\Attendee\Hooks::instance()->init();
-		Core\Attendee\Attendee_List::instance()->init();
-
-		// initialize zoom module.
-		// Core\Zoom_Meeting\Hooks::instance()->init();
 
 		// Initialize Admin Hooks.
 		Core\Admin\Hooks::instance()->init();
 
-		// if ( etn_is_request( 'admin' ) ) {
-		// 	new \Etn\Base\Enqueue\Admin();
-		// }
-
-		// if ( etn_is_request( 'frontend' ) ) {
-		// 	new \Etn\Base\Enqueue\Frontend();
-		// }
+		// Core\Attendee\Hooks::instance()->init();
+		Core\Attendee\Attendee_List::instance()->init();
+		Core\Attendee\Hooks::instance()->init();
+		Core\Attendee\InfoUpdate::instance()->init();
 	}
 
 	/**

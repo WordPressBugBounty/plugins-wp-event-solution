@@ -364,22 +364,31 @@ if ( !function_exists( 'speaker_two_lite_sessions_details' ) ) {
                         <?php
                         foreach ( $etn_schedule_meta_value as $single_meta ) {
                             if (  !empty( $single_meta['speakers'] ) && in_array( $author_id, $single_meta['speakers'] )):
+
+                                $start_time = isset($single_meta["etn_shedule_start_time"]) ? $single_meta["etn_shedule_start_time"] : "";
+                                $end_time   = isset($single_meta["etn_shedule_end_time"]) ? $single_meta["etn_shedule_end_time"] : "";
+                                $room       = isset($single_meta["etn_shedule_room"]) ? $single_meta["etn_shedule_room"] : "";
+                                $topics     = isset($single_meta["etn_schedule_topic"]) ? $single_meta["etn_schedule_topic"] : "";
+                                $desc       = isset($single_meta["etn_shedule_objective"]) ? $single_meta["etn_shedule_objective"] : "";
+
+
                                 ?>
                                 <div class="schedule-listing multi-schedule-list">
+                                    <?php if($start_time !== '' || $end_time !== ''){ ?>
+                                        <div class="schedule-slot-time">
 
-                                     <div class="schedule-slot-time">
-
-                                                <?php
-                
-                                                /**
-                                                 * Speaker schedule time hook.
-                                                 *
-                                                 * @hooked schedule_session_time - 19
-                                                 */
-                                                do_action( 'etn_schedule_two_lite_session_time', $single_meta["etn_shedule_start_time"], $single_meta["etn_shedule_end_time"] );
-                
-                                                ?>
-                                        </div>
+                                                    <?php
+                    
+                                                    /**
+                                                     * Speaker schedule time hook.
+                                                     *
+                                                     * @hooked schedule_session_time - 19
+                                                     */
+                                                    do_action( 'etn_schedule_two_lite_session_time',  $start_time, $end_time );
+                    
+                                                    ?>
+                                            </div>
+                                    <?php } ?>
                                     <div class="schedule-slot-info">
                                         <?php
                                          /**
@@ -387,7 +396,7 @@ if ( !function_exists( 'speaker_two_lite_sessions_details' ) ) {
                                          *
                                          * @hooked schedule_four_session_location - 21
                                          */
-                                        do_action( 'etn_schedule_two_lite_location', $single_meta["etn_shedule_room"] );
+                                        do_action( 'etn_schedule_two_lite_location', $room  );
 
 
                                         /**
@@ -395,14 +404,14 @@ if ( !function_exists( 'speaker_two_lite_sessions_details' ) ) {
                                          *
                                          * @hooked schedule_session_title - 20
                                          */
-                                        do_action( 'etn_schedule_two_lite_session_title', $single_meta["etn_schedule_topic"] );
+                                        do_action( 'etn_schedule_two_lite_session_title', $topics );
                                       
                                        /**
                                          * Speaker session description
                                          *
                                          * @hooked etn_shedule_objective - 20
                                          */
-                                        do_action( 'etn_speaker_objective' , $single_meta["etn_shedule_objective"]  );
+                                        do_action( 'etn_speaker_objective' , $desc   );
 
                                    
                                         ?>

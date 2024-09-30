@@ -142,23 +142,8 @@ $event_end_date_time = strtotime( $event_end_date . ' ' . $event_end_time );
 									<h4 class="registration-expired-message"><?php echo esc_html__( 'Registration Deadline Expired!!', "eventin" ); ?></h4>
 									<div class="etn-event-form-parent"></div>
 									<?php
-								} else {
-									$settings            = Helper::get_settings();
-									$attendee_reg_enable = ! empty( $settings["attendee_registration"] ) ? true : false;
-
-									if ( file_exists( get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'event/purchase-form/template/variable-ticket-form-template.php' ) ) {
-										$purchase_form_template = get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'event/purchase-form/template/variable-ticket-form-template.php';
-									} elseif ( file_exists( get_template_directory() . \Wpeventin::theme_templates_dir() . 'event/purchase-form/template/variable-ticket-form-template.php' ) ) {
-										$purchase_form_template = get_template_directory() . \Wpeventin::theme_templates_dir() . 'event/purchase-form/template/variable-ticket-form-template.php';
-									} else {
-										$purchase_form_template = \Wpeventin::templates_dir() . "event/purchase-form/template/variable-ticket-form-template.php";
-									}
-
-									$form_template = apply_filters( "etn/purchase_form_template", $purchase_form_template );
-
-									if ( file_exists( $form_template ) ) {
-										include $form_template;
-									}
+								} else { 
+									Helper::eventin_ticket_widget( $single_event_id );
 								}
 							}
 							?>

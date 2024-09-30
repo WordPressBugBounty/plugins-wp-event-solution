@@ -34,6 +34,7 @@ class Event_Model extends Post_Model {
         'etn_start_time'                    => '',
         'etn_end_time'                      => '',
         'etn_ticket_availability'           => '',
+        'etn_total_sold_tickets'            => '',
         'etn_ticket_variations'             => '',
         'etn_registration_deadline'         => '',
         'etn_zoom_id'                       => '',
@@ -122,5 +123,140 @@ class Event_Model extends Post_Model {
         }
 
         return $status;
+    }
+
+    /**
+     * Get tickets
+     *
+     * @param   string  $slug
+     *
+     * @return  array
+     */
+    public function get_ticket( $slug = '' ) {
+        $ticket_variations = $this->etn_ticket_variations;
+
+        if ( ! $ticket_variations ) {
+            return;
+        }
+
+        if ( ! $slug ) {
+            return $ticket_variations;
+        }
+        
+        foreach( $ticket_variations as $variation ) {
+            if ( $slug === $variation['etn_ticket_slug'] ) {
+                return $variation;
+            }
+        }
+    }
+
+    /**
+     * Get event title
+     *
+     * @return  string
+     */
+    public function get_title() {
+        $post = get_post( $this->id );
+
+        return $post->post_title;
+    }
+
+    /**
+     * Get event location address
+     *
+     * @return  string
+     */
+    public function get_address() {
+        $address = '';
+
+        if ( $this->event_type === 'offline' ) {
+            $location = $this->etn_event_location;
+
+            $address = ! empty( $location['address'] ) ? $location['address'] : '';
+        }
+
+        return $address;
+    }
+
+    /**
+     * Get event start date time
+     *
+     * @param   string  $format  [$format description]
+     *
+     * @return  string Event start date time
+     */
+    public function get_start_datetime( $format = 'Y-m-d h:i a' ) {
+        $datetime = $this->get_datetime( $this->etn_start_date, $this->etn_start_time );
+
+        return $datetime->format( $format );
+    }
+
+    /**
+     * Get end date time
+     *
+     * @param   string  $format  [$format description]
+     *
+     * @return  string           [return description]
+     */
+    public function get_end_datetime($format = 'Y-m-d h:i a') {
+        $datetime = $this->get_datetime( $this->etn_end_date, $this->etn_end_time );
+        
+        return $datetime->format( $format );
+    }
+
+    /**
+     * Get event timezone
+     *
+     * @return  string
+     */
+    public function get_timezone() {
+        $timezone   = $this->event_timezone ? etn_create_date_timezone( $this->event_timezone ) : 'Asia/Dhaka';
+
+        return $timezone;
+    }
+
+    /**
+     * Get date time object
+     *
+     * @param   string  $date
+     * @param   string  $time  [$time description]
+     *
+     * @return  Datetime
+     */
+    private function get_datetime($date, $time) {
+        $date_time_string = $date . ' ' . $time;
+
+        $datetime = new \DateTime( $date_time_string, new \DateTimeZone( $this->get_timezone() ) );
+
+        return $datetime;
+    }
+
+    /**
+     * Check an event is expired or not
+     *
+     * @return  bool
+     */
+    public function is_expaired() {
+        return time() > strtotime( $this->get_end_datetime() );
+    }
+
+    /**
+     * Get total sold tickets
+     *
+     * @return  integer  Total number of sold tickets
+     */
+    public function get_total_sold_ticket() {
+        $ticket_variations = $this->etn_ticket_variations;
+        $total_ticket      = 0;
+
+        if ( is_array( $ticket_variations ) ) {
+            foreach ( $ticket_variations as $ticket ) {
+                if ( ! empty( $ticket['etn_sold_tickets'] ) ) {
+                    $total_ticket += $ticket['etn_sold_tickets'];
+                }
+            }
+        }
+
+        return $total_ticket;
     }
 }

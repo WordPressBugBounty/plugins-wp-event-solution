@@ -287,10 +287,13 @@ class Etn_Schedule_List extends Widget_Base {
 
     protected function render() {
         $settings = $this->get_settings();
-        $style    = $settings["schedule_style"];
-        $etn_schedule_id   = $settings["schedule_id"];
+         $sanitize_filename = sanitize_file_name($settings["schedule_style"]);
+        $style             = !empty($sanitize_filename) ? $sanitize_filename : 'schedule-list-1';
 
-        include \Wpeventin::plugin_dir() . "widgets/schedule-list/style/{$style}.php";
+        $etn_schedule_id   = $settings["schedule_id"];
+        if ( file_exists( \Wpeventin::plugin_dir() . "widgets/schedule-list/style/{$style}.php") ) {
+            include \Wpeventin::plugin_dir() . "widgets/schedule-list/style/{$style}.php";
+        }
     }
 
     protected function get_schedules() {

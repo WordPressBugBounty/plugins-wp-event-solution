@@ -76,13 +76,11 @@ class Attendee_Exporter implements Post_Exporter_Interface {
                 'payment_status' => get_post_meta( $id, 'etn_status', true ),
             ];
 
-            if ( ! empty( Helper::get_option( 'reg_require_email' ) ) ) {
-                $attendee['email'] = get_post_meta( $id, 'etn_email', true );
-            }
+            
+            $attendee['email'] = get_post_meta( $id, 'etn_email', true );
 
-            if ( ! empty( Helper::get_option( 'reg_require_phone' ) ) ) {
-                $attendee['phone'] = get_post_meta( $id, 'etn_phone', true );
-            }
+            $attendee['phone'] = get_post_meta( $id, 'etn_phone', true );
+            
 
             $attendee = array_merge( $attendee, $this->get_extra_field_data( $id ) );
 
@@ -113,15 +111,14 @@ class Attendee_Exporter implements Post_Exporter_Interface {
                 $key                        = \Etn_Pro\Utils\Helper::generate_name_from_label( "etn_attendee_extra_field_", $value['label'] );
                 $this->extra_fields[$key]   = $value['label'];
                 $extra_field_value          = get_post_meta( $attendee_id, $key, true );
-
-                switch($value['type']){
+                switch($value['field_type']){
                     case 'radio':
-                        $data[$key] = $value[$value['type']][$extra_field_value];
+                        $data[$key] = $value['field_options'][$extra_field_value]['value'];
                     break;
 
                     case 'checkbox': 
                         $saved_checkbox_arr   = maybe_unserialize( $extra_field_value );
-                        $defined_checkbox_arr = $value[$value['type']];
+                        $defined_checkbox_arr = $value[$value['field_options']];
                         $data[$key] = '';
                         if ( is_array( $defined_checkbox_arr ) && count( $defined_checkbox_arr ) > 0 && is_array( $saved_checkbox_arr ) && count( $saved_checkbox_arr ) > 0 ) {
                             $selected_checkbox = array_intersect_key( $defined_checkbox_arr, array_flip( $saved_checkbox_arr ) );
@@ -140,7 +137,7 @@ class Attendee_Exporter implements Post_Exporter_Interface {
                 }
             }
         }
-
+        
         return $data;
     }
 

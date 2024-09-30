@@ -24,6 +24,8 @@ class Frontend {
         wp_enqueue_style( 'etn-icon' );
         wp_enqueue_style( 'etn-public-css' );
         wp_enqueue_script( 'etn-public' );
+        wp_enqueue_script( 'etn-ticket-selector' );
+        wp_enqueue_script( 'etn-checkout' );
         wp_set_script_translations( 'etn-public', 'eventin' );
         // wp_enqueue_script( 'html-to-image' ); // Dont need this. Without this file it's working fine
 
@@ -72,4 +74,3 @@ class Frontend {
 		wp_localize_script( 'etn-public', 'localized_data_obj', $translated_data );
     }
 }
-

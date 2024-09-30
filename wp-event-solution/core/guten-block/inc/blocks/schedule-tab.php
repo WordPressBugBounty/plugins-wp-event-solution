@@ -38,6 +38,9 @@ add_action( 'init', 'etn_register_schedule_tab_block' );
 function etn_schedule_tab_callback( $settings ) {
 
     $style              = $settings["schedule_style"];
+    $sanitize_filename = sanitize_file_name($style);
+    $style             = !empty($sanitize_filename) ? $sanitize_filename : 'schedule-1';
+
     $etn_schedule_order = $settings["etn_schedule_order"];
     $etn_schedule_ids   = $settings["schedule_id"];
     $order              = isset( $etn_schedule_order ) ? $etn_schedule_order : 'ASC';

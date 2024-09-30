@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit723e34409e78a0be1cdeb8e7ed53766e
+class ComposerStaticInitef124029e9186141209610a3812fbf9a
 {
     public static $prefixLengthsPsr4 = array (
         'E' => 
@@ -148,7 +148,11 @@ class ComposerStaticInit723e34409e78a0be1cdeb8e7ed53766e
         'Eventin\\Abstracts\\Provider' => __DIR__ . '/../..' . '/base/Abstracts/Provider.php',
         'Eventin\\Activate' => __DIR__ . '/../..' . '/base/Activate.php',
         'Eventin\\Admin\\AdminProvider' => __DIR__ . '/../..' . '/core/admin/AdminProvider.php',
+        'Eventin\\Admin\\EventReminder' => __DIR__ . '/../..' . '/core/admin/EventReminder.php',
         'Eventin\\Admin\\Menu' => __DIR__ . '/../..' . '/core/admin/Menu.php',
+        'Eventin\\Admin\\OrderAttendee' => __DIR__ . '/../..' . '/core/admin/OrderAttendee.php',
+        'Eventin\\Admin\\OrderTicket' => __DIR__ . '/../..' . '/core/admin/OrderTicket.php',
+        'Eventin\\Admin\\TemplateRender' => __DIR__ . '/../..' . '/core/admin/TemplateRender.php',
         'Eventin\\ApiManager' => __DIR__ . '/../..' . '/base/ApiManager.php',
         'Eventin\\Attendee\\Api\\AttendeeController' => __DIR__ . '/../..' . '/core/attendee/Api/AttendeeController.php',
         'Eventin\\Base\\Speaker_role' => __DIR__ . '/../..' . '/core/speaker/speaker-role.php',
@@ -161,6 +165,13 @@ class ComposerStaticInit723e34409e78a0be1cdeb8e7ed53766e
         'Eventin\\Core\\Container\\ContainerInterface' => __DIR__ . '/../..' . '/base/Container/ContainerInterface.php',
         'Eventin\\CustomEndpoint' => __DIR__ . '/../..' . '/base/CustomEndpoint.php',
         'Eventin\\Deactivate' => __DIR__ . '/../..' . '/base/Deactivate.php',
+        'Eventin\\Emails\\AdminEventReminderEmail' => __DIR__ . '/../..' . '/core/Emails/AdminEventReminderEmail.php',
+        'Eventin\\Emails\\AdminOrderEmail' => __DIR__ . '/../..' . '/core/Emails/AdminOrderEmail.php',
+        'Eventin\\Emails\\AdminRsvpEmail' => __DIR__ . '/../..' . '/core/Emails/AdminRsvpEmail.php',
+        'Eventin\\Emails\\AttendeeEventReminderEmail' => __DIR__ . '/../..' . '/core/Emails/AttendeeEventReminderEmail.php',
+        'Eventin\\Emails\\AttendeeOrderEmail' => __DIR__ . '/../..' . '/core/Emails/AttendeeOrderEmail.php',
+        'Eventin\\Emails\\AttendeeRsvpEmail' => __DIR__ . '/../..' . '/core/Emails/AttendeeRsvpEmail.php',
+        'Eventin\\Emails\\ExampleEmail' => __DIR__ . '/../..' . '/core/Emails/ExampleEmail.php',
         'Eventin\\EventCategory\\Api\\EventCategoryController' => __DIR__ . '/../..' . '/core/event/Api/CategoryController.php',
         'Eventin\\Event\\Api\\EventController' => __DIR__ . '/../..' . '/core/event/Api/EventController.php',
         'Eventin\\Event\\Api\\EventTagController' => __DIR__ . '/../..' . '/core/event/Api/EventTagController.php',
@@ -170,6 +181,7 @@ class ComposerStaticInit723e34409e78a0be1cdeb8e7ed53766e
         'Eventin\\Installer' => __DIR__ . '/../..' . '/base/Installer.php',
         'Eventin\\Integrations\\CustomUrl' => __DIR__ . '/../..' . '/core/Integrations/CustomUrl.php',
         'Eventin\\Integrations\\Integration' => __DIR__ . '/../..' . '/core/Integrations/Integration.php',
+        'Eventin\\Integrations\\WC\\WCPayment' => __DIR__ . '/../..' . '/core/Integrations/WC/WCPayment.php',
         'Eventin\\Integrations\\Zoom\\Zoom' => __DIR__ . '/../..' . '/core/Integrations/Zoom/Zoom.php',
         'Eventin\\Integrations\\Zoom\\ZoomClient' => __DIR__ . '/../..' . '/core/Integrations/Zoom/ZoomClient.php',
         'Eventin\\Integrations\\Zoom\\ZoomCredential' => __DIR__ . '/../..' . '/core/Integrations/Zoom/ZoomCredential.php',
@@ -179,6 +191,16 @@ class ComposerStaticInit723e34409e78a0be1cdeb8e7ed53766e
         'Eventin\\Interfaces\\MeetingPlatformInterface' => __DIR__ . '/../..' . '/base/Interfaces/MeetingPlatformInterface.php',
         'Eventin\\Interfaces\\ProviderInterface' => __DIR__ . '/../..' . '/base/Interfaces/ProviderInterface.php',
         'Eventin\\Location\\Api\\LocationController' => __DIR__ . '/../..' . '/core/event/Api/LocationController.php',
+        'Eventin\\Mails\\Content' => __DIR__ . '/../..' . '/base/Mails/Content.php',
+        'Eventin\\Mails\\Mail' => __DIR__ . '/../..' . '/base/Mails/Mail.php',
+        'Eventin\\Mails\\Mailable' => __DIR__ . '/../..' . '/base/Mails/Mailable.php',
+        'Eventin\\Order\\OrderController' => __DIR__ . '/../..' . '/core/Order/OrderController.php',
+        'Eventin\\Order\\OrderExporter' => __DIR__ . '/../..' . '/core/Order/OrderExporter.php',
+        'Eventin\\Order\\OrderImporter' => __DIR__ . '/../..' . '/core/Order/OrderImporter.php',
+        'Eventin\\Order\\OrderModel' => __DIR__ . '/../..' . '/core/Order/OrderModel.php',
+        'Eventin\\Order\\PaymentController' => __DIR__ . '/../..' . '/core/Order/PaymentController.php',
+        'Eventin\\Order\\PaymentFactory' => __DIR__ . '/../..' . '/core/Order/PaymentFactory.php',
+        'Eventin\\Order\\PaymentInterface' => __DIR__ . '/../..' . '/core/Order/PaymentInterface.php',
         'Eventin\\Schedule\\Api\\ScheduleController' => __DIR__ . '/../..' . '/core/schedule/Api/ScheduleController.php',
         'Eventin\\Settings' => __DIR__ . '/../..' . '/base/Settings.php',
         'Eventin\\Settings\\Api\\SettingsController' => __DIR__ . '/../..' . '/core/settings/Api/SettingsController.php',
@@ -194,6 +216,7 @@ class ComposerStaticInit723e34409e78a0be1cdeb8e7ed53766e
         'Eventin\\Upgrade\\Upgraders\\V_4_0_6' => __DIR__ . '/../..' . '/core/Upgrade/Upgraders/V_4_0_6.php',
         'Eventin\\Upgrade\\Upgraders\\V_4_0_7' => __DIR__ . '/../..' . '/core/Upgrade/Upgraders/V_4_0_7.php',
         'Eventin\\Upgrade\\Upgraders\\V_4_0_8' => __DIR__ . '/../..' . '/core/Upgrade/Upgraders/V_4_0_8.php',
+        'Eventin\\Upgrade\\Upgraders\\V_4_0_9' => __DIR__ . '/../..' . '/core/Upgrade/Upgraders/V_4_0_9.php',
         'Eventin\\Validation\\RuleMap' => __DIR__ . '/../..' . '/base/Validation/RuleMap.php',
         'Eventin\\Validation\\Rules\\RequiredRule' => __DIR__ . '/../..' . '/base/Validation/Rules/RequiredRule.php',
         'Eventin\\Validation\\Rules\\Rule' => __DIR__ . '/../..' . '/base/Validation/Rules/Rule.php',
@@ -206,9 +229,9 @@ class ComposerStaticInit723e34409e78a0be1cdeb8e7ed53766e
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit723e34409e78a0be1cdeb8e7ed53766e::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit723e34409e78a0be1cdeb8e7ed53766e::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInit723e34409e78a0be1cdeb8e7ed53766e::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInitef124029e9186141209610a3812fbf9a::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInitef124029e9186141209610a3812fbf9a::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInitef124029e9186141209610a3812fbf9a::$classMap;
 
         }, null, ClassLoader::class);
     }

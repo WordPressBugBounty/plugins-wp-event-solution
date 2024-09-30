@@ -6,6 +6,8 @@
  */
 namespace Eventin\Schedule\Api;
 
+use Etn\Core\Schedule\Schedule_Exporter;
+use Etn\Core\Schedule\Schedule_Importer;
 use Etn\Core\Schedule\Schedule_Model;
 use WP_Error;
 use WP_Query;
@@ -103,6 +105,22 @@ class ScheduleController extends WP_REST_Controller {
                 'schema' => array( $this, 'get_item_schema' ),
             ),
         );
+
+        register_rest_route( $this->namespace, $this->rest_base . '/export', [
+            [
+                'methods'             => WP_REST_Server::READABLE,
+                'callback'            => [$this, 'export_items'],
+                'permission_callback' => [$this, 'export_items_permissions_check'],
+            ],
+        ] );
+
+        register_rest_route( $this->namespace, $this->rest_base . '/import', [
+            [
+                'methods'             => WP_REST_Server::CREATABLE,
+                'callback'            => [$this, 'import_items'],
+                'permission_callback' => [$this, 'import_items_permissions_check'],
+            ],
+        ] );
     }
 
     /**
@@ -450,4 +468,73 @@ class ScheduleController extends WP_REST_Controller {
                 ),
             );
         }
+
+    /**
+     * Export attendees
+     *
+     * @param   WP_Rest_Request  $request  [$request description]
+     *
+     * @return  void
+     */
+    public function export_items( $request ) {
+        $format = ! empty( $request['format'] ) ? sanitize_text_field( $request['format'] ) : '';
+
+        $ids    = ! empty( $request['ids'] ) ? $request['ids'] : '';
+
+        if ( ! $format ) {
+            return new WP_Error( 'format_error', __( 'Invalid data format', 'eventin' ) );
+        }
+
+        if ( ! $ids ) {
+            return new WP_Error( 'data_error', __( 'Invalid ids', 'eventin' ), ['status' => 409] );
+        }
+
+        $exporter = new Schedule_Exporter();
+        $exporter->export( $ids, $format );
+    }
+
+    /**
+     * Check export items permissions
+     *
+     * @param   WP_Rest_Request  $request
+     *
+     * @return  void
+     */
+    public function export_items_permissions_check( $request ) {
+        return true;
+    }
+
+    /**
+     * Import items
+     *
+     * @return  void
+     */
+    public function import_items( $request ) {
+        $data = $request->get_file_params();
+        $file = ! empty( $data['schedule_import'] ) ? $data['schedule_import'] : '';
+
+        if ( ! $file ) {
+            return new WP_Error( 'empty_file', __( 'You must provide a valid file.', 'eventin' ), ['status' => 409] );
+        }
+
+        $importer = new Schedule_Importer();
+        $importer->import( $file );
+
+        $response = [
+            'message' => __( 'Successfully imported schedule', 'eventin' ),
+        ];
+
+        return rest_ensure_response( $response );
+    }
+
+    /**
+     * Permissions check for import items
+     *
+     * @param   WP_Rest_Request  $request
+     *
+     * @return bool 
+     */
+    public function import_items_permissions_check( $request ) {
+        return true;
+    }
 }

@@ -30,13 +30,20 @@ class Schedule_Exporter implements Post_Exporter_Interface {
     private $data;
 
     /**
+     * Store data format to export data
+     *
+     * @var string
+     */
+    private $format;
+
+    /**
      * Export attendee data
      *
      * @return void
      */
     public function export( $data, $format ) {
         $this->data = $data;
-
+        $this->format = $format;
         $rows      = $this->prepare_data();
         $columns   = $this->get_columns();
         $file_name = $this->file_name;
@@ -56,12 +63,18 @@ class Schedule_Exporter implements Post_Exporter_Interface {
         $exported_data = [];
 
         foreach ( $ids as $id ) {
+            $slots = get_post_meta( $id, 'etn_schedule_topics', true );
+
+            if ( 'csv' === $this->format ) {
+                $slots = json_encode( $slots );
+            }
+
             $schedule_data = [
                 'id'            => $id,
                 'program_title' => get_post_meta( $id, 'etn_schedule_title', true ),
                 'date'          => get_post_meta( $id, 'etn_schedule_date', true ),
                 'day_name'      => get_post_meta( $id, 'etn_schedule_day', true ),
-                'schedule_slot' => get_post_meta( $id, 'etn_schedule_topics', true ),
+                'schedule_slot' => $slots,
             ];
 
             array_push( $exported_data, $schedule_data );

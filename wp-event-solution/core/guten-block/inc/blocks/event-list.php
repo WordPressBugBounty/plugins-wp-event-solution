@@ -74,6 +74,9 @@ add_action( 'init', 'etn_register_event_list_block' );
 function etn_event_list_callback( $settings ) {
 
     $style              = $settings["etn_event_style"];
+    $sanitize_filename = sanitize_file_name($style);
+    $style             = !empty($sanitize_filename) ? $sanitize_filename : 'event-1';
+
     $event_cat          = $settings["etn_event_cat"];
     $event_tag          = $settings["etn_event_tag"];
     $event_count        = $settings["etn_event_count"];

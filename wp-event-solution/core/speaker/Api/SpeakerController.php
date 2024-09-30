@@ -6,6 +6,8 @@
  */
 namespace Eventin\Speaker\Api;
 
+use Etn\Core\Speaker\Speaker_Exporter;
+use Etn\Core\Speaker\Speaker_Importer;
 use Etn\Core\Speaker\User_Model;
 use WP_Error;
 use WP_User_Query;
@@ -111,6 +113,22 @@ class SpeakerController extends WP_REST_Controller {
                 'schema' => array( $this, 'get_item_schema' ),
             ),
         );
+
+        register_rest_route( $this->namespace, $this->rest_base . '/export', [
+            [
+                'methods'             => WP_REST_Server::READABLE,
+                'callback'            => [$this, 'export_items'],
+                'permission_callback' => [$this, 'export_item_permissions_check'],
+            ]
+        ] );
+
+        register_rest_route( $this->namespace, $this->rest_base . '/import', [
+            [
+                'methods'             => WP_REST_Server::CREATABLE,
+                'callback'            => [$this, 'import_items'],
+                'permission_callback' => [$this, 'import_item_permissions_check'],
+            ]
+        ] );
     }
 
     /**
@@ -340,6 +358,12 @@ class SpeakerController extends WP_REST_Controller {
         }
 
         $speaker = new User_Model( $request['id'] );
+
+        $user = get_user_by( 'email', $data['etn_speaker_website_email'] );
+
+        if ( $user && $speaker->get_speaker_website_email() != $data['etn_speaker_website_email'] ) {
+            return new WP_Error( 'email_error', __( 'A user is exist with this email.', 'eventin' ), ['status' => 409] );
+        }
 
         $updated = $speaker->update( $data );
 
@@ -610,5 +634,71 @@ class SpeakerController extends WP_REST_Controller {
         return $matching_user_ids;
     }
     
-    
+    /**
+     * Export items
+     *
+     * @param   WP_Rest_Request  $request  [$request description]
+     *
+     * @return  json
+     */
+    public function export_items( $request ) {
+        $format = ! empty( $request['format'] ) ? sanitize_text_field( $request['format'] ) : '';
+
+        $ids    = ! empty( $request['ids'] ) ? $request['ids'] : '';
+
+        if ( ! $format ) {
+            return new WP_Error( 'format_error', __( 'Invalid data format', 'eventin' ) );
+        }
+
+        if ( ! $ids ) {
+            return new WP_Error( 'data_error', __( 'Invalid ids', 'eventin' ), ['status' => 409] );
+        }
+
+        $exporter = new Speaker_Exporter();
+        $response = $exporter->export( $ids, $format );
+
+        if ( is_wp_error( $response ) ) {
+            return $response;
+        }
+    }
+
+    /**
+     * Check the permissions for export items
+     *
+     * @param   WP_Rest_Request  $request
+     *
+     * @return  bool
+     */
+    public function export_item_permissions_check( $request ) {
+        return true;
+    }
+
+    public function import_items( $request ) {
+        $data = $request->get_file_params();
+        $file = ! empty( $data['speaker_import'] ) ? $data['speaker_import'] : '';
+
+        if ( ! $file ) {
+            return new WP_Error( 'empty_file', __( 'You must provide a valid file.', 'eventin' ), ['status' => 409] );
+        }
+
+        $importer = new Speaker_Importer();
+        $importer->import( $file );
+
+        $response = [
+            'message' => __( 'Successfully imported speaker', 'eventin' ),
+        ];
+
+        return rest_ensure_response( $response );
+    }
+
+    /**
+     * Check permission for the import speakers
+     *
+     * @param   WP_Rest_Request  $request  [$request description]
+     *
+     * @return  bool
+     */
+    public function import_item_permissions_check( $request ) {
+        return true;
+    }
 }

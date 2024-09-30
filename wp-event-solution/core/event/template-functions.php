@@ -212,32 +212,31 @@ if ( ! function_exists( 'etn_after_single_event_meta_ticket_form' ) ) {
 	 * @return void
 	 */
 	function etn_after_single_event_meta_ticket_form( $single_event_id ) {
-
-		$single_event_id       = ! empty( $single_event_id ) ? $single_event_id : get_the_ID();
+		$single_event_id = ! empty( $single_event_id ) ? $single_event_id : get_the_ID();
 		$disable_purchase_form = get_post_meta( $single_event_id, 'etn_disable_purchase_form', true );
-
-		$rsv_settings 				= get_post_meta( get_the_id(), 'rsvp_settings', true );
 	
-		$disable_purchase_form		= ! empty( $rsv_settings['etn_disable_purchase_form'] ) && $rsv_settings['etn_disable_purchase_form'] ? true : false;
-		
+		$rsv_settings = get_post_meta( get_the_ID(), 'rsvp_settings', true );
+		$recurring_enabled = get_post_meta( get_the_ID(), 'recurring_enabled', true );
+	
+		// Override disable purchase form if set in RSVP settings
+		if ( ! empty( $rsv_settings['etn_disable_purchase_form'] ) && $rsv_settings['etn_disable_purchase_form'] ) {
+			$disable_purchase_form = true;
+		}
+	
 		if ( $disable_purchase_form ) {
 			return true;
 		}
-		$event_options    = get_option( "etn_event_options" );
-		$has_child_events = Helper::get_child_events( $single_event_id );
-
-		// if active woo-commerce and has ticket , show registration form
-		if ( isset( $event_options["sell_tickets"] ) && is_plugin_active( 'woocommerce/woocommerce.php' ) && ! $has_child_events ) {
-			?>
-            <div class="etn-single-event-ticket-wrap">
-				<?php Helper::eventin_ticket_widget( $single_event_id ); ?>
-            </div>
-			<?php
-		} else if ( class_exists( 'Wpeventin_Pro' ) && isset( $event_options["etn_sells_engine_stripe"] ) && ! $has_child_events ) {
-			apply_filters( 'etn_pro/stripe/ticket_template', $single_event_id );
-		}
+	
+		// Whether to show ticket selector and sell tickets, are controlled in frontend now.
+		?>
+		<div class="etn-single-event-ticket-wrap">
+			<?php if ($recurring_enabled !== 'yes') { 
+				Helper::eventin_ticket_widget( $single_event_id );
+			} ?>
+		</div>
+		<?php
 	}
-}
+} 
 
 if ( ! function_exists( 'etn_after_single_event_meta_recurring_event_ticket_form' ) ) {
 
@@ -257,34 +256,33 @@ if ( ! function_exists( 'etn_after_single_event_meta_recurring_event_ticket_form
 		if ( $has_child_events ) {
 
 			// if active woocmmerce and has ticket , show registation form
-			if ( ( isset( $event_options["sell_tickets"] ) && is_plugin_active( 'woocommerce/woocommerce.php' ) ) || ( class_exists( 'Wpeventin_Pro' ) && isset( $event_options["etn_sells_engine_stripe"] ) ) ) {
-				// for recurring events
-				$child_event_ids = [];
+ 				// for recurring events
+			$child_event_ids = [];
 
-				if ( is_array( $has_child_events ) && ! empty( $has_child_events ) ) {
+			if ( is_array( $has_child_events ) && ! empty( $has_child_events ) ) {
 
-					foreach ( $has_child_events as $single_child ) {
-						$end_date        = date_i18n( "Y-m-d", strtotime( get_post_meta( $single_child->ID, 'etn_end_date', true ) ) );
-						$current_date    = date( "Y-m-d" );
-						$settings        = etn_get_option();
-						$hide_reccurance = ! empty( $settings['hide_past_recurring_event_from_details'] ) ? $settings['hide_past_recurring_event_from_details'] : '';
+				foreach ( $has_child_events as $single_child ) {
+					$end_date        = date_i18n( "Y-m-d", strtotime( get_post_meta( $single_child->ID, 'etn_end_date', true ) ) );
+					$current_date    = date( "Y-m-d" );
+					$settings        = etn_get_option();
+					$hide_reccurance = ! empty( $settings['hide_past_recurring_event_from_details'] ) ? $settings['hide_past_recurring_event_from_details'] : '';
 
-						if ( $hide_reccurance == 'on' ) {
-							if ( $end_date >= $current_date ) {
-								array_push( $child_event_ids, $single_child->ID );
-							}
-						} else {
+					if ( $hide_reccurance == 'on' ) {
+						if ( $end_date >= $current_date ) {
 							array_push( $child_event_ids, $single_child->ID );
 						}
-
+					} else {
+						array_push( $child_event_ids, $single_child->ID );
 					}
-					?>
-                    <div class="etn-single-event-ticket-wrap">
-						<?php Helper::woocommerce_recurring_events_ticket_widget( $single_event_id, $child_event_ids ); ?>
-                    </div>
-					<?php
+
 				}
+				?>
+			<div class="etn-single-event-ticket-wrap">
+				<?php Helper::woocommerce_recurring_events_ticket_widget( $single_event_id, $child_event_ids ); ?>
+			</div>
+			<?php
 			}
+			 
 		}
 
 	}
@@ -332,8 +330,8 @@ if ( ! function_exists( 'etn_before_recurring_event_form_content' ) ) {
 
 		$freq = get_post_meta( $single_event_id, 'etn_event_recurrence', true );
 		?>
-        <div class="etn-recurring-event-wrapper">
-		<?php
+<div class="etn-recurring-event-wrapper">
+    <?php
 		$freq_title = '';
 
 		if ( $freq['recurrence_freq'] === 'day' ) {
@@ -347,8 +345,8 @@ if ( ! function_exists( 'etn_before_recurring_event_form_content' ) ) {
 		}
 
 		?>
-        <h3 class="etn-widget-title"><?php echo esc_html( $freq_title ); ?></h3>
-		<?php
+    <h3 class="etn-widget-title"><?php echo esc_html( $freq_title ); ?></h3>
+    <?php
 
 	}
 
@@ -365,12 +363,12 @@ if ( ! function_exists( 'etn_after_recurring_event_form_content' ) ) {
 	 */
 	function etn_after_recurring_event_form_content( $single_event_id ) {
 		?>
-        <button id="seeMore">
-			<?php echo esc_html__( 'Show More Event', 'eventin' ); ?> <i class="etn-icon etn-plus"></i>
-        </button>
-        </div>
+    <button id="seeMore">
+        <?php echo esc_html__( 'Show More Event', 'eventin' ); ?> <i class="etn-icon etn-plus"></i>
+    </button>
+</div>
 
-		<?php
+<?php
 
 	}
 
@@ -390,8 +388,8 @@ if ( ! function_exists( 'etn_after_single_event_meta_add_to_calendar' ) ) {
 		}
 
 		?>
-        <div class="etn-widget etn-add-calender-url">
-			<?php
+<div class="etn-widget etn-add-calender-url">
+    <?php
 
 			do_action( 'etn_before_add_to_calendar_button' );
 
@@ -399,8 +397,8 @@ if ( ! function_exists( 'etn_after_single_event_meta_add_to_calendar' ) ) {
 
 			do_action( 'etn_after_add_to_calendar_button' );
 			?>
-        </div>
-		<?php
+</div>
+<?php
 	}
 }
 
@@ -500,8 +498,8 @@ if ( ! function_exists( 'etn_before_single_event_content' ) ) {
 		$container_cls = isset( $options['single_post_container_width_cls'] ) ? $options['single_post_container_width_cls'] : '';
 		$template_name = etn_get_option( 'event_template' );
 		?>
-        <div class="etn-es-events-page-container <?php echo esc_attr( $container_cls . " " . $template_name ); ?>">
-		<?php
+<div class="etn-es-events-page-container <?php echo esc_attr( $container_cls . " " . $template_name ); ?>">
+    <?php
 	}
 
 }
@@ -515,8 +513,8 @@ if ( ! function_exists( 'etn_after_single_event_content' ) ) {
 	 */
 	function etn_after_single_event_content() {
 		?>
-        </div>
-		<?php
+</div>
+<?php
 	}
 
 }

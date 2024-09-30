@@ -360,12 +360,15 @@ class Etn_Schedule extends Widget_Base {
 
     protected function render() {
         $settings = $this->get_settings();
-        $style    = !empty( $settings["schedule_style"] ) ? $settings["schedule_style"] : "schedule-1";
+        $sanitize_filename = sanitize_file_name($settings["schedule_style"]);
+        $style             = !empty($sanitize_filename) ? $sanitize_filename : 'schedule-1';
+
         $etn_schedule_order = !empty( $settings["etn_schedule_order"] ) ? $settings["etn_schedule_order"] : "";
         $etn_schedule_ids   = !empty( $settings["schedule_id"] ) ? $settings["schedule_id"] : '';
         $order              = isset($etn_schedule_order) ? $etn_schedule_order : 'ASC';
-
-        include \Wpeventin::plugin_dir() . "widgets/schedule/style/{$style}.php";
+        if ( file_exists( \Wpeventin::plugin_dir() . "widgets/schedule/style/{$style}.php") ) {
+            include \Wpeventin::plugin_dir() . "widgets/schedule/style/{$style}.php";
+        }
     }
 
     protected function get_schedules() {

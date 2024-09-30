@@ -3,6 +3,7 @@
 namespace Etn\Core\Event;
 
 use DateTime;
+use Error;
 use Etn\Traits\Singleton;
 
 defined( 'ABSPATH' ) || exit;
@@ -15,24 +16,23 @@ class Helper {
 	 * Return currency symbol
 	 */
 	public function get_currency() {
-		$symble = class_exists('WooCommerce') ? get_woocommerce_currency_symbol() : '$';
+		$symbol = class_exists('WooCommerce') ? get_woocommerce_currency_symbol() : '$';
 	
-		if (!class_exists('Wpeventin_Pro') || !class_exists('\Etn_Pro\Core\Modules\Sells_Engine\Sells_Engine')) {
-			return $symble;
+		$settings = \Etn\Utils\Helper::get_settings();
+		$currency = $settings['etn_settings_country_currency'] ?? '$';
+	
+		if (!empty($settings['sell_tickets']) && $settings['sell_tickets'] === 'woocommerce') {
+			return $symbol;
 		}
 	
-		$sells_engine = \Etn_Pro\Core\Modules\Sells_Engine\Sells_Engine::instance()->check_sells_engine();
-	
-		if ('woocommerce' == $sells_engine) {
-			return $symble;
+		if (
+			(!empty($settings['etn_sells_engine_stripe']) && $settings['etn_sells_engine_stripe'] === 'stripe') ||
+			(!empty($settings['paypal_status']) && $settings['paypal_status'] === true)
+		) {
+			return etn_get_currency_symbol($currency);
 		}
 	
-		if ('stripe' == $sells_engine) {
-			$currency  = \Etn_Pro\Utils\Helper::retrieve_country_currency();
-			return $currency;
-		}
-	
-		return $symble;
+		return $symbol;
 	}
 
 	/**

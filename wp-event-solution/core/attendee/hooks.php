@@ -69,7 +69,7 @@ class Hooks {
 		 	class_exists('Wpeventin_Pro') &&
 			\Wpeventin_Pro::version() > '3.3.13' &&
 			empty($_POST['etn_attendee_order_id'])) {				
-			$sells_engine           = \Etn_Pro\Core\Modules\Sells_Engine\Sells_Engine::instance()->check_sells_engine();
+			$sells_engine           = '';
 			$post_arr               = filter_input_array( INPUT_POST, FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 			
 			if ( empty( $post_arr['etn_event_id'] ) ) {

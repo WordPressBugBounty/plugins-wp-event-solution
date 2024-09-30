@@ -3,6 +3,7 @@
 namespace Etn\Core\Woocommerce;
 
 use Etn\Utils\Helper;
+use Eventin\Order\OrderModel;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -14,9 +15,28 @@ class Hooks {
     public $base;
 
     public function Init() {
+        // Support woocommerce functionality on Rest API call.
+        add_action( 'woocommerce_init', [ $this, 'init_woocommerce' ] );
+
+        // Add cart item data.
+        add_filter( 'woocommerce_add_cart_item_data',[ $this, 'add_cart_item' ], 10, 2 );
+
+        // Show event and ticket details on cart page product lists.
+        add_filter( 'woocommerce_cart_item_name', [$this, 'show_cart_item_name'], 10, 3 );
+
+        // Calculate total price to show on cart page.
+        add_action('woocommerce_before_calculate_totals', [ $this, 'set_cart_total' ] , 90, 1);
+
+        // Modify checkout fields.
+        add_filter( 'woocommerce_checkout_fields', [$this, 'hide_checkout_fields'] );
+
+        add_filter( 'woocommerce_checkout_posted_data', [$this, 'modify_order_data'] );
+
+        // Redirect success page after woocommerce payment.
+        add_action( 'woocommerce_thankyou', [ $this, 'redirect_success_page' ] );
 
         // Handle actions on order status change
-        add_action('woocommerce_order_status_changed', [$this, 'update_event_stock_on_order_status_update' ], 10, 3);
+        // add_action('woocommerce_order_status_changed', [$this, 'update_event_stock_on_order_status_update' ], 10, 3);
         add_action('woocommerce_order_status_changed', [$this, 'update_event_revenue_on_refunded' ], 10, 3);
         add_action('woocommerce_order_status_changed', [$this, 'change_attendee_payment_status_on_order_status_update' ], 10, 3);
         add_action('woocommerce_order_status_changed', [$this, 'change_purchase_report_status_on_order_status_update' ], 10, 3);
@@ -24,6 +44,9 @@ class Hooks {
         add_action('woocommerce_order_status_changed', [$this, 'email_attendee_ticket_details_on_order_status_update' ], 10, 3);
 
         add_filter('woocommerce_hidden_order_itemmeta', [$this, 'hide_order_itemmeta_on_order_status_update'], 10, 1);
+
+        
+
 
         // ====================== Attendee registration related hooks for woocommerce start ======================== //
         {
@@ -73,20 +96,9 @@ class Hooks {
 
         add_filter( 'woocommerce_cart_item_quantity', [$this, 'wc_cart_item_quantity'], 10, 3 );
 
-        add_filter( 'woocommerce_cart_item_name', [$this, 'etn_cart_item_name'], 10, 3 );
-
         add_action( 'woocommerce_thankyou', [$this, 'etn_checkout_callback'], 10, 1 );
 
         // Event Multi pricing
-
-        // This hooks are responsible for ticket variations activities
-        add_filter( 'woocommerce_add_cart_item_data',[ $this, 'etn_add_cart_item_data' ], 10, 2 );
-
-        /**
-         * Change sub-total price
-         * For multi-variation ticket
-         */
-        add_action('woocommerce_before_calculate_totals', [ $this, 'etn_variation_ticket_total_price' ] , 90, 1);
 
         if ( class_exists( 'WC_Deposits' ) ) {
             add_action( 'woocommerce_cart_loaded_from_session', [ $this, 'etn_variation_ticket_total_price' ], 98, 1 );
@@ -112,12 +124,151 @@ class Hooks {
         add_action('woocommerce_checkout_order_processed', [ $this, 'etn_woo_cart_order_processed'], 10, 1);
         add_action( 'woocommerce_remove_cart_item', [ $this, 'remove_product_from_cart' ], 10, 2 );
 
-		// change quantity on checkout page
-		add_filter ('woocommerce_checkout_cart_item_quantity', [$this,'etn_checkout_total_ticket_qty'], 10, 3 );
-		//add order again button cart meta fields
-		add_filter( 'woocommerce_order_again_cart_item_data', [ $this, 'order_again_custom_meta' ], 10, 3 );
+        // change quantity on checkout page
+        add_filter ('woocommerce_checkout_cart_item_quantity', [$this,'etn_checkout_total_ticket_qty'], 10, 3 );
+        //add order again button cart meta fields
+        add_filter( 'woocommerce_order_again_cart_item_data', [ $this, 'order_again_custom_meta' ], 10, 3 );
         // disable 'Undo' option after removing item from cart
         add_action('woocommerce_cart_item_removed', [ $this, 'disable_undo_notice_for_events'], 5, 2);
+    }
+
+    /**
+     * Add to cart item
+     *
+     * @param   array  $cart_item  Cart Items
+     * @param   integer  $product_id
+     *
+     * @return  array 
+     */
+    public function add_cart_item( $cart_item, $product_id ) {
+        
+        $product = wc_get_product( $product_id );
+
+        if ( 'etn' !== $product->get_type() ) {
+            return $cart_item;
+        }
+
+        $order_id = WC()->session->get('event_order_id');
+        $order    = new OrderModel( $order_id );
+
+        $cart_data = [
+            'etn_ticket_variations'         => $order->get_tickets(),
+            '_etn_variation_total_price'    => $order->total_price,
+            '_seat_unique_id'               => 'seat_' . time(),
+            '_etn_variation_total_quantity' => $order->get_total_ticket(),
+            'event_id'                      => $order->event_id
+        ];
+
+        $cart_item = array_merge( $cart_item, $cart_data );
+
+        return $cart_item;
+    }
+
+    /**
+     * Show cart item name on cart page product list
+     *
+     * @param   string  $product_title  
+     * @param   array  $cart_item      [$cart_item description]
+     * @param   string $cart_item_key  [$cart_item_key description]
+     *
+     * @return  void
+     */
+    public function show_cart_item_name( $product_title, $cart_item, $cart_item_key ) {
+
+        $product      = $cart_item['data'];
+        $post         = get_post( $product->get_id() );
+
+        if ( 'etn' !== $post->post_type ) {
+            return $product_title;
+        }
+
+        
+        $product_title = $product->get_title();
+
+        if ( ( $cart_item['product_id'] != $cart_item['event_id'] ) && class_exists( 'SitePress' ) ) {
+            $product_title = get_the_title( $cart_item['event_id'] );
+        }
+
+        $product_permalink = $product->is_visible() ? $product->get_permalink( $cart_item ) : '';
+
+        if ( ! $product_permalink ) {
+            $new_product_title = $product_title . '&nbsp;';
+        } else {
+            $parent_id = wp_get_post_parent_id( $post );
+
+            if ( !empty( $parent_id ) ) { // recur event
+                $product_permalink = get_permalink( $parent_id );
+            }
+
+            if ( isset( $cart_item['specific_lang'] ) ) { // for wpml
+                $product_permalink .= '?lang=' . $cart_item['specific_lang'];
+            }
+
+            $new_product_title = sprintf( '<a href="%s">%s</a>', esc_url( $product_permalink ), $product_title );
+        }
+
+        $product_title = $new_product_title;
+
+        if ( !empty( $cart_item['etn_ticket_variations'] ) && count($cart_item['etn_ticket_variations'])>0 ) {
+
+            $variations = '<div class="etn-ticket-details">';
+            foreach ( $cart_item['etn_ticket_variations'] as $key => $value) {
+                $variations .= '<div class="single-ticket-details">';
+                $variations .= '<p class="single-ticket-details__title">' . $value['etn_ticket_name'] . "(" . $value['etn_ticket_qty'] .  ')</p>';
+                if (!empty($value['selected_seats'])) {
+                    $variations .= ':';
+                    $variations .= '<ul class="single-ticket-seats__list">';
+                    $variations .= "<li>" . $value['selected_seats']. "</li>";
+                    $variations .= '</ul>';
+                }
+                $variations .= '</div>';
+            }
+
+            $variations .= '</div>';
+
+            $product_title = $product_title . $variations ;
+        }
+        
+
+        return $product_title;
+    }
+
+    /**
+     * Set cart total price
+     *
+     * @param   Object  $cart_object  Cart object
+     *
+     * @return  void
+     */
+    public function set_cart_total( $cart_object ){
+        foreach ($cart_object->cart_contents as $key => $value) {
+            if ( ! empty($value['event_id']) &&  get_post_type($value['event_id']) == 'etn') {
+                $event_total_price = !empty( $value['_etn_variation_total_price'] ) ? $value['_etn_variation_total_price'] : 0;
+
+                $value['data']->set_price($event_total_price);
+                $value['data']->set_regular_price($event_total_price);
+                $value['data']->set_sale_price($event_total_price);
+                $value['data']->set_sold_individually('yes');
+                $value['data']->get_price();
+            }
+        }
+    }
+
+    /**
+     * Redirect after payment completed
+     *
+     * @return  void
+     */
+    public function redirect_success_page( $wc_order_id ) {
+        $order_id = WC()->session->get('event_order_id');
+
+        if ( $order_id ) {
+            $url = site_url( 'eventin/checkout/#/success' );
+            update_post_meta( $wc_order_id, 'eventin_order_id', $order_id );
+            WC()->session->__unset( 'event_order_id' );
+            wp_redirect($url);
+            exit;
+        }
     }
 
     /**
@@ -165,104 +316,32 @@ class Hooks {
         return $types;
     }
 
-
-    /**
-     * Adding cart meta
-     */
-    public function etn_add_cart_item_data( $cart_item_data, $product_id ) {
-        if ( session_status() === PHP_SESSION_NONE ) {
-			session_start();
-		}
-
-		$_product = wc_get_product($product_id);
-
-		if ( $_product->get_type() !== "etn" ) {
-			return $cart_item_data;
-		}
-
-        if ( isset( $_POST ) && !empty( $product_id ) ) {
-
-            $post_data  = filter_input_array( INPUT_POST, FILTER_SANITIZE_SPECIAL_CHARS );
-            $post_data = wp_parse_args( $_SESSION['etn_cart_session'], $post_data );
-
-            if ( !empty($post_data['ticket_name']) && !empty($post_data['ticket_quantity']) ) {
-                $etn_ticket_variations = [];
-                $total_price = 0.00;
-                $total_qty   = 0;
-                foreach ($post_data['ticket_quantity'] as $key => $value) {
-                    if ( $value !=="0" ) {
-                        $etn_ticket_variations[$key]['etn_ticket_slug'] = $post_data['ticket_slug'][$key];
-                        $etn_ticket_variations[$key]['etn_ticket_name'] = $post_data['ticket_name'][$key];
-                        $etn_ticket_variations[$key]['ticket_price']    = $post_data['ticket_price'][$key];
-						if (! empty( $post_data['selected_seats'][$key] ) ) {
-							$etn_ticket_variations[$key]['selected_seats']  = $post_data['selected_seats'][$key];
-						}
-                        $etn_ticket_variations[$key]['etn_ticket_qty']  = $value;
-                        $total_price  += (int) $value * floatval( $post_data['ticket_price'][$key] );
-                        $total_qty    += (int) $value;
-                    }
-                }
-
-                // Updated since 4.0.0.
-                $cart_item_data['etn_ticket_variations']         =  $post_data['ticket_variations'];
-                $cart_item_data['_etn_variation_total_price']    =  $post_data['etn_total_price'] ;
-                $cart_item_data['_seat_unique_id']               =  !empty($post_data['seat_unique_id']) ? $post_data['seat_unique_id'] : "";
-                $cart_item_data['_etn_variation_total_quantity'] =  $post_data['etn_total_qty'];
-
-                $unique_cart_item_key = md5( microtime().rand() );
-                $cart_item_data['unique_key'] = $unique_cart_item_key;
-                // Insert attendee on add cart item data
-                $this->insert_attendee_before_add_to_cart([
-                    'unique_key'    =>  $unique_cart_item_key
-                ]);
-            }
-        }
-
-        return $cart_item_data;
-    }
-
-    /**
-     * Change price for cart item
-     */
-    public function etn_variation_ticket_total_price($cart_object){
-        foreach ($cart_object->cart_contents as $key => $value) {
-            if ( !empty($value['event_id']) &&  get_post_type($value['event_id']) == 'etn') {
-                $event_total_price = !empty( $value['_etn_variation_total_price'] ) ? $value['_etn_variation_total_price'] : 0;
-                $value['data']->set_price($event_total_price);
-                $value['data']->set_regular_price($event_total_price);
-                $value['data']->set_sale_price($event_total_price);
-                $value['data']->set_sold_individually('yes');
-                $value['data']->get_price();
-            }
-        }
-    }
-
     /**
      * Set price for cart item
      */
     public function etn_total_variation_price($price, $cart_item , $cart_item_key) {
-		$product = $cart_item['data'];
-		if ( "etn" == $product->get_type() && 
-		!empty( $cart_item['etn_ticket_variations'] )   ) {
-			$ticket_price = "";
-			foreach ( $cart_item['etn_ticket_variations'] as $key => $item) {
-				$quantity       = "";
-				if (count($cart_item['etn_ticket_variations'])>1) {
-					$total      = wc_price($item['etn_ticket_qty'] * $item['ticket_price']);
-					$quantity   = " * (".$item['etn_ticket_qty'].") = $total ";
-				}
-				
-				$ticket_price  .= $this->get_ticket_price( $item['ticket_price'] ) .$quantity ."<br/>";
-			}
-			$price = $ticket_price;
-		}
+        $product = $cart_item['data'];
+        if ( "etn" == $product->get_type() && 
+        !empty( $cart_item['etn_ticket_variations'] )   ) {
+            $ticket_price = "";
+            foreach ( $cart_item['etn_ticket_variations'] as $key => $item) {
+                $quantity       = "";
+                if (count($cart_item['etn_ticket_variations'])>1) {
+                    $total      = wc_price($item['etn_ticket_qty'] * $item['etn_ticket_price']);
+                    $quantity   = " * (".$item['etn_ticket_qty'].") = $total ";
+                }
+                
+                $ticket_price  .= $this->get_ticket_price( $item['etn_ticket_price'] ) .$quantity ."<br/>";
+            }
+            $price = $ticket_price;
+        }
 
         return $price;
     }
 
-	public function get_ticket_price( $price ) {
-		return wc_price($price);
-	}
+    public function get_ticket_price( $price ) {
+        return wc_price($price);
+    }
 
     /**
      * after successful checkout, some data are returned from woocommerce
@@ -303,7 +382,7 @@ class Hooks {
     public function show_zoom_events_details( $order ) {
 
         foreach ( $order->get_items() as $item_id => $item ) {
-			$event_id         = \Etn\Core\Event\Helper::instance()->order_event_id($item);
+            $event_id         = \Etn\Core\Event\Helper::instance()->order_event_id($item);
 
             if( !empty( $event_id ) ){
                 $product_post = get_post( $event_id );
@@ -317,7 +396,7 @@ class Hooks {
                 if( $is_zoom_event ){
                     ?>
                     <div class="etn-thankyou-page-order-details">
-                    	<?php echo esc_html__('NB. This order includes Events which will be hosted on Zoom. After successful payment, Zoom details will be sent through email', 'eventin');?>
+                        <?php echo esc_html__('NB. This order includes Events which will be hosted on Zoom. After successful payment, Zoom details will be sent through email', 'eventin');?>
                     </div>
                     <?php
                     break;
@@ -333,7 +412,7 @@ class Hooks {
     public function wc_cart_item_quantity( $product_quantity, $cart_item_key, $cart_item ) {
         // deactivate product quantity
         if ( ( is_cart() || is_checkout() ) && ( get_post_type( $cart_item['product_id'] ) == 'etn' )  ) {
-			$product_quantity = !empty($cart_item['_etn_variation_total_quantity']) ? $cart_item['_etn_variation_total_quantity'] : 1;
+            $product_quantity = !empty($cart_item['_etn_variation_total_quantity']) ? $cart_item['_etn_variation_total_quantity'] : 1;
         }
 
         return $product_quantity;
@@ -342,15 +421,15 @@ class Hooks {
     /**
      * Return product quantity in checkout
      */
-	public function etn_checkout_total_ticket_qty( $quantity_html, $cart_item, $cart_item_key ) {
-		if ( get_post_type( $cart_item['product_id'] ) !== 'etn' ){
-			return $quantity_html;
-		}
-		
-		$product_quantity = !empty($cart_item['_etn_variation_total_quantity']) ? $cart_item['_etn_variation_total_quantity'] : 1;
+    public function etn_checkout_total_ticket_qty( $quantity_html, $cart_item, $cart_item_key ) {
+        if ( get_post_type( $cart_item['product_id'] ) !== 'etn' ){
+            return $quantity_html;
+        }
+        
+        $product_quantity = !empty($cart_item['_etn_variation_total_quantity']) ? $cart_item['_etn_variation_total_quantity'] : 1;
 
-		return $product_quantity;
-	}
+        return $product_quantity;
+    }
 
     /**
      * returns the price of the custom product
@@ -377,7 +456,7 @@ class Hooks {
         if ( ! $cart->is_empty() ) {
             foreach ( $cart->get_cart() as $cart_item_key => $cart_item ) {
                 if( ('Etn_Woo_Product' == get_class($cart_item['data']) ) && ( 'etn' == $cart_item['data']->post_type) ){
-                    $add_to_cart_redirect       = empty( \Etn\Utils\Helper::get_option( 'add_to_cart_redirect' ) ) ? 'event' : \Etn\Utils\Helper::get_option( 'add_to_cart_redirect' );
+                    $add_to_cart_redirect       = etn_get_option( 'add_to_cart_redirect', 'event' );
 
                     switch ($add_to_cart_redirect ) {
                       case 'cart':
@@ -394,41 +473,41 @@ class Hooks {
         return $url;
     }
 
-	/**
-	 * Change event amount after refunded
-	 *
-	 * @param [type] $order_id
-	 * @param [type] $old_order_status
-	 * @param [type] $new_order_status
-	 * @return void
-	 */
-	public function update_event_revenue_on_refunded( $order_id, $old_order_status, $new_order_status ){
+    /**
+     * Change event amount after refunded
+     *
+     * @param [type] $order_id
+     * @param [type] $old_order_status
+     * @param [type] $new_order_status
+     * @return void
+     */
+    public function update_event_revenue_on_refunded( $order_id, $old_order_status, $new_order_status ){
 
         if ( 'refunded' !== $new_order_status ) {
             return;
         }
 
-		$update_price = false;
-		$parent_id = wp_get_post_parent_id( $order_id );
+        $update_price = false;
+        $parent_id = wp_get_post_parent_id( $order_id );
         
         if ( ! empty( $parent_id ) ) {
             return;
         }
-		$price = null;
-		$order = wc_get_order( $order_id );
+        $price = null;
+        $order = wc_get_order( $order_id );
 
-		if ( "refunded" == $new_order_status ) {
-			$price = 0;
-			$update_price = true;
-		}
+        if ( "refunded" == $new_order_status ) {
+            $price = 0;
+            $update_price = true;
+        }
 
-		foreach ( $order->get_items() as $item_id => $item ) {
-			$event_id       = !is_null( $item->get_meta( 'event_id', true ) ) ? $item->get_meta( 'event_id', true ) : "";
+        foreach ( $order->get_items() as $item_id => $item ) {
+            $event_id       = !is_null( $item->get_meta( 'event_id', true ) ) ? $item->get_meta( 'event_id', true ) : "";
 
-			if ( "refunded" == $old_order_status && "processing" == $new_order_status) {
-				$price = $order->get_item_total( $item );
-				$update_price = true;
-			}
+            if ( "refunded" == $old_order_status && "processing" == $new_order_status) {
+                $price = $order->get_item_total( $item );
+                $update_price = true;
+            }
             
             // Update seatmap data.
             $seat_ids = get_post_meta( $event_id, '_etn_seat_unique_id', true );
@@ -436,7 +515,7 @@ class Hooks {
             if ( $seat_ids ) {
                 update_post_meta( $event_id, '_etn_seat_unique_id', '' );
             }
-		}
+        }
 
         // Update attendee payment status.
         $order_attendees = Helper::get_attendee_by_woo_order( $order_id );
@@ -446,17 +525,17 @@ class Hooks {
             }
         }
 
-		if ( $update_price ) {
-			$update_where = [
-				'form_id' => $order_id,
-				'post_id' => intval($event_id),
-			];
+        if ( $update_price ) {
+            $update_where = [
+                'form_id' => $order_id,
+                'post_id' => intval($event_id),
+            ];
 
-			global $wpdb;
-			$wpdb->update( ETN_EVENT_PURCHASE_HISTORY_TABLE , [ 'event_amount' => $price ], $update_where );
-		}
+            global $wpdb;
+            $wpdb->update( ETN_EVENT_PURCHASE_HISTORY_TABLE , [ 'event_amount' => $price ], $update_where );
+        }
 
-	}
+    }
 
     /**
      * Update Event Stock On Order Status Change
@@ -564,11 +643,11 @@ class Hooks {
                         }
 
                         if ( $do_increase ) {
-							$saved_booked_seats_id = get_post_meta( $event_id, '_etn_seat_unique_id', true );
-							if ( $saved_booked_seats_id !=="" ) {
-								$saved_booked_seats_id = str_replace($_etn_seat_unique_id.",","",$saved_booked_seats_id);
-								update_post_meta( $event_id, '_etn_seat_unique_id', $saved_booked_seats_id );
-							}
+                            $saved_booked_seats_id = get_post_meta( $event_id, '_etn_seat_unique_id', true );
+                            if ( $saved_booked_seats_id !=="" ) {
+                                $saved_booked_seats_id = str_replace($_etn_seat_unique_id.",","",$saved_booked_seats_id);
+                                update_post_meta( $event_id, '_etn_seat_unique_id', $saved_booked_seats_id );
+                            }
                             $updated_total_sold_tickets = $etn_total_sold_tickets - $variation_picked_total_qty;
                             $delete_meta_key    = '_etn_decreased_stock';
                             $add_meta_key       = '_etn_increased_stock';
@@ -619,11 +698,11 @@ class Hooks {
      * @return void
      */
     public function email_attendee_ticket_details_on_order_status_update(  $order_id ) {
-		$parent_id = wp_get_post_parent_id( $order_id );
+        $parent_id = wp_get_post_parent_id( $order_id );
         if ( ! empty( $parent_id ) ) {
             return;
         }
-		$order = wc_get_order( $order_id );
+        $order = wc_get_order( $order_id );
 
 
         $payment_success_status_array = [
@@ -701,7 +780,7 @@ class Hooks {
             if( !empty( $event_id ) ){
                 $event_object = get_post( $event_id );
             } else{
-				return;
+                return;
             }
 
             if ( !empty( $event_object ) ) {
@@ -738,70 +817,6 @@ class Hooks {
         }
 
         return $formatted_meta;
-    }
-
-
-    /**
-     * Get event name
-     */
-    public function etn_cart_item_name( $product_title, $cart_item, $cart_item_key ) {
-
-        $product = $cart_item['data'];
-        $content_post = get_post( $product->get_id() );
-
-        if ( get_post_type( $content_post ) == "etn" && ( is_cart() || is_checkout() ) && !empty( $content_post ) ) {
-            $product_title = $product->get_title();
-
-            if ( ( $cart_item['product_id'] != $cart_item['event_id'] ) && class_exists( 'SitePress' ) ) {
-                $product_title = get_the_title( $cart_item['event_id'] );
-            }
-
-            $product_permalink = $product->is_visible() ? $product->get_permalink( $cart_item ) : '';
-
-            if ( !$product_permalink ) {
-                $new_product_title = $product_title . '&nbsp;';
-            } else {
-                $parent_id = wp_get_post_parent_id( $content_post );
-
-                if ( !empty( $parent_id ) ) { // recur event
-                    $product_permalink = get_permalink( $parent_id );
-                }
-
-                if ( isset( $cart_item['specific_lang'] ) ) { // for wpml
-                    $product_permalink .= '?lang=' . $cart_item['specific_lang'];
-                }
-
-                $new_product_title = sprintf( '<a href="%s">%s</a>', esc_url( $product_permalink ), $product_title );
-
-                if ( !empty( $parent_id ) ) { // recur event
-                    // $new_product_title = "<div class='etn_recur_hide_child'>" . $new_product_title . "<div>";
-                }
-            }
-
-            $product_title = $new_product_title;
-
-            if ( !empty( $cart_item['etn_ticket_variations'] ) && count($cart_item['etn_ticket_variations'])>0 ) {
-
-                $variations = '<div class="etn-ticket-details">';
-                foreach ( $cart_item['etn_ticket_variations'] as $key => $value) {
-                    $variations .= '<div class="single-ticket-details">';
-                    $variations .= '<p class="single-ticket-details__title">' . $value['etn_ticket_name'] . "(" . $value['etn_ticket_qty'] .  ')</p>';
-					if (!empty($value['selected_seats'])) {
-						$variations .= ':';
-						$variations .= '<ul class="single-ticket-seats__list">';
-						$variations .= "<li>" . $value['selected_seats']. "</li>";
-						$variations .= '</ul>';
-					}
-                    $variations .= '</div>';
-                }
-
-                $variations .= '</div>';
-
-                $product_title = $product_title . $variations ;
-            }
-        }
-
-        return Helper::kses( $product_title );
     }
 
     /**
@@ -1207,14 +1222,14 @@ class Hooks {
                         $variations                             = !empty( get_post_meta( $event_id, "etn_ticket_variations", true ) ) ? get_post_meta( $event_id, "etn_ticket_variations", true ) : [];
                         $events_data[ $event_id ]['variations'] = $variations;
                     }
-					// check if event is expired					
-					$deadline_expired =  \Etn\Core\Event\Helper::instance()->event_registration_deadline( array('single_event_id' => $event_id ) );
-					if ( $deadline_expired ) {
-						$event_name       = get_the_title( $event_id );
-						$error_messages[] = sprintf( esc_html__( 'Event: "%s" has been expired', 'eventin' ), $event_name );
-					}
+                    // check if event is expired					
+                    $deadline_expired =  \Etn\Core\Event\Helper::instance()->event_registration_deadline( array('single_event_id' => $event_id ) );
+                    if ( $deadline_expired ) {
+                        $event_name       = get_the_title( $event_id );
+                        $error_messages[] = sprintf( esc_html__( 'Event: "%s" has been expired', 'eventin' ), $event_name );
+                    }
 
-					// end event expired 
+                    // end event expired 
 
                     $ticket_variations  = $events_data[ $event_id ]['variations'];
                     $item_variations    = isset( $cart_data["etn_ticket_variations"] ) ? $cart_data["etn_ticket_variations"] : [];    
@@ -1404,7 +1419,7 @@ class Hooks {
 
                     $ticket_list = get_post_meta( $product_id, 'etn_ticket_variations' );
                     $ticket_variations_info = Helper::get_ticket_variations_info( $product_id, $ticket_list );
-			    
+                
                     $available_ticket  = $ticket_variations_info['etn_total_created_tickets'];
                     $remaining_ticket  = $available_ticket - $total_sold_ticket;
 
@@ -1442,69 +1457,69 @@ class Hooks {
 
         // Allow code execution only once
 
-		$userId = 0;
+        $userId = 0;
 
-		if ( is_user_logged_in() ) {
-			$userId = get_current_user_id();
-		}
+        if ( is_user_logged_in() ) {
+            $userId = get_current_user_id();
+        }
 
-		$payment_type = get_post_meta( $order_id, '_payment_method', true );
-		$order_status = !empty( get_post_status( $order_id ) ) ? get_post_status( $order_id ) : '';
+        $payment_type = get_post_meta( $order_id, '_payment_method', true );
+        $order_status = !empty( get_post_status( $order_id ) ) ? get_post_status( $order_id ) : '';
 
-		if ( $payment_type == 'cod' ) {
-			$etn_payment_method = 'offline_payment';
-		} elseif ( $payment_type == 'bacs' ) {
-			$etn_payment_method = 'bank_payment';
-		} elseif ( $payment_type == 'cheque' ) {
-			$etn_payment_method = 'check_payment';
-		} elseif ( $payment_type == 'stripe' ) {
-			$etn_payment_method = 'stripe_payment';
-		} else {
-			$etn_payment_method = 'online_payment';
-		}
+        if ( $payment_type == 'cod' ) {
+            $etn_payment_method = 'offline_payment';
+        } elseif ( $payment_type == 'bacs' ) {
+            $etn_payment_method = 'bank_payment';
+        } elseif ( $payment_type == 'cheque' ) {
+            $etn_payment_method = 'check_payment';
+        } elseif ( $payment_type == 'stripe' ) {
+            $etn_payment_method = 'stripe_payment';
+        } else {
+            $etn_payment_method = 'online_payment';
+        }
 
-		$status = \Etn\Core\Event\Helper::instance()->get_etn_order_status( $order_status );
+        $status = \Etn\Core\Event\Helper::instance()->get_etn_order_status( $order_status );
 
-		foreach ( $order->get_items() as $item_id => $item ) {
-			// Get the product name
-			$product_name     = $item->get_name();
-			$event_id         = $item->get_meta('event_id');
-			$product_quantity = (int) $item->get_quantity();
-			$product_total    = $item->get_total();
+        foreach ( $order->get_items() as $item_id => $item ) {
+            // Get the product name
+            $product_name     = $item->get_name();
+            $event_id         = $item->get_meta('event_id');
+            $product_quantity = (int) $item->get_quantity();
+            $product_total    = $item->get_total();
 
-			if( !empty( $event_id ) ){
-				$event_object = get_post( $event_id );
-			}else{
-				$event_object = \Etn\Core\Event\Helper::instance()->get_etn_object( $product_name );
-			}
+            if( !empty( $event_id ) ){
+                $event_object = get_post( $event_id );
+            }else{
+                $event_object = \Etn\Core\Event\Helper::instance()->get_etn_object( $product_name );
+            }
 
-			if ( !empty( $event_object->post_type ) && ('etn' == $event_object->post_type) ) {
+            if ( !empty( $event_object->post_type ) && ('etn' == $event_object->post_type) ) {
 
-				$pledge_id = "";
-				$insert_post_id         = $event_object->ID;
-				$insert_form_id         = $order_id;
-				$insert_invoice         = get_post_meta( $order_id, '_order_key', true );
-				$insert_event_amount    = !empty( $item->get_meta( '_etn_variation_total_price', true ) ) ? $item->get_meta( '_etn_variation_total_price', true ) : $product_total;
-				$insert_ticket_qty      = !empty( $item->get_meta( '_etn_variation_total_quantity', true ) ) ? $item->get_meta( '_etn_variation_total_quantity', true ) : $product_quantity;
-				$seat_unique_id         = !empty( $item->get_meta( '_seat_unique_id', true ) ) ? $item->get_meta( '_seat_unique_id', true ) : "";
-				$insert_user_id         = $userId;
-				$insert_email           = get_post_meta( $order_id, '_billing_email', true );
-				if ( $insert_email == "") {
-					$insert_email = $order->get_billing_email();
-				}
-				$insert_event_type      = "ticket";
-				$insert_payment_type    = 'woocommerce';
+                $pledge_id = "";
+                $insert_post_id         = $event_object->ID;
+                $insert_form_id         = $order_id;
+                $insert_invoice         = get_post_meta( $order_id, '_order_key', true );
+                $insert_event_amount    = !empty( $item->get_meta( '_etn_variation_total_price', true ) ) ? $item->get_meta( '_etn_variation_total_price', true ) : $product_total;
+                $insert_ticket_qty      = !empty( $item->get_meta( '_etn_variation_total_quantity', true ) ) ? $item->get_meta( '_etn_variation_total_quantity', true ) : $product_quantity;
+                $seat_unique_id         = !empty( $item->get_meta( '_seat_unique_id', true ) ) ? $item->get_meta( '_seat_unique_id', true ) : "";
+                $insert_user_id         = $userId;
+                $insert_email           = get_post_meta( $order_id, '_billing_email', true );
+                if ( $insert_email == "") {
+                    $insert_email = $order->get_billing_email();
+                }
+                $insert_event_type      = "ticket";
+                $insert_payment_type    = 'woocommerce';
 
-				$product_quantity       = $insert_ticket_qty;
-				// set product quantity
+                $product_quantity       = $insert_ticket_qty;
+                // set product quantity
                 $item->set_quantity( $insert_ticket_qty );
 
-				$etn_ticket_variations  = !is_null( $item->get_meta( 'etn_ticket_variations', true ) ) ? $item->get_meta( 'etn_ticket_variations', true ) : [];
-				$insert_ticket_variation=  serialize($etn_ticket_variations);
-				$insert_pledge_id       = $pledge_id;
-				$insert_payment_gateway = $etn_payment_method;
-				$inserted               = $wpdb->query( "INSERT INTO `". ETN_EVENT_PURCHASE_HISTORY_TABLE ."` (`post_id`, `form_id`, `invoice`, `event_amount`, `ticket_qty`, `ticket_variations`, `user_id`, `email`, `event_type`, `payment_type`, `pledge_id`, `payment_gateway`, `date_time`, `status`) VALUES ('$insert_post_id', '$insert_form_id', '$insert_invoice', '$insert_event_amount', '$insert_ticket_qty', '$insert_ticket_variation', '$insert_user_id', '$insert_email', '$insert_event_type', '$insert_payment_type', '$insert_pledge_id', '$insert_payment_gateway', '".date( "Y-m-d" )."', '$status')" );
-				$id_insert              = $wpdb->insert_id;
+                $etn_ticket_variations  = !is_null( $item->get_meta( 'etn_ticket_variations', true ) ) ? $item->get_meta( 'etn_ticket_variations', true ) : [];
+                $insert_ticket_variation=  serialize($etn_ticket_variations);
+                $insert_pledge_id       = $pledge_id;
+                $insert_payment_gateway = $etn_payment_method;
+                $inserted               = $wpdb->query( "INSERT INTO `". ETN_EVENT_PURCHASE_HISTORY_TABLE ."` (`post_id`, `form_id`, `invoice`, `event_amount`, `ticket_qty`, `ticket_variations`, `user_id`, `email`, `event_type`, `payment_type`, `pledge_id`, `payment_gateway`, `date_time`, `status`) VALUES ('$insert_post_id', '$insert_form_id', '$insert_invoice', '$insert_event_amount', '$insert_ticket_qty', '$insert_ticket_variation', '$insert_user_id', '$insert_email', '$insert_event_type', '$insert_payment_type', '$insert_pledge_id', '$insert_payment_gateway', '".date( "Y-m-d" )."', '$status')" );
+                $id_insert              = $wpdb->insert_id;
                 
 				if ( $inserted ) {
 					$metaKey                              = [];
@@ -1595,46 +1610,46 @@ class Hooks {
     }
 
 
-	
+    
 
-	/**
-	 * Add seat data while adding cart
-	 *
-	 * @param [type] $event_id
-	 * @param [type] $etn_ticket_variations
-	 * @return void
-	 */
-	public function booked_seats( $event_id , $etn_ticket_variations , $seat_unique_id ){
-		$booked_seats = array();
-		$saved_booked_seats = get_post_meta( $event_id, '_etn_booked_seats', true );
-		$saved_booked_seats_id = get_post_meta( $event_id, '_etn_seat_unique_id', true );
-		if ( !empty( $etn_ticket_variations ) ) {
-			foreach( $etn_ticket_variations as $item ){
-				if( !empty($item['selected_seats']) ){
-					$booked_seats[$item['etn_ticket_name']]  = $item['selected_seats'];
-					$booked_seats[$item['etn_ticket_name']]  = $item['selected_seats'];
-				}
-			}
-		}
+    /**
+     * Add seat data while adding cart
+     *
+     * @param [type] $event_id
+     * @param [type] $etn_ticket_variations
+     * @return void
+     */
+    public function booked_seats( $event_id , $etn_ticket_variations , $seat_unique_id ){
+        $booked_seats = array();
+        $saved_booked_seats = get_post_meta( $event_id, '_etn_booked_seats', true );
+        $saved_booked_seats_id = get_post_meta( $event_id, '_etn_seat_unique_id', true );
+        if ( !empty( $etn_ticket_variations ) ) {
+            foreach( $etn_ticket_variations as $item ){
+                if( !empty($item['selected_seats']) ){
+                    $booked_seats[$item['etn_ticket_name']]  = $item['selected_seats'];
+                    $booked_seats[$item['etn_ticket_name']]  = $item['selected_seats'];
+                }
+            }
+        }
 
-		if ( $saved_booked_seats !== "") {
-			foreach( $saved_booked_seats as $key => &$item ){
-				$item = $item .",". $booked_seats[$key];
-			}
-			$booked_seats = $saved_booked_seats;
-		}
+        if ( $saved_booked_seats !== "") {
+            foreach( $saved_booked_seats as $key => &$item ){
+                $item = $item .",". $booked_seats[$key];
+            }
+            $booked_seats = $saved_booked_seats;
+        }
 
-		if ( $saved_booked_seats_id !== "") {
-			$seat_unique_id = $seat_unique_id .",". $saved_booked_seats_id;
+        if ( $saved_booked_seats_id !== "") {
+            $seat_unique_id = $seat_unique_id .",". $saved_booked_seats_id;
 
-		}
-
-
-		update_post_meta( $event_id, '_etn_booked_seats', $booked_seats );
-		update_post_meta( $event_id, '_etn_seat_unique_id', $seat_unique_id );
+        }
 
 
-	}
+        update_post_meta( $event_id, '_etn_booked_seats', $booked_seats );
+        update_post_meta( $event_id, '_etn_seat_unique_id', $seat_unique_id );
+
+
+    }
 
     // custom metabox for showing attendee list on woocommerce order page
     public function etn_order_page_metabox_init() {
@@ -1672,20 +1687,16 @@ class Hooks {
             return;
         }
 
+        $eventin_order_id = get_post_meta( $order->get_id(), 'eventin_order_id', true );
+
         $args = array(
-           'post_type' => 'etn-attendee',
-           'post_status' => 'publish',
-           'meta_key' => 'etn_attendee_order_id',
+           'post_type'     => 'etn-attendee',
+           'post_status'   => 'publish',
+           'meta_key'      => 'eventin_order_id',
+           'meta_value'    => $eventin_order_id,
            'numberposts'   => -1
         );
-
-        if ( \Automattic\WooCommerce\Utilities\OrderUtil::custom_orders_table_usage_is_enabled() ) {
-            $args['meta_value'] = $order->get_id();
-        }
-        else {
-            $args['meta_value'] = $order->ID;
-        }
-
+        
         $attendees = get_posts($args);
 
         if( $attendees ) {
@@ -1695,12 +1706,12 @@ class Hooks {
                     <div class='etn-column'>" . esc_html__('Ticket ID', 'eventin') . "</div>
                     <div class='etn-column'>" . esc_html__('Attendee Name', 'eventin') . "</div>
                 </div>";
-        
+                
             foreach( $attendees as $attendee ) {
                 $table_content .= "<div class='etn-table-row'>
                     <div class='etn-column'>" . esc_html( $attendee->ID ) . "</div>
                     <div class='etn-column'>" . esc_html( $attendee->etn_unique_ticket_id ) . "</div>
-                    <div class='etn-column'><a href='" . esc_attr( get_edit_post_link( $attendee->ID ) ) . "' target='_blank' rel='noopener'>" . esc_html( $attendee->post_title ) . "</a></div>
+                    <div class='etn-column'><a href='" . esc_attr( admin_url("admin.php?page=eventin#/attendees/edit/{$attendee->ID}") ) . "' target='_blank' rel='noopener'>" . esc_html( get_post_meta( $attendee->ID, 'etn_name', true ) ) . "</a></div>
                 </div>";
             }
         
@@ -1992,51 +2003,51 @@ class Hooks {
      * @return  void
      */
     public function remove_product_from_cart( $cart_item_key, $cart ) {
-		$product = $cart->cart_contents[$cart_item_key];
-		$product_id = !empty( $product['product_id'] ) ? $product['product_id'] : null ;
-		if ( ! $product_id ) {
-			return;
-		}
+        $product = $cart->cart_contents[$cart_item_key];
+        $product_id = !empty( $product['product_id'] ) ? $product['product_id'] : null ;
+        if ( ! $product_id ) {
+            return;
+        }
 
-		$product = wc_get_product( $product_id );
-		$type    = !empty($product) ? $product->get_type() : null;
-		if ( $type !==  'etn' ) {
-			return;
-		}
+        $product = wc_get_product( $product_id );
+        $type    = !empty($product) ? $product->get_type() : null;
+        if ( $type !==  'etn' ) {
+            return;
+        }
 
-		$update_status_token = !empty($cart->cart_contents[$cart_item_key]['unique_key']) ? $cart->cart_contents[$cart_item_key]['unique_key'] : '';
-		if ( $update_status_token ==  '' ) {
-			return;
-		}
+        $update_status_token = !empty($cart->cart_contents[$cart_item_key]['unique_key']) ? $cart->cart_contents[$cart_item_key]['unique_key'] : '';
+        if ( $update_status_token ==  '' ) {
+            return;
+        }
 
-		$this->remove_attendee( $update_status_token );
-			
+        $this->remove_attendee( $update_status_token );
+            
     }
-	
-	/**
-	 * Remove attendee from meta table
-	 */
-	public function remove_attendee( $update_status_token ) {
-		$args = [
-			'post_type'   => 'etn-attendee',
-			'post_status' => 'publish',
-			'posts_per_page' => -1,
-			'fields'      => 'ids',
-			'meta_query'     => array(
-				array(
-					'key'     => 'etn_unique_key', 
-					'value'   => $update_status_token, 
-					'compare' => '='
-				)
-			)
-		];
-		$attendees = get_posts( $args );
-		if ( $attendees ) {
-			foreach( $attendees as $attendee_id ) {
-				wp_delete_post( $attendee_id, true );
-			}
-		}
-	}
+    
+    /**
+     * Remove attendee from meta table
+     */
+    public function remove_attendee( $update_status_token ) {
+        $args = [
+            'post_type'   => 'etn-attendee',
+            'post_status' => 'publish',
+            'posts_per_page' => -1,
+            'fields'      => 'ids',
+            'meta_query'     => array(
+                array(
+                    'key'     => 'etn_unique_key', 
+                    'value'   => $update_status_token, 
+                    'compare' => '='
+                )
+            )
+        ];
+        $attendees = get_posts( $args );
+        if ( $attendees ) {
+            foreach( $attendees as $attendee_id ) {
+                wp_delete_post( $attendee_id, true );
+            }
+        }
+    }
 
     public function disable_undo_notice_for_events($cart_item_key, $cart) {
         $removed_item = $cart->removed_cart_contents[$cart_item_key];
@@ -2066,7 +2077,7 @@ class Hooks {
 
     } 
 
-	/**
+    /**
      * Add meta fields in the order again button
      *
      * @param   string  $cart_item_key  WooCommerce cart key
@@ -2074,29 +2085,108 @@ class Hooks {
      *
      * @return  $cart_item_meta
      */
-	public function order_again_custom_meta( $cart_item_meta, $product, $order ) {
+    public function order_again_custom_meta( $cart_item_meta, $product, $order ) {
 
-		//Create an array of all the missing custom field keys that needs to be added in cart item.
-		$customfields = [
-			'event_id',
+        //Create an array of all the missing custom field keys that needs to be added in cart item.
+        $customfields = [
+            'event_id',
             'etn_status_update_key',
             'etn_ticket_variations',
             '_etn_variation_total_price',
             '_etn_variation_total_quantity',
             '_seat_unique_id',
-		];
+        ];
 
-		global $woocommerce;
+        global $woocommerce;
 
-		if ( ! array_key_exists( 'item_meta', $cart_item_meta ) || ! is_array( $cart_item_meta['item_meta'] ) )
-		foreach ( $customfields as $key ){
-			if(!empty($product[$key])){
-				$cart_item_meta[$key] = $product[$key];
-			}
-		}
+        if ( ! array_key_exists( 'item_meta', $cart_item_meta ) || ! is_array( $cart_item_meta['item_meta'] ) )
+        foreach ( $customfields as $key ){
+            if(!empty($product[$key])){
+                $cart_item_meta[$key] = $product[$key];
+            }
+        }
 
-		return $cart_item_meta;
+        return $cart_item_meta;
 
-	}
+    }
 
+    /**
+     * Init woocommerce functions
+     *
+     * @return  void
+     */
+    public function init_woocommerce() {
+        if ( ! WC()->is_rest_api_request() ) {
+            return;
+        }
+    
+        WC()->frontend_includes();
+    
+        if ( null === WC()->cart && function_exists( 'wc_load_cart') ) {
+            wc_load_cart();
+        }
+    }
+
+    /**
+     * Hide all fields from checkout page
+     *
+     * @param   array  $fields
+     *
+     * @return  array
+     */
+    public function hide_checkout_fields( $fields ) {
+        $session_data = WC()->session->get( 'event_order_id' );
+        if ( ! $session_data ) {
+            return $fields;
+        }
+
+        $fields['billing'] = array();
+
+        // Hide all shipping fields
+        $fields['shipping'] = array();
+
+        $fields['order'] = array();
+
+        return $fields;
+    }
+
+    /**
+     * Modify order posted data
+     *
+     * @param   array  $data
+     *
+     * @return  array
+     */
+    public function modify_order_data( $data ) {
+        $event_order_id = WC()->session->get( 'event_order_id' );
+
+        if ( ! $event_order_id ) {
+            return $data;
+        }
+
+        $order = new OrderModel( $event_order_id );
+
+        $first_name = $order->customer_fname;
+        $last_name  = $order->customer_lname;
+        $email      = $order->customer_email;
+        $phone      = $order->customer_phone;
+        
+        if ( $first_name ) {
+            $data['billing_first_name'] = $first_name;
+        }
+
+        if ( $last_name ) {
+            $data['billing_last_name'] = $last_name;
+        }
+
+        if ( $email ) {
+            $data['billing_email'] = $email;
+        }
+
+        if ( $phone ) {
+            $data['billing_phone'] = $phone;
+        }
+
+        return $data;
+    }
 }

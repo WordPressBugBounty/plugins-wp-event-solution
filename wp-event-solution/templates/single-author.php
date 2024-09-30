@@ -11,7 +11,12 @@
         exit; // Exit if accessed directly
     }
 
-    get_header();
+    if( wp_is_block_theme() ){
+        block_header_area();
+        wp_head();
+    }else{
+        get_header();
+    }
 
     $author_id = get_queried_object_id();
 		/**
@@ -33,4 +38,10 @@
         do_action( "etn_single_speaker_template",  $author_id ); ?>
 
     <?php 
+  
+if( wp_is_block_theme() ){
+    block_footer_area();
     wp_footer();
+}else{
+    get_footer();
+}

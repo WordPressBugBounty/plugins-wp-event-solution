@@ -10,8 +10,7 @@
     if ( ! defined( 'ABSPATH' ) ) {
         exit; // Exit if accessed directly
     }
-
-    get_header();
+ 
 
     $author_id = get_queried_object_id();
     // Get author name
@@ -119,6 +118,13 @@
                                         $etn_schedule_meta_value = get_post_meta( $org, 'etn_schedule_topics', true);
                                         foreach ($etn_schedule_meta_value as $single_meta) {
                                             $speaker_schedules = isset($single_meta["speakers"]) && is_array($single_meta["speakers"]) ? $single_meta["speakers"]: [];
+                                            
+                                            $start_time = isset($single_meta["etn_shedule_start_time"]) ? $single_meta["etn_shedule_start_time"] : "";
+                                            $end_time   = isset($single_meta["etn_shedule_end_time"]) ? $single_meta["etn_shedule_end_time"] : "";
+                                            $room       = isset($single_meta["etn_shedule_room"]) ? $single_meta["etn_shedule_room"] : "";
+                                            $topics     = isset($single_meta["etn_schedule_topic"]) ? $single_meta["etn_schedule_topic"] : "";
+                                            $desc       = isset($single_meta["etn_shedule_objective"]) ? $single_meta["etn_shedule_objective"] : "";
+
                                             if ( in_array( $author_id, $speaker_schedules ) ) {
     
                                                 /**
@@ -138,14 +144,15 @@
                                                             *
                                                             * @hooked schedule_time - 17
                                                             */
-                                                            do_action( 'etn_schedule_time' , $single_meta["etn_shedule_start_time"] , $single_meta["etn_shedule_end_time"] );
-    
+                                                            do_action('etn_schedule_time', $start_time , $end_time);
+                                                           
+     
                                                             /**
                                                             * Speaker schedule location hook.
                                                             *
                                                             * @hooked schedule_locations - 18
                                                             */
-                                                            do_action( 'etn_schedule_locations' , $single_meta["etn_shedule_room"]  );
+                                                            do_action( 'etn_schedule_locations' , $room  );
                                                         ?>
                                                     </div>
                                                     <div class="etn-schedule-content etn-col-lg-8">
@@ -156,14 +163,14 @@
                                                             *
                                                             * @hooked speaker_topic - 19
                                                             */
-                                                            do_action( 'etn_speaker_topic' , $single_meta["etn_schedule_topic"]  );
+                                                            do_action( 'etn_speaker_topic' , $topics  );
     
                                                             /**
                                                             * Speaker objective hook.
                                                             *
                                                             * @hooked speaker_objective - 20
                                                             */
-                                                            do_action( 'etn_speaker_objective' , $single_meta["etn_shedule_objective"]  );
+                                                            do_action( 'etn_speaker_objective' , $desc  );
                                                         ?>
                                                     </div>
                                                 </div>
@@ -187,5 +194,4 @@
         </div>
     </div>
 
-    <?php 
-    wp_footer();
+ 

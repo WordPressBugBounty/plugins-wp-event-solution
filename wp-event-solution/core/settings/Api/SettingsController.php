@@ -50,6 +50,19 @@ class SettingsController extends WP_REST_Controller {
                 'schema' => array( $this, 'get_public_item_schema' ),
             )
         );
+
+        register_rest_route(
+            $this->namespace,
+            '/' . $this->rest_base . '/public',
+            array(
+                array(
+                    'methods'             => WP_REST_Server::READABLE,
+                    'callback'            => array( $this, 'get_public_item' ),
+                    'args'                => array(),
+                    'permission_callback' => array( $this, 'get_public_item_permissions_check' ),
+                ),
+            )
+        );
     }
 
     /**
@@ -89,5 +102,39 @@ class SettingsController extends WP_REST_Controller {
         Settings::update( $params );
 
         return $this->get_item( $request );
+    }
+
+    /**
+     * Get public settings
+     *
+     * @return  WP_Rest_Response | WP_Error
+     */
+    public function get_public_item( $request ) {
+        $extra_fields = etn_get_option( 'extra_fields', [] ) ?: etn_get_option( 'attendee_extra_fields', [] );
+        $items = [
+            'extra_fields'             => $extra_fields,
+            'striple_publishable_key'  => etn_get_option( 'stripe_live_publishable_key' ),
+            'paypal_client_id'         => etn_get_option( 'paypal_client_id' ),
+            'currency'                 => etn_get_option( 'etn_settings_country_currency' ),
+            "paypal_status"            => etn_get_option( 'paypal_status' ),
+            "attendee_registration"    => etn_get_option( 'attendee_registration' ),
+            "reg_require_phone"        => etn_get_option( 'reg_require_phone' ),
+            "reg_require_email"        => etn_get_option( 'reg_require_email' ),
+            "enable_attendee_bulk"     => etn_get_option( 'enable_attendee_bulk' ),
+            "add_to_cart_redirect"     => etn_get_option( 'add_to_cart_redirect' ),
+            'etn_purchase_login_required' => etn_get_option( 'etn_purchase_login_required' ),
+        ];
+
+        return rest_ensure_response( $items );
+    }
+
+    /**
+     * Check if a given request has access to get items.
+     *
+     * @param WP_REST_Request $request Full data about the request.
+     * @return WP_Error|boolean
+     */
+    public function get_public_item_permissions_check( $request ) {
+        return true;
     }
 }
