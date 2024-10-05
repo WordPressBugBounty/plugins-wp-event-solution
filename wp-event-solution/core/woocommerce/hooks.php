@@ -263,7 +263,7 @@ class Hooks {
         $order_id = WC()->session->get('event_order_id');
 
         if ( $order_id ) {
-            $url = site_url( 'eventin/checkout/#/success' );
+            $url = site_url( 'eventin-purchase/checkout/#/success' );
             update_post_meta( $wc_order_id, 'eventin_order_id', $order_id );
             WC()->session->__unset( 'event_order_id' );
             wp_redirect($url);
@@ -2135,6 +2135,12 @@ class Hooks {
      * @return  array
      */
     public function hide_checkout_fields( $fields ) {
+        
+        if ( ! WC()->session ) {
+            WC()->session = new \WC_Session_Handler();
+            WC()->session->init();
+        }
+
         $session_data = WC()->session->get( 'event_order_id' );
         if ( ! $session_data ) {
             return $fields;

@@ -749,3 +749,38 @@ if ( !function_exists( 'getThemePrefScheme' ) ) {
 
     }
 }
+
+if ( ! function_exists( 'etn_currency' ) ) {
+    /**
+     * Get currecny
+     *
+     * @return  string
+     */
+    function etn_currency() {
+        $payment_method = etn_get_option( 'payment_method' );
+        $is_enabled_wc = 'woocommerce' === $payment_method;
+
+        if ( function_exists('WC') &&  $is_enabled_wc ) {
+            return get_woocommerce_currency();
+        }
+
+        $currency = etn_get_option( 'etn_settings_country_currency' );
+
+        $currency = ! empty( $currency ) ? $currency : 'USD';
+
+        return $currency;
+    }
+}
+
+if ( ! function_exists( 'etn_currency_symbol' ) ) {
+    /**
+     * Get currency symbol
+     *
+     * @return  string
+     */
+    function etn_currency_symbol() {
+        $currency = etn_currency();
+
+        return etn_get_currency_symbol( $currency );
+    }
+}

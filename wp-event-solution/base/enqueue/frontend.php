@@ -24,10 +24,19 @@ class Frontend {
         wp_enqueue_style( 'etn-icon' );
         wp_enqueue_style( 'etn-public-css' );
         wp_enqueue_script( 'etn-public' );
-        wp_enqueue_script( 'etn-ticket-selector' );
-        wp_enqueue_script( 'etn-checkout' );
-        wp_set_script_translations( 'etn-public', 'eventin' );
-        // wp_enqueue_script( 'html-to-image' ); // Dont need this. Without this file it's working fine
+        wp_enqueue_script( 'etn-module-purchase');
+        
+		//set translations
+		
+		wp_set_script_translations( 'etn-public', 'eventin' );
+        // wp_enqueue_script( 'html-to-image' ); // Don't need this. Without this file it's working fine
+		
+		//set frontend translation
+		wp_set_script_translations( 
+		'etn-module-purchase',  // The script handle
+		'eventin',              // Text domain
+		plugin_dir_path(__FILE__) . 'languages' //path to language folder
+		);
 
         // Load RTL CSS.
         if ( is_rtl() ) {
@@ -72,5 +81,6 @@ class Frontend {
 		$translated_data['post_id']						 = get_the_ID();
 
 		wp_localize_script( 'etn-public', 'localized_data_obj', $translated_data );
+		
     }
 }

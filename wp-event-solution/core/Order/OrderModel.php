@@ -38,6 +38,7 @@ class OrderModel extends Post_Model {
         'seat_ids'          => '',
         'total_price'       => '',
         'payment_id'        => '',
+        'attendee_seats'    => '',
     ];
 
     /**
@@ -93,6 +94,10 @@ class OrderModel extends Post_Model {
                     'etn_ticket_slug'   => $ticket_item['etn_ticket_slug'],
                     'etn_ticket_qty'    => $ticket['ticket_quantity'],
                 ];
+
+                if ( ! empty( $ticket['seats'] ) ) {
+                    $ticket_data['seats'] = $ticket['seats'];
+                }
 
                 $tickets[] = $ticket_data;
             }

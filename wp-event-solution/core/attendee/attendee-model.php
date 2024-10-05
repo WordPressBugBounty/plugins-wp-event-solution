@@ -33,6 +33,7 @@ class Attendee_Model extends Post_Model {
         'etn_status'                  => 'failed',
         'etn_info_edit_token'         => '',
         'extra_fields'                => '',
+        'attendee_seat'               => '',
     ];
 
     /**

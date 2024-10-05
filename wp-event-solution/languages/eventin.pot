@@ -2,14 +2,14 @@
 # This file is distributed under the GPL-2.0+.
 msgid ""
 msgstr ""
-"Project-Id-Version: Eventin 4.0.10\n"
+"Project-Id-Version: Eventin 4.0.11\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/eventin\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2024-09-26T13:18:01+00:00\n"
+"POT-Creation-Date: 2024-10-03T08:58:36+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.11.0\n"
 "X-Domain: eventin\n"
@@ -55,7 +55,7 @@ msgstr ""
 msgid "Eventin Settings Updated"
 msgstr ""
 
-#: base/enqueue/frontend.php:45
+#: base/enqueue/frontend.php:54
 #: bootstrap.php:675
 #: core/event/event-model.php:122
 #: utils/locale/static.php:10
@@ -66,23 +66,23 @@ msgstr ""
 msgid "Expired"
 msgstr ""
 
-#: base/enqueue/frontend.php:49
+#: base/enqueue/frontend.php:58
 #: bootstrap.php:679
 #: utils/locale/static.php:11
 #: utils/locale/static.php:12
 msgid "Something went wrong! Please try again."
 msgstr ""
 
-#: base/enqueue/frontend.php:57
+#: base/enqueue/frontend.php:66
 #: bootstrap.php:687
 #: build/js/event-manager-public.js:1
 msgid "Email is not valid"
 msgstr ""
 
-#: base/enqueue/frontend.php:58
-#: base/enqueue/frontend.php:61
 #: base/enqueue/frontend.php:67
-#: base/enqueue/frontend.php:69
+#: base/enqueue/frontend.php:70
+#: base/enqueue/frontend.php:76
+#: base/enqueue/frontend.php:78
 #: bootstrap.php:688
 #: bootstrap.php:691
 #: bootstrap.php:697
@@ -94,26 +94,26 @@ msgstr ""
 msgid "Please fill the field"
 msgstr ""
 
-#: base/enqueue/frontend.php:62
+#: base/enqueue/frontend.php:71
 #: bootstrap.php:692
 #: build/js/event-manager-public.js:1
 msgid "Invalid phone number"
 msgstr ""
 
-#: base/enqueue/frontend.php:63
+#: base/enqueue/frontend.php:72
 #: bootstrap.php:693
 #: utils/locale/static.php:5
 #: build/js/event-manager-public.js:1
 msgid "Only number allowed"
 msgstr ""
 
-#: base/enqueue/frontend.php:68
+#: base/enqueue/frontend.php:77
 #: bootstrap.php:698
 #: utils/locale/static.php:7
 msgid "Please input a number"
 msgstr ""
 
-#: base/enqueue/frontend.php:70
+#: base/enqueue/frontend.php:79
 #: bootstrap.php:700
 #: utils/locale/static.php:9
 #: build/js/event-manager-public.js:1
@@ -508,24 +508,24 @@ msgstr ""
 msgid "Successfully imported file"
 msgstr ""
 
-#: core/admin/hooks.php:283
+#: core/admin/hooks.php:287
 msgid "Heads up! Please backup before upgrading!"
 msgstr ""
 
-#: core/admin/hooks.php:288
+#: core/admin/hooks.php:292
 msgid "Eventin 4.0, the latest version, includes major changes across different areas of the plugin. For a smooth transition, we strongly advise you to backup your site before upgrading and testing it in a staging environment first."
 msgstr ""
 
-#: core/admin/hooks.php:429
-#: core/admin/hooks.php:505
+#: core/admin/hooks.php:433
+#: core/admin/hooks.php:509
 msgid "Migration completed successfully!"
 msgstr ""
 
-#: core/admin/hooks.php:445
+#: core/admin/hooks.php:449
 msgid "You didn't run the Eventin migration. Click the button below to run it."
 msgstr ""
 
-#: core/admin/hooks.php:446
+#: core/admin/hooks.php:450
 msgid "Run Eventin Migration"
 msgstr ""
 
@@ -692,25 +692,25 @@ msgstr ""
 
 #: core/attendee/Api/AttendeeController.php:567
 #: core/event/Api/EventController.php:1303
-#: core/Order/OrderController.php:659
+#: core/Order/OrderController.php:665
 #: core/schedule/Api/ScheduleController.php:485
-#: core/speaker/Api/SpeakerController.php:650
+#: core/speaker/Api/SpeakerController.php:651
 msgid "Invalid data format"
 msgstr ""
 
 #: core/attendee/Api/AttendeeController.php:571
 #: core/event/Api/EventController.php:1307
-#: core/Order/OrderController.php:663
+#: core/Order/OrderController.php:669
 #: core/schedule/Api/ScheduleController.php:489
-#: core/speaker/Api/SpeakerController.php:654
+#: core/speaker/Api/SpeakerController.php:655
 msgid "Invalid ids"
 msgstr ""
 
 #: core/attendee/Api/AttendeeController.php:602
 #: core/event/Api/EventController.php:1337
-#: core/Order/OrderController.php:695
+#: core/Order/OrderController.php:701
 #: core/schedule/Api/ScheduleController.php:517
-#: core/speaker/Api/SpeakerController.php:681
+#: core/speaker/Api/SpeakerController.php:682
 msgid "You must provide a valid file."
 msgstr ""
 
@@ -743,13 +743,12 @@ msgstr ""
 #: core/recurring-event/hooks.php:82
 #: core/shortcodes/views/shortcode-list-menu.php:331
 #: core/speaker/speaker-exporter.php:111
-#: build/js/checkout.js:149
 #: build/js/dashboard.js:1060
 #: build/js/dashboard.js:1217
 #: build/js/dashboard.js:1744
 #: build/js/dashboard.js:2259
 #: build/js/dashboard.js:2841
-#: build/js/purchase-ticket-index.js:239
+#: build/js/module-purchase.js:264
 msgid "Name"
 msgstr ""
 
@@ -760,12 +759,11 @@ msgstr ""
 #: core/metaboxs/attendee-meta.php:43
 #: core/metaboxs/speaker-meta.php:61
 #: core/speaker/speaker-exporter.php:113
-#: build/js/checkout.js:149
 #: build/js/dashboard.js:1060
 #: build/js/dashboard.js:1217
 #: build/js/dashboard.js:2655
 #: build/js/dashboard.js:2929
-#: build/js/purchase-ticket-index.js:239
+#: build/js/module-purchase.js:264
 msgid "Email"
 msgstr ""
 
@@ -775,8 +773,7 @@ msgstr ""
 #: core/attendee/views/ticket/part/ticket-form.php:50
 #: core/metaboxs/attendee-meta.php:53
 #: core/Order/OrderExporter.php:117
-#: build/js/checkout.js:149
-#: build/js/purchase-ticket-index.js:239
+#: build/js/module-purchase.js:264
 msgid "Phone"
 msgstr ""
 
@@ -1097,8 +1094,7 @@ msgstr ""
 
 #: core/attendee/views/purchaser/attendee-details.php:52
 #: utils/helper.php:2754
-#: build/js/checkout.js:255
-#: build/js/purchase-ticket-index.js:345
+#: build/js/module-purchase.js:382
 msgid "Download Ticket"
 msgstr ""
 
@@ -1198,8 +1194,7 @@ msgid "Ticket Type:"
 msgstr ""
 
 #: core/attendee/views/ticket/pdf.php:29
-#: build/js/purchase-ticket-index.js:91
-#: build/js/ticket-selector.js:91
+#: build/js/module-purchase.js:112
 msgid "Ticket Price:"
 msgstr ""
 
@@ -1225,40 +1220,40 @@ msgstr ""
 msgid "PRICE :"
 msgstr ""
 
-#: core/attendee/views/ticket/ticket-markup.php:109
+#: core/attendee/views/ticket/ticket-markup.php:94
 msgid "TYPE :"
 msgstr ""
 
-#: core/attendee/views/ticket/ticket-markup.php:117
+#: core/attendee/views/ticket/ticket-markup.php:102
 msgid "Seat :"
 msgstr ""
 
-#: core/attendee/views/ticket/ticket-markup.php:123
-#: core/attendee/views/ticket/ticket-markup.php:129
+#: core/attendee/views/ticket/ticket-markup.php:108
+#: core/attendee/views/ticket/ticket-markup.php:114
 msgid "VENUE :"
 msgstr ""
 
-#: core/attendee/views/ticket/ticket-markup.php:137
+#: core/attendee/views/ticket/ticket-markup.php:122
 msgid "ATTENDEE :"
 msgstr ""
 
-#: core/attendee/views/ticket/ticket-markup.php:144
+#: core/attendee/views/ticket/ticket-markup.php:129
 msgid "PHONE :"
 msgstr ""
 
-#: core/attendee/views/ticket/ticket-markup.php:150
+#: core/attendee/views/ticket/ticket-markup.php:135
 msgid "EMAIL :"
 msgstr ""
 
-#: core/attendee/views/ticket/ticket-markup.php:157
+#: core/attendee/views/ticket/ticket-markup.php:142
 msgid "Payment Status :"
 msgstr ""
 
-#: core/attendee/views/ticket/ticket-markup.php:181
+#: core/attendee/views/ticket/ticket-markup.php:166
 msgid "Print"
 msgstr ""
 
-#: core/attendee/views/ticket/ticket-markup.php:183
+#: core/attendee/views/ticket/ticket-markup.php:168
 #: build/js/dashboard.js:2841
 msgid "Download"
 msgstr ""
@@ -1895,23 +1890,23 @@ msgstr ""
 msgid "New Tags Name"
 msgstr ""
 
-#: core/event/template-functions.php:338
+#: core/event/template-functions.php:336
 msgid "Daily Event Schedule :"
 msgstr ""
 
-#: core/event/template-functions.php:340
+#: core/event/template-functions.php:338
 msgid "Weekly Event Schedule :"
 msgstr ""
 
-#: core/event/template-functions.php:342
+#: core/event/template-functions.php:340
 msgid "Monthly Event Schedule :"
 msgstr ""
 
-#: core/event/template-functions.php:344
+#: core/event/template-functions.php:342
 msgid "Yearly Event Schedule :"
 msgstr ""
 
-#: core/event/template-functions.php:367
+#: core/event/template-functions.php:365
 msgid "Show More Event"
 msgstr ""
 
@@ -1924,10 +1919,8 @@ msgid "You must provide access token"
 msgstr ""
 
 #: core/metaboxs/attendee-meta.php:18
-#: build/js/checkout.js:149
-#: build/js/checkout.js:159
-#: build/js/purchase-ticket-index.js:239
-#: build/js/purchase-ticket-index.js:249
+#: build/js/module-purchase.js:264
+#: build/js/module-purchase.js:274
 msgid "Attendee Details"
 msgstr ""
 
@@ -3183,7 +3176,7 @@ msgstr ""
 msgid "%d orders are deleted of %d"
 msgstr ""
 
-#: core/Order/OrderController.php:702
+#: core/Order/OrderController.php:708
 msgid "Successfully imported order"
 msgstr ""
 
@@ -3218,7 +3211,7 @@ msgstr ""
 msgid "Ticket Items"
 msgstr ""
 
-#: core/Order/PaymentController.php:113
+#: core/Order/PaymentController.php:117
 msgid "Sucessfully payment updated"
 msgstr ""
 
@@ -3805,36 +3798,36 @@ msgstr ""
 msgid "Name field is required"
 msgstr ""
 
-#: core/speaker/Api/SpeakerController.php:296
+#: core/speaker/Api/SpeakerController.php:297
 msgid "Speaker can not create from clone id. Please try again"
 msgstr ""
 
-#: core/speaker/Api/SpeakerController.php:365
+#: core/speaker/Api/SpeakerController.php:366
 msgid "A user is exist with this email."
 msgstr ""
 
-#: core/speaker/Api/SpeakerController.php:371
+#: core/speaker/Api/SpeakerController.php:372
 msgid "Speaker can not updated. Please try again"
 msgstr ""
 
-#: core/speaker/Api/SpeakerController.php:421
-#: core/speaker/Api/SpeakerController.php:456
+#: core/speaker/Api/SpeakerController.php:422
+#: core/speaker/Api/SpeakerController.php:457
 msgid "The speaker cannot be deleted."
 msgstr ""
 
-#: core/speaker/Api/SpeakerController.php:443
+#: core/speaker/Api/SpeakerController.php:444
 msgid "Speaker ids can not be empty."
 msgstr ""
 
-#: core/speaker/Api/SpeakerController.php:468
+#: core/speaker/Api/SpeakerController.php:469
 msgid "Speaker cannot be deleted."
 msgstr ""
 
-#: core/speaker/Api/SpeakerController.php:473
+#: core/speaker/Api/SpeakerController.php:474
 msgid "%d speakers are deleted of %d"
 msgstr ""
 
-#: core/speaker/Api/SpeakerController.php:688
+#: core/speaker/Api/SpeakerController.php:689
 msgid "Successfully imported speaker"
 msgstr ""
 
@@ -4230,8 +4223,7 @@ msgstr ""
 
 #: templates/event/purchase-form/recurring-event-ticket.php:120
 #: templates/event/purchase-form/template/form-template.php:56
-#: build/js/purchase-ticket-index.js:91
-#: build/js/ticket-selector.js:91
+#: build/js/module-purchase.js:112
 msgid "Quantity"
 msgstr ""
 
@@ -4288,7 +4280,7 @@ msgid " attendees so far."
 msgstr ""
 
 #: templates/event/purchase-form/recurring-event-variable-ticket.php:52
-#: utils/helper.php:3931
+#: utils/helper.php:3933
 msgid "To"
 msgstr ""
 
@@ -5380,15 +5372,15 @@ msgstr ""
 msgid "Default"
 msgstr ""
 
-#: utils/helper.php:4004
+#: utils/helper.php:4006
 msgid "More Events"
 msgstr ""
 
-#: utils/helper.php:4129
+#: utils/helper.php:4131
 msgid "Upgrade to  Pro"
 msgstr ""
 
-#: utils/helper.php:4148
+#: utils/helper.php:4150
 msgid "Install Eventin AI"
 msgstr ""
 
@@ -6791,222 +6783,40 @@ msgstr ""
 msgid "Meeting block margin"
 msgstr ""
 
-#: build/js/checkout.js:1
 #: build/js/dashboard.js:1
+#: build/js/module-purchase.js:1
 #: build/js/packages.js:1
-#: build/js/purchase-ticket-index.js:1
-#: build/js/ticket-selector.js:1
 msgid "Event title is required!"
 msgstr ""
 
-#: build/js/checkout.js:1
 #: build/js/dashboard.js:1
+#: build/js/module-purchase.js:1
 #: build/js/packages.js:1
-#: build/js/purchase-ticket-index.js:1
-#: build/js/ticket-selector.js:1
 msgid "Event Start Date is required!"
 msgstr ""
 
-#: build/js/checkout.js:1
 #: build/js/dashboard.js:1
+#: build/js/module-purchase.js:1
 #: build/js/packages.js:1
-#: build/js/purchase-ticket-index.js:1
-#: build/js/ticket-selector.js:1
 msgid "Event Start Time is required!"
 msgstr ""
 
-#: build/js/checkout.js:1
 #: build/js/dashboard.js:1
+#: build/js/module-purchase.js:1
 #: build/js/packages.js:1
-#: build/js/purchase-ticket-index.js:1
-#: build/js/ticket-selector.js:1
 msgid "Event End Date is required!"
 msgstr ""
 
-#: build/js/checkout.js:1
 #: build/js/dashboard.js:1
+#: build/js/module-purchase.js:1
 #: build/js/packages.js:1
-#: build/js/purchase-ticket-index.js:1
-#: build/js/ticket-selector.js:1
 msgid "Event End Time is required!"
 msgstr ""
 
-#: build/js/checkout.js:1
 #: build/js/dashboard.js:1
+#: build/js/module-purchase.js:1
 #: build/js/packages.js:1
-#: build/js/purchase-ticket-index.js:1
-#: build/js/ticket-selector.js:1
 msgid "Please select how event will repeat!"
-msgstr ""
-
-#: build/js/checkout.js:117
-#: build/js/purchase-ticket-index.js:207
-msgid "Your cart is empty"
-msgstr ""
-
-#: build/js/checkout.js:117
-#: build/js/purchase-ticket-index.js:207
-msgid " Looks like you haven't added any events to your cart yet."
-msgstr ""
-
-#: build/js/checkout.js:117
-#: build/js/purchase-ticket-index.js:207
-msgid " Back to Home"
-msgstr ""
-
-#: build/js/checkout.js:149
-#: build/js/purchase-ticket-index.js:239
-msgid "Name is Required!"
-msgstr ""
-
-#: build/js/checkout.js:149
-#: build/js/purchase-ticket-index.js:239
-msgid "Enter Valid Email!"
-msgstr ""
-
-#: build/js/checkout.js:149
-#: build/js/purchase-ticket-index.js:239
-msgid "Phone is Required!"
-msgstr ""
-
-#: build/js/checkout.js:149
-#: build/js/purchase-ticket-index.js:239
-msgid "Enable Bulk Attendee"
-msgstr ""
-
-#: build/js/checkout.js:149
-#: build/js/dashboard.js:1060
-#: build/js/purchase-ticket-index.js:239
-msgid "Billing Information"
-msgstr ""
-
-#: build/js/checkout.js:149
-#: build/js/purchase-ticket-index.js:239
-msgid "First Name"
-msgstr ""
-
-#: build/js/checkout.js:149
-#: build/js/purchase-ticket-index.js:239
-msgid "First Name is Required!"
-msgstr ""
-
-#: build/js/checkout.js:149
-#: build/js/purchase-ticket-index.js:239
-msgid "Last Name"
-msgstr ""
-
-#: build/js/checkout.js:149
-#: build/js/purchase-ticket-index.js:239
-msgid "Last Name is Required!"
-msgstr ""
-
-#: build/js/checkout.js:149
-#: build/js/purchase-ticket-index.js:239
-msgid "Booking Summary"
-msgstr ""
-
-#: build/js/checkout.js:149
-#: build/js/purchase-ticket-index.js:91
-#: build/js/purchase-ticket-index.js:239
-#: build/js/ticket-selector.js:91
-msgid "Total"
-msgstr ""
-
-#: build/js/checkout.js:149
-#: build/js/purchase-ticket-index.js:239
-msgid "Payment Options"
-msgstr ""
-
-#: build/js/checkout.js:149
-#: build/js/dashboard.js:1207
-#: build/js/dashboard.js:2655
-#: build/js/purchase-ticket-index.js:239
-msgid "Stripe"
-msgstr ""
-
-#: build/js/checkout.js:149
-#: build/js/purchase-ticket-index.js:239
-msgid "PayPal"
-msgstr ""
-
-#: build/js/checkout.js:149
-#: build/js/purchase-ticket-index.js:239
-msgid "Book Now"
-msgstr ""
-
-#: build/js/checkout.js:149
-#: build/js/purchase-ticket-index.js:239
-msgid "Proceed to Payment"
-msgstr ""
-
-#: build/js/checkout.js:159
-#: build/js/purchase-ticket-index.js:249
-msgid "Event Booking"
-msgstr ""
-
-#: build/js/checkout.js:159
-#: build/js/purchase-ticket-index.js:249
-msgid "Checkout & Payment"
-msgstr ""
-
-#: build/js/checkout.js:226
-#: build/js/purchase-ticket-index.js:316
-msgid "Your last payment was unsuccessful"
-msgstr ""
-
-#: build/js/checkout.js:226
-#: build/js/purchase-ticket-index.js:316
-msgid "Booking Number:"
-msgstr ""
-
-#: build/js/checkout.js:226
-#: build/js/purchase-ticket-index.js:316
-msgid "Try Again"
-msgstr ""
-
-#: build/js/checkout.js:226
-#: build/js/purchase-ticket-index.js:316
-msgid "Pay now"
-msgstr ""
-
-#: build/js/checkout.js:226
-#: build/js/purchase-ticket-index.js:316
-msgid "Payment Details"
-msgstr ""
-
-#: build/js/checkout.js:226
-#: build/js/purchase-ticket-index.js:316
-msgid "Back"
-msgstr ""
-
-#: build/js/checkout.js:255
-#: build/js/purchase-ticket-index.js:345
-msgid "Thank you!"
-msgstr ""
-
-#: build/js/checkout.js:255
-#: build/js/purchase-ticket-index.js:345
-msgid "Your booking is successfully saved!"
-msgstr ""
-
-#: build/js/checkout.js:255
-#: build/js/purchase-ticket-index.js:345
-msgid "Subtotal:"
-msgstr ""
-
-#: build/js/checkout.js:255
-#: build/js/purchase-ticket-index.js:345
-msgid "Total:"
-msgstr ""
-
-#: build/js/checkout.js:255
-#: build/js/purchase-ticket-index.js:345
-msgid "Download your tickets:"
-msgstr ""
-
-#: build/js/checkout.js:255
-#: build/js/purchase-ticket-index.js:345
-msgid "Back to Event"
 msgstr ""
 
 #: build/js/dashboard.js:1
@@ -7452,6 +7262,11 @@ msgid "Booking ID"
 msgstr ""
 
 #: build/js/dashboard.js:1060
+#: build/js/module-purchase.js:264
+msgid "Billing Information"
+msgstr ""
+
+#: build/js/dashboard.js:1060
 #: build/js/dashboard.js:1217
 msgid "Received On"
 msgstr ""
@@ -7475,8 +7290,7 @@ msgstr ""
 
 #: build/js/dashboard.js:1060
 #: build/js/dashboard.js:2383
-#: build/js/purchase-ticket-index.js:91
-#: build/js/ticket-selector.js:91
+#: build/js/module-purchase.js:112
 msgid "Tickets"
 msgstr ""
 
@@ -7512,6 +7326,12 @@ msgstr ""
 
 #: build/js/dashboard.js:1207
 msgid "Woo Commerce"
+msgstr ""
+
+#: build/js/dashboard.js:1207
+#: build/js/dashboard.js:2655
+#: build/js/module-purchase.js:264
+msgid "Stripe"
 msgstr ""
 
 #: build/js/dashboard.js:1207
@@ -9062,6 +8882,7 @@ msgstr ""
 
 #: build/js/dashboard.js:2589
 #: build/js/dashboard.js:2594
+#: build/js/module-purchase.js:264
 msgid "Enter your email"
 msgstr ""
 
@@ -9827,6 +9648,10 @@ msgid "Attendee:"
 msgstr ""
 
 #: build/js/dashboard.js:2841
+msgid "Seat: "
+msgstr ""
+
+#: build/js/dashboard.js:2841
 msgid "Price:"
 msgstr ""
 
@@ -10032,52 +9857,201 @@ msgstr ""
 msgid "I know about this, skip"
 msgstr ""
 
-#: build/js/purchase-ticket-index.js:91
-#: build/js/ticket-selector.js:91
+#: build/js/module-purchase.js:112
+msgid "Invalid timezone or data."
+msgstr ""
+
+#: build/js/module-purchase.js:112
 msgid "Ticket is available for purchase"
 msgstr ""
 
-#: build/js/purchase-ticket-index.js:91
-#: build/js/ticket-selector.js:91
-msgid "Sorry! Sale has ended!"
+#: build/js/module-purchase.js:112
+msgid "We’re sorry! The sale period has ended."
 msgstr ""
 
-#: build/js/purchase-ticket-index.js:91
-#: build/js/ticket-selector.js:91
+#: build/js/module-purchase.js:112
+msgid "Selected quantity exceeds available tickets"
+msgstr ""
+
+#: build/js/module-purchase.js:112
 msgid "All tickets have been sold out!"
 msgstr ""
 
-#: build/js/purchase-ticket-index.js:91
-#: build/js/ticket-selector.js:91
+#: build/js/module-purchase.js:112
+msgid "seats remaining"
+msgstr ""
+
+#: build/js/module-purchase.js:112
 msgid "Payment methods are not enabled for this event!"
 msgstr ""
 
-#: build/js/purchase-ticket-index.js:91
-#: build/js/ticket-selector.js:91
+#: build/js/module-purchase.js:112
 msgid "Minimum Quantity Reached!"
 msgstr ""
 
-#: build/js/purchase-ticket-index.js:91
-#: build/js/ticket-selector.js:91
+#: build/js/module-purchase.js:112
 msgid "Maximum Quantity Reached!"
 msgstr ""
 
-#: build/js/purchase-ticket-index.js:91
-#: build/js/ticket-selector.js:91
+#: build/js/module-purchase.js:112
+#: build/js/module-purchase.js:382
+msgid "Subtotal:"
+msgstr ""
+
+#: build/js/module-purchase.js:112
 msgid "Sorry! This event has expired!"
 msgstr ""
 
-#: build/js/purchase-ticket-index.js:91
-#: build/js/ticket-selector.js:91
+#: build/js/module-purchase.js:112
+#: build/js/module-purchase.js:264
+#: build/js/module-purchase.js:382
+msgid "Total"
+msgstr ""
+
+#: build/js/module-purchase.js:112
 msgid "Login required to purchase tickets!"
 msgstr ""
 
-#: build/js/purchase-ticket-index.js:91
-#: build/js/ticket-selector.js:91
+#: build/js/module-purchase.js:112
 msgid "Please Login"
 msgstr ""
 
-#: build/js/purchase-ticket-index.js:91
-#: build/js/ticket-selector.js:91
+#: build/js/module-purchase.js:112
 msgid "GET TICKETS"
+msgstr ""
+
+#: build/js/module-purchase.js:232
+msgid "Your cart is empty"
+msgstr ""
+
+#: build/js/module-purchase.js:232
+msgid " Looks like you haven't added any events to your cart yet."
+msgstr ""
+
+#: build/js/module-purchase.js:232
+msgid " Back to Home"
+msgstr ""
+
+#: build/js/module-purchase.js:264
+msgid "Enter Full Name"
+msgstr ""
+
+#: build/js/module-purchase.js:264
+msgid "Name is Required!"
+msgstr ""
+
+#: build/js/module-purchase.js:264
+msgid "Enter Valid Email!"
+msgstr ""
+
+#: build/js/module-purchase.js:264
+msgid "Phone is Required!"
+msgstr ""
+
+#: build/js/module-purchase.js:264
+msgid "+0123456749"
+msgstr ""
+
+#: build/js/module-purchase.js:264
+msgid "Enable Bulk Attendee"
+msgstr ""
+
+#: build/js/module-purchase.js:264
+msgid "First Name"
+msgstr ""
+
+#: build/js/module-purchase.js:264
+msgid "Enter First Name"
+msgstr ""
+
+#: build/js/module-purchase.js:264
+msgid "First Name is Required!"
+msgstr ""
+
+#: build/js/module-purchase.js:264
+msgid "Last Name"
+msgstr ""
+
+#: build/js/module-purchase.js:264
+msgid "Enter Last Name"
+msgstr ""
+
+#: build/js/module-purchase.js:264
+msgid "Last Name is Required!"
+msgstr ""
+
+#: build/js/module-purchase.js:264
+msgid "Enter Email Address"
+msgstr ""
+
+#: build/js/module-purchase.js:264
+msgid "Booking Summary"
+msgstr ""
+
+#: build/js/module-purchase.js:264
+msgid "Payment Options"
+msgstr ""
+
+#: build/js/module-purchase.js:264
+msgid "PayPal"
+msgstr ""
+
+#: build/js/module-purchase.js:264
+msgid "Book Now"
+msgstr ""
+
+#: build/js/module-purchase.js:264
+msgid "Proceed to Payment"
+msgstr ""
+
+#: build/js/module-purchase.js:274
+msgid "Event Booking"
+msgstr ""
+
+#: build/js/module-purchase.js:274
+msgid "Checkout & Payment"
+msgstr ""
+
+#: build/js/module-purchase.js:341
+msgid "Your last payment was unsuccessful"
+msgstr ""
+
+#: build/js/module-purchase.js:341
+msgid "Booking Number:"
+msgstr ""
+
+#: build/js/module-purchase.js:341
+msgid "Try Again"
+msgstr ""
+
+#: build/js/module-purchase.js:350
+msgid "Pay now"
+msgstr ""
+
+#: build/js/module-purchase.js:350
+msgid "Payment Details"
+msgstr ""
+
+#: build/js/module-purchase.js:350
+msgid "Back"
+msgstr ""
+
+#: build/js/module-purchase.js:382
+msgid "Success Icon"
+msgstr ""
+
+#: build/js/module-purchase.js:382
+msgid "Thank you!"
+msgstr ""
+
+#: build/js/module-purchase.js:382
+msgid "Your booking is successfully saved!"
+msgstr ""
+
+#: build/js/module-purchase.js:382
+msgid "Download your tickets"
+msgstr ""
+
+#: build/js/module-purchase.js:382
+msgid "Back to Event"
 msgstr ""

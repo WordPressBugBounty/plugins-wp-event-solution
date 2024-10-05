@@ -532,7 +532,7 @@ final class Bootstrap {
 			)
 			->set_plugin_row_meta( 'Documentation', 'https://support.themewinter.com/docs/plugins/docs-category/eventin/', array( 'target' => '_blank' ) )
 			->set_plugin_row_meta( 'Facebook Community', 'https://www.facebook.com/groups/themewinter', array( 'target' => '_blank' ) )
-			->set_plugin_action_link( 'Settings', admin_url() . 'admin.php?page=etn-event-settings' )
+			->set_plugin_action_link( 'Settings', admin_url() . 'admin.php?page=eventin#/settings/event-settings/event-details' )
 			->set_plugin_action_link(
 				( $this->has_pro ? '' : 'Go Premium' ),
 				'https://themewinter.com/eventin/',
@@ -945,6 +945,8 @@ final class Bootstrap {
 		.etn-variable-ticket-widget .etn-add-to-cart-block,
 		.etn-recurring-event-wrapper #seeMore,
 		.more-event-tag,
+		.ant-input-outlined:hover,
+		.ant-input-outlined:focus-within,
         .etn-settings-dashboard .button-primary{
             background-color: {$primary_color};
         }
@@ -959,6 +961,10 @@ final class Bootstrap {
         .etn-default-calendar-style .fc-ltr .fc-basic-view .fc-day-top.fc-today .fc-day-number,
         .etn-default-calendar-style .fc-button:hover,
 		.etn-variable-ticket-widget .etn-variable-total-price,
+		.ant-input-outlined:hover,
+		.ant-input-outlined:focus-within,
+		.ant-input-number-outlined:focus-within,
+		.ant-input-number-outlined:hover,
         .etn-settings-dashboard .button-primary.etn-btn-border{
             border-color: {$primary_color};
         }
@@ -984,7 +990,6 @@ final class Bootstrap {
 		    #sidebar .etn-default-calendar-style .fc .fc-daygrid-bg-harness:nth-of-type(1)::before{
 				background-color: {$primary_color};
 		 }
-
 
         .etn-event-item .etn-event-location,
         .etn-event-tag-list a:hover,
@@ -1012,7 +1017,45 @@ final class Bootstrap {
 			display: block;
 			text-align: center;
 			margin-left: auto;
-		}";
+		}
+		
+		.ant-select:not(.ant-select-disabled):hover .ant-select-selector,
+		.ant-select-focused:where(.css-dev-only-do-not-override-5gkvuh).ant-select-outlined:not(.ant-select-disabled):not(.ant-select-customize-input):not(.ant-pagination-size-changer) .ant-select-selector,
+		.ant-select-outlined:not(.ant-select-disabled):not(.ant-select-customize-input):not(.ant-pagination-size-changer):hover .ant-select-selector {
+			border-color: {$primary_color};
+		}
+		.etn-checkbox-group .ant-checkbox-wrapper:not(.ant-checkbox-wrapper-disabled):hover .ant-checkbox-checked:not(.ant-checkbox-disabled) .ant-checkbox-inner {
+			background-color: {$primary_color};
+			border-color: {$primary_color};
+		}
+		.etn-checkbox-group .ant-checkbox-checked .ant-checkbox-inner,
+		.etn-checkbox-group .ant-checkbox:not(.ant-checkbox-disabled):hover .ant-checkbox-inner,
+		.etn-checkbox-group .ant-checkbox-wrapper:hover .ant-checkbox .ant-checkbox-inner,
+		.etn-checkbox-group .ant-checkbox-wrapper:hover .ant-checkbox-checked .ant-checkbox-inner {
+			border-color: {$primary_color};
+			background-color: {$primary_color};
+		}
+
+		.etn-extra-fields-container .ant-radio-checked .ant-radio-inner {
+			background-color: {$primary_color};
+			border-color: {$primary_color};
+		}
+
+		.etn-extra-fields-container .ant-radio-wrapper:hover .ant-radio-inner {
+			border-color: {$primary_color};
+		}
+
+		.etn-extra-field-text-area .ant-input-outlined:hover,
+		.etn-extra-field-text-area .ant-input-outlined:focus-within {
+			border-color: {$primary_color};
+			background-color: #fff;
+		}
+
+		.background-color-override {
+			background-color: #fff !important;
+		}
+
+		";
 
 		// add inline css.
 		wp_register_style( 'etn-custom-css', false );

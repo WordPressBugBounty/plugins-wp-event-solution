@@ -21,7 +21,7 @@ class TemplateRender implements HookableInterface {
      */
     public function render_checkout_template() {
 
-        $query_var = get_query_var( 'eventin' );
+        $query_var = get_query_var( 'eventin-purchase' );
 
         if ( 'checkout' !== $query_var ) {
             return;

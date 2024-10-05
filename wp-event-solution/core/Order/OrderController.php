@@ -454,6 +454,7 @@ class OrderController extends WP_REST_Controller {
             'ticket_items'      => $order->get_tickets(),
             'attendees'         => $order->get_attendees(),
             'seat_ids'          => $order->seat_ids,
+            'attendee_seats'    => $order->attendee_seats,
         ];
 
         return $order_data;
@@ -513,6 +514,10 @@ class OrderController extends WP_REST_Controller {
             $order_data['seat_ids'] = $input_data['seat_ids'];
         }
 
+        if ( isset( $input_data['attendee_seats'] ) ) {
+            $order_data['attendee_seats'] = $input_data['attendee_seats'];
+        }
+
         $order_data['total_price'] = $this->total_price($order_data['event_id'], $order_data['tickets']);
 
         return $order_data;
@@ -541,6 +546,7 @@ class OrderController extends WP_REST_Controller {
                     'etn_name'             => isset( $attendee['name'] ) ? $attendee['name'] : '', 
                     'etn_email'            => isset( $attendee['email'] ) ? $attendee['email'] : '', 
                     'etn_phone'            => isset( $attendee['phone'] ) ? $attendee['phone'] : '', 
+                    'attendee_seat'        => isset( $attendee['attendee_seat'] ) ? $attendee['attendee_seat'] : '', 
                     'etn_event_id'         => $event_id,
                     'etn_status'           => '',
                     'ticket_name'          => $ticket['etn_ticket_name'],

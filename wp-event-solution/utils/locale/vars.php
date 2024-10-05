@@ -28,6 +28,9 @@ $data = [
     'nonce'                       => wp_create_nonce('wp_rest'),
     'timetics_pro_active'         => class_exists( 'TimeticsPro' ) ? true : false ,
     'etn_purchase_login_required' => etn_get_option( 'etn_purchase_login_required' ),
+    'etn_hide_seats_from_details' => etn_get_option( 'etn_hide_seats_from_details' ),
+    'etn_primary_color'           => etn_get_option( 'etn_primary_color' ),
+    'etn_secondary_color'         => etn_get_option( 'etn_secondary_color' ),
 ];
 
 return apply_filters( 'etn_locale_vars', $data );

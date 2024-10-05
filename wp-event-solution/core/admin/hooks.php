@@ -226,9 +226,13 @@ class Hooks {
      * @return  array
      */
     public function add_settings( $settings ) {
+        $payment_method = etn_get_option( 'payment_method' );
+        $sells_engine   = etn_get_option( 'etn_sells_engine_stripe' ) ?: 'woocommerce';
+        $payment_method = $payment_method ? $payment_method : $sells_engine; 
+
         $new_settings = [
             'wc_enabled'         => function_exists( 'WC' ),
-            'payment_method'     => etn_get_option( 'etn_sells_engine_stripe' ) ?: 'woocommerce',
+            'payment_method'     => $payment_method,
             'plugin_version'     => Wpeventin::version(),  
             'modules'            => get_option( 'etn_addons_options' ),
             'zoom_authorize_url' => ZoomCredential::get_auth_url(),

@@ -57,7 +57,7 @@
                 color: #334155;
                 "
             >
-                $ <?php echo esc_html( $ticket['etn_ticket_price'] * $ticket['etn_ticket_qty'] ); ?>
+                <?php printf( '%s%s', esc_html( etn_currency_symbol() ), esc_html( $ticket['etn_ticket_price'] * $ticket['etn_ticket_qty'] ) ); ?>
             </td>
         </tr>
         <?php endforeach; ?>
@@ -82,7 +82,8 @@
             color: #334155;
             "
         >
-            $ <?php echo esc_html( $order->total_price); ?>
+        <?php printf( '%s%s', esc_html( etn_currency_symbol() ), esc_html( $order->total_price) ); ?>
+
         </td>
         </tr>
         <tr>
@@ -105,7 +106,7 @@
             color: #334155;
             "
         >
-            $ <?php echo esc_html( $order->total_price ); ?>
+        <?php printf( '%s%s', esc_html( etn_currency_symbol() ), esc_html( $order->total_price) ); ?>
         </td>
         </tr>
     </tbody>

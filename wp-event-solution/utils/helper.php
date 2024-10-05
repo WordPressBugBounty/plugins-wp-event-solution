@@ -3883,12 +3883,14 @@ class Helper {
 	 */
 	public static function etn_date( $get_date ) {
 		$etn_date = '';
+		
 		if ( '' !== $get_date ) {
 			$date_format  = Helper::get_option( "date_format" );
+			
 			$date_options = Helper::get_date_formats();
 			date_default_timezone_set( 'UTC' );
 			$new_date = str_replace( '/', '-', $get_date );
-			$etn_date = ! empty( $date_format ) ? date_i18n( $date_options[ $date_format ], strtotime( $new_date ) ) : date_i18n( get_option( "date_format" ), strtotime( $new_date ) );
+			$etn_date = ! empty( $date_format ) && ! empty( $date_options[ $date_format ] ) ? date_i18n( $date_options[ $date_format ], strtotime( $new_date ) ) : date_i18n( get_option( "date_format" ), strtotime( $new_date ) );
 		}
 
 		return $etn_date;

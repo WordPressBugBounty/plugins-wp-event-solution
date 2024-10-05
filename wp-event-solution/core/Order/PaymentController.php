@@ -101,6 +101,10 @@ class PaymentController extends WP_REST_Controller {
 
         $order = new OrderModel( $order_id );
 
+        if ( 'completed' === $order->status ) {
+            return;
+        }
+
         $order->update([
             'status' => 'completed'
         ]);

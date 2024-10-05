@@ -115,7 +115,8 @@ class SettingsController extends WP_REST_Controller {
             'extra_fields'             => $extra_fields,
             'striple_publishable_key'  => etn_get_option( 'stripe_live_publishable_key' ),
             'paypal_client_id'         => etn_get_option( 'paypal_client_id' ),
-            'currency'                 => etn_get_option( 'etn_settings_country_currency' ),
+            'currency'                 => etn_currency(),
+            'currency_symbol'          => etn_currency_symbol(),
             "paypal_status"            => etn_get_option( 'paypal_status' ),
             "attendee_registration"    => etn_get_option( 'attendee_registration' ),
             "reg_require_phone"        => etn_get_option( 'reg_require_phone' ),
@@ -124,6 +125,11 @@ class SettingsController extends WP_REST_Controller {
             "add_to_cart_redirect"     => etn_get_option( 'add_to_cart_redirect' ),
             'etn_purchase_login_required' => etn_get_option( 'etn_purchase_login_required' ),
         ];
+
+        if ( function_exists( 'WC' ) ) {
+            $items['wc_checkout_url'] = wc_get_checkout_url();
+            $items['wc_cart_url']     = wc_get_cart_url();
+        }
 
         return rest_ensure_response( $items );
     }

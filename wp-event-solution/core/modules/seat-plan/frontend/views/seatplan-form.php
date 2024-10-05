@@ -23,6 +23,13 @@ class Seatplan_Form {
 	public function seat_plan_form() {
 		$errors = isset( $_GET['etn_errors'] ) ? $_GET['etn_errors'] : '';
 		remove_query_arg( 'etn_errors', get_the_permalink(get_the_ID()) );
+		$seats = get_post_meta( get_the_ID(),'seat_plan', true );
+
+		// Early return if $seats is empty
+		if (empty($seats)) {
+			return;
+		}
+	 
 		?>
 		<form method="POST">
 			<?php  wp_nonce_field('ticket_purchase_next_step_two','ticket_purchase_next_step_two'); ?>

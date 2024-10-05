@@ -133,7 +133,7 @@ class OrderTicket implements HookableInterface {
 
         $event->update([
             'etn_ticket_variations' => $event_tickets,
-            'etn_total_sold_tickets' => $event->etn_total_sold_tickets + 1
+            'etn_total_sold_tickets' => (int) $event->etn_total_sold_tickets + 1
         ]);
     }
 }

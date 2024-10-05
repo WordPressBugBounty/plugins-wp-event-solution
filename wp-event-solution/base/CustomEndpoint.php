@@ -37,7 +37,7 @@ class CustomEndpoint {
          */
         return [
             'eventin-integration',
-            'eventin'
+            'eventin-purchase'
         ];
     }
 };

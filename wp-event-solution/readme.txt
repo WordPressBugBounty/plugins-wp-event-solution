@@ -3,7 +3,7 @@ Contributors: themewinter, ataurr, abrasel600, rezakhan995
 Tags: event, calendar, tickets, organizer, schedule
 Requires at least: 5.2
 Tested up to: 6.6.2
-Stable tag: 4.0.10
+Stable tag: 4.0.11
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -317,6 +317,21 @@ Yes, Eventin offers a unique QR scanner solution to scan all the single/bulk tic
 
 
 == Changelog ==
+
+= 4.0.11 ( October 02, 2024 )=
+Tweak  : Updated settings URL on the tools page and plugin activation settings 
+Tweak  : Hide Ticket Selector when no tickets are available for an event.
+Fix    : Fodule disabling issue
+Fix    : Timezone issue in the ticket form.
+Fix    : Enabled woocommerce payment method, it redirect a wrong url
+Fix    : If enable dokan module event ticket purchase couldn’t work
+Fix    : Added translation support for the Ticket Selector.
+Fix    : Event date couldn’t show on event single page
+Fix    : Broken category issue when editing categories
+Fix    : Attendee seat couldn't show on attendee ticket
+Fix    : Showing static currency symbol on order email template
+Fix    : Currency issue when enabling rich text
+Fix    : Seat number couldn’t show on order details without attendee
 
 = 4.0.10 ( September 26, 2024 )=
 Fix : Order status blank before completing payment

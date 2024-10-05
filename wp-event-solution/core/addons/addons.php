@@ -188,7 +188,7 @@
 									</a>
 								<?php } else {?>
 									<ul class="demo-link">
-										<li><a href="<?php echo esc_url( admin_url( 'admin.php?page=etn-event-settings#attendee-settings' ) ); ?>"><?php echo esc_html__( 'Go to Settings', 'eventin' ); ?></a></li>
+										<li><a href="<?php echo esc_url( admin_url( 'admin.php?page=eventin#/settings/event-settings/attendees' ) ); ?>"><?php echo esc_html__( 'Go to Settings', 'eventin' ); ?></a></li>
 										<li><a href="https://product.themewinter.com/eventin/" target="_blank"><?php echo esc_html__( 'View Demo', 'eventin' ); ?></a></li>
 									</ul>
 								<?php }?>
@@ -243,7 +243,7 @@
 									</a>
 								<?php } else {?>
 									<ul class="demo-link">
-										<li><a href="<?php echo esc_url( admin_url( 'admin.php?page=etn-event-settings#etn-rsvp' ) ); ?>"><?php echo esc_html__( 'Go to Settings', 'eventin' ); ?></a></li>
+										<li><a href="<?php echo esc_url( admin_url( 'admin.php?page=eventin#/settings/email/purchase-email' ) ); ?>"><?php echo esc_html__( 'Go to Settings', 'eventin' ); ?></a></li>
 										<li><a href="https://product.themewinter.com/eventin/"><?php echo esc_html__( 'View Demo', 'eventin' ); ?></a></li>
 									</ul>
 								<?php }?>
@@ -300,7 +300,7 @@
 									</a>
 								<?php } else {?>
 									<ul class="demo-link">
-										<li><a href="<?php echo esc_url( admin_url( 'admin.php?page=etn-event-settings#etn-user_data' ) ); ?>"><?php echo esc_html__( 'Go to Settings', 'eventin' ); ?></a></li>
+										<li><a href="<?php echo esc_url( admin_url( 'admin.php?page=eventin#/settings/integrations/google-meet' ) ); ?>"><?php echo esc_html__( 'Go to Settings', 'eventin' ); ?></a></li>
 										<li><a href="https://product.themewinter.com/eventin/"><?php echo esc_html__( 'View Demo', 'eventin' ); ?></a></li>
 									</ul>
 								<?php }?>
@@ -384,7 +384,7 @@
 									<p class="etn-warning-text"><?php echo esc_html__( 'NB: Need to active Eventin Facebook plugin', 'eventin' ); ?></p>
 								<?php } else { ?>
 									<ul class="demo-link">
-										<li><a href="<?php echo esc_url( admin_url( 'admin.php?page=etn-event-settings' ) ); ?>"><?php echo esc_html__( 'Go to Settings', 'eventin' ); ?></a></li>
+										<li><a href="<?php echo esc_url( admin_url( 'admin.php?page=eventin#/settings/event-settings/event-details' ) ); ?>"><?php echo esc_html__( 'Go to Settings', 'eventin' ); ?></a></li>
 										<li><a href="<?php echo esc_url('https://product.themewinter.com/eventin/facebook-events/') ;?>"><?php echo esc_html__( 'View Demo', 'eventin' ); ?></a></li>
 									</ul>
 								<?php } ?>

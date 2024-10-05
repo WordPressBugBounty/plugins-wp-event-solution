@@ -284,7 +284,7 @@ class Event_meta extends Event_manager_metabox {
             'type'     => 'repeater',
             'default'  => '',
             'value'    => '',
-			'walkthrough_desc'    =>  Helper::kses('It is required to enable selling option from Dashboard => <a href="' . admin_url( 'admin.php?page=etn-event-settings&etn_tab=tab1&etn-settings-tab=parchase-report-settings' ) . '" target="_blank">Woo/Purchase Settings</a>','eventin'),
+			'walkthrough_desc'    =>  Helper::kses('It is required to enable selling option from Dashboard => <a href="' . admin_url( 'admin.php?page=eventin#/settings/event-settings/event-details' ) . '" target="_blank">Woo/Purchase Settings</a>','eventin'),
             'options'  => [
                 'etn_ticket_name'   => [
                     'label'    => esc_html__( 'Ticket Name', 'eventin' ),

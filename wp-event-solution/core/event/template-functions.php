@@ -219,10 +219,8 @@ if ( ! function_exists( 'etn_after_single_event_meta_ticket_form' ) ) {
 		$recurring_enabled = get_post_meta( get_the_ID(), 'recurring_enabled', true );
 	
 		// Override disable purchase form if set in RSVP settings
-		if ( ! empty( $rsv_settings['etn_disable_purchase_form'] ) && $rsv_settings['etn_disable_purchase_form'] ) {
-			$disable_purchase_form = true;
-		}
-	
+		$disable_purchase_form		= ! empty( $rsv_settings['etn_disable_purchase_form'] ) && $rsv_settings['etn_disable_purchase_form'] ? true : false;
+		
 		if ( $disable_purchase_form ) {
 			return true;
 		}
@@ -724,34 +722,7 @@ if ( ! function_exists( "eventin_rich_result_support" ) ) {
 		$event_end_time     = $single_event_data["event_end_time"];
 		$event_reg_deadline = ! empty( $single_event_data["etn_deadline_value"] ) ? $single_event_data["etn_deadline_value"] : $event_end_date;
 		$event_image        = ! empty( get_the_post_thumbnail_url( $single_event_id, "large" ) ) ? get_the_post_thumbnail_url( $single_event_id, "large" ) : "";
-
-		// Get ticket currency
-		function get_ticket_currency_text() {
-
-			$currency_text = "";
-
-			if ( class_exists( "Wpeventin_Pro" ) && class_exists( "\Etn_Pro\Core\Modules\Sells_Engine\Sells_Engine" ) ) {
-
-				$sells_engine = \Etn_Pro\Core\Modules\Sells_Engine\Sells_Engine::instance()->check_sells_engine();
-
-				if ( "woocommerce" === $sells_engine ) {
-					$currency_text = get_option( "woocommerce_currency" );
-				}
-
-				if ( "stripe" === $sells_engine ) {
-
-					$settings              = etn_get_option();
-					$country_currency_data = isset( $settings["etn_settings_country_currency"] ) ? $settings["etn_settings_country_currency"] : [];
-					$currency_text         = explode( "-", $country_currency_data["options"]["currency"]["name"] )[1];
-				}
-
-			} else if ( class_exists( "woocommerce" ) ) {
-
-				$currency_text = get_option( "woocommerce_currency" );
-			}
-
-			return $currency_text;
-		}
+ 
 
 		// Generate ticket variation
 		$ticket_variations = ! empty( get_post_meta( $single_event_id, "etn_ticket_variations", true ) ) ? get_post_meta( $single_event_id, "etn_ticket_variations", true ) : [];
@@ -763,12 +734,11 @@ if ( ! function_exists( "eventin_rich_result_support" ) ) {
 			$event_sold_ticket  = absint( $variation["etn_sold_tickets"] );
 			$event_left_ticket  = $event_total_ticket - $event_sold_ticket;
 			$stock_status       = $event_left_ticket <= 0 ? "SoldOut" : "InStock";
-
-			$new_variation = [
+ 			$new_variation = [
 				"@type"         => "Offer",
 				"name"          => $variation['etn_ticket_name'],
 				"price"         => $variation['etn_ticket_price'],
-				"priceCurrency" => get_ticket_currency_text(),
+				"priceCurrency" => \Etn\Core\Event\Helper::instance()->get_currency(),
 				"validFrom"     => $event_reg_deadline,
 				"url"           => get_the_permalink(),
 				"availability"  => 'https://schema.org/' . $stock_status,

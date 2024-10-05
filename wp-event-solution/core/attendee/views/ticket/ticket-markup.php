@@ -84,22 +84,7 @@
                                             <?php echo esc_html__( "PRICE :", "eventin" ); ?> 
                                             <p>
                                                 <?php 
-                                                    if ( class_exists('WooCommerce') ) {
-                                                        $ticket_price = is_float( $ticket_price ) ? wc_format_decimal( $ticket_price, wc_get_price_decimals() ) : $ticket_price;
-
-                                                        $currency_symbol = get_woocommerce_currency_symbol();
-                                                        $currency_pos    = get_option( 'woocommerce_currency_pos' );
-                                                        if ( $currency_pos == 'left_space' ) {
-                                                            $currency_symbol = $currency_symbol . ' ';
-                                                        } elseif ( $currency_pos == 'right_space' ) {
-                                                            $currency_symbol = ' ' . $currency_symbol;
-                                                        }
-
-                                                        $print_left = ( strpos( $currency_pos, 'left' ) !== false ) ? true : false;
-                                                        echo ( $print_left ) ? $currency_symbol . esc_html( $ticket_price ):  esc_html( $ticket_price ) . $currency_symbol;
-                                                    } else {
-                                                        $ticket_price = is_float( $ticket_price ) ? number_format( $ticket_price, 2 ) : $ticket_price;
-                                                    }
+                                                    printf( '%s %s', etn_currency_symbol(), $ticket_price );
                                                 ?>
                                             </p>
                                         </li>

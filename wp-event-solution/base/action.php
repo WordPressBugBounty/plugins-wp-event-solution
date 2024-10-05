@@ -62,7 +62,7 @@ class Action {
         }
 
 		$tab_name = !empty( $this->form_setting['etn_tab']) ? $this->form_setting['etn_tab'] : 'tab1';
-		$redirect = 'admin.php?page=etn-event-settings';
+		$redirect = 'admin.php?page=eventin#/settings/event-settings/event-details';
 
 		return wp_safe_redirect( add_query_arg( 'etn_tab', $tab_name, $redirect ) );
 

@@ -673,11 +673,11 @@ class User_Model {
         require_once ABSPATH . 'wp-admin/includes/user.php';
         $user = get_userdata( $this->id );
 
-        if (!$user) {
+        if ( ! $user ) {
             return new \WP_Error('user_not_found', 'The user data could not be retrieved.');
         }
 
-        if ( $this->has_other_roles() ) {
+        if ( $this->has_other_roles( $user->ID ) ) {
             $user->remove_role('etn-speaker'); 
             $user->remove_role('etn-organizer');
             
@@ -731,23 +731,29 @@ class User_Model {
      *
      * @return  bool
      */
-    protected function has_other_roles() {
-        $user = get_userdata( $this->id );
+    protected function has_other_roles( $user_id) {
+        // Get the user object
+        $user = get_userdata( $user_id );
+        
+        // Roles.
+        $roles = [
+            'administrator',
+            'editor',
+            'contributor',
+            'subscriber',
+            'author'
+        ];
 
-        if ( ! $user ) {
-            return false;
+        // Check if the user exists and has any of the roles
+        if ( $user && !empty($user->roles) ) {
+            foreach ( $roles as $role ) {
+                if ( in_array( $role, $user->roles ) ) {
+                    return true; // User has one of the roles
+                }
+            }
         }
         
-        $user_roles     = $user->roles;
-
-        $required_roles = ['etn-speaker', 'etn-organizer'];
-
-        $has_required_roles = in_array( 'etn-speaker', $user_roles) || in_array('etn-organizer', $user_roles );
-
-        $other_roles     = array_diff( $user_roles, $required_roles );
-        $has_other_roles = ! empty( $other_roles );
-
-        return $has_required_roles && $has_other_roles;
+        return false; // No matching roles found.
     }
 
     /**

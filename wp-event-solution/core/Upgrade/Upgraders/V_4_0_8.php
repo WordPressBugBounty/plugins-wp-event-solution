@@ -261,7 +261,9 @@ public $data = [
                 $speaker_ids[] = $this->get_user_by_speaker( $speaker );
             }
 
-            $topic['speakers'] = $speaker_ids;
+            if ( is_array( $topic ) ) {
+                $topic['speakers'] = $speaker_ids;
+            }
 
             $new_topics[] = $topic;
         }

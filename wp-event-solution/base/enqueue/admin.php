@@ -47,6 +47,18 @@ class Admin {
      * @return  void
      */
     public function enqueue_scripts( $top ) {
+        $screens = [
+            'toplevel_page_eventin',
+            'eventin_page_etn-event-shortcode',
+            'eventin_page_etn_addons',
+            'eventin_page_etn-license',
+            'eventin_page_eventin_get_help'
+        ];
+
+        if ( ! in_array( $top, $screens ) ) {
+            return;
+        }
+
         $this->i18n_loader();
 
         $screen    = get_current_screen();

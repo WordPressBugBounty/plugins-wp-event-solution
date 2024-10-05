@@ -178,6 +178,7 @@ class SpeakerController extends WP_REST_Controller {
         }
 
         $args = [
+            'role__in' => [ 'etn-speaker', 'etn-organizer' ],
             'include'       => $user_ids,
             'number'        => $per_page,
             'offset'        => $offset,
