@@ -167,7 +167,7 @@ class EventController extends WP_REST_Controller {
                     ),
                 ),
                 array(
-                    'methods'             => WP_REST_Server::READABLE,
+                    'methods'             => WP_REST_Server::CREATABLE,
                     'callback'            => array( $this, 'export_items' ),
                     'permission_callback' => array( $this, 'export_permissions_check' ),
                 ),
@@ -226,7 +226,11 @@ class EventController extends WP_REST_Controller {
             'posts_per_page' => $per_page,
             'paged'          => $paged,
         ];
-    
+
+        if ( ! current_user_can( 'manage_options' ) ) {
+            $args['author'] = get_current_user_id(); 
+        }
+
         $meta_query = [];
     
         if ( $start_date && $end_date ) {
@@ -444,7 +448,9 @@ class EventController extends WP_REST_Controller {
      * @return true|WP_Error True if the request has access to create items, WP_Error object otherwise.
      */
     public function create_item_permissions_check( $request ) {
-        return current_user_can( 'manage_options' );
+        return current_user_can( 'manage_options' ) 
+                || current_user_can( 'seller' )
+                || current_user_can( 'editor' );
     }
 
     /**
@@ -528,7 +534,9 @@ class EventController extends WP_REST_Controller {
      * @return true|WP_Error True if the request has access to update the item, WP_Error object otherwise.
      */
     public function update_item_permissions_check( $request ) {
-        return current_user_can( 'manage_options' );
+        return current_user_can( 'manage_options' ) 
+                || current_user_can( 'seller' )
+                || current_user_can( 'editor' );
     }
 
     /**
@@ -546,6 +554,11 @@ class EventController extends WP_REST_Controller {
         }
 
         $previous = $this->prepare_item_for_response( $post, $request );
+
+        $event = new Event_Model( $id );
+
+        do_action( 'eventin_event_before_delete', $event );
+
         $result   = wp_delete_post( $id, true );
         $response = new \WP_REST_Response();
         $response->set_data(
@@ -650,7 +663,9 @@ class EventController extends WP_REST_Controller {
      * @return WP_Error|WP_REST_Response
      */
     public function delete_item_permissions_check( $request ) {
-        return current_user_can( 'manage_options' );
+        return current_user_can( 'manage_options' ) 
+                || current_user_can( 'seller' )
+                || current_user_can( 'editor' );
     }
 
     /**
@@ -712,6 +727,7 @@ class EventController extends WP_REST_Controller {
             'title'                   => get_the_title( $id ),
             'event_slug'              => $post->post_name,
             'description'             => $post->post_content,
+            'excerpt'                 => $post->post_excerpt,
             'schedule_type'           => get_post_meta( $id, 'etn_select_speaker_schedule_type', true ),
             'author'                  => $author,
             'categories'              => $categories,
@@ -997,6 +1013,10 @@ class EventController extends WP_REST_Controller {
             $event_data['post_content'] = $input_data['description'];
         }
 
+        if ( isset( $input_data['excerpt'] ) ) {
+            $event_data['post_excerpt'] = $input_data['excerpt'];
+        }
+
         if ( isset( $input_data['schedule_type'] ) ) {
             $event_data['etn_select_speaker_schedule_type'] = $input_data['schedule_type'];
         }
@@ -1051,6 +1071,10 @@ class EventController extends WP_REST_Controller {
 
         if ( isset( $input_data['calendar_text_color'] ) ) {
             $event_data['etn_event_calendar_text_color'] = $input_data['calendar_text_color'];
+        }
+
+        if ( isset( $input_data['calendar_bg'] ) ) {
+            $event_data['etn_event_calendar_bg'] = $input_data['calendar_bg'];
         }
 
         if ( isset( $input_data['registration_deadline'] ) ) {
@@ -1319,7 +1343,9 @@ class EventController extends WP_REST_Controller {
      * @return  bool
      */
     public function export_permissions_check( $request ) {
-        return current_user_can( 'manage_options' );
+        return current_user_can( 'manage_options' ) 
+                || current_user_can( 'seller' )
+                || current_user_can( 'editor' );
     }
 
     /**
@@ -1355,6 +1381,8 @@ class EventController extends WP_REST_Controller {
      * @return  bool
      */
     public function import_permissions_check( $request ) {
-        return current_user_can( 'manage_options' );
+        return current_user_can( 'manage_options' ) 
+                || current_user_can( 'seller' )
+                || current_user_can( 'editor' );
     }
 }

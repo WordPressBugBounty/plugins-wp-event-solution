@@ -3,6 +3,12 @@ namespace Eventin\Order;
 
 use Etn\Core\Attendee\Attendee_Model;
 use Etn\Core\Event\Event_Model;
+use Eventin\Attendee\Attendee\TicketIdGenerator;
+use Eventin\Customer\CustomerModel;
+use Eventin\Input;
+use Eventin\Emails\AdminOrderEmail;
+use Eventin\Emails\AttendeeOrderEmail;
+use Eventin\Mails\Mail;
 use WP_Error;
 use WP_REST_Controller;
 use WP_REST_Server;
@@ -89,7 +95,7 @@ class OrderController extends WP_REST_Controller {
 
         register_rest_route( $this->namespace, $this->rest_base . '/export', [
             [
-                'methods'             => WP_REST_Server::READABLE,
+                'methods'             => WP_REST_Server::CREATABLE,
                 'callback'            => [$this, 'export_items'],
                 'permission_callback' => [$this, 'export_item_permissions_check'],
             ],
@@ -100,6 +106,14 @@ class OrderController extends WP_REST_Controller {
                 'methods'             => WP_REST_Server::CREATABLE,
                 'callback'            => [$this, 'import_items'],
                 'permission_callback' => [$this, 'import_item_permissions_check'],
+            ],
+        ] );
+
+        register_rest_route( $this->namespace, $this->rest_base . '/(?P<id>[\d]+)' . '/resend-ticket', [
+            [
+                'methods'             => WP_REST_Server::READABLE,
+                'callback'            => [$this, 'resend_ticket'],
+                'permission_callback' => [$this, 'resend_ticket_permissions_check'],
             ],
         ] );
     }
@@ -130,12 +144,20 @@ class OrderController extends WP_REST_Controller {
 
         $search   = ! empty( $request['search_keyword'] ) ? sanitize_text_field( $request['search_keyword'] ) : '';
 
+        $strt_datetime = ! empty( $request['strt_datetime'] ) ? sanitize_text_field( $request['strt_datetime'] ) : '';
+
+        $end_datetime = ! empty( $request['end_datetime'] ) ? sanitize_text_field( $request['end_datetime'] ) : '';
+
         $args = [
             'post_type'      => 'etn-order',
             'post_status'    => 'any',
             'posts_per_page' => $per_page,
             'paged'          => $paged,
         ];
+
+        if ( is_numeric( $search ) ) {
+            $args['p'] = $search;
+        }
 
         $meta_query = [];
 
@@ -163,13 +185,32 @@ class OrderController extends WP_REST_Controller {
             ];
         }
 
+        if ( $strt_datetime && $end_datetime ) {
+            $args['date_query'] = [
+                'relation' => 'AND',
+                [
+                    'before'    => [
+                        'year'  => gmdate('Y', strtotime($end_datetime)),
+                        'month' => gmdate('m', strtotime($end_datetime)),
+                        'day'   => gmdate('d', strtotime($end_datetime)),
+                    ],
+                    'after'     => [
+                        'year'  => gmdate('Y', strtotime($strt_datetime)),
+                        'month' => gmdate('m', strtotime($strt_datetime)),
+                        'day'   => gmdate('d', strtotime($strt_datetime)),
+                    ],
+                    'inclusive' => true, // Include posts that match the exact date range boundaries
+                ],
+            ];
+        }
+
         if ( ! empty( $meta_query ) ) {
             $meta_query['relation'] = 'AND';
 
             $args['meta_query'] = $meta_query; 
         }
 
-        if ( $search ) {
+        if ( $search && ! is_numeric( $search ) ) {
             $meta_query = array(
                 'relation' => 'OR', // 'OR' means any meta key can match
                 array(
@@ -264,7 +305,8 @@ class OrderController extends WP_REST_Controller {
 
         $this->create_attendees( $attendees );
 
-        
+        // Make customer.
+        $this->create_customer($order, $request);
         
         $response = $this->prepare_item_for_response( $order, $request ); 
         
@@ -314,6 +356,8 @@ class OrderController extends WP_REST_Controller {
 
         $response = $this->prepare_item_for_response( $order, $request );
 
+        do_action( 'eventin_after_order_update', $order );
+
         return rest_ensure_response( $response );
 
     }
@@ -347,6 +391,9 @@ class OrderController extends WP_REST_Controller {
         $order = new OrderModel( $id );
 
         $previous = $this->prepare_item_for_response( $order, $request );
+
+        do_action( 'eventin_order_before_delete', $order );
+
         $result   = wp_delete_post( $id, true );
         $response = new \WP_REST_Response();
         $response->set_data(
@@ -455,6 +502,7 @@ class OrderController extends WP_REST_Controller {
             'attendees'         => $order->get_attendees(),
             'seat_ids'          => $order->seat_ids,
             'attendee_seats'    => $order->attendee_seats,
+            'customer'          => $order->get_customer(),
         ];
 
         return $order_data;
@@ -602,11 +650,14 @@ class OrderController extends WP_REST_Controller {
             foreach( $attendees as $attendee ) {
                 $attendee_object = new Attendee_Model();
                 $attendee['etn_status'] = 'failed';
-                $attendee['etn_info_edit_token'] = md5('etn-attendee-info');
+                $attendee['etn_info_edit_token'] = md5(time() . 'etn-attendee-info');
                 
                 $attendee['etn_attendeee_ticket_status'] = 'unused';
+                $attendee['etn_unique_ticket_id']        =  TicketIdGenerator::generate_ticket_id();
                 $attendee_object->set_fields( $attendee );
                 $attendee_object->create( $attendee );
+
+                do_action( 'eventin_order_attendee_created', $attendee_object, $attendee );
             }
         }
     }
@@ -720,5 +771,93 @@ class OrderController extends WP_REST_Controller {
      */
     public function import_item_permissions_check( $request ) {
         return true;
+    }
+
+    /**
+     * Create customer
+     *
+     * @param   OrderModel  $order  [$order description]
+     * @param   array  $data   [$data description]
+     *
+     * @return  void
+     */
+    public function create_customer( $order, $data ) {
+        $input = new Input( $data );
+
+        $email = $input->get('customer_email');
+
+        if ( email_exists( $email ) ) {
+            $user_data = get_user_by( 'email', $email );
+
+            $customer = new CustomerModel( $user_data->ID );
+            $customer->assign_role(['etn-customer']);
+        } else {
+            $customer = CustomerModel::create([
+                'first_name'    => $input->get('customer_fname'),
+                'last_name'     => $input->get('customer_lname'),
+                'email'         => $email,
+            ]);
+        }
+
+        $order->update( [
+            'customer_id' => $customer->id
+        ] );
+    }
+
+     /** 
+     * Resend ticket email to order customer and attendees
+     *
+     * @param   WP_Rest_Request  $request  [$request description]
+     *
+     * @return  WP_Error | WP_Rest_Response
+     */
+    public function resend_ticket( $request ) {
+        $id = intval( $request['id'] );
+
+        $post = get_post( $id );
+
+        if ( ! $post ) {
+            return new WP_Error( 'id_error', __( 'Invalid order id', 'eventin' ) );
+        }
+
+        if ( 'etn-order' !== $post->post_type ) {
+            return new WP_Error( 'id_error', __( 'Invalid order id', 'eventin' ) );
+        }
+
+        $order = new OrderModel( $id );
+        $event = new Event_Model( $order->event_id );
+        $attendees = $order->get_attendees();
+        $from      = etn_get_email_settings( 'purchase_email' )['from'];
+        
+        // Send email to customer.
+        Mail::to( $order->customer_email )->from( $from )->send( new AdminOrderEmail( $order ) );
+
+        // Send to attendees email.
+        if ( $attendees ) {
+            foreach( $attendees as $attendee ) {
+                $attendee = new Attendee_Model( $attendee['id'] );
+
+                if ( $attendee->etn_email ) {
+                    Mail::to( $attendee->etn_email )->from( $from )->send( new AttendeeOrderEmail( $event, $attendee ) );
+                }
+            }
+        }
+
+        $response = [
+            'message'   => __( 'Successfully send ticket email to', 'eventin' ),
+        ];
+
+        return rest_ensure_response( $response );
+    }
+
+    /**
+     * Check permissions for resend ticket to attendee
+     *
+     * @param   WP_Rest_Request  $request  [$request description]
+     *
+     * @return  bool
+     */
+    public function resend_ticket_permissions_check( $request ) {
+        return current_user_can( 'manage_options' );
     }
 }

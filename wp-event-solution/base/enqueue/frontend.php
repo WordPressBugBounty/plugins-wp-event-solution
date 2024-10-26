@@ -23,9 +23,7 @@ class Frontend {
         wp_enqueue_script('eventin-i18n');
         wp_enqueue_style( 'etn-icon' );
         wp_enqueue_style( 'etn-public-css' );
-        wp_enqueue_script( 'etn-public' );
-        wp_enqueue_script( 'etn-module-purchase');
-        
+        wp_enqueue_script( 'etn-public' ); 
 		//set translations
 		
 		wp_set_script_translations( 'etn-public', 'eventin' );
@@ -58,7 +56,7 @@ class Frontend {
 		$translated_data['scanner_common_msg']  = esc_html__( 'Something went wrong! Please try again.', 'eventin' );
 		$ticket_scanner_link                    = admin_url( '/edit.php?post_type=etn-attendee' );
 		$translated_data['ticket_scanner_link'] = $ticket_scanner_link;
-
+		$currency_symbol                        = etn_currency_symbol();
 
 		$attendee_form_validation_msg = array();
 
@@ -79,6 +77,7 @@ class Frontend {
 		$attendee_form_validation_msg['radio']           = esc_html__( 'Please check the field', 'eventin' );
 		$translated_data['attendee_form_validation_msg'] = $attendee_form_validation_msg;
 		$translated_data['post_id']						 = get_the_ID();
+		$translated_data['currency_symbol']              = $currency_symbol;
 
 		wp_localize_script( 'etn-public', 'localized_data_obj', $translated_data );
 		

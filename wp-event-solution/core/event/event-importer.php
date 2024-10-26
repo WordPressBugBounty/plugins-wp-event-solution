@@ -91,13 +91,13 @@ class Event_Importer implements Post_Importer_Interface {
             $event_faq             = ! empty( $row['faq'] ) ? $row['faq'] : '';
             $attendee_extra_fields = ! empty( $row['extra_fields'] ) ? $row['extra_fields'] : '';
 
-            $speaker            = ! empty( $row['speaker'] ) ? $row['speaker'] : [];
-            $speaker_group      = ! empty( $row['speaker_groups'] ) ? $row['speaker_groups'] : [];
-            $organizer       = ! empty( $row['organizer'] ) ? $row['organizer'] : [];
-            $organizer_group = ! empty( $row['organizer_group'] ) ? $row['organizer_group'] : '';
-            $rsvp = ! empty( $row['rsvp'] ) ? $row['rsvp'] : '';
-            $categories = ! empty( $row['categories'] ) ? $row['categories'] : '';
-            $tags       = ! empty( $row['tags'] ) ? $row['tags'] : '';
+            $speaker                = ! empty( $row['speaker'] ) ? $row['speaker'] : '';
+            $speaker_group          = ! empty( $row['speaker_groups'] ) ? $row['speaker_groups'] : '';
+            $organizer              = ! empty( $row['organizer'] ) ? $row['organizer'] : '';
+            $organizer_group        = ! empty( $row['organizer_group'] ) ? $row['organizer_group'] : '';
+            $rsvp                   = ! empty( $row['rsvp'] ) ? $row['rsvp'] : '';
+            $categories             = ! empty( $row['categories'] ) ? $row['categories'] : '';
+            $tags                   = ! empty( $row['tags'] ) ? $row['tags'] : '';
 
             
             $args['etn_event_location']    = $location;

@@ -512,7 +512,7 @@ if ( ! function_exists( 'etn_get_email_settings' ) ) {
 
         $defaults = etn_get_default_email_settings();
 
-        $email_settings = wp_parse_args( $email_settings, $defaults );
+        $email_settings = etn_recursive_wp_parse_args( $email_settings, $defaults );
 
         if ( ! $email ) {
             return $email_settings;
@@ -535,21 +535,53 @@ if ( ! function_exists( 'etn_get_default_email_settings' )  ) {
                 'from'    => get_option( 'admin_email' ),
                 'subject' => sprintf( __( 'Event Ticket', 'eventin' ) ),
                 'body'    => __( 'You have purchased ticket(s). Attendee ticket details are as follows.', 'eventin' ),
+                'send_to_admin' => true,
             ],
             'rsv_email' => [
                 'from'          => get_option( 'admin_email' ),
                 'response_type' => 'going',
                 'subject'       => sprintf( __( 'RSVP request', 'eventin' ) ),
                 'body'          => sprintf( __( 'We received your RSVP request', 'eventin' ) ),
+                'send_to_admin' => true,
             ],
             'reminder_email' => [
                 'from'    => get_option( 'admin_email' ),
                 'subject' => sprintf( __( 'Reminder email', 'eventin' ) ),
                 'body'    => __( 'Just sending you a quick reminder about our retailer meet-up you\'ve registered to attend in two days time. If you\'ve misplaced the Invitation that contained all the details. don\'t worry. Cve added them rn below for you.', 'eventin' ),
+                'send_to_admin' => true,
             ]
         ];
 
         return apply_filters( 'etn_default_email_settings', $email_settings );
+    }
+}
+
+if ( ! function_exists( 'etn_recursive_wp_parse_args' ) ) {
+    /**
+     * Perse args recursively
+     *
+     * @param   array  $args      [$args description]
+     * @param   array  $defaults  [$defaults description]
+     *
+     * @return  array             [return description]
+     */
+    function etn_recursive_wp_parse_args( $args, $defaults ) {
+        $args = (array) $args; // Ensure args is an array
+    
+        // Loop through each default value and apply wp_parse_args recursively if it's an array
+        foreach ( $defaults as $key => $value ) {
+            if ( is_array( $value ) ) {
+                // If the key is an array, call recursively
+                $args[$key] = etn_recursive_wp_parse_args( isset( $args[$key] ) ? $args[$key] : [], $value );
+            } else {
+                // Otherwise, use wp_parse_args for the non-array values
+                if ( ! isset( $args[$key] ) ) {
+                    $args[$key] = $value;
+                }
+            }
+        }
+    
+        return $args;
     }
 }
 
@@ -764,9 +796,7 @@ if ( ! function_exists( 'etn_currency' ) ) {
             return get_woocommerce_currency();
         }
 
-        $currency = etn_get_option( 'etn_settings_country_currency' );
-
-        $currency = ! empty( $currency ) ? $currency : 'USD';
+        $currency = etn_get_option( 'etn_settings_country_currency', 'USD' );
 
         return $currency;
     }
@@ -782,5 +812,126 @@ if ( ! function_exists( 'etn_currency_symbol' ) ) {
         $currency = etn_currency();
 
         return etn_get_currency_symbol( $currency );
+    }
+}
+
+if ( ! function_exists( 'etn_is_enable_wc' ) ) {
+    /**
+     * Check event in is used woocommerce payment method
+     *
+     * @return  bool
+     */
+    function etn_is_enable_wc() {
+        $payment_method = etn_get_option( 'payment_method' );
+
+        return function_exists( 'WC' ) && 'woocommerce' === $payment_method;
+    }
+}
+
+if ( ! function_exists( 'etn_get_thousand_separator' ) ) {
+
+    /**
+     * Thousand separator
+     *
+     * @return  string
+     */
+    function etn_get_thousand_separator() {
+        if ( etn_is_enable_wc() ) {
+            return wc_get_price_thousand_separator();
+        }
+
+        $thousand_separator = etn_get_option( 'thousand_separator', ',' );
+
+        return apply_filters( 'etn_thousand_separator', $thousand_separator );
+    }
+}
+
+if ( ! function_exists( 'etn_get_decimal_separator' ) ) {
+
+    /**
+     * Get descimal separator
+     *
+     * @return  string
+     */
+    function etn_get_decimal_separator() {
+        if ( etn_is_enable_wc() ) {
+            return wc_get_price_decimal_separator();
+        }
+
+        $decimal_separator = etn_get_option( 'decimal_separator', 'comma_dot' );
+
+        return apply_filters( 'etn_decimal_separator', $decimal_separator );
+    }
+}
+
+if ( ! function_exists( 'etn_get_decimals' ) ) {
+
+    /**
+     * Get number of decimals
+     *
+     * @return  string
+     */
+    function etn_get_decimals() {
+        if ( etn_is_enable_wc() ) {
+            return wc_get_price_decimals();
+        }
+
+        $decimals = etn_get_option( 'decimals', 2 );
+
+        return apply_filters( 'etn_decimals', $decimals );
+    }
+}
+
+if ( ! function_exists( 'etn_get_price_format' ) ) {
+
+    /**
+     * Get price format
+     *
+     * @return  string
+     */
+    function etn_get_price_format() {
+        if ( etn_is_enable_wc() ) {
+            return get_woocommerce_price_format();
+        }
+
+        $currency_pos = get_option( 'currency_position' );
+        $format       = '%1$s%2$s';
+
+        switch ( $currency_pos ) {
+            case 'left':
+                $format = '%1$s%2$s';
+                break;
+            case 'right':
+                $format = '%2$s%1$s';
+                break;
+            case 'left_space':
+                $format = '%1$s&nbsp;%2$s';
+                break;
+            case 'right_space':
+                $format = '%2$s&nbsp;%1$s';
+                break;
+        }
+
+        return apply_filters( 'etn_price_format', $format, $currency_pos );
+    }
+}
+
+if ( ! function_exists( 'etn_get_currency_position' ) ) {
+
+    /**
+     * Get price format
+     *
+     * @return  string
+     */
+    function etn_get_currency_position() {
+        if ( etn_is_enable_wc() ) {
+            $currency_pos = get_option( 'woocommerce_currency_pos' );
+
+            return $currency_pos;
+        }
+
+        $currency_pos = etn_get_option( 'currency_position', 'left' );
+
+        return apply_filters( 'etn_currency_position', $currency_pos );
     }
 }

@@ -10,6 +10,12 @@ use Etn\Core\Attendee\Attendee_Exporter;
 use Etn\Core\Attendee\Attendee_Importer;
 use Etn\Core\Attendee\Attendee_Model;
 use Etn\Core\Event\Event_Model;
+use Eventin\Attendee\Attendee\TicketIdGenerator;
+use Eventin\Customer\CustomerModel;
+use Eventin\Order\OrderModel;
+use Eventin\Emails\AttendeeOrderEmail;
+use Eventin\Input;
+use Eventin\Mails\Mail;
 use WP_Error;
 use WP_Query;
 use WP_REST_Controller;
@@ -88,7 +94,7 @@ class AttendeeController extends WP_REST_Controller {
 
         register_rest_route( $this->namespace, $this->rest_base . '/export', [
             [
-                'methods'             => WP_REST_Server::READABLE,
+                'methods'             => WP_REST_Server::CREATABLE,
                 'callback'            => [$this, 'export_items'],
                 'permission_callback' => [$this, 'export_item_permissions_check'],
             ],
@@ -99,6 +105,14 @@ class AttendeeController extends WP_REST_Controller {
                 'methods'             => WP_REST_Server::CREATABLE,
                 'callback'            => [$this, 'import_items'],
                 'permission_callback' => [$this, 'import_item_permissions_check'],
+            ],
+        ] );
+
+        register_rest_route( $this->namespace, $this->rest_base . '/(?P<id>[\d]+)' . '/resend-ticket', [
+            [
+                'methods'             => WP_REST_Server::READABLE,
+                'callback'            => [$this, 'resend_ticket'],
+                'permission_callback' => [$this, 'resend_ticket_permissions_check'],
             ],
         ] );
     }
@@ -117,6 +131,7 @@ class AttendeeController extends WP_REST_Controller {
         $event_id     = ! empty( $request['event_id'] ) ? sanitize_text_field( $request['event_id'] ) : '';
         $payment_status = ! empty( $request['payment_status'] ) ? sanitize_text_field( $request['payment_status'] ) : '';
         $ticket_status     = ! empty( $request['ticket_status'] ) ? sanitize_text_field( $request['ticket_status'] ) : '';
+        $ticket_id     = ! empty( $request['ticket_id'] ) ? sanitize_text_field( $request['ticket_id'] ) : '';
 
         $search   = ! empty( $request['search'] ) ? sanitize_text_field( $request['search'] ) : '';
 
@@ -127,7 +142,21 @@ class AttendeeController extends WP_REST_Controller {
             'paged'          => $paged,
         ];
 
+        if ( is_numeric( $search ) ) {
+            $args['p'] = $search;
+        }
+
+
         $meta_query = [];
+
+        if ( ! current_user_can( 'manage_options' ) ) {
+            $events = $this->get_events_by_author();
+            $meta_query[] = [
+                'key'     => 'etn_event_id',
+                'value'   => $events ?: [0],
+                'compare' => 'IN',
+            ];
+        }
 
         if ( ! empty( $event_id ) ) {
             $meta_query[] = [
@@ -153,13 +182,21 @@ class AttendeeController extends WP_REST_Controller {
             ];
         }
 
+        if ( ! empty( $ticket_id ) ) {
+            $meta_query[] = [
+                'key'     => 'etn_unique_ticket_id',
+                'value'   => $ticket_id,
+                'compare' => '=',
+            ];
+        }
+
         if ( ! empty( $meta_query ) ) {
             $meta_query['relation'] = 'AND';
 
             $args['meta_query'] = $meta_query; 
         }
 
-        if ( $search ) {
+        if ( $search && ! is_numeric( $search ) ) {
             // $args['s'] = $search;
 
             $meta_query = array(
@@ -203,6 +240,16 @@ class AttendeeController extends WP_REST_Controller {
                     'key'     => 'etn_attendeee_ticket_status',
                     'value'   => $search,
                     'compare' => '='
+                ),
+                array(
+                    'key'     => 'etn_unique_ticket_id',
+                    'value'   => $search,
+                    'compare' => 'LIKE'
+                ),
+                array(
+                    'key'     => 'eventin_order_id',
+                    'value'   => $search,
+                    'compare' => 'LIKE'
                 ),
             );
 
@@ -253,7 +300,7 @@ class AttendeeController extends WP_REST_Controller {
      * @return WP_Error|boolean
      */
     public function get_item_permissions_check( $request ) {
-        return current_user_can( 'manage_options' );
+        return current_user_can( 'manage_options' ) || current_user_can( 'seller' );
     }
 
     /**
@@ -270,12 +317,10 @@ class AttendeeController extends WP_REST_Controller {
         if ( is_wp_error( $prepared_item ) ) {
             return $prepared_item;
         }
+        
 
-        $prepared_item['etn_info_edit_token'] = md5('etn-attendee-info');
-
-        $attendee = new Attendee_Model();
-        $attendee->set_fields( $prepared_item );
-        $created  = $attendee->create( $prepared_item );
+        $prepared_item['etn_info_edit_token'] = md5( time() . 'etn-attendee-info' );
+        $prepared_item['etn_unique_ticket_id'] = TicketIdGenerator::generate_ticket_id();
 
         $event  = new Event_Model( $prepared_item['etn_event_id'] );
 
@@ -286,6 +331,22 @@ class AttendeeController extends WP_REST_Controller {
                 array( 'status' => 400 )
             );
         }
+
+        // Create customer.
+        $customer = new CustomerModel();
+        $customer->create( $this->prepare_customer_data( $request ) );
+
+        // Create order on attendee create.
+        $order = new OrderModel();
+        $order->create( $this->prepare_order_data( $request, $customer->id ) );
+        $prepared_item['eventin_order_id'] = $order->id;
+
+        $prepared_item['etn_info_edit_token'] = md5( time() . 'etn-attendee-info' );
+
+        // Create attendee.
+        $attendee = new Attendee_Model();
+        $attendee->set_fields( $prepared_item );
+        $created  = $attendee->create( $prepared_item );
 
         if ( ! $created ) {
             return new WP_Error(
@@ -314,7 +375,9 @@ class AttendeeController extends WP_REST_Controller {
      * @return true|WP_Error True if the request has access to create items, WP_Error object otherwise.
      */
     public function create_item_permissions_check( $request ) {
-        return current_user_can( 'manage_options' );
+        return current_user_can( 'manage_options' ) 
+                || current_user_can( 'seller' )
+                || current_user_can( 'editor' );
     }
 
     /**
@@ -362,7 +425,9 @@ class AttendeeController extends WP_REST_Controller {
      * @return true|WP_Error True if the request has access to update the item, WP_Error object otherwise.
      */
     public function update_item_permissions_check( $request ) {
-        return current_user_can( 'manage_options' );
+        return current_user_can( 'manage_options' ) 
+                || current_user_can( 'seller' )
+                || current_user_can( 'editor' );
     }
 
     /**
@@ -376,6 +441,10 @@ class AttendeeController extends WP_REST_Controller {
 
         $attendee = new Attendee_Model( $id );
         $previous = $this->prepare_item_for_response( $attendee, $request );
+
+        do_action( 'eventin_attendee_before_delete', $attendee );
+
+
         $deleted  = $attendee->delete();
         $response = new \WP_REST_Response();
 
@@ -445,7 +514,9 @@ class AttendeeController extends WP_REST_Controller {
      * @return WP_Error|object $prepared_item
      */
     public function delete_item_permissions_check( $request ) {
-        return current_user_can( 'manage_options' );
+        return current_user_can( 'manage_options' ) 
+                || current_user_can( 'seller' )
+                || current_user_can( 'editor' );
     }
 
     /**
@@ -522,10 +593,6 @@ class AttendeeController extends WP_REST_Controller {
 
         $prepared_item['post_status'] = 'publish';
 
-        $prepared_item['etn_unique_ticket_id'] = time();
-
-        
-        
         return $prepared_item;
     }
 
@@ -584,7 +651,9 @@ class AttendeeController extends WP_REST_Controller {
      * @return  bool
      */
     public function export_item_permissions_check( $request ) {
-        return current_user_can( 'manage_options' );
+        return current_user_can( 'manage_options' ) 
+                || current_user_can( 'seller' )
+                || current_user_can( 'editor' );
     }
 
     /**
@@ -620,6 +689,129 @@ class AttendeeController extends WP_REST_Controller {
      * @return  bool
      */
     public function import_item_permissions_check( $request ) {
-        return current_user_can( 'manage_options' );
+        return current_user_can( 'manage_options' ) 
+                || current_user_can( 'seller' )
+                || current_user_can( 'editor' );
+    }
+
+    /**
+     * Prepare order data
+     *
+     * @param   array  $data
+     *
+     * @return  array
+     */
+    public function prepare_order_data( $data, $customer_id ) {
+        $event         = new Event_Model( $data['etn_event_id'] );
+        $event_ticket = $event->get_ticket( $data['ticket_slug'] );
+
+        $total_price = $event_ticket['etn_ticket_price'] * 1;
+
+        $order_data = [
+            'customer_fname' => ! empty( $data['etn_name'] ) ? $data['etn_name'] : '',
+            'customer_lname' => '',
+            'customer_email' => ! empty( $data['etn_email'] ) ? $data['etn_email'] : '',
+            'event_id'       => ! empty( $data['etn_event_id'] ) ? $data['etn_event_id'] : '',
+            'date_time'      => date('Y-m-d h:i A'),
+            'customer_id'    => $customer_id,
+            'total_price'    => $total_price,
+            'status'         => 'success' === $data['etn_status'] ? 'completed' : 'failed',
+            'tickets'        => [
+                [
+                    'ticket_slug'     => ! empty( $data['ticket_slug'] ) ? $data['ticket_slug'] : '',
+                    'ticket_quantity' => 1,
+                ]
+            ]
+        ];
+
+        return $order_data;
+    }
+
+     /** 
+     * Resend ticket email to attendee
+     *
+     * @param   WP_Rest_Request  $request  [$request description]
+     *
+     * @return  WP_Error | WP_Rest_Response
+     */
+    public function resend_ticket( $request ) {
+        $id = intval( $request['id'] );
+
+        $post = get_post( $id );
+
+        if ( ! $post ) {
+            return new WP_Error( 'id_error', __( 'Invalid attendee id', 'eventin' ) );
+        }
+
+        if ( 'etn-attendee' !== $post->post_type ) {
+            return new WP_Error( 'id_error', __( 'Invalid attendee id', 'eventin' ) );
+        }
+
+        $attendee = new Attendee_Model( $id );
+        $event    = new Event_Model( $attendee->etn_event_id );
+        $from      = etn_get_email_settings( 'purchase_email' )['from'];
+
+        if ( ! is_email( $attendee->etn_email ) ) {
+            return new WP_Error( 'email_error', __( 'The attendee doesn\'t have valid email', 'eventin' ) );
+        }
+
+        Mail::to( $attendee->etn_email )->from( $from )->send( new AttendeeOrderEmail( $event, $attendee ) );
+
+        $response = [
+            'message'   => __( 'Successfully send ticket email', 'eventin' ),
+        ];
+
+        return rest_ensure_response( $response );
+    }
+
+    /**
+     * Check permissions for resend ticket to attendee
+     *
+     * @param   WP_Rest_Request  $request  [$request description]
+     *
+     * @return  bool
+     */
+    public function resend_ticket_permissions_check( $request ) {
+        return current_user_can( 'manage_options' ) 
+                || current_user_can( 'seller' )
+                || current_user_can( 'editor' );
+    }
+    
+    /**
+     * Prepare customer data
+     *
+     * @param   array  $data  Customer data
+     *
+     * @return  array
+     */
+    public function prepare_customer_data( $data ) {
+        $input = new Input( $data );
+
+        $customer_data = [
+            'first_name'    => $input->get( 'etn_name' ),
+            'last_name'     => '',
+            'email'         => $input->get( 'etn_email' ),
+        ];
+
+        return $customer_data;
+    }
+
+    /**
+     * Get event ids
+     *
+     * @return array
+     */
+    private function get_events_by_author() {
+        $args = [
+            'post_type'      => 'etn',
+            'post_status'    => 'any',
+            'posts_per_page' => -1,
+            'author'         => get_current_user_id(),
+            'fields'         => 'ids',
+        ];
+
+        $post_ids = get_posts( $args );
+
+        return $post_ids;
     }
 }

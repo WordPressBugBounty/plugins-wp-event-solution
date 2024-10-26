@@ -116,7 +116,7 @@ class SpeakerController extends WP_REST_Controller {
 
         register_rest_route( $this->namespace, $this->rest_base . '/export', [
             [
-                'methods'             => WP_REST_Server::READABLE,
+                'methods'             => WP_REST_Server::CREATABLE,
                 'callback'            => [$this, 'export_items'],
                 'permission_callback' => [$this, 'export_item_permissions_check'],
             ]
@@ -138,7 +138,9 @@ class SpeakerController extends WP_REST_Controller {
      * @return WP_Error|boolean
      */
     public function get_item_permissions_check( $request ) {
-        return current_user_can( 'manage_options' );
+        return current_user_can( 'manage_options' ) 
+                || current_user_can( 'seller' )
+                || current_user_can( 'editor' );
     }
 
     /**
@@ -179,12 +181,22 @@ class SpeakerController extends WP_REST_Controller {
 
         $args = [
             'role__in' => [ 'etn-speaker', 'etn-organizer' ],
-            'include'       => $user_ids,
+            // 'include'       => $user_ids,
             'number'        => $per_page,
             'offset'        => $offset,
             'exclude'       => $exclude_ids,
         ];
         
+        if ( ! current_user_can( 'manage_options' ) ) {
+            $args['meta_query'] = [
+                [
+                    'key'   => 'author',
+                    'value' => get_current_user_id(),
+                    'compare' => '='
+                ]
+            ];
+        }
+
         // Search query across multiple fields
         if ( $search ) {
             $args['meta_query'][] = [
@@ -215,6 +227,14 @@ class SpeakerController extends WP_REST_Controller {
                     'compare' => 'LIKE'
                 ]
             ];
+
+            if ( ! current_user_can( 'manage_options' ) ) {
+                $args['meta_query'][] = [
+                    'key'   => 'author',
+                    'value' => get_current_user_id(),
+                    'compare' => '='
+                ]; 
+            }
         }
         
         $events = [];
@@ -325,9 +345,11 @@ class SpeakerController extends WP_REST_Controller {
             return new WP_Error( 'create_error', $created->get_error_message(), ['status' => 409] );
         }
 
+        update_user_meta( $created, 'author', get_current_user_id() );
+
         $item = User_Model::instance()->get_data( $created );
 
-        do_action( 'eventin_speaker_created', $created, $request );
+        do_action( 'eventin_speaker_created', new User_Model( $created ), $request );
 
         $response = rest_ensure_response( $item );
         $response->set_status( 201 );
@@ -342,7 +364,9 @@ class SpeakerController extends WP_REST_Controller {
      * @return WP_Error|boolean
      */
     public function create_item_permissions_check( $request ) {
-        return current_user_can( 'manage_options' );
+        return current_user_can( 'manage_options' ) 
+                || current_user_can( 'seller' )
+                || current_user_can( 'editor' );
     }
 
     /**
@@ -388,7 +412,9 @@ class SpeakerController extends WP_REST_Controller {
      * @return WP_Error|boolean
      */
     public function update_item_permissions_check( $request ) {
-        return current_user_can( 'manage_options' );
+        return current_user_can( 'manage_options' ) 
+                || current_user_can( 'seller' )
+                || current_user_can( 'editor' );
     }
 
     /**
@@ -407,6 +433,8 @@ class SpeakerController extends WP_REST_Controller {
         }
 
         $speaker = new User_Model( $id );
+
+        do_action( 'eventin_speaker_before_delete', $speaker );
 
         $deleted  = $speaker->delete();
         $response = new \WP_REST_Response();
@@ -483,7 +511,9 @@ class SpeakerController extends WP_REST_Controller {
      * @return WP_Error|WP_REST_Response
      */
     public function delete_item_permissions_check( $request ) {
-        return current_user_can( 'manage_options' );
+        return current_user_can( 'manage_options' ) 
+                || current_user_can( 'seller' )
+                || current_user_can( 'editor' );
     }
 
     /**
@@ -580,12 +610,6 @@ class SpeakerController extends WP_REST_Controller {
                 if ( in_array( $category, maybe_unserialize( $meta_value ) ) ) {
                     $user_ids[] = $user->ID;
                 }
-            } else {
-                 // If no specific categories are provided, add all users with the meta key
-                 $intersect = array_intersect( $term_name,  maybe_unserialize( $meta_value ) );
-                    if ( ! empty( $intersect ) ) {
-                        $user_ids[] = $user->ID;
-                    }
             }
             
         }

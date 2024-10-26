@@ -10,6 +10,7 @@ use Eventin\Upgrade\Upgraders\V_4_0_6;
 use Eventin\Upgrade\Upgraders\V_4_0_7;
 use Eventin\Upgrade\Upgraders\V_4_0_8;
 use Eventin\Upgrade\Upgraders\V_4_0_9;
+use Wpeventin;
 
 /**
  * Upgrade class
@@ -59,14 +60,14 @@ class Upgrade {
      * @throws \ReflectionException
      */
     public static function register() {
-        $installed_version = get_option( 'etn_version' );
+        $current_version = Wpeventin::version();
 
         foreach ( self::$upgraders as $version => $upgrader ) {
             if ( ! class_exists( $upgrader ) ) {
                 continue;
             }
 
-            if ( version_compare( $version, $installed_version, '<' ) ) {
+            if ( version_compare( $version, $current_version, '<=' ) ) {
                 continue;
             }
 

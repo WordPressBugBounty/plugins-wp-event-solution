@@ -108,7 +108,7 @@ class ScheduleController extends WP_REST_Controller {
 
         register_rest_route( $this->namespace, $this->rest_base . '/export', [
             [
-                'methods'             => WP_REST_Server::READABLE,
+                'methods'             => WP_REST_Server::CREATABLE,
                 'callback'            => [$this, 'export_items'],
                 'permission_callback' => [$this, 'export_items_permissions_check'],
             ],
@@ -130,7 +130,9 @@ class ScheduleController extends WP_REST_Controller {
      * @return WP_Error|boolean
      */
     public function get_item_permissions_check( $request ) {
-        return current_user_can( 'manage_options' );
+        return current_user_can( 'manage_options' ) 
+                || current_user_can( 'seller' )
+                || current_user_can( 'editor' );
     }
 
     /**
@@ -156,6 +158,10 @@ class ScheduleController extends WP_REST_Controller {
             'meta_query'     => $this->get_search_content( $search ),
             'date_query'     => $this->get_year( $year )
         ];
+
+        if ( ! current_user_can( 'manage_options' ) ) {
+            $args['author'] = get_current_user_id(); 
+        }
 
         $events = [];
 
@@ -223,6 +229,8 @@ class ScheduleController extends WP_REST_Controller {
         $response = rest_ensure_response( $item );
         $response->set_status( 201 );
 
+        do_action( 'eventin_schedule_created', $schedule );
+
         return $response;
     }
 
@@ -233,7 +241,9 @@ class ScheduleController extends WP_REST_Controller {
      * @return WP_Error|boolean
      */
     public function create_item_permissions_check( $request ) {
-        return current_user_can( 'manage_options' );
+        return current_user_can( 'manage_options' ) 
+                || current_user_can( 'seller' )
+                || current_user_can( 'editor' );
     }
 
     /**
@@ -259,6 +269,8 @@ class ScheduleController extends WP_REST_Controller {
         $item     = $this->prepare_item_for_response( $schedule, $request );
         $response = rest_ensure_response( $item );
 
+        do_action( 'eventin_schedule_updated', $schedule );
+
         return $response;
     }
 
@@ -269,7 +281,9 @@ class ScheduleController extends WP_REST_Controller {
      * @return WP_Error|boolean
      */
     public function update_item_permissions_check( $request ) {
-        return current_user_can( 'manage_options' );
+        return current_user_can( 'manage_options' ) 
+                || current_user_can( 'seller' )
+                || current_user_can( 'editor' );
     }
 
     /**
@@ -283,6 +297,9 @@ class ScheduleController extends WP_REST_Controller {
 
         $schedule = new Schedule_Model( $id );
         $previous = $this->prepare_item_for_response( $schedule, $request );
+
+        do_action( 'eventin_schedule_before_delete', $schedule );
+
         $deleted  = $schedule->delete();
         $response = new \WP_REST_Response();
 
@@ -377,7 +394,9 @@ class ScheduleController extends WP_REST_Controller {
      * @return WP_Error|object $prepared_item
      */
     public function delete_item_permissions_check( $request ) {
-        return current_user_can( 'manage_options' );
+        return current_user_can( 'manage_options' ) 
+                || current_user_can( 'seller' )
+                || current_user_can( 'editor' );
     }
 
     /**

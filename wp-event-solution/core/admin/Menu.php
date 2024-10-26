@@ -197,8 +197,8 @@ class Menu implements HookableInterface {
 		wp_set_script_translations( 'etn-dashboard', 'eventin' );
 
 		wp_localize_script('etn-dashboard' , 'eventinData', array(
-        'publicPath' => plugins_url('build/', __FILE__),
-    ));
+        'publicPath' => plugins_url('../../build/', __FILE__),
+    	));
 
 	
 		

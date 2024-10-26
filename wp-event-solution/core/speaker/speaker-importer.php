@@ -62,12 +62,13 @@ class Speaker_Importer implements Post_Importer_Interface {
 
             $args = [
                 'first_name'                => ! empty( $row['name'] ) ? $row['name'] : '',
-                'user_email'                => ! empty( $row['email'] ) ? $row['email'] : '',
+                'etn_speaker_website_email' => ! empty( $row['email'] ) ? $row['email'] : '',
+                'image'                     => ! empty( $row['image'] ) ? $row['image'] : '',
                 'etn_speaker_designation'   => ! empty( $row['designation'] ) ? $row['designation'] : '',
                 'etn_speaker_summery'       => ! empty( $row['summary'] ) ? $row['summary'] : '',
                 'etn_speaker_social'        => $social,
                 'etn_speaker_company_logo'  => ! empty( $row['company_logo'] ) ? $row['company_logo'] : '',
-                'company_url'               => ! empty( $row['company_url'] ) ? $row['company_url'] : '',
+                'etn_speaker_url'           => ! empty( $row['company_url'] ) ? $row['company_url'] : '',
                 'etn_speaker_group'         => $group,
                 'etn_speaker_category'      => $group,
                 'etn_company_name'          => ! empty( $row['company_name'] ) ? $row['company_name'] : '',

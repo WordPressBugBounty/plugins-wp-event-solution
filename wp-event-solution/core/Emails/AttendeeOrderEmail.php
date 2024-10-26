@@ -80,6 +80,10 @@ class AttendeeOrderEmail extends Mailable {
         $location   = get_post_meta( $event->id, 'etn_event_location', true );
         $address    = ! empty( $location['address'] ) ? $location['address'] : '';
 
+        // Attendee details
+        $attendee_name  = $this->attendee->etn_name;
+        $attendee_email = $this->attendee->etn_email; 
+
         $placeholder = [
             '{%site_name%}' 	 => get_bloginfo( 'name' ),
             '{%site_link%}' 	 => site_url(),
@@ -88,6 +92,8 @@ class AttendeeOrderEmail extends Mailable {
             '{%event_date%}' 	 => $event->etn_start_date,
             '{%event_time%}' 	 => $event->etn_start_time,
             '{%event_location%}' => $address,
+            '{%customer_name%}'  => $attendee_name,
+            '{%customer_email%}' => $attendee_email
         ];
 
         $order_email_message = $this->email_settings['body'];

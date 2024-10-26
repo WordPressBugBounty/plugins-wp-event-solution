@@ -7,6 +7,7 @@
 namespace Etn\Core\Event;
 
 use Etn\Base\Post_Model;
+use Eventin\Input;
 
 /**
  * Event Model
@@ -258,5 +259,28 @@ class Event_Model extends Post_Model {
         }
 
         return $total_ticket;
+    }
+
+    /**
+     * Get ticket price by ticket name
+     *
+     * @param   string  $ticket_name  [$ticket_name description]
+     *
+     * @return  int | float
+     */
+    public function get_ticket_price_by_name( $ticket_name ) {
+        $tickets = $this->etn_ticket_variations;
+
+        if ( is_array( $tickets ) ) {
+            foreach( $tickets as $ticket ) {
+                $input = new Input( $ticket );
+
+                if ( $input->get( 'etn_ticket_name' ) === $ticket_name ) {
+                    return $input->get( 'etn_ticket_price' );
+                }
+            }
+        }
+
+        return 0;
     }
 }

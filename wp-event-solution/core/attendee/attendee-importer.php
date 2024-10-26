@@ -61,7 +61,8 @@ class Attendee_Importer implements Post_Importer_Interface {
                 'etn_attendeee_ticket_status' => ! empty( $row['ticket_status'] ) ? $row['ticket_status'] : '',
                 'etn_ticket_price'            => ! empty( $row['ticket_price'] ) ? $row['ticket_price'] : '',
                 'etn_status'                  => ! empty( $row['payment_status'] ) ? $row['payment_status'] : '',
-                'etn_info_edit_token'         => md5( 'attendee-edit-info-token' ),
+                'etn_info_edit_token'         => md5( time() . 'etn-attendee-info' ),
+                'post_status'                 => 'publish',
             ];
 
             $extra_fields = $this->get_extra_field_data( $row );

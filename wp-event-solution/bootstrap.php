@@ -176,7 +176,7 @@ final class Bootstrap {
 
 		Speaker_role::instance()->init();
 
-		add_action( 'template_redirect', array( $this, 'single_author_page' ));		
+		add_action( 'template_include', array( $this, 'single_author_page' ));
 
 	}
 
@@ -186,19 +186,24 @@ final class Bootstrap {
 	 *
 	 * @since 2.4.0
 	 */
-	public function single_author_page() {
-		if ( ! is_author() ) {
-			return;
-		} 
-		$author_id = get_queried_object_id();
-		$author = get_userdata( $author_id );
-	
-		if ( ! $author || ! ( in_array( 'etn-speaker', (array) $author->roles ) || in_array( 'etn-organizer', (array) $author->roles ) ) ) {
-			return;
+	public function single_author_page($template) {
+		if (!is_author()) {
+			return $template;
 		}
 	
-		include_once( \Wpeventin::plugin_dir() . "templates/single-author.php" );
-		exit;
+		$author_id = get_queried_object_id();
+		$author = get_userdata($author_id);
+	
+		if ($author && (in_array('etn-speaker', (array) $author->roles) || in_array('etn-organizer', (array) $author->roles))) {
+			// Path to your custom author template in the plugin folder
+			$custom_template = \Wpeventin::plugin_dir() . "templates/single-author.php";
+			// If the file exists, use it
+			if (file_exists($custom_template)) {
+				return $custom_template;
+			}
+		}
+	
+		return $template;
 	}
 	
 
@@ -639,71 +644,7 @@ final class Bootstrap {
 		return 'eventin';
 	}
 
-	/**
-	 * Public function js_css_public.
-	 * Include public function
-	 */
-	public function js_css_public() {
-
-		if ( is_rtl() ) {
-			wp_enqueue_style( 'etn-rtl', \Wpeventin::assets_url() . 'css/rtl.css', array(), \Wpeventin::version() );
-		}
-
-		wp_enqueue_style( 'etn-icon', \Wpeventin::assets_url() . 'css/etn-icon.css', array(), '5.0', 'all' );
-		wp_register_style( 'etn-app-index', \Wpeventin::assets_url() . 'css/fullcalendar.min.css', array(), \Wpeventin::version(), 'all' );
-		wp_enqueue_style( 'etn-public-css', \Wpeventin::assets_url() . 'css/event-manager-public.css', array(), \Wpeventin::version(), 'all' );
-
-		wp_register_style( 'etn-ticket-markup', \Wpeventin::assets_url() . 'css/ticket-markup.css', array(), \Wpeventin::version(), 'all' );
-
-		// Certificate, Ticket Generation, Thankyou page
-		wp_register_script( 'etn-pdf-gen', \Wpeventin::assets_url() . 'js/jspdf.min.js', array( 'jquery' ), '4.0.10', false );
-		wp_register_script( 'etn-html-2-canvas', \Wpeventin::assets_url() . 'js/html2canvas.min.js', array( 'jquery' ), '4.0.10', false );
-		wp_register_script( 'etn-dom-purify-pdf', \Wpeventin::assets_url() . 'js/purify.min.js', array( 'jquery' ), '4.0.10', false );
-		wp_register_script( 'html-to-image', \Wpeventin::assets_url() . 'js/html-to-image.js', array( 'jquery' ), \Wpeventin::version(), false );
-
-
-		wp_enqueue_script( 'etn-public', \Wpeventin::assets_url() . 'js/event-manager-public.js', array( 'jquery' ), \Wpeventin::version(), true );
-		wp_register_script( 'etn-app-index', \Wpeventin::plugin_url() . 'build/index-calendar.js', array( 'jquery', 'wp-element' ), \Wpeventin::version(), true );
-
-		// localize data.
-		$translated_data                       = array();
-		$translated_data['ajax_url']           = admin_url( 'admin-ajax.php' );
-		$translated_data['site_url']           = site_url();
-		$translated_data['evnetin_pro_active'] = ( class_exists( 'Wpeventin_Pro' ) ) ? true : false;
-		$translated_data['locale_name']        = strtolower( str_replace( '_', '-', get_locale() ) );
-		$translated_data['start_of_week']      = get_option( 'start_of_week' );
-		$translated_data['expired']            = esc_html__( 'Expired', 'eventin' );
-		$translated_data['author_id']          = get_current_user_id();
-		$translated_data['nonce']              = wp_create_nonce( 'wp_rest' );
-
-		$translated_data['scanner_common_msg']  = esc_html__( 'Something went wrong! Please try again.', 'eventin' );
-		$ticket_scanner_link                    = admin_url( '/edit.php?post_type=etn-attendee' );
-		$translated_data['ticket_scanner_link'] = $ticket_scanner_link;
-
-
-		$attendee_form_validation_msg = array();
-
-		$email_error_msg            = array();
-		$email_error_msg['invalid'] = esc_html__( 'Email is not valid', 'eventin' );
-		$email_error_msg['empty']   = esc_html__( 'Please fill the field', 'eventin' );
-
-		$tel_error_msg                = array();
-		$tel_error_msg['empty']       = esc_html__( 'Please fill the field', 'eventin' );
-		$tel_error_msg['invalid']     = esc_html__( 'Invalid phone number', 'eventin' );
-		$tel_error_msg['only_number'] = esc_html__( 'Only number allowed', 'eventin' );
-
-		$attendee_form_validation_msg['email']           = $email_error_msg;
-		$attendee_form_validation_msg['tel']             = $tel_error_msg;
-		$attendee_form_validation_msg['text']            = esc_html__( 'Please fill the field', 'eventin' );
-		$attendee_form_validation_msg['number']          = esc_html__( 'Please input a number', 'eventin' );
-		$attendee_form_validation_msg['date']            = esc_html__( 'Please fill the field', 'eventin' );
-		$attendee_form_validation_msg['radio']           = esc_html__( 'Please check the field', 'eventin' );
-		$translated_data['attendee_form_validation_msg'] = $attendee_form_validation_msg;
-		$translated_data['post_id']						 = get_the_ID();
-
-		wp_localize_script( 'etn-public', 'localized_data_obj', $translated_data );
-
-	}
+	
 
 	/**
 	 * Enqueue Elementor Assets
@@ -945,8 +886,8 @@ final class Bootstrap {
 		.etn-variable-ticket-widget .etn-add-to-cart-block,
 		.etn-recurring-event-wrapper #seeMore,
 		.more-event-tag,
-		.ant-input-outlined:hover,
-		.ant-input-outlined:focus-within,
+		.etn-order-purchase-create-form .ant-input-outlined:hover,
+		.etn-order-purchase-create-form .ant-input-outlined:focus-within,
         .etn-settings-dashboard .button-primary{
             background-color: {$primary_color};
         }
@@ -961,10 +902,10 @@ final class Bootstrap {
         .etn-default-calendar-style .fc-ltr .fc-basic-view .fc-day-top.fc-today .fc-day-number,
         .etn-default-calendar-style .fc-button:hover,
 		.etn-variable-ticket-widget .etn-variable-total-price,
-		.ant-input-outlined:hover,
-		.ant-input-outlined:focus-within,
-		.ant-input-number-outlined:focus-within,
-		.ant-input-number-outlined:hover,
+		.etn-order-purchase-create-form .ant-input-outlined:hover,
+		.etn-order-purchase-create-form .ant-input-outlined:focus-within,
+		.etn-order-purchase-create-form .ant-input-number-outlined:focus-within,
+		.etn-order-purchase-create-form .ant-input-number-outlined:hover,
         .etn-settings-dashboard .button-primary.etn-btn-border{
             border-color: {$primary_color};
         }
@@ -1019,9 +960,9 @@ final class Bootstrap {
 			margin-left: auto;
 		}
 		
-		.ant-select:not(.ant-select-disabled):hover .ant-select-selector,
-		.ant-select-focused:where(.css-dev-only-do-not-override-5gkvuh).ant-select-outlined:not(.ant-select-disabled):not(.ant-select-customize-input):not(.ant-pagination-size-changer) .ant-select-selector,
-		.ant-select-outlined:not(.ant-select-disabled):not(.ant-select-customize-input):not(.ant-pagination-size-changer):hover .ant-select-selector {
+		.etn-order-purchase-create-form .ant-select:not(.ant-select-disabled):hover .ant-select-selector,
+		.etn-order-purchase-create-form .ant-select-focused:where(.css-dev-only-do-not-override-5gkvuh).ant-select-outlined:not(.ant-select-disabled):not(.ant-select-customize-input):not(.ant-pagination-size-changer) .ant-select-selector,
+		.etn-order-purchase-create-form .ant-select-outlined:not(.ant-select-disabled):not(.ant-select-customize-input):not(.ant-pagination-size-changer):hover .ant-select-selector {
 			border-color: {$primary_color};
 		}
 		.etn-checkbox-group .ant-checkbox-wrapper:not(.ant-checkbox-wrapper-disabled):hover .ant-checkbox-checked:not(.ant-checkbox-disabled) .ant-checkbox-inner {

@@ -163,7 +163,7 @@
     </div>
 </div>
 <div class="etn-download-ticket">
-    <button class="etn-btn button etn-print-ticket-btn" id="etn_ticket_print_btn" onclick="etn_ticket_content_area('etn-ticket-download-wrapper');" data-ticketname="<?php echo esc_html( $ticket_file_name )?>" ><?php echo esc_html__( "Print", "eventin" ); ?></button>
+    <button class="etn-btn button etn-print-ticket-btn" id="etn_ticket_print_btn" data-ticketname="<?php echo esc_html( $ticket_file_name )?>" ><?php echo esc_html__( "Print", "eventin" ); ?></button>
     
     <button class="etn-btn button etn-download-ticket-btn" id="etn_ticket_download_btn" data-ticketname="<?php echo esc_html( $ticket_file_name )?>" ><?php echo esc_html__( "Download", "eventin" ); ?></button>
 </div>

@@ -100,6 +100,7 @@ abstract class Post_Model {
         $defaults = [
             'post_type'   => $this->post_type,
             'post_status' => 'draft',
+            'post_author' => get_current_user_id(),
         ];
 
         $args    = wp_parse_args( $args, $defaults );

@@ -9,7 +9,7 @@ defined( 'ABSPATH' ) || exit;
  * Plugin Name:       Eventin
  * Plugin URI:        https://themewinter.com/eventin/
  * Description:       Simple and Easy to use Event Management Solution
- * Version:           4.0.11
+ * Version:           4.0.12
  * Author:            Themewinter
  * Author URI:        https://themewinter.com/
  * License:           GPL-2.0+
@@ -40,7 +40,7 @@ class Wpeventin {
 	 * @var string The plugin version.
 	 */
 	public static function version() {
-		return '4.0.11';
+		return '4.0.12';
 	}
 
 	/**
@@ -87,10 +87,10 @@ class Wpeventin {
 			define( 'ETN_EVENT_TEMPLATE_TWO_ID', '13' );
 			define( 'ETN_EVENT_TEMPLATE_THREE_ID', '39' );
 
-			define( 'ETN_SPEAKER_TEMPLATE_ONE_ID', '29' );
-			define( 'ETN_SPEAKER_TEMPLATE_TWO_LITE_ID', '503' );
-			define( 'ETN_SPEAKER_TEMPLATE_TWO_ID', '35' );
-			define( 'ETN_SPEAKER_TEMPLATE_THREE_ID', '33' );
+			define( 'ETN_SPEAKER_TEMPLATE_ONE_ID', '8' );
+			define( 'ETN_SPEAKER_TEMPLATE_TWO_LITE_ID', '7' );
+			define( 'ETN_SPEAKER_TEMPLATE_TWO_ID', '9' );
+			define( 'ETN_SPEAKER_TEMPLATE_THREE_ID', '6' );
 		}
 
 		define( 'ETN_DEFAULT_TICKET_NAME', 'DEFAULT' );

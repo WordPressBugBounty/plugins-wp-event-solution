@@ -31,6 +31,10 @@ $data = [
     'etn_hide_seats_from_details' => etn_get_option( 'etn_hide_seats_from_details' ),
     'etn_primary_color'           => etn_get_option( 'etn_primary_color' ),
     'etn_secondary_color'         => etn_get_option( 'etn_secondary_color' ),
+    'currency_position'          => etn_get_option( 'currency_position' ),
+    'decimal_separator'          => etn_get_option( 'decimal_separator' ),
+    'decimals'                   => etn_get_option( 'decimals' ),
+
 ];
 
 return apply_filters( 'etn_locale_vars', $data );

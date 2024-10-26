@@ -11,7 +11,7 @@ if ( !function_exists( 'speaker_designation' ) ) {
      * Designation
      */
     function speaker_designation() {
-        if( ( ETN_DEMO_SITE === false ) || ( ETN_DEMO_SITE === true && ( ETN_SPEAKER_TEMPLATE_TWO_ID != get_the_ID(  ) && ETN_SPEAKER_TEMPLATE_THREE_ID != get_the_ID(  ) ) ) ){
+        if( ( ETN_DEMO_SITE === false ) || ( ETN_DEMO_SITE === true && ( ETN_SPEAKER_TEMPLATE_TWO_ID != get_queried_object_id(  ) && ETN_SPEAKER_TEMPLATE_THREE_ID != get_queried_object_id(  ) ) ) ){
             if ( file_exists( get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'speaker/speaker-designation.php' ) ) {
                 require_once get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'speaker/speaker-designation.php';
             } elseif ( file_exists( get_template_directory() . \Wpeventin::theme_templates_dir() . 'speaker/speaker-designation.php' ) ) {
@@ -30,7 +30,7 @@ if ( !function_exists( 'speaker_summary' ) ) {
      * Summary
      */
     function speaker_summary() {
-        if( ( ETN_DEMO_SITE === false ) || ( ETN_DEMO_SITE === true && ( ETN_SPEAKER_TEMPLATE_TWO_ID != get_the_ID(  ) && ETN_SPEAKER_TEMPLATE_THREE_ID != get_the_ID(  ) ) ) ){
+        if( ( ETN_DEMO_SITE === false ) || ( ETN_DEMO_SITE === true && ( ETN_SPEAKER_TEMPLATE_TWO_ID != get_queried_object_id(  ) && ETN_SPEAKER_TEMPLATE_THREE_ID != get_queried_object_id(  ) ) ) ){
             if ( file_exists( get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'speaker/speaker-summary.php' ) ) {
                 require_once get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'speaker/speaker-summary.php';
             } elseif ( file_exists( get_template_directory() . \Wpeventin::theme_templates_dir() . 'speaker/speaker-summary.php' ) ) {
@@ -50,7 +50,7 @@ if ( !function_exists( 'speaker_socials' ) ) {
      */
     function speaker_socials() {
 
-        if( ( ETN_DEMO_SITE === false ) || ( ETN_DEMO_SITE === true && ( ETN_SPEAKER_TEMPLATE_TWO_ID != get_the_ID(  ) && ETN_SPEAKER_TEMPLATE_THREE_ID != get_the_ID(  ) ) ) ){
+        if( ( ETN_DEMO_SITE === false ) || ( ETN_DEMO_SITE === true && ( ETN_SPEAKER_TEMPLATE_TWO_ID != get_queried_object_id(  ) && ETN_SPEAKER_TEMPLATE_THREE_ID != get_queried_object_id(  ) ) ) ){
             if ( file_exists( get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'speaker/speaker-socials.php' ) ) {
                 require_once get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'speaker/speaker-socials.php';
             } elseif ( file_exists( get_template_directory() . \Wpeventin::theme_templates_dir() . 'speaker/speaker-socials.php' ) ) {
@@ -68,7 +68,7 @@ if ( !function_exists( 'schedule_time' ) ) {
      * Schedule time
      */
     function schedule_time( $start, $end ) {
-        if( ( ETN_DEMO_SITE === false ) || ( ETN_DEMO_SITE === true && ( ETN_SPEAKER_TEMPLATE_TWO_ID != get_the_ID(  ) && ETN_SPEAKER_TEMPLATE_THREE_ID != get_the_ID(  ) ) ) ){
+        if( ( ETN_DEMO_SITE === false ) || ( ETN_DEMO_SITE === true && ( ETN_SPEAKER_TEMPLATE_TWO_ID != get_queried_object_id(  ) && ETN_SPEAKER_TEMPLATE_THREE_ID != get_queried_object_id(  ) ) ) ){
             if ( file_exists( get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'speaker/schedule-time.php' ) ) {
                 require get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'speaker/schedule-time.php';
             } elseif ( file_exists( get_template_directory() . \Wpeventin::theme_templates_dir() . 'speaker/schedule-time.php' ) ) {
@@ -88,7 +88,7 @@ if ( !function_exists( 'schedule_locations' ) ) {
      */
     function schedule_locations( $etn_shedule_room ) {
 
-        if( ( ETN_DEMO_SITE === false ) || ( ETN_DEMO_SITE === true && ( ETN_SPEAKER_TEMPLATE_TWO_ID != get_the_ID(  ) && ETN_SPEAKER_TEMPLATE_THREE_ID != get_the_ID(  ) ) ) ){
+        if( ( ETN_DEMO_SITE === false ) || ( ETN_DEMO_SITE === true && ( ETN_SPEAKER_TEMPLATE_TWO_ID != get_queried_object_id(  ) && ETN_SPEAKER_TEMPLATE_THREE_ID != get_queried_object_id(  ) ) ) ){
             if ( file_exists( get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'speaker/schedule-locations.php' ) ) {
                 require get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'speaker/schedule-locations.php';
             } else if ( file_exists( get_template_directory() . \Wpeventin::theme_templates_dir() . 'speaker/schedule-locations.php' ) ) {
@@ -107,7 +107,7 @@ if ( !function_exists( 'speaker_topic' ) ) {
      * Schedule topic
      */
     function speaker_topic( $topic ) {
-        if( ( ETN_DEMO_SITE === false ) || ( ETN_DEMO_SITE === true && ( ETN_SPEAKER_TEMPLATE_TWO_ID != get_the_ID(  ) && ETN_SPEAKER_TEMPLATE_THREE_ID != get_the_ID(  ) ) ) ){
+        if( ( ETN_DEMO_SITE === false ) || ( ETN_DEMO_SITE === true && ( ETN_SPEAKER_TEMPLATE_TWO_ID != get_queried_object_id(  ) && ETN_SPEAKER_TEMPLATE_THREE_ID != get_queried_object_id(  ) ) ) ){
             if ( file_exists( get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'speaker/schedule-topic.php' ) ) {
                 require get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'speaker/schedule-topic.php';
             } elseif ( file_exists( get_template_directory(  ) . \Wpeventin::theme_templates_dir() . 'speaker/schedule-topic.php' ) ) {
@@ -127,7 +127,7 @@ if ( !function_exists( 'speaker_objective' ) ) {
      */
     function speaker_objective( $objective ) {
 
-        if( ( ETN_DEMO_SITE === false ) || ( ETN_DEMO_SITE === true && ( ETN_SPEAKER_TEMPLATE_TWO_ID != get_the_ID(  ) && ETN_SPEAKER_TEMPLATE_THREE_ID != get_the_ID(  ) ) ) ){
+        if( ( ETN_DEMO_SITE === false ) || ( ETN_DEMO_SITE === true && ( ETN_SPEAKER_TEMPLATE_TWO_ID != get_queried_object_id(  ) && ETN_SPEAKER_TEMPLATE_THREE_ID != get_queried_object_id(  ) ) ) ){
             
             if ( file_exists( get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'speaker/speaker-objective.php' ) ) {
                 require get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'speaker/speaker-objective.php';
@@ -157,7 +157,7 @@ if ( !function_exists( 'etn_single_speaker_template_select' ) ) {
         $template_name         = !empty( $settings['speaker_template'] ) ? $settings['speaker_template'] : $default_template_name;
         if( ETN_DEMO_SITE === true ) {
 
-            switch( get_the_ID() ){
+            switch( get_queried_object_id() ){
                 case ETN_SPEAKER_TEMPLATE_ONE_ID :
                     $single_template_path = \Wpeventin::templates_dir() . "speaker-one.php";
                     break;
@@ -312,7 +312,7 @@ if ( !function_exists( 'schedule_two_lite_header' ) ) {
      */
     function schedule_two_lite_header( $head_title, $head_date, $key ) {
         
-        if( ( ETN_DEMO_SITE === false ) || ( ETN_DEMO_SITE === true && ETN_SPEAKER_TEMPLATE_TWO_LITE_ID == get_the_ID(  ) ) ){
+        if( ( ETN_DEMO_SITE === false ) || ( ETN_DEMO_SITE === true && ETN_SPEAKER_TEMPLATE_TWO_LITE_ID == get_queried_object_id(  ) ) ){
             if ( file_exists( get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'speaker/speaker-session-nav.php' ) ) {
                 require get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'speaker/speaker-session-nav.php';
             } else if ( file_exists( get_template_directory() . \Wpeventin::theme_templates_dir() . 'speaker/speaker-session-nav.php' ) ) {
@@ -330,7 +330,7 @@ if ( !function_exists( 'speaker_two_lite_sessions_title' ) ) {
      *  Speaker sessions details title.
      */
     function speaker_two_lite_sessions_title() {
-        if( ( ETN_DEMO_SITE === false ) || ( ETN_DEMO_SITE === true && ETN_SPEAKER_TEMPLATE_TWO_LITE_ID == get_the_ID(  ) ) ){
+        if( ( ETN_DEMO_SITE === false ) || ( ETN_DEMO_SITE === true && ETN_SPEAKER_TEMPLATE_TWO_LITE_ID == get_queried_object_id(  ) ) ){
             if ( file_exists( get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'speaker/schedule-header.php' ) ) {
                 require get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'speaker/schedule-header.php';
             } else if ( file_exists( get_template_directory() . \Wpeventin::theme_templates_dir() . 'speaker/schedule-header.php' ) ) {
@@ -353,7 +353,7 @@ if ( !function_exists( 'speaker_two_lite_sessions_details' ) ) {
      */
     function speaker_two_lite_sessions_details( $org, $key ) {
 
-        if( ( ETN_DEMO_SITE === false ) || ( ETN_DEMO_SITE === true && ETN_SPEAKER_TEMPLATE_TWO_LITE_ID == get_the_ID(  ) ) ){
+        if( ( ETN_DEMO_SITE === false ) || ( ETN_DEMO_SITE === true && ETN_SPEAKER_TEMPLATE_TWO_LITE_ID == get_queried_object_id(  ) ) ){
                 $post_id                 = $org;
                 $author_id               = get_queried_object_id();
                 $etn_schedule_meta_value = get_post_meta( $post_id, 'etn_schedule_topics', true );
@@ -436,7 +436,7 @@ if ( !function_exists( 'speaker_meta' ) ) {
      */
     function speaker_meta() {
 
-        if( ( ETN_DEMO_SITE === false ) || ( ETN_DEMO_SITE === true && ETN_SPEAKER_TEMPLATE_TWO_ID == get_the_ID(  ) ) || ( ETN_DEMO_SITE === true && ETN_SPEAKER_TEMPLATE_TWO_LITE_ID == get_the_ID(  ) ) ){
+        if( ( ETN_DEMO_SITE === false ) || ( ETN_DEMO_SITE === true && ETN_SPEAKER_TEMPLATE_TWO_ID == get_queried_object_id(  ) ) || ( ETN_DEMO_SITE === true && ETN_SPEAKER_TEMPLATE_TWO_LITE_ID == get_queried_object_id(  ) ) ){
             if ( file_exists( get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'speaker/speaker-meta.php' ) ) {
                 require get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'speaker/speaker-meta.php';
             } else if ( file_exists( get_template_directory() . \Wpeventin::theme_templates_dir() . 'speaker/speaker-meta.php' ) ) {
@@ -455,7 +455,7 @@ if ( !function_exists( 'speaker_company_logo' ) ) {
      * Speaker Company
      */
     function speaker_company_logo( $logo ) {
-        if( ( ETN_DEMO_SITE === false ) || ( ETN_DEMO_SITE === true && ETN_SPEAKER_TEMPLATE_TWO_ID == get_the_ID(  ) ) ){
+        if( ( ETN_DEMO_SITE === false ) || ( ETN_DEMO_SITE === true && ETN_SPEAKER_TEMPLATE_TWO_ID == get_queried_object_id(  ) ) ){
             if ( file_exists( get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'speaker/speaker-company-logo.php' ) ) {
                 require get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'speaker/speaker-company-logo.php';
             } else if ( file_exists( get_template_directory() . \Wpeventin::theme_templates_dir() . 'speaker/speaker-company-logo.php' ) ) {

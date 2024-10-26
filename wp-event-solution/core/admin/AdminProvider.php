@@ -2,7 +2,9 @@
 namespace Eventin\Admin;
 
 use Eventin\Abstracts\Provider;
+use Eventin\Admin\Role\RoleManager;
 use Eventin\Integrations\Integration;
+use Eventin\Integrations\Webhook\WebhookIntegration;
 
 /**
  * Admin Provider class
@@ -23,5 +25,7 @@ class AdminProvider extends Provider {
         TemplateRender::class,
         OrderAttendee::class,
         OrderTicket::class,
+        WebhookIntegration::class,
+        RoleManager::class,
     ];
 }

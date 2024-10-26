@@ -30,8 +30,7 @@ class Frontend {
 	public function js_css_front_end() {
 		$screen = get_current_screen();
 		// Main script of seat plan script and js
-		wp_enqueue_script( 'etn-seat-plan-front-end-js', \Wpeventin::core_url() . 'modules/seat-plan/assets/js/front-end.js', ['jquery'], \Wpeventin::version(), false );
-	}
+ 	}
 
 	/**
 	 * Adding meta to cart

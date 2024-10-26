@@ -3313,22 +3313,26 @@ class Helper {
 				)
 			
 		];
-
-		if( !is_array( $selected_cats ) ){
-			$selected_categories = explode( ',', $selected_cats );
-		}else{
+ 
+		if (!is_array($selected_cats) || empty($selected_cats)) {
+			// If selected categories are not an array or empty, show all posts by default
+			$selected_categories = [];
+		} else {
+			$selected_categories = explode(',', $selected_cats);
+		}
+		
+		if (empty($selected_categories)) {
+			// If no specific categories are selected, get all categories
 			$terms = get_terms(array(
-			    'taxonomy' => 'etn_category',
-			    'hide_empty' => true
+				'taxonomy' => 'etn_category',
+				'hide_empty' => true
 			));
 			if (!empty($terms)) {
-			    $selected_categories = wp_list_pluck($terms, 'term_id');
-			}else{
-				$selected_categories = [];
+				$selected_categories = wp_list_pluck($terms, 'term_id');
 			}
 		}
-
-		if( !empty($selected_categories) ){
+		
+		if (!empty($selected_categories)) {
 			$args['tax_query'] = array(
 				array(
 					'taxonomy' => 'etn_category',
@@ -3544,6 +3548,9 @@ class Helper {
 	 * @return void
 	 */
 	public static function eventin_ticket_widget( $single_event_id, $class = "" ) { 
+
+		// purchase module script
+		wp_enqueue_script( 'etn-module-purchase');
 	
 		if ( file_exists( get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'event/purchase-form/single-event-variable-ticket.php' ) ) {
 			$purchase_form_widget = get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'event/purchase-form/single-event-variable-ticket.php';

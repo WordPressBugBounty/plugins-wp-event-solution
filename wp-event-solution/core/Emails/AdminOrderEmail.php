@@ -79,6 +79,11 @@ class AdminOrderEmail extends Mailable {
         $location   = get_post_meta( $event->id, 'etn_event_location', true );
 		$address    = ! empty( $location['address'] ) ? $location['address'] : '';
 
+        // customer details
+       
+        $customer_fname = $this->order->customer_fname;
+        $customer_email = $this->order->customer_email;
+        
         $placeholder = [
 			'{%site_name%}' 	 => get_bloginfo( 'name' ),
 			'{%site_link%}' 	 => site_url(),
@@ -87,6 +92,8 @@ class AdminOrderEmail extends Mailable {
 			'{%event_date%}' 	 => $event->etn_start_date,
 			'{%event_time%}' 	 => $event->etn_start_time,
 			'{%event_location%}' => $address,
+			'{%customer_name%}'  => $customer_fname,
+			'{%customer_email%}' => $customer_email,
 		];
 
         $order_email_message = $this->email_settings['body'];

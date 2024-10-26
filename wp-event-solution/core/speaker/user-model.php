@@ -31,7 +31,7 @@ class User_Model {
      *
      * @var integer
      */
-    protected $id;
+    public $id;
 
     /**
      * Store speaker data
@@ -191,7 +191,7 @@ class User_Model {
         $categories = $this->get_prop( 'category' ) ;
         $categories = maybe_unserialize( $categories );
         $group = [];
-        if ( $categories ) {
+        if ( is_array($categories) ) {
             foreach($categories as $category) {
                 $group[] = $category;
             }    

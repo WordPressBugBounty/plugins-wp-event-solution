@@ -4,6 +4,7 @@ namespace Eventin\Order;
 use Etn\Base\Post_Model;
 use Etn\Core\Attendee\Attendee_Model;
 use Etn\Core\Event\Event_Model;
+use Eventin\Customer\CustomerModel;
 
 /**
  * Order Model
@@ -39,6 +40,7 @@ class OrderModel extends Post_Model {
         'total_price'       => '',
         'payment_id'        => '',
         'attendee_seats'    => '',
+        'customer_id'       => '',
     ];
 
     /**
@@ -119,6 +121,15 @@ class OrderModel extends Post_Model {
         $datetime = new \DateTime( $post->post_date );
 
         return $datetime->format($format);
+    }
+
+    /**
+     * Get order customer
+     *
+     * @return  CustomerModel
+     */
+    public function get_customer() {
+        return CustomerModel::find( $this->customer_id );
     }
 }
 

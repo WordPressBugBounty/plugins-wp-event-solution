@@ -131,12 +131,16 @@ class PaymentController extends WP_REST_Controller {
         $attendees   = $order->get_attendees();
         $event       = new Event_Model( $order->event_id );
         $admin_email = get_option('admin_email');
+        $from        = etn_get_email_settings( 'purchase_email' )['from'];
+        $send_to_admin = etn_get_email_settings( 'purchase_email' )['send_to_admin'];
 
         // Send to admin order email.
-        Mail::to( $admin_email )->send( new AdminOrderEmail( $order ) );
+        if ( $send_to_admin ) {
+            Mail::to( $admin_email )->from( $from )->send( new AdminOrderEmail( $order ) );
+        }
 
         // Send to customer order email.
-        Mail::to( $order->customer_email )->send( new AdminOrderEmail( $order ) );
+        Mail::to( $order->customer_email )->from( $from )->send( new AdminOrderEmail( $order ) );
 
         // Send to attendees email.
         if ( $attendees ) {
@@ -144,7 +148,7 @@ class PaymentController extends WP_REST_Controller {
                 $attendee = new Attendee_Model( $attendee['id'] );
                 
                 if ( $attendee->etn_email ) {
-                    Mail::to( $attendee->etn_email )->send( new AttendeeOrderEmail( $event, $attendee ) );
+                    Mail::to( $attendee->etn_email )->from( $from )->send( new AttendeeOrderEmail( $event, $attendee ) );
                 }
             }
         }

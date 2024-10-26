@@ -71,6 +71,11 @@ class Speaker_Exporter implements Post_Exporter_Interface {
             $social    = get_user_meta( $id, 'etn_speaker_social', true );
             $group     = get_user_meta( $id, 'etn_speaker_group', true );
             $category  = get_user_meta( $id, 'etn_speaker_category', true );
+            $user_data = get_userdata( $id );
+
+            if ( ! $user_data ) {
+                continue;
+            }
 
             if ( 'csv' === $this->format ) {
                 $social    = json_encode( $social );
@@ -81,12 +86,13 @@ class Speaker_Exporter implements Post_Exporter_Interface {
             $speaker_data = [
                 'id'               => $id,
                 'name'             => get_user_meta( $id, 'first_name', true ),
-                'email'            => get_user_meta( $id, 'user_email', true ),
+                'email'            => $user_data->user_email,
+                'image'            => get_user_meta( $id, 'image', true ),
                 'designation'      => get_user_meta( $id, 'etn_speaker_designation', true ),
                 'summary'          => get_user_meta( $id, 'etn_speaker_summery', true ),
                 'social'           => $social,
                 'company_logo'     => get_user_meta( $id, 'etn_speaker_company_logo', true ),
-                'company_url'      => get_user_meta( $id, 'company_url', true ),
+                'company_url'      => get_user_meta( $id, 'etn_speaker_url', true ),
                 'speaker_group'    => $group,
                 'speaker_category' => $category,
                 'company_name'     => get_user_meta( $id, 'etn_company_name', true ),
@@ -95,9 +101,9 @@ class Speaker_Exporter implements Post_Exporter_Interface {
             ];
 
             array_push( $exported_data, $speaker_data );
-
-            return $exported_data;
         }
+
+        return $exported_data;
     }
 
     /**
@@ -109,6 +115,7 @@ class Speaker_Exporter implements Post_Exporter_Interface {
         return [
             'id'               => esc_html__( 'Id', 'eventin' ),
             'name'             => esc_html__( 'Name', 'eventin' ),
+            'image'            => esc_html__( 'Image', 'eventin' ),
             'designation'      => esc_html__( 'Designation', 'eventin' ),
             'email'            => esc_html__( 'Email', 'eventin' ),
             'summary'          => esc_html__( 'Summary', 'eventin' ),
@@ -119,7 +126,7 @@ class Speaker_Exporter implements Post_Exporter_Interface {
             'author_url'       => esc_html__( 'Author Url', 'eventin' ),
             'role'             => esc_html__( 'Role', 'eventin' ),
             'speaker_group'    => esc_html__( 'Speaker Group', 'eventin' ),
-            'speaker_category' => esc_html__( 'Speaker Group', 'eventin' ),
+            'speaker_category' => esc_html__( 'Speaker Category', 'eventin' ),
         ];
     }
 }

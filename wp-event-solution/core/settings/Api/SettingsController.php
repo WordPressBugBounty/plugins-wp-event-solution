@@ -72,7 +72,9 @@ class SettingsController extends WP_REST_Controller {
      * @return WP_Error|boolean
      */
     public function get_item_permissions_check( $request ) {
-        return current_user_can( 'manage_options' );
+        return current_user_can( 'manage_options' ) 
+                || current_user_can( 'seller' )
+                || current_user_can( 'editor' );
     }
 
     /**
@@ -124,6 +126,11 @@ class SettingsController extends WP_REST_Controller {
             "enable_attendee_bulk"     => etn_get_option( 'enable_attendee_bulk' ),
             "add_to_cart_redirect"     => etn_get_option( 'add_to_cart_redirect' ),
             'etn_purchase_login_required' => etn_get_option( 'etn_purchase_login_required' ),
+            'decimal_separator'        => etn_get_decimal_separator(),
+            'thousand_separator'       => etn_get_thousand_separator(),
+            'decimals'                 => etn_get_decimals(),
+            'price_format'             => etn_get_price_format(),
+            'currency_position'        => etn_get_currency_position(),
         ];
 
         if ( function_exists( 'WC' ) ) {

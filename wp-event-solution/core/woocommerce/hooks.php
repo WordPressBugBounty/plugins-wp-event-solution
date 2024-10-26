@@ -215,10 +215,10 @@ class Hooks {
             foreach ( $cart_item['etn_ticket_variations'] as $key => $value) {
                 $variations .= '<div class="single-ticket-details">';
                 $variations .= '<p class="single-ticket-details__title">' . $value['etn_ticket_name'] . "(" . $value['etn_ticket_qty'] .  ')</p>';
-                if (!empty($value['selected_seats'])) {
+                if (!empty($value['seats'])) {
                     $variations .= ':';
                     $variations .= '<ul class="single-ticket-seats__list">';
-                    $variations .= "<li>" . $value['selected_seats']. "</li>";
+                    $variations .= "<li>" . implode( ', ', $value['seats'] ) . "</li>";
                     $variations .= '</ul>';
                 }
                 $variations .= '</div>';
@@ -1687,7 +1687,7 @@ class Hooks {
             return;
         }
 
-        $eventin_order_id = get_post_meta( $order->get_id(), 'eventin_order_id', true );
+        $eventin_order_id = get_post_meta( $order->ID, 'eventin_order_id', true );
 
         $args = array(
            'post_type'     => 'etn-attendee',
@@ -2135,7 +2135,14 @@ class Hooks {
      * @return  array
      */
     public function hide_checkout_fields( $fields ) {
+        $settings = Helper::get_settings();
+        $etn_show_woo_billing_info = isset( $settings['etn_show_woo_billing_info'] ) && !empty( $settings['etn_show_woo_billing_info'] ) ? $settings['etn_show_woo_billing_info'] : '';
         
+        // show all fields from checkout page
+        if ( $etn_show_woo_billing_info ) {
+            return $fields;
+        }
+
         if ( ! WC()->session ) {
             WC()->session = new \WC_Session_Handler();
             WC()->session->init();

@@ -58,8 +58,7 @@ class Hooks {
 
         add_filter( 'eventin_settings', [ $this, 'update_extra_field_settings' ] );
 
-        add_action( 'eventin_after_order_create', [$this, 'fluentCrm_hook'], 10,1 );
-
+        add_action( 'eventin_event_updated', [ $this, 'update_seat_price' ] );
 
     }
 
@@ -605,22 +604,41 @@ class Hooks {
 
         return $settings;
     }
+    
+    /**
+     * Update seat price when update event tickets
+     *
+     * @param   Event_Model  $event  [$event description]
+     *
+     * @return  void
+     */
+    public function update_seat_price( $event ) {
+        $event_id          = $event->id;
+        $tickets           = $event->etn_ticket_variations;
+        $seats             = $event->seat_plan;
 
+        if ( ! $seats ) {
+            return;
+        }
 
-    public function fluentCrm_hook( $order) { 
-        
-        $event_id = $order->event_id; 
-        $fluentCRM_enable = get_post_meta( $event_id, 'fluent_crm', true );
-        $fluentcrm_webhook= get_post_meta( $event_id, 'fluent_crm_webhook', true ); 
+        foreach ( $seats as $seat_key => $seat ) {
+            $ticket_price = $event->get_ticket_price_by_name( $seat['ticketType'] );
 
-        $body = array(
-            'email' => $order->customer_email,
-            'first_name' => $order->customer_fname,
-        );  
- 
-        if($fluentCRM_enable ==='yes' && !empty($fluentcrm_webhook)){ 
-            $response_user = wp_remote_post($fluentcrm_webhook, ['body' => $body]);
-        } 
-       
+            if ( 'table' === $seat['type'] ) {
+                $chairs = [];
+                foreach( $seat['chairs'] as $chair_key => $chair ) {
+                    $chair['price'] = $ticket_price;
+
+                    $chairs[] = $chair;
+                }
+                $seats[$seat_key]['chairs'] = $chairs;
+            } else {
+                $seats[$seat_key]['price'] = $ticket_price;
+            }
+        }
+    
+        $event->update( [
+            'seat_plan' => $seats
+        ] );
     }
 }

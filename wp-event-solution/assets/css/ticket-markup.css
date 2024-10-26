@@ -381,7 +381,12 @@
 }
 
 /* ticket style 2 */
-.etn-ticket-wrapper.ticket-style-2 {}
+
+.etn-ticket-wrapper *,
+.etn-ticket-wrapper *:after,
+.etn-ticket-wrapper *:before {
+    box-sizing: border-box;
+}
 
 .etn-ticket-wrapper.ticket-style-2 .etn-ticket-main-wrapper {
 	max-width: 810px;

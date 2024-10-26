@@ -195,7 +195,7 @@ class EventDetailsParts {
 		$event_options = get_option( "etn_event_options" );
 		$hide_location = ! empty( $event_options["etn_hide_location_from_details"] ) ? $event_options["etn_hide_location_from_details"] : '';
 		$data          = Helper::single_template_options( $single_event_id );
-		if ( ! empty( $data['event_start_date'] ) || ! empty( $data['event_start_time'] ) || ! empty( $data['etn_event_location'] ) || ! empty( $data['etn_deadline_value'] ) ) :
+		if ( ! empty( $data['event_start_date'] ) || ! empty( $data['event_start_time'] ) || ! empty( $data['etn_event_location'] )) :
 			?>
             <div class="etn-event-meta-info etn-widget">
                 <ul>
@@ -238,17 +238,7 @@ class EventDetailsParts {
 						<?php
 					}
 					?>
-					<?php
-					if ( ! empty( $data['etn_deadline_value'] ) ) {
-						?>
-                        <li>
-                            <span><?php echo esc_html__( 'Reg. Deadline : ', "eventin" ); ?></span>
-							<?php echo esc_html( $data['etn_deadline_value'] ); ?>
-                        </li>
-						<?php
-					}
-					?>
-
+					
 					<?php
 					$location = \Etn\Core\Event\Helper::instance()->display_event_location( $single_event_id );
 					$location = etn_prepare_address( $location );

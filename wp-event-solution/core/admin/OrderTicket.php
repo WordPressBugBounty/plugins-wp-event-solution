@@ -108,8 +108,9 @@ class OrderTicket implements HookableInterface {
      */
     public function send_attendee_ticket( $attendee ) {
         if ( $attendee->etn_email ) {
+            $from  = etn_get_email_settings( 'purchase_email' )['from'];
             $event = new Event_Model( $attendee->etn_event_id );
-            Mail::to($attendee->etn_email)->send(new AttendeeOrderEmail($event, $attendee));
+            Mail::to($attendee->etn_email)->from( $from )->send(new AttendeeOrderEmail($event, $attendee));
         }
     }
 

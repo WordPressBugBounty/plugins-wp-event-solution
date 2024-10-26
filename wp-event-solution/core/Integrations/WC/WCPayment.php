@@ -16,6 +16,8 @@ class WCPayment implements PaymentInterface {
      * @return  void
      */
     public function create_payment( $order ) {
+        WC()->cart->empty_cart();
+
         if ( WC()->session->get( 'event_order_id' ) ) {
             WC()->session->__unset( 'event_order_id' );
         }

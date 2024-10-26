@@ -2,6 +2,7 @@
 namespace Eventin;
 
 use Eventin\Attendee\Api\AttendeeController;
+use Eventin\Customer\Api\CustomerController;
 use Eventin\Event\Api\EventController;
 use Eventin\EventCategory\Api\EventCategoryController;
 use Eventin\Event\Api\EventTagController;
@@ -37,6 +38,7 @@ class ApiManager {
         TransactionController::class,
         OrderController::class,
         PaymentController::class,
+        CustomerController::class,
     ];
 
     /**
