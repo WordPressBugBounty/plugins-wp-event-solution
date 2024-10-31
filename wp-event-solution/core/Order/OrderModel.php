@@ -1,6 +1,5 @@
 <?php
 namespace Eventin\Order;
-
 use Etn\Base\Post_Model;
 use Etn\Core\Attendee\Attendee_Model;
 use Etn\Core\Event\Event_Model;
@@ -13,6 +12,8 @@ use Eventin\Customer\CustomerModel;
  */
 
 class OrderModel extends Post_Model {
+    use OrderEmailTrait;
+
     /**
      * Store post type
      *
@@ -59,6 +60,27 @@ class OrderModel extends Post_Model {
         }
 
         return $total_ticket;
+    }
+
+    /**
+     * Get total ticket by ticket slug
+     *
+     * @param   string  $ticket_slug 
+     *
+     * @return  integer
+     */
+    public function get_total_ticket_by_ticket( $ticket_slug ) {
+        $variations = $this->tickets;
+
+        if ( $variations && is_array( $variations ) ) {
+            foreach( $variations as $variation ) {
+                if ( $variation['ticket_slug'] === $ticket_slug ) {
+                    return $variation['ticket_quantity'];
+                }
+            }
+        }
+
+        return 0;
     }
 
     /**

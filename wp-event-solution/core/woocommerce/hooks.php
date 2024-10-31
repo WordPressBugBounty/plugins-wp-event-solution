@@ -35,6 +35,8 @@ class Hooks {
         // Redirect success page after woocommerce payment.
         add_action( 'woocommerce_thankyou', [ $this, 'redirect_success_page' ] );
 
+        add_action( 'woocommerce_order_status_changed', [ $this, 'eventin_order_update' ], 10, 3 );
+
         // Handle actions on order status change
         // add_action('woocommerce_order_status_changed', [$this, 'update_event_stock_on_order_status_update' ], 10, 3);
         add_action('woocommerce_order_status_changed', [$this, 'update_event_revenue_on_refunded' ], 10, 3);
@@ -130,6 +132,48 @@ class Hooks {
         add_filter( 'woocommerce_order_again_cart_item_data', [ $this, 'order_again_custom_meta' ], 10, 3 );
         // disable 'Undo' option after removing item from cart
         add_action('woocommerce_cart_item_removed', [ $this, 'disable_undo_notice_for_events'], 5, 2);
+    }
+
+    /**
+     * Eventin order update
+     *
+     * @param   integer  $order_id  Woocommerce order id
+     *
+     * @return  void    Updated order on woocoomerce order changed
+     */
+    public function eventin_order_update( $order_id ) {
+        $order = wc_get_order( $order_id );
+
+        if ( ! $order ) {
+            return;
+        }
+
+        $statuses = [ 'completed', 'processing' ];
+        $eventin_order_id = get_post_meta( $order_id, 'eventin_order_id', true );
+        $event_order      = new OrderModel( $eventin_order_id );
+
+        if ( ! $eventin_order_id ) {
+            return;
+        }
+        
+        if ( in_array( $order->get_status(), $statuses ) ) {
+
+            $event_order->update([
+                'status' => 'completed'
+            ]);
+
+            do_action( 'eventin_order_completed', $event_order );
+
+            $event_order->send_email();
+        }
+
+        if ( 'refunded' === $order->get_status() ) {
+            $event_order->update([
+                'status' => 'refunded',
+            ]);
+
+            do_action( 'eventin_order_refund', $event_order );
+        }
     }
 
     /**
@@ -269,19 +313,22 @@ class Hooks {
         $order = wc_get_order( $wc_order_id );
 
         $statuses = [ 'completed', 'processing' ];
+
+        WC()->session->__unset( 'event_order_id' );
+        update_post_meta( $wc_order_id, 'eventin_order_id', $order_id );
         
+        $url = '';
+
         if ( $order && in_array( $order->get_status(), $statuses ) ) {
-            $url = site_url( 'eventin-purchase/checkout/#/success' );
-            update_post_meta( $wc_order_id, 'eventin_order_id', $order_id );
-            WC()->session->__unset( 'event_order_id' );
-            wp_redirect($url);
-            exit;
-        } else {
-            $url = site_url( 'eventin-purchase/checkout/#/failed' );
-            // WC()->session->__unset( 'event_order_id' );
-            wp_redirect($url);
-            exit;
+            $url = 'eventin-purchase/checkout/#/success';
+        } elseif('on-hold' === $order->get_status() ) {
+            $url = '/eventin-purchase/checkout/#/hold';
+        }else {
+            $url = 'eventin-purchase/checkout/#/failed';
         }
+
+        wp_redirect( site_url( $url ) );
+        exit();
     }
 
     /**

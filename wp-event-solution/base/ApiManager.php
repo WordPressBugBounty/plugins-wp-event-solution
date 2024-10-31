@@ -10,10 +10,12 @@ use Eventin\Event\Api\TransactionController;
 use Eventin\Location\Api\LocationController;
 use Eventin\Order\OrderController;
 use Eventin\Order\PaymentController;
+use Eventin\Reports\Api\ReportController;
 use Eventin\Schedule\Api\ScheduleController;
 use Eventin\Settings\Api\SettingsController;
 use Eventin\Speaker\Api\SpeakerCategoryController;
 use Eventin\Speaker\Api\SpeakerController;
+use Eventin\Extensions\Api\ExtensionController;
 use WP_REST_Controller;
 
 /**
@@ -39,6 +41,8 @@ class ApiManager {
         OrderController::class,
         PaymentController::class,
         CustomerController::class,
+        ExtensionController::class,
+        ReportController::class,
     ];
 
     /**

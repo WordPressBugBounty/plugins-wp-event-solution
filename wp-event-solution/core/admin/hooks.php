@@ -238,7 +238,13 @@ class Hooks {
             'modules'            => get_option( 'etn_addons_options' ),
             'zoom_authorize_url' => ZoomCredential::get_auth_url(),
             'event_url_editable' => etn_event_url_editable(),
-            'email'              => etn_get_email_settings(),  
+            'email'              => etn_get_email_settings(), 
+            'etn_settings_country_currency' => etn_currency(),
+            'decimal_separator'  => etn_get_decimal_separator(),
+            'thousand_separator' => etn_get_thousand_separator(),
+            'decimals'           => etn_get_decimals(),
+            'price_format'       => etn_get_price_format(),
+            'currency_position'  => etn_get_currency_position(), 
         ];
 
         return array_merge( $settings, $new_settings );

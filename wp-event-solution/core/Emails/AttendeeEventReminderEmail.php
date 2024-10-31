@@ -20,12 +20,28 @@ class AttendeeEventReminderEmail extends Mailable {
     private $email_settings;
 
     /**
+     * Store event object
+     *
+     * @var Event_Model
+     */
+    private $event;
+
+    /**
+     * Store attendee object
+     *
+     * @var Attendee_Model
+     */
+    private $attendee;
+
+    /**
      * Constructor for Admin Order Class
      *
      * @return  void
      */
-    public function __construct( private Event_Model $event, private Attendee_Model $attendee ) {
+    public function __construct( Event_Model $event, Attendee_Model $attendee ) {
         $this->email_settings = etn_get_email_settings( 'reminder_email' );
+        $this->event    = $event;
+        $this->attendee = $attendee;
     }
 
     /**

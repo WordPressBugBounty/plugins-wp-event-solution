@@ -11,11 +11,19 @@ namespace Eventin;
  */
 class Input {
     /**
+     * Store data
+     *
+     * @var array
+     */
+    private $data;
+    /**
      * Constructor for input class
      *
      * @return  void
      */
-    public function __construct(private $data = []) {}
+    public function __construct( $data = [] ) {
+        $this->data = $data;
+    }
 
     /**
      * Check input is empty or not default blank

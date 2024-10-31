@@ -3,7 +3,7 @@ Contributors: themewinter, ataurr, abrasel600, rezakhan995
 Tags: event, calendar, tickets, organizer, schedule
 Requires at least: 5.2
 Tested up to: 6.6.2
-Stable tag: 4.0.13
+Stable tag: 4.0.14
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -280,6 +280,22 @@ Yes, Eventin offers a unique QR scanner solution to scan all the single/bulk tic
 
 
 == Changelog ==
+= 4.0.14 ( October 31, 2024 )=
+
+Tweak : On woocommerce payment if payment status is on-hold it will redirect to hold url
+Fix   : Ticket email couldn't send when woocommerce order status update to completed
+Fix   : Couldn't eventin order status failed to completed when woocommerce order status updated
+Fix   : After completing woocommerce order with hold status it redirect to eventin failed url
+Fix   : Event couldn't purchase for php version compatilibity
+Fix   : Default currency was not set
+Fix   : Ticket price not displaying during manual attendee creation.
+Fix   : Certificate modal closes after successfully sending a certificate.
+Fix   : Search functionality in Select/Dropdown components.
+Fix   : Price not displaying properly.
+Fix   : Timezone issue on the Ticket Purchase page.
+Fix   : Attendee not showing after successful purchase via WooCommerce.
+Fix   : PayPal payment initiation error message display
+
 = 4.0.13 ( October 28, 2024 )=
 Fix : Attendee and ticket name updated on order email
 Fix : Clone event doesn’t reset sold tickets

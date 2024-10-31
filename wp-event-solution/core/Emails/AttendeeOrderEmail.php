@@ -29,7 +29,7 @@ class AttendeeOrderEmail extends Mailable {
     /**
      * Store attendees
      *
-     * @var array
+     * @var Attendee_Model
      */
     private $attendee;
 

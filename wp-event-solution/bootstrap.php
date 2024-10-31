@@ -369,7 +369,7 @@ final class Bootstrap {
 	public function etn_addons_page() {
 		include_once( \Wpeventin::plugin_dir() . "templates/layout/header.php" );
 
-		$addonsView = \Wpeventin::plugin_dir() . "core/addons/addons.php";
+		$addonsView = \Wpeventin::plugin_dir() . "core/Extensions/addons.php";
 		if ( file_exists( $addonsView ) ) {
 			include $addonsView;
 		}

@@ -34,13 +34,21 @@ class AdminOrderEmail extends Mailable {
     private $attendees;
 
     /**
+     * Store order 
+     *
+     * @var OrderModel
+     */
+    private $order;
+
+    /**
      * Constructor for Admin Order Class
      *
      * @return  void
      */
-    public function __construct( private OrderModel $order ) {
+    public function __construct( OrderModel $order ) {
         $this->email_settings = etn_get_email_settings( 'purchase_email' );
-        $this->event = new Event_Model($this->order->event_id);
+        $this->order = $order;
+        $this->event = new Event_Model( $this->order->event_id );
     }
 
     /**
