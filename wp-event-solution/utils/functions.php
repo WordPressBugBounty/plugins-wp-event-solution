@@ -935,3 +935,43 @@ if ( ! function_exists( 'etn_get_currency_position' ) ) {
         return apply_filters( 'etn_currency_position', $currency_pos );
     }
 }
+
+if ( ! function_exists( 'etn_get_wc_order_status_list' ) ) {
+    /**
+     * Get all woocommerce order statuses without prefix
+     *
+     * @return  array  Woocommerce order statuses
+     */
+    function etn_get_wc_order_status_list() {
+        $statuses_without_prefix = [];
+    
+        if ( ! function_exists( 'WC' ) ) {
+            return $statuses_without_prefix;
+        }
+    
+        $statuses = wc_get_order_statuses();
+        
+    
+        foreach ( $statuses as $key => $label ) {
+            // Remove the 'wc-' prefix from each status key.
+            $new_key = str_replace( 'wc-', '', $key );
+            $statuses_without_prefix[$new_key] = $label;
+        }
+    
+        return $statuses_without_prefix;
+    }
+}
+
+if ( ! function_exists( 'etn_get_wc_order_statuses' ) ) {
+    /**
+     * Get all woocommerce order statuses stored as eventin settings
+     *
+     * @return  array  Woocommerce order statuses
+     */
+    function etn_get_wc_order_statuses() {
+        $defaults = [ 'completed', 'processing' ];
+        $settings = etn_get_option( 'wc_order_statuses', $defaults );
+
+        return $settings;
+    }
+}

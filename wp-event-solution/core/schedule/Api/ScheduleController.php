@@ -130,9 +130,7 @@ class ScheduleController extends WP_REST_Controller {
      * @return WP_Error|boolean
      */
     public function get_item_permissions_check( $request ) {
-        return current_user_can( 'manage_options' ) 
-                || current_user_can( 'seller' )
-                || current_user_can( 'editor' );
+        return current_user_can( 'etn_manage_schedule' );
     }
 
     /**
@@ -241,9 +239,7 @@ class ScheduleController extends WP_REST_Controller {
      * @return WP_Error|boolean
      */
     public function create_item_permissions_check( $request ) {
-        return current_user_can( 'manage_options' ) 
-                || current_user_can( 'seller' )
-                || current_user_can( 'editor' );
+        return current_user_can( 'etn_manage_schedule' );
     }
 
     /**
@@ -281,9 +277,7 @@ class ScheduleController extends WP_REST_Controller {
      * @return WP_Error|boolean
      */
     public function update_item_permissions_check( $request ) {
-        return current_user_can( 'manage_options' ) 
-                || current_user_can( 'seller' )
-                || current_user_can( 'editor' );
+        return current_user_can( 'etn_manage_schedule' );
     }
 
     /**
@@ -394,9 +388,7 @@ class ScheduleController extends WP_REST_Controller {
      * @return WP_Error|object $prepared_item
      */
     public function delete_item_permissions_check( $request ) {
-        return current_user_can( 'manage_options' ) 
-                || current_user_can( 'seller' )
-                || current_user_can( 'editor' );
+        return current_user_can( 'etn_manage_schedule' );
     }
 
     /**

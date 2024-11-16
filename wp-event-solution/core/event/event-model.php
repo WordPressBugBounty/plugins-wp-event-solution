@@ -78,7 +78,8 @@ class Event_Model extends Post_Model {
         '_virtual'                           => '',
         'event_logo_id'                      => '',
         'event_banner_id'                   => '',
-        'excerpt_enable'                    => false,         
+        'excerpt_enable'                    => false,
+        'enable_seatmap'                    => false,         
     ];
 
     /**
@@ -283,5 +284,16 @@ class Event_Model extends Post_Model {
         }
 
         return 0;
+    }
+
+    /**
+     * Check seatp is enable or not
+     *
+     * @return  bool
+     */
+    public function is_enable_seatmap() {
+        $seat_map_switcher = ! metadata_exists( 'post', $this->id, 'enable_seatmap' ) && $this->seat_plan ? true : $this->enable_seatmap;
+
+        return $seat_map_switcher;
     }
 }

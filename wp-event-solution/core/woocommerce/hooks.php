@@ -158,6 +158,10 @@ class Hooks {
         
         if ( in_array( $order->get_status(), $statuses ) ) {
 
+            if ( 'completed' === $event_order->status ) {
+                return;
+            }
+
             $event_order->update([
                 'status' => 'completed'
             ]);
@@ -312,7 +316,7 @@ class Hooks {
 
         $order = wc_get_order( $wc_order_id );
 
-        $statuses = [ 'completed', 'processing' ];
+        $statuses = etn_get_wc_order_statuses();
 
         WC()->session->__unset( 'event_order_id' );
         update_post_meta( $wc_order_id, 'eventin_order_id', $order_id );
@@ -1750,16 +1754,22 @@ class Hooks {
         $eventin_order_id = get_post_meta( $order->ID, 'eventin_order_id', true );
 
         $args = array(
-           'post_type'     => 'etn-attendee',
-           'post_status'   => 'publish',
-           'meta_key'      => 'eventin_order_id',
-           'meta_value'    => $eventin_order_id,
-           'numberposts'   => -1
+            'post_type'      => 'etn-attendee',
+            'post_status'    => 'publish',
+            'posts_per_page' => -1,
+            'meta_query'     => [
+                'relation'  => 'AND',
+                [
+                    'key'       => 'eventin_order_id',
+                    'value'     => $eventin_order_id,
+                    'compare'   => '='
+                ]
+            ]
         );
         
         $attendees = get_posts($args);
 
-        if( $attendees ) {
+        if ( $eventin_order_id && $attendees ) {
             $table_content = "<div class='etn-table-view'>
                 <div class='etn-table-row etn-table-header'>
                     <div class='etn-column'>" . esc_html__('Attendee ID', 'eventin') . "</div>

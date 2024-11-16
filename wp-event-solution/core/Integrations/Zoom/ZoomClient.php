@@ -50,10 +50,10 @@ class ZoomClient {
         $args = [
             'topic'                  => $args['title'],
             'type'                   => 2, // Scheduled meeting
-            'start_time'            => $args['start_time'], // Meeting start time in UTC
-            'duration' => 60, // Meeting duration in minutes
-            'timezone' => 'America/New_York', // Timezone for the meeting
-            'agenda' => '',
+            'start_time'             => $args['start_time'], // Meeting start time in UTC
+            'duration'               => 60, // Meeting duration in minutes
+            'timezone'               => $args['timezone'], // Timezone for the meeting
+            'agenda'                 => '',
             'waiting_room'           => true,
             'join_before_host'       => false,
             'meeting_authentication' => false,
@@ -90,12 +90,12 @@ class ZoomClient {
      */
     public function update_meeting( $meeting_id, $args = [] ) {
         $defaults = [
-            'topic' => '',
-            'type'  => 2, // Scheduled meeting
-            'start_time' => '', // Meeting start time in UTC
-            'duration' => 60, // Meeting duration in minutes
-            'timezone' => 'America/New_York', // Timezone for the meeting
-            'agenda' => '',
+            'topic'         => '',
+            'type'          => 2, // Scheduled meeting
+            'start_time'    => '', // Meeting start time in UTC
+            'duration'      => 60, // Meeting duration in minutes
+            'timezone'      => 'America/New_York', // Timezone for the meeting
+            'agenda'        => '',
         ];
 
         $args         = wp_parse_args( $args, $defaults );

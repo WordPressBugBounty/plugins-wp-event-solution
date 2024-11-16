@@ -300,7 +300,7 @@ class AttendeeController extends WP_REST_Controller {
      * @return WP_Error|boolean
      */
     public function get_item_permissions_check( $request ) {
-        return current_user_can( 'manage_options' ) || current_user_can( 'seller' );
+        return current_user_can( 'etn_manage_attendee' );
     }
 
     /**
@@ -375,9 +375,7 @@ class AttendeeController extends WP_REST_Controller {
      * @return true|WP_Error True if the request has access to create items, WP_Error object otherwise.
      */
     public function create_item_permissions_check( $request ) {
-        return current_user_can( 'manage_options' ) 
-                || current_user_can( 'seller' )
-                || current_user_can( 'editor' );
+        return current_user_can( 'etn_manage_attendee' );
     }
 
     /**
@@ -425,9 +423,7 @@ class AttendeeController extends WP_REST_Controller {
      * @return true|WP_Error True if the request has access to update the item, WP_Error object otherwise.
      */
     public function update_item_permissions_check( $request ) {
-        return current_user_can( 'manage_options' ) 
-                || current_user_can( 'seller' )
-                || current_user_can( 'editor' );
+        return current_user_can( 'etn_manage_attendee' );
     }
 
     /**
@@ -514,9 +510,7 @@ class AttendeeController extends WP_REST_Controller {
      * @return WP_Error|object $prepared_item
      */
     public function delete_item_permissions_check( $request ) {
-        return current_user_can( 'manage_options' ) 
-                || current_user_can( 'seller' )
-                || current_user_can( 'editor' );
+        return current_user_can( 'etn_manage_attendee' );
     }
 
     /**
@@ -651,9 +645,7 @@ class AttendeeController extends WP_REST_Controller {
      * @return  bool
      */
     public function export_item_permissions_check( $request ) {
-        return current_user_can( 'manage_options' ) 
-                || current_user_can( 'seller' )
-                || current_user_can( 'editor' );
+        return current_user_can( 'etn_manage_attendee' );
     }
 
     /**
@@ -689,9 +681,7 @@ class AttendeeController extends WP_REST_Controller {
      * @return  bool
      */
     public function import_item_permissions_check( $request ) {
-        return current_user_can( 'manage_options' ) 
-                || current_user_can( 'seller' )
-                || current_user_can( 'editor' );
+        return current_user_can( 'etn_manage_attendee' );
     }
 
     /**
@@ -772,9 +762,7 @@ class AttendeeController extends WP_REST_Controller {
      * @return  bool
      */
     public function resend_ticket_permissions_check( $request ) {
-        return current_user_can( 'manage_options' ) 
-                || current_user_can( 'seller' )
-                || current_user_can( 'editor' );
+        return current_user_can( 'etn_manage_attendee' );
     }
     
     /**

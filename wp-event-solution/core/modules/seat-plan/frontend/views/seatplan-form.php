@@ -2,6 +2,8 @@
 
 namespace Etn\Core\Modules\Seat_Plan\Frontend\Views;
 
+use Etn\Core\Event\Event_Model;
+
 defined( 'ABSPATH' ) || die();
 
 class Seatplan_Form {
@@ -21,6 +23,13 @@ class Seatplan_Form {
 	 * Enqueue scripts.
 	 */
 	public function seat_plan_form() {
+		$event_id = get_the_ID();
+		$event = new Event_Model( $event_id );
+
+		if ( ! $event->is_enable_seatmap() ) {
+			return;
+		}
+
 		$errors = isset( $_GET['etn_errors'] ) ? $_GET['etn_errors'] : '';
 		remove_query_arg( 'etn_errors', get_the_permalink(get_the_ID()) );
 		$seats = get_post_meta( get_the_ID(),'seat_plan', true );

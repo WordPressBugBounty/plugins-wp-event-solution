@@ -44,10 +44,16 @@ class Zoom implements MeetingPlatformInterface {
             'start_time' => '',
             'end_date'   => '',
             'end_time'   => '',
-            'time_zone'  => 'America/New_York',
+            'timezone'   => 'America/New_York',
         ];
 
         $args = wp_parse_args( $args, $defaults );
+
+        $args['start_time'] = self::format_start_time(
+            $args['start_date'],
+            $args['start_time'],
+            $args['timezone'],
+        );
 
         return self::create_meeting( $args )->get_join_url();
     }
@@ -93,5 +99,25 @@ class Zoom implements MeetingPlatformInterface {
         self::$meeting_data = $zoom->create_meeting( $args );
 
         return new self;
+    }
+
+    /**
+     * Format start time
+     *
+     * @param   string  $date      [$date description]
+     * @param   string  $time      [$time description]
+     * @param   string  $timezone  [$timezone description]
+     *
+     * @return  string             [return description]
+     */
+    private static function format_start_time( $date, $time, $timezone ) {
+        // Combine date and time into a single string
+        $date_time = $date . ' ' . $time;
+        
+        // Create a DateTime object with the specified timezone
+        $date_time_obj = new \DateTime( $date_time, new \DateTimeZone( $timezone ) );
+        
+        // Convert to ISO 8601 format for Zoom (UTC time)
+        return $date_time_obj->format('Y-m-d\TH:i:s');
     }
 }

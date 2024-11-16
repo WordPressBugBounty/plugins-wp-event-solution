@@ -88,6 +88,7 @@ class Attendee_Importer implements Post_Importer_Interface {
         $extra_fields = get_post_meta( $event_id, 'attendee_extra_fields', true );
         $settings     = etn_get_option();
         $data         = [];
+        $file_type = ! empty( $this->file['type'] ) ? $this->file['type'] : '';
 
         if ( ! $extra_fields ) {
             $extra_fields = ! empty( $settings['attendee_extra_fields'] ) ? $settings['attendee_extra_fields'] : [];
@@ -97,7 +98,12 @@ class Attendee_Importer implements Post_Importer_Interface {
             foreach ( $extra_fields as $value ) {
                 $column     = strtolower( str_replace( [' ', '-'], '_', $value['label'] ) );
                 $meta_key   = 'etn_attendee_extra_field_' . $column;
-                $meta_value = ! empty( $row[$column] ) ? $row[$column] : '';
+
+                if ( 'application/json' === $file_type ) {
+                    $meta_value = ! empty( $row[$meta_key] ) ? $row[$meta_key] : '';
+                } else {
+                    $meta_value = ! empty( $row[$column] ) ? $row[$column] : '';
+                }
 
                 $data[$meta_key] = $meta_value;
             }

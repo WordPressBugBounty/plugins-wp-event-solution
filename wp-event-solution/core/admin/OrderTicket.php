@@ -7,6 +7,7 @@ use Eventin\Emails\AttendeeOrderEmail;
 use Eventin\Interfaces\HookableInterface;
 use Eventin\Mails\Mail;
 use Wpeventin;
+use Eventin\Order\OrderModel;
 
 class OrderTicket implements HookableInterface {
     /**
@@ -20,6 +21,9 @@ class OrderTicket implements HookableInterface {
         add_action( 'eventin_attendee_created', [ $this, 'send_attendee_ticket' ] );
 
         add_action( 'eventin_attendee_created', [ $this, 'decrease_ticket_after_attendee_create' ] );
+
+        add_action( 'eventin_order_refund', [ $this, 'decrese_event_sold_ticket_after_refund' ] );    
+
     }
 
     /**
@@ -107,6 +111,10 @@ class OrderTicket implements HookableInterface {
      * @return  void             [return description]
      */
     public function send_attendee_ticket( $attendee ) {
+        if ( 'on' === etn_get_option( 'disable_ticket_email' ) ) {
+            return;
+        }
+
         if ( $attendee->etn_email ) {
             $from  = etn_get_email_settings( 'purchase_email' )['from'];
             $event = new Event_Model( $attendee->etn_event_id );
@@ -135,6 +143,37 @@ class OrderTicket implements HookableInterface {
         $event->update([
             'etn_ticket_variations' => $event_tickets,
             'etn_total_sold_tickets' => (int) $event->etn_total_sold_tickets + 1
+        ]);
+    }
+
+    /**
+     * Decrese event ticket variation amount after refunded
+     *
+     * @param   OrderModel  $order  The order need to refund
+     *
+     * @return  void
+     */
+    public function decrese_event_sold_ticket_after_refund( OrderModel $order ) {
+        if ( 'refunded' != $order->status ) {
+            return;
+        }
+
+        $event = new Event_Model( $order->event_id );
+
+        $event_tickets = $event->etn_ticket_variations;
+
+        if ( $event_tickets ) {
+            foreach( $event_tickets as &$ticket ) {
+                error_log(print_r($ticket, true));
+                $ticket_amount = $order->get_total_ticket_by_ticket( $ticket['etn_ticket_slug'] );
+                if ( $ticket_amount > 0 ) {
+                    $ticket['etn_sold_tickets'] = $ticket['etn_sold_tickets'] - $ticket_amount;
+                }
+            }
+        }
+
+        $event->update([
+            'etn_ticket_variations' => $event_tickets,
         ]);
     }
 }

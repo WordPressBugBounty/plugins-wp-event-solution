@@ -75,34 +75,51 @@ class Menu implements HookableInterface {
 		$this->position        = 10;
 		$this->submenus        = [
 			[
+				'title'      => __( 'Dashboard', 'eventin' ),
+				'capability' => 'etn_manage_dashboard',
+				'url'        => 'admin.php?page=' . $this->menu_slug . '#/dashboard',
+                'position'   => 1,
+			],[
 				'title'      => __( 'Events', 'eventin' ),
-				'capability' => $this->base_capability,
+				'capability' => 'etn_manage_event',
 				'url'        => 'admin.php?page=' . $this->menu_slug . '#/events',
                 'position'   => 2,
 			],
 			[
 				'title'      => __( 'Organizers', 'eventin' ),
-				'capability' => $this->base_capability,
+				'capability' => 'etn_manage_organizer',
 				'url'        => 'admin.php?page=' . $this->menu_slug . '#/speakers',
                 'position'   => 3,
 			],
             [
 				'title'      => __( 'Schedules', 'eventin' ),
-				'capability' => $this->base_capability,
+				'capability' => 'etn_manage_schedule',
 				'url'        => 'admin.php?page=' . $this->menu_slug . '#/schedules',
                 'position'   => 4,
 			],
             [
 				'title'      => __( 'Bookings', 'eventin' ),
-				'capability' => $this->base_capability,
+				'capability' => 'etn_manage_order',
 				'url'        => 'admin.php?page=' . $this->menu_slug . '#/purchase-report',
                 'position'   => 5,
 			],
             [
 				'title'      => __( 'Settings', 'eventin' ),
-				'capability' => $this->base_capability,
+				'capability' => 'etn_manage_setting',
 				'url'        => 'admin.php?page=' . $this->menu_slug . '#/settings',
                 'position'   => 7,
+			],
+			[
+				'title'      => __( 'Add-ons', 'eventin' ),
+				'capability' => 'etn_manage_addons',
+				'url'        => 'admin.php?page=' . $this->menu_slug . '#/add-ons',
+                'position'   => 9,
+			],
+            [
+				'title'      => __( 'Get Help', 'eventin' ),
+				'capability' => 'etn_manage_get_help',
+				'url'        => 'admin.php?page=' . $this->menu_slug . '#/get-help',
+                'position'   => 999999,
 			],
 		];
 
@@ -111,18 +128,18 @@ class Menu implements HookableInterface {
 		if ( 'on' === $is_attendee_registation ) {
 			$this->submenus[] = [
 				'title'      => __( 'Attendees', 'eventin' ),
-				'capability' => $this->base_capability,
+				'capability' => 'etn_manage_attendee',
 				'url'        => 'admin.php?page=' . $this->menu_slug . '#/attendees',
-                'position'   => 5,
+                'position'   => 6,
 			];
 		}
 
 		if ( ! class_exists( 'Wpeventin_Pro' ) ) {
 			$this->submenus[] = [
 				'title'      => __( 'Go Pro', 'eventin' ),
-				'capability' => $this->base_capability,
+				'capability' => 'etn_manage_go_pro',
 				'url'        => 'https://themewinter.com/eventin/',
-                'position'   => 999999,
+                'position'   => 9999,
 			];
 		}
     }
@@ -156,7 +173,7 @@ class Menu implements HookableInterface {
 			$this->position,
 		);
 
-        $this->submenus = apply_filters( 'eventin_menu', $this->submenus );
+        $this->submenus = apply_filters( 'eventin_menu', $this->submenus, $this->menu_slug );
 
 
 		usort( $this->submenus, function($a, $b) {

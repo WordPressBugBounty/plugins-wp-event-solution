@@ -105,6 +105,14 @@ class PaymentController extends WP_REST_Controller {
             return;
         }
 
+        if ( 'success' !== $payment_status ) {
+            return new WP_Error( 'payment_error', __( 'Failed to completed your order', 'eventin' ), ['status' => 422] );
+        }
+
+        if ( 'wc' === $order->payment_method && ! $this->wc_payment( $order_id ) ) {
+            return new WP_Error( 'payment_error', __( 'Invalid payment', 'eventin' ), ['status' => 422] );
+        }
+
         $order->update([
             'status' => 'completed'
         ]);
@@ -129,5 +137,49 @@ class PaymentController extends WP_REST_Controller {
      */
     private function send_email( $order ) {
         $order->send_email();
+    }
+
+    /**
+     * Check wc order is completed
+     *
+     * @param   integer  $eventin_order_id  [$eventin_order_id description]
+     *
+     * @return  bool
+     */
+    private function wc_payment( $eventin_order_id ) {
+        $args = [
+            'post_type'   => 'shop_order_placehold',
+            'post_status' => 'any',
+            'posts_per_page' => -1,
+            'fields'          => 'ids',        
+            'meta_query'    => [
+                [
+                    'key'   => 'eventin_order_id',
+                    'value' => $eventin_order_id,
+                    'compare' => '='
+                ]
+            ]
+        ];
+
+
+        $orders_ids = get_posts( $args );
+
+        if ( ! $orders_ids ) {
+            return false;
+        }
+
+        $order = wc_get_order( $orders_ids[0] );
+
+        if ( ! $order ) {
+            return false;
+        }
+
+        $statuses =  etn_get_wc_order_statuses();
+
+        if ( ! in_array( $order->get_status(), $statuses ) ) {
+            return false;
+        }
+
+        return true;
     }
 }

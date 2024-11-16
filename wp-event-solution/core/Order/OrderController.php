@@ -116,6 +116,14 @@ class OrderController extends WP_REST_Controller {
                 'permission_callback' => [$this, 'resend_ticket_permissions_check'],
             ],
         ] );
+
+        register_rest_route( $this->namespace, $this->rest_base . '/(?P<id>[\d]+)' . '/refund', [
+            [
+                'methods'             => WP_REST_Server::READABLE,
+                'callback'            => [$this, 'refund'],
+                'permission_callback' => [$this, 'refund_ticket_permissions_check'],
+            ],
+        ] );
     }
 
     /**
@@ -371,7 +379,7 @@ class OrderController extends WP_REST_Controller {
      * @return true|WP_Error True if the request has access to update the item, WP_Error object otherwise.
      */
     public function update_item_permissions_check( $request ) {
-        return current_user_can( 'manage_options' );
+        return current_user_can( 'etn_manage_order' );
     }
 
     /**
@@ -462,7 +470,7 @@ class OrderController extends WP_REST_Controller {
      * @return WP_Error|WP_REST_Response
      */
     public function delete_item_permissions_check( $request ) {
-        return current_user_can( 'manage_options' );
+        return current_user_can( 'etn_manage_order' );
     }
 
     /**
@@ -858,6 +866,67 @@ class OrderController extends WP_REST_Controller {
      * @return  bool
      */
     public function resend_ticket_permissions_check( $request ) {
+        return current_user_can( 'etn_manage_order' );
+    }
+
+    /**
+     * Refund an order
+     *
+     * @param   WP_Rest_Request  $request  [$request description]
+     *
+     * @return  WP_Rest_Response | WP_Error
+     */
+    public function refund( $request ) {
+        $id = intval( $request['id'] );
+
+        $post = get_post( $id );
+
+        if ( ! $post ) {
+            return new WP_Error( 'invalid_order', __( 'Invalid order id', 'eventin' ), ['status' => 404] );
+        }
+
+        if ( 'etn-order' !== $post->post_type ) {
+            return new WP_Error( 'invalid_order', __( 'Invalid order id', 'eventin' ), ['status' => 404] );
+        }
+
+        $order = new OrderModel( $id );
+
+        if ( $order->total_price < 1 ) {
+            return new WP_Error( 'amount_low', __( 'Amount is too low', 'eventin' ), ['status' => 422] );
+        }
+
+        if ( ! $order->payment_method ) {
+            return new WP_Error( 'payment_method_error', __( 'No payment method found', 'eventin' ), ['status' => 422] );
+        }
+
+        $payment = PaymentFactory::get_method( $order->payment_method );
+
+        if ( $payment->refund( $order ) ) {
+            
+            if ( 'completed' === $order->status ) {
+                $order->update([
+                    'status' => 'refunded'
+                ]);
+    
+                do_action( 'eventin_order_refund', $order );
+            }
+
+            return rest_ensure_response([
+                'message' => __( 'Successfully refunded', 'eventin' )
+            ]);
+        }
+
+        return new WP_Error( 'refund_error', __( 'Something went wrong', 'eventin' ), ['status' => 422] );
+    }
+
+    /**
+     * Check permission to make refund
+     *
+     * @param   WP_Rest_Request  $request  [$request description]
+     *
+     * @return  bool
+     */
+    public function refund_ticket_permissions_check( $request ) {
         return current_user_can( 'manage_options' );
     }
 }

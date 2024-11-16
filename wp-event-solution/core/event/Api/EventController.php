@@ -448,9 +448,7 @@ class EventController extends WP_REST_Controller {
      * @return true|WP_Error True if the request has access to create items, WP_Error object otherwise.
      */
     public function create_item_permissions_check( $request ) {
-        return current_user_can( 'manage_options' ) 
-                || current_user_can( 'seller' )
-                || current_user_can( 'editor' );
+        return current_user_can( 'etn_manage_event' );
     }
 
     /**
@@ -534,9 +532,7 @@ class EventController extends WP_REST_Controller {
      * @return true|WP_Error True if the request has access to update the item, WP_Error object otherwise.
      */
     public function update_item_permissions_check( $request ) {
-        return current_user_can( 'manage_options' ) 
-                || current_user_can( 'seller' )
-                || current_user_can( 'editor' );
+        return current_user_can( 'etn_manage_event' );
     }
 
     /**
@@ -663,9 +659,7 @@ class EventController extends WP_REST_Controller {
      * @return WP_Error|WP_REST_Response
      */
     public function delete_item_permissions_check( $request ) {
-        return current_user_can( 'manage_options' ) 
-                || current_user_can( 'seller' )
-                || current_user_can( 'editor' );
+        return current_user_can( 'etn_manage_event' );
     }
 
     /**
@@ -708,7 +702,11 @@ class EventController extends WP_REST_Controller {
         $rsvp_settings   = get_post_meta( $id, 'rsvp_settings', true );
         $speaker_type    = get_post_meta( $id, 'speaker_type', true );
         $organizer_type  = get_post_meta( $id, 'organizer_type', true );
+        $seat_plan       = get_post_meta( $id, 'seat_plan', true );
         $event_slug      = '';
+        $enable_seatmap  = get_post_meta( $id, 'enable_seatmap', true );
+
+        $seat_map_switcher = ! metadata_exists( 'post', $id, 'enable_seatmap' ) && $seat_plan ? true : $enable_seatmap;
 
         if ( ! empty( $rsvp_settings['rsvp_form_type'] ) ) {
             $rsvp_settings['rsvp_form_type'] = is_array( $rsvp_settings['rsvp_form_type'] ) ? array_values( $rsvp_settings['rsvp_form_type'] ) : [];
@@ -729,6 +727,7 @@ class EventController extends WP_REST_Controller {
             'description'             => $post->post_content,
             'excerpt'                 => $post->post_excerpt,
             'excerpt_enable'          => get_post_meta( $id, 'excerpt_enable', true ),
+            'enable_seatmap'          => $seat_map_switcher,
             'schedule_type'           => get_post_meta( $id, 'etn_select_speaker_schedule_type', true ),
             'author'                  => $author,
             'categories'              => $categories,
@@ -768,7 +767,7 @@ class EventController extends WP_REST_Controller {
             'external_link'           => get_post_meta( $id, 'external_link', true ),
             'ticket_template'         => get_post_meta( $id, 'ticket_template', true ),
             'certificate_template'    => get_post_meta( $id, 'certificate_template', true ),
-            'seat_plan'               => get_post_meta( $id, 'seat_plan', true ),
+            'seat_plan'               => $seat_plan,
             'rsvp_settings'           => $rsvp_settings,
             'recurring_enabled'       => get_post_meta( $id, 'recurring_enabled', true ),
             'event_recurrence'        => get_post_meta( $id, 'etn_event_recurrence', true ),
@@ -851,7 +850,7 @@ class EventController extends WP_REST_Controller {
      */
     protected function prepare_meeting_link( $prepared_event ) {
         $platform_name = is_array( $prepared_event['location'] ) ? $prepared_event['location']['integration'] : '';
-
+        
         try {
             $meeting_platform = MeetingPlatform::get_platform( $platform_name );
 
@@ -865,7 +864,8 @@ class EventController extends WP_REST_Controller {
                 'start_time' => $prepared_event['etn_start_time'],
                 'end_date'   => $prepared_event['etn_end_date'],
                 'end_time'   => $prepared_event['etn_end_time'],
-                'custom_url' => $prepared_event['custom_url']
+                'custom_url' => $prepared_event['custom_url'],
+                'timezone'   => $prepared_event['event_timezone']
             ];
 
             if ( ! empty( $prepared_event['location']['custom_url'] ) ) {
@@ -1020,6 +1020,10 @@ class EventController extends WP_REST_Controller {
 
         if ( isset( $input_data['excerpt_enable'] ) ) {
             $event_data['excerpt_enable'] = $input_data['excerpt_enable'];
+        }
+
+        if ( isset( $input_data['enable_seatmap'] ) ) {
+            $event_data['enable_seatmap'] = $input_data['enable_seatmap'];
         }
 
         if ( isset( $input_data['schedule_type'] ) ) {
@@ -1348,9 +1352,7 @@ class EventController extends WP_REST_Controller {
      * @return  bool
      */
     public function export_permissions_check( $request ) {
-        return current_user_can( 'manage_options' ) 
-                || current_user_can( 'seller' )
-                || current_user_can( 'editor' );
+        return current_user_can( 'etn_manage_event' );
     }
 
     /**
@@ -1386,8 +1388,6 @@ class EventController extends WP_REST_Controller {
      * @return  bool
      */
     public function import_permissions_check( $request ) {
-        return current_user_can( 'manage_options' ) 
-                || current_user_can( 'seller' )
-                || current_user_can( 'editor' );
+        return current_user_can( 'etn_manage_event' );
     }
 }

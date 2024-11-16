@@ -100,9 +100,7 @@ class EventTagController extends WP_REST_Controller {
      * @return WP_Error|boolean
      */
     public function get_item_permissions_check( $request ) {
-        return current_user_can( 'manage_options' ) 
-                || current_user_can( 'seller' )
-                || current_user_can( 'editor' );
+        return current_user_can( 'etn_manage_event' );
     }
 
     /**
@@ -179,9 +177,7 @@ class EventTagController extends WP_REST_Controller {
      * @return WP_Error|boolean
      */
     public function create_item_permissions_check( $request ) {
-        return current_user_can( 'manage_options' ) 
-                || current_user_can( 'seller' )
-                || current_user_can( 'editor' );
+        return current_user_can( 'etn_manage_event' );
     }
 
     /**
@@ -297,9 +293,7 @@ class EventTagController extends WP_REST_Controller {
      * @return WP_Error|boolean
      */
     public function update_item_permissions_check( $request ) {
-        return current_user_can( 'manage_options' ) 
-                || current_user_can( 'seller' )
-                || current_user_can( 'editor' );
+        return current_user_can( 'etn_manage_event' );
     }
 
     /**

@@ -52,6 +52,7 @@ class Report {
 
         return [
             'sold_tickets' => EventReport::get_reports( $data ),
+            'booking'      => OrderReport::get_reports_by_event( $data ),
             'revenue'      => RevenueReport::get_reports_by_event( $data ),
             'attendees'    => AttendeeReport::get_reports_by_event( $data ),
             'date_reports' => self::get_report_by_date_range( $data ),

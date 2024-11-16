@@ -49,10 +49,48 @@ class Extension {
             $settings = get_option( 'etn_addons_options', [] );
             if ( isset( $settings[ $extension['name'] ] ) && $settings[ $extension['name']] === 'on' ) {
                 $extension['status'] = 'on';
+
+                if ( 'addon' === $extension['type'] ) {
+                    if ( 
+                            self::is_need_upgrade( $extension['name'] )
+                            && ! PluginManager::is_installed( $extension['slug'] )
+                        ) {
+                        $extension['status'] = 'upgrade';
+                    }
+
+                    if ( PluginManager::is_installed( $extension['slug'] ) ) {
+                        $extension['status'] = 'install';
+                    }
+
+                    if ( PluginManager::is_activated( $extension['slug'] ) ) {
+                        $extension['status'] = 'activate';
+                    }
+                }
+
+                if ( 'module' === $extension['type'] ) {
+                    $dependencies = self::get_depencies( $extension['slug'] );
+                    $dependency   = is_array( $dependencies ) ? $dependencies[0] : '';
+
+                    if ( 
+                        self::is_need_upgrade( $extension['name'] )
+                        && ! PluginManager::is_installed( $dependency )
+                    ) {
+                        $extension['status'] = 'upgrade';
+                    }
+
+                    if ( PluginManager::is_installed( $dependency ) ) {
+                        $extension['status'] = 'install';
+                    }
+
+                    if ( PluginManager::is_activated( $dependency ) ) {
+                        $extension['status'] = 'activate';
+                    }
+                }
     
                 if ( self::dependencies_resolved( $extension['name'] ) ) {
                     $extension['notice'] = false;
                 }
+
             }
             return $extension;
             
@@ -79,7 +117,7 @@ class Extension {
      *
      * @param   string  $name
      *
-     * @return  bool
+     * @return  bool | WP_Error
      */
     public static function update( $name, $status ) {
         $extension = self::find( $name );
@@ -89,22 +127,28 @@ class Extension {
         }
 
         $settings = self::get_settings();
-
-        $settings[$name] = $status;
+        $updated_status = 'off' !== $status ? 'on' : 'off';
+        $settings[$name] = $updated_status;
 
         $slug = ! empty( $extension['slug'] ) ? $extension['slug'] : '';
 
-        if ( 'addon' === $extension['type'] && 'on' === $status ) {
+        $result = true;
+
+        if ( 'addon' === $extension['type'] && 'on' === $updated_status ) {
             if ( ! $slug ) {
                 return false;
             }
 
-            if ( ! PluginManager::is_installed( $slug ) ) {
-                PluginManager::install_plugin( $slug );
+            if ( 'install' === $status && ! PluginManager::is_installed( $slug ) ) {
+                $result = PluginManager::install_plugin( $slug );
             }
 
-            if ( ! PluginManager::is_activated( $slug ) ) {
-                PluginManager::activate_plugin( $slug );
+            if ( 'activate' === $status && ! PluginManager::is_activated( $slug ) ) {
+                $result = PluginManager::activate_plugin( $slug );
+            }
+
+            if ( 'deactivate' === $status && PluginManager::is_activated( $slug ) ) {
+                $result = PluginManager::deactivate_plugin( $slug );
             }
         }
 
@@ -115,13 +159,28 @@ class Extension {
             }
 
             if ( PluginManager::is_activated( $slug ) ) {
-                PluginManager::deactivate_plugin( $slug );
+                $result = PluginManager::deactivate_plugin( $slug );
+            }
+        }
+
+        if ( 'module' === $extension['type']  && ! empty( $extension['deps'] ) ) {
+            $dependency = $extension['deps'][0];
+            if ( 'install' === $status && ! PluginManager::is_installed( $dependency ) ) {
+                $result = PluginManager::install_plugin( $dependency );
+            }
+
+            if ( 'activate' === $status && ! PluginManager::is_activated( $dependency ) ) {
+                $result = PluginManager::activate_plugin( $dependency );
+            }
+
+            if ( 'deactivate' === $status && PluginManager::is_activated( $dependency ) ) {
+                $result = PluginManager::deactivate_plugin( $dependency );
             }
         }
 
         update_option( 'etn_addons_options', $settings );
 
-        return true;
+        return $result;
     }
 
     /**
@@ -211,6 +270,27 @@ class Extension {
         
         return implode( ',', $depencies );
     }
+
+    /**
+     * Check a module or addon need to upgrade
+     *
+     * @param   string  $extension_name  [$extension_name description]
+     *
+     * @return  bool
+     */
+    public static function is_need_upgrade( $extension_name ) {
+        $extension = self::find( $extension_name );
+
+        if ( ! $extension ) {
+            return false;
+        }
+
+        if ( isset( $extension['upgrade'] ) && $extension['upgrade'] ) {
+            return true;
+        }
+
+        return false;
+    }
     
     /**
      * List of all extensions
@@ -221,6 +301,7 @@ class Extension {
         return [
             'dokan' => [
                 'name'          => 'dokan',
+                'slug'          => 'dokan',
                 'type'          => 'module',
                 'status'        => 'off',
                 'is_pro'        => true,
@@ -231,50 +312,56 @@ class Extension {
                 'notice'        => __( 'NB: Need to active Dokan plugin', 'eventin' ),
                 'demo_link'     => 'https://product.themewinter.com/eventin/',
                 'settings_link' => '',
-                'doc_link'      => '',
+                'doc_link'      => 'https://support.themewinter.com/docs/plugins/plugin-docs/integration/multivendor-event-marketplace/',
             ],
             'buddyboss' => [
                 'name'          => 'buddyboss',
+                'slug'          => 'buddyboss',
                 'type'          => 'module',
+                'upgrade'       => true,
+                'upgrade_link'  => 'https://www.buddyboss.com/pricing',
                 'status'        => 'off',
                 'is_pro'        => true,
-                'deps'          => ['buddypress'],
+                'deps'          => ['buddyboss'],
                 'title'         => __( 'BuddyBoss', 'eventin' ),
                 'description'   => __( 'It allows you to create and manage events and sell tickets inside the BuddyBoss theme.', 'eventin' ),
                 'icon'          => ExtensionIcon::get( 'buddyboss' ),
                 'notice'        => __( 'NB: Need to active BuddyBoss plugin', 'eventin' ),
                 'demo_link'     => 'https://product.themewinter.com/eventin/',
                 'settings_link' => '',
-                'doc_link'      => '',
+                'doc_link'      => 'https://support.themewinter.com/docs/plugins/plugin-docs/integration/buddyboss-integration/',
             ],
             'certificate_builder' => [
                 'name'          => 'certificate_builder',
+                'slug'          => 'certificate_builder',
                 'type'          => 'module',
                 'status'        => 'off',
                 'is_pro'        => true,
                 'title'         => __( 'Certificate Builder', 'eventin' ),
                 'description'   => __( 'You can design and send a PDF certificate for the event attendee.', 'eventin' ),
                 'icon'          => ExtensionIcon::get( 'certificate_builder' ),
-                'notice'        => __( 'NB: Need to active Dokan plugin', 'eventin' ),
+                'notice'        => '',
                 'demo_link'     => 'https://product.themewinter.com/eventin/',
                 'settings_link' => admin_url( 'admin.php?page=eventin#/settings/event-settings/attendees' ),
-                'doc_link'      => '',
+                'doc_link'      => 'https://support.themewinter.com/docs/plugins/plugin-docs/event/certificate-builder-for-attendee/',
             ],
             'rsvp' => [
                 'name'          => 'rsvp',
+                'slug'          => 'rsvp',
                 'type'          => 'module',
                 'status'        => 'off',
                 'is_pro'        => true,
                 'title'         => __( 'RSVP Module', 'eventin' ),
                 'description'   => __( 'It allows you to add RSVP at your upcoming events and grab user\'s attention easily.', 'eventin' ),
                 'icon'          => ExtensionIcon::get( 'rsvp' ),
-                'notice'        => __( 'NB: Need to active Dokan plugin', 'eventin' ),
+                'notice'        => '',
                 'demo_link'     => 'https://product.themewinter.com/eventin/',
                 'settings_link' => admin_url( 'admin.php?page=eventin#/settings/email/purchase-email' ),
-                'doc_link'      => '',
+                'doc_link'      => 'https://support.themewinter.com/docs/plugins/plugin-docs/rsvp-settings/what-is-rsvp-event/',
             ],
             'google_meet' => [
                 'name'          => 'google_meet',
+                'slug'          => 'google_meet',
                 'type'          => 'module',
                 'status'        => 'off',
                 'is_pro'        => true,
@@ -284,71 +371,69 @@ class Extension {
                 'notice'        => '',
                 'demo_link'     => 'https://product.themewinter.com/eventin/',
                 'settings_link' => admin_url( 'admin.php?page=eventin#/settings/integrations/google-meet' ),
-                'doc_link'      => '',
-            ],
-            'facebook_events' => [
-                'name'          => 'facebook_events',
-                'type'          => 'module',
-                'status'        => 'off',
-                'is_pro'        => true,
-                'title'         => __( 'Facebook Event', 'eventin' ),
-                'description'   => __( 'It allows you to import events from Facebook easily. And you can show it in different place on your website.', 'eventin' ),
-                'icon'          => ExtensionIcon::get( 'facebook_events' ),
-                'notice'        => __( 'NB: Need to active Eventin Facebook plugin', 'eventin' ),
-                'demo_link'     => 'https://product.themewinter.com/eventin/',
-                'settings_link' => '',
-                'doc_link'      => '',
+                'doc_link'      => 'https://support.themewinter.com/docs/plugins/plugin-docs/integration/google-meet/',
             ],
             'seat_map' => [
                 'name'          => 'seat_map',
+                'slug'          => 'seat_map',
                 'type'          => 'module',
+                'upgrade'       => true,
+                'upgrade_link'  => 'https://arraytics.com/timetics/#pricing',
                 'status'        => 'off',
                 'is_pro'        => false,
                 'deps'          => ['timetics-pro'],
                 'title'         => __( 'Seat Map', 'eventin' ),
                 'description'   => __( 'With the features, you can now add a visual seat plan with different ticket pricing for events.', 'eventin' ),
                 'icon'          => ExtensionIcon::get( 'seat_map' ),
-                'notice'        => __( 'NB: Need to active Eventin Facebook plugin', 'eventin' ),
+                'notice'        => __( 'NB: Need to active Timetics Pro plugin', 'eventin' ),
                 'demo_link'     => 'https://product.themewinter.com/eventin/',
                 'settings_link' => '',
-                'doc_link'      => '',
+                'doc_link'      => 'https://support.themewinter.com/docs/plugins/plugin-docs/visual-seat-map/visual-seat-plan/',
             ],
             'eventin-divi-addon' => [
                 'name'          => 'eventin-divi-addon',
+                'slug'          => 'eventin-divi-addon',
                 'type'          => 'addon',
                 'status'        => 'off',
-                'slug'          => 'eventin-divi-addon',
                 'title'         => __( 'Eventin Divi Addon', 'eventin' ),
                 'description'   => __( 'It enable the Eventin featured and module inside DIVI editing panel.', 'eventin' ),
                 'icon'          => ExtensionIcon::get( 'eventin-divi-addon' ),
                 'notice'        => '',
                 'demo_link'     => 'https://product.themewinter.com/eventin/',
                 'settings_link' => '',
-                'doc_link'      => '',
+                'doc_link'      => 'https://support.themewinter.com/docs/plugins/plugin-docs/integration/divi-builder-integration/',
             ],
-            'eventin-bricks-builder' => [
-                'name'          => 'eventin-bricks-builder',
+            'eventin-bricks-addon' => [
+                'name'          => 'eventin-bricks-addon',
+                'slug'          => 'eventin-bricks-addon',
                 'type'          => 'addon',
+                'upgrade'       => true,
+                'upgrade_link'  => 'https://themewinter.com/purchase-history',
                 'status'        => 'off',
+                'is_pro'        => true,
                 'title'         => __( 'Eventin Bricks Addon', 'eventin' ),
                 'description'   => __( 'It\'s enable the Eventin featured and module inside Bricks editing panel.', 'eventin' ),
-                'icon'          => ExtensionIcon::get( 'eventin-bricks-builder' ),
+                'icon'          => ExtensionIcon::get( 'eventin-bricks-addon' ),
                 'notice'        => '',
                 'demo_link'     => 'https://support.themewinter.com/docs/plugins/plugin-docs/integration/bricks-builder-integration/',
                 'settings_link' => '',
-                'doc_link'      => '',
+                'doc_link'      => 'https://support.themewinter.com/docs/plugins/plugin-docs/integration/bricks-builder-integration/',
             ],
             'eventin-oxygen-addon' => [
                 'name'          => 'eventin-oxygen-addon',
+                'slug'          => 'eventin-oxygen-addon',
                 'type'          => 'addon',
+                'upgrade'       => true,
+                'upgrade_link'  => 'https://themewinter.com/purchase-history',
                 'status'        => 'off',
+                'is_pro'        => true,
                 'title'         => __( 'Eventin Oxygen Addon', 'eventin' ),
                 'description'   => __( 'It\'s enable the Eventin featured and module inside Oxygen editing panel.', 'eventin' ),
                 'icon'          => ExtensionIcon::get( 'eventin-oxygen-addon' ),
                 'notice'        => '',
                 'demo_link'     => 'https://support.themewinter.com/docs/plugins/plugin-docs/integration/oxygen-builder-integration-pro',
                 'settings_link' => '',
-                'doc_link'      => '',
+                'doc_link'      => 'https://support.themewinter.com/docs/plugins/plugin-docs/integration/oxygen-builder-integration-pro',
             ],
         ];
     }

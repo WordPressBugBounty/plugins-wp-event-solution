@@ -83,4 +83,36 @@ class OrderReport extends AbstractReport {
             ]
         ]);
     }
+
+    /**
+     * Get total orders by event
+     *
+     * @param   array  $data  [$data description]
+     *
+     * @return  integer
+     */
+    public static function get_total_orders_by_event( $data ) {
+        $orders = self::get_orders_by_event( $data );
+
+        if ( is_array( $orders ) ) {
+            return count( $orders );
+        }
+
+        return 0;
+    }
+
+    /**
+     * Get order reports by event
+     *
+     * @param   array  $data  [$data description]
+     *
+     * @return  array        [return description]
+     */
+    public static function get_reports_by_event( $data ) {
+        $reports = [
+            'total'     => self::get_total_orders_by_event( $data ),
+        ];
+
+        return $reports;
+    }
 }

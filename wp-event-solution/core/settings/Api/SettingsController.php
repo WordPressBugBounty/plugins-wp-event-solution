@@ -72,9 +72,8 @@ class SettingsController extends WP_REST_Controller {
      * @return WP_Error|boolean
      */
     public function get_item_permissions_check( $request ) {
-        return current_user_can( 'manage_options' ) 
-                || current_user_can( 'seller' )
-                || current_user_can( 'editor' );
+        return current_user_can( 'etn_manage_setting' ) 
+                || current_user_can( 'etn_manage_event' );
     }
 
     /**
@@ -131,6 +130,7 @@ class SettingsController extends WP_REST_Controller {
             'decimals'                 => etn_get_decimals(),
             'price_format'             => etn_get_price_format(),
             'currency_position'        => etn_get_currency_position(),
+            'show_ticket_expiry_date'  => etn_get_option( 'show_ticket_expiry_date', false ),
         ];
 
         if ( function_exists( 'WC' ) ) {

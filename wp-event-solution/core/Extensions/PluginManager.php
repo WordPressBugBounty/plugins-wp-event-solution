@@ -18,9 +18,17 @@ class PluginManager {
      * @return bool True if installed, false otherwise.
      */
     public static function is_installed( $slug ) {
-        $plugin_path = self::get_plugin_path( $slug );
+        $plugins = get_plugins();
 
-        return file_exists( WP_PLUGIN_DIR . '/' . $plugin_path );
+        if ( is_array( $plugins ) ) {
+            foreach( $plugins as $plugin ) {
+                if ( $plugin['TextDomain'] === $slug ) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -73,7 +81,11 @@ class PluginManager {
         $plugin_path = self::get_plugin_path( $slug );
         $result      = activate_plugin( $plugin_path );
 
-        return ! is_wp_error( $result );
+        if ( is_wp_error( $result ) ) {
+            return $result;
+        }
+
+        return true;
     }
 
     /**
@@ -101,24 +113,17 @@ class PluginManager {
      * @return string The path to the plugin file.
      */
     private static function get_plugin_path( $slug ) {
-        $plugin_dir = WP_PLUGIN_DIR . '/' . $slug;
+        $plugins = get_plugins();
 
-        if ( ! is_dir( $plugin_dir ) ) {
-            return "{$slug}/{$slug}.php";
-        }
-
-        // Attempt to find the main plugin file
-        $plugin_files = glob("{$plugin_dir}/*.php");
-
-        if ( ! empty( $plugin_files ) ) {
-            foreach ( $plugin_files as $file ) {
-                if ( self::is_main_plugin_file( $file ) ) {
-                    return $slug . '/' . basename( $file );
+        if ( is_array( $plugins ) ) {
+            foreach( $plugins as $plugin_path => $plugin ) {
+                if ( $plugin['TextDomain'] === $slug ) {
+                    return $plugin_path;
                 }
             }
         }
-
-        return "{$slug}/{$slug}.php";
+        
+        return false;
     }
 
     /**

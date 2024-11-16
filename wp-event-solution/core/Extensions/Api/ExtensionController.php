@@ -101,7 +101,7 @@ class ExtensionController extends WP_REST_Controller {
         $name   = $input->get('name');
         $status = $input->get('status');
 
-        $statuses = [ 'on', 'off' ];
+        $statuses = ['off', 'on', 'install', 'activate', 'deactivate'];
 
         if ( ! $name ) {
             return new WP_Error( 'extension_name_error', __( 'Please enter extension name', 'eventin' ), ['status' => 422] );
@@ -119,16 +119,14 @@ class ExtensionController extends WP_REST_Controller {
             return new WP_Error( 'invalid_extension', __( 'Invalid extension.', 'eventin' ), ['status' => 422] );
         }
 
-        if ( 'on' === $status && ! Extension::dependencies_resolved( $name ) ) {
-            $message = sprintf( __( 'Please activate %s', 'eventin'), Extension::get_depency_string( $name ) );
-
-            return new WP_Error( 'dependency_error', $message, ['status' => 422] );
-        }
-
         $update = Extension::update( $name, $status );  
         
+        if ( is_wp_error( $update ) ) {
+            return new WP_Error( 'update_error', strip_tags($update->get_error_message()), ['status' => 422] );
+        }
+
         if ( ! $update ) {
-            return new WP_Error( 'update_error', __( 'Extension couldn\'t status or disable', 'eventin' ), ['status' => 422] );
+            return new WP_Error( 'update_error', __( 'Extension couldn\'t ' . $status, 'eventin' ), ['status' => 422] );
         }
 
         $response = [

@@ -1,6 +1,7 @@
 <?php
 namespace Eventin;
 
+use Eventin\AccessControl\Api\PermissionController;
 use Eventin\Attendee\Api\AttendeeController;
 use Eventin\Customer\Api\CustomerController;
 use Eventin\Event\Api\EventController;
@@ -43,6 +44,7 @@ class ApiManager {
         CustomerController::class,
         ExtensionController::class,
         ReportController::class,
+        PermissionController::class,
     ];
 
     /**

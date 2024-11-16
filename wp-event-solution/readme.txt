@@ -2,8 +2,8 @@
 Contributors: themewinter, ataurr, abrasel600, rezakhan995
 Tags: event, calendar, tickets, organizer, schedule
 Requires at least: 5.2
-Tested up to: 6.6.2
-Stable tag: 4.0.14
+Tested up to: 6.7
+Stable tag: 4.0.15
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -280,6 +280,31 @@ Yes, Eventin offers a unique QR scanner solution to scan all the single/bulk tic
 
 
 == Changelog ==
+
+= 4.0.15 ( November 16, 2024 )=
+New     : Eventin Dashboard
+New     : Booking statistics information add to booking list page
+Tweak   : Update settings for WC order status
+Tweak   : Added post Excerpt option
+Tweak   : Addons page UI/UX  updated
+Fix     : Attendee extra fields export/import couldn’t work
+Fix     : Show all attendee issues on a wc orders
+Fix     : WC Checkout Success page auto payment
+Fix     : Zoom event creation date time issue 
+Fix     : Settings page sidebar breaking when notices pop up
+Fix     : Settings sidebar layout adjustments
+Fix     : Currency display issue on frontend
+Fix     : Expired ticket causing blockade for purchasing other tickets
+Fix     : Display PayPal error messages properly
+Fix     : Ticket download option not showing when purchased via WooCommerce
+Fix     : Manual Attendee phone number and email field required issue fixed
+Fix     : Extra field edit data reset issue fixed
+Fix     : The checkout page scrolling added for better field error handling
+Fix     : Minimum/Maximum ticket purchasing issue
+Fix     : RSVP count issue fixed
+Fix     : Social icon display issue fixed on event details page
+
+
 = 4.0.14 ( October 31, 2024 )=
 
 Tweak : On woocommerce payment if payment status is on-hold it will redirect to hold url

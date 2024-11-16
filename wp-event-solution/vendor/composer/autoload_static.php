@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit912bbb450a3005d24863e38fb7fcc9f1
+class ComposerStaticInit8681f8f8a59b2630abe5db7f56d87fbb
 {
     public static $prefixLengthsPsr4 = array (
         'E' => 
@@ -146,6 +146,8 @@ class ComposerStaticInit912bbb450a3005d24863e38fb7fcc9f1
         'Etn_Woo_Product' => __DIR__ . '/../..' . '/core/woocommerce/etn-order-item-product.php',
         'Eventin\\Abstracts\\CustomPostType' => __DIR__ . '/../..' . '/base/Abstracts/CustomPostType.php',
         'Eventin\\Abstracts\\Provider' => __DIR__ . '/../..' . '/base/Abstracts/Provider.php',
+        'Eventin\\AccessControl\\Permission' => __DIR__ . '/../..' . '/core/AccessControl/Permission.php',
+        'Eventin\\AccessControl\\PermissionManager' => __DIR__ . '/../..' . '/core/AccessControl/PermissionManager.php',
         'Eventin\\Activate' => __DIR__ . '/../..' . '/base/Activate.php',
         'Eventin\\Admin\\AdminProvider' => __DIR__ . '/../..' . '/core/admin/AdminProvider.php',
         'Eventin\\Admin\\EventReminder' => __DIR__ . '/../..' . '/core/admin/EventReminder.php',
@@ -252,9 +254,9 @@ class ComposerStaticInit912bbb450a3005d24863e38fb7fcc9f1
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit912bbb450a3005d24863e38fb7fcc9f1::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit912bbb450a3005d24863e38fb7fcc9f1::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInit912bbb450a3005d24863e38fb7fcc9f1::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit8681f8f8a59b2630abe5db7f56d87fbb::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit8681f8f8a59b2630abe5db7f56d87fbb::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit8681f8f8a59b2630abe5db7f56d87fbb::$classMap;
 
         }, null, ClassLoader::class);
     }

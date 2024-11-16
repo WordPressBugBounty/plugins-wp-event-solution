@@ -31,7 +31,7 @@ class AdminAssets implements AssetsInterface {
             ],
             'etn'     => [
                 'src'       => \Wpeventin::plugin_url( 'assets/js/event-manager-admin.js' ),
-                'deps'      => ['jquery'],
+                'deps'      => ['jquery', 'flatpickr'],
                 'in_footer' => false,
             ],
             'select2'     => [

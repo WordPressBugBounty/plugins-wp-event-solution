@@ -13,6 +13,7 @@ class OrderAttendee implements HookableInterface {
      */ 
     public function register_hooks(): void {
         add_action( 'eventin_order_completed', [ $this, 'update_attendee_payment_status' ] );    
+        add_action( 'eventin_order_refund', [ $this, 'update_attendee_status_after_refund' ] );    
     }
 
     /**
@@ -35,6 +36,31 @@ class OrderAttendee implements HookableInterface {
 
                 $attendee->update([
                     'etn_status' => 'success'
+                ]);
+            }
+        }
+    }
+
+    /**
+     * Update attendee payment status after refunding an order
+     *
+     * @param   OrderModel  $order  
+     *
+     * @return  void
+     */
+    public function update_attendee_status_after_refund( OrderModel $order ) {
+        $attendess = $order->get_attendees();
+        
+        if ( 'refunded' != $order->status ) {
+            return;
+        }
+
+        if ( $attendess ) {
+            foreach( $attendess as $attendee ) {
+                $attendee = new Attendee_Model( $attendee['id'] );
+
+                $attendee->update([
+                    'etn_status' => 'failed'
                 ]);
             }
         }

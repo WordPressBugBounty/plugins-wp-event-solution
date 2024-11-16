@@ -244,7 +244,10 @@ class Hooks {
             'thousand_separator' => etn_get_thousand_separator(),
             'decimals'           => etn_get_decimals(),
             'price_format'       => etn_get_price_format(),
-            'currency_position'  => etn_get_currency_position(), 
+            'currency_position'  => etn_get_currency_position(),
+            'wc_order_status_list' => etn_get_wc_order_status_list(), 
+            'wc_order_statuses'    => etn_get_wc_order_statuses(),
+            'show_ticket_expiry_date'  => etn_get_option( 'show_ticket_expiry_date', false ),
         ];
 
         return array_merge( $settings, $new_settings );

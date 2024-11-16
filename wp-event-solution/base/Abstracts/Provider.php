@@ -39,7 +39,9 @@ abstract class Provider implements ProviderInterface {
      * @return  void
      */
     public function register(): void {
-        foreach ( $this->services as $service ) {
+        $services = apply_filters( 'eventin_services', $this->services );
+        
+        foreach ( $services as $service ) {
             if ( ! class_exists( $service ) ) {
                 continue;
             }

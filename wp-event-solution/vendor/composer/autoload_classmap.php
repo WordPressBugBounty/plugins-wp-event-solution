@@ -130,6 +130,8 @@ return array(
     'Etn_Woo_Product' => $baseDir . '/core/woocommerce/etn-order-item-product.php',
     'Eventin\\Abstracts\\CustomPostType' => $baseDir . '/base/Abstracts/CustomPostType.php',
     'Eventin\\Abstracts\\Provider' => $baseDir . '/base/Abstracts/Provider.php',
+    'Eventin\\AccessControl\\Permission' => $baseDir . '/core/AccessControl/Permission.php',
+    'Eventin\\AccessControl\\PermissionManager' => $baseDir . '/core/AccessControl/PermissionManager.php',
     'Eventin\\Activate' => $baseDir . '/base/Activate.php',
     'Eventin\\Admin\\AdminProvider' => $baseDir . '/core/admin/AdminProvider.php',
     'Eventin\\Admin\\EventReminder' => $baseDir . '/core/admin/EventReminder.php',

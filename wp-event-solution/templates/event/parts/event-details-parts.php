@@ -61,7 +61,9 @@ class EventDetailsParts {
 		$args = [
 			'include' => $etn_organizer_events
 		];
-        
+		$event_options        = get_option( "etn_event_options" );
+		$email_show 		  =  $event_options["hide_oragnizer_email_from_events"] ?? '';
+	 
 		$data = get_users( $args );
         
 		if ( $data && $etn_organizer_events ) :
@@ -75,11 +77,13 @@ class EventDetailsParts {
                 </h4>
 				<?php
 				foreach ( $data as $value ) {
-					$social                   = get_user_meta( $value->ID, 'etn_speaker_socials', true );
+					$social                   = get_user_meta( $value->ID, 'etn_speaker_social', true );
 					$email                    = get_user_meta( $value->ID, 'etn_speaker_website_email', true );
 					$etn_speaker_company_logo = get_user_meta( $value->ID, 'image_id', true );
 					$etn_company_logo         = get_user_meta( $value->ID, 'etn_speaker_company_logo', true );
+
 					$logo                     = wp_get_attachment_image_src( $etn_speaker_company_logo, 'full' );
+ 
 					?>
                     <div class="etn-organaizer-item">
 						<?php if ( isset( $logo[0] ) ) { ?>
@@ -98,7 +102,7 @@ class EventDetailsParts {
 							<?php echo esc_html( get_user_meta( $value->ID, 'first_name', true ) ); ?>
                         </h4>
 
-						<?php if ( $email ) { ?>
+						<?php if ( $email  && $email_show ) { ?>
                             <div class="etn-organizer-email">
                                 <span class="etn-label-name"><?php echo esc_html__( 'Email :', "eventin" ); ?></span>
                                 <a href="mailto:<?php echo esc_attr( $email ); ?>"><?php echo esc_html( $email ); ?></a>
@@ -106,17 +110,25 @@ class EventDetailsParts {
 						<?php } ?>
 						<?php if ( is_array( $social ) && ! empty( $social ) ) { ?>
                             <div class="etn-social">
-                                <span class="etn-label-name"><?php echo esc_html__( 'Social :', "eventin" ); ?></span>
-								<?php foreach ( $social as $social_value ) { ?>
-									<?php $etn_social_class = 'etn-' . str_replace( 'fab fa-', '', $social_value['icon'] ); ?>
-
-                                    <a href="<?php echo esc_url( $social_value["etn_social_url"] ); ?>"
-                                       target="_blank" class="<?php echo esc_attr( $etn_social_class ); ?>"
-                                       title="<?php echo esc_attr( $social_value["etn_social_title"] ); ?>">
-                                        <i class="etn-icon <?php echo esc_attr( $social_value["icon"] ); ?>"
-                                           rel="noopener"></i>
-                                    </a>
-								<?php } ?>
+                                <!-- <span class="etn-label-name"><?php echo esc_html__( 'Social :', "eventin" ); ?></span> -->
+								<?php 
+                                foreach ($social as $social_value) {
+									// Validate and sanitize each value
+									$icon = isset($social_value['icon']) && is_string($social_value['icon']) ? $social_value['icon'] : '';
+									$etn_social_url = isset($social_value['etn_social_url']) ? $social_value['etn_social_url'] : '#';
+									$etn_social_title = isset($social_value['etn_social_title']) ? $social_value['etn_social_title'] : '';
+							
+									// Generate the social class
+									$etn_social_class = 'etn-' . str_replace('fab fa-', '', $icon);
+									?>
+									<a href="<?php echo esc_url($etn_social_url); ?>" 
+										target="_blank" 
+										class="<?php echo esc_attr($etn_social_class); ?>" 
+										title="<?php echo esc_attr($etn_social_title); ?>" 
+										aria-label="<?php echo esc_attr($etn_social_title); ?>">
+										<i class="etn-icon <?php echo esc_attr($icon); ?>"></i>
+									</a>
+                            	<?php } ?>
                             </div>
 						<?php } ?>
                     </div>
@@ -203,15 +215,29 @@ class EventDetailsParts {
 					// event date
 					if ( ! isset( $event_options["etn_hide_date_from_details"] ) && ! empty( $data['event_start_date'] ) ) {
 						$separate = ! empty( $data['event_end_date'] ) ? ' - ' : '';
+
+						$date_format = get_option( 'date_format' );
+						$time_format = get_option( 'time_format' );
+
+						$start_date   = date( $date_format, strtotime( $data['event_start_date'] ) );
+						$end_date     = date( $date_format, strtotime( $data['event_end_date'] ) );
+
+						$start_date_time = $data['event_start_date'] . ' ' . $data['event_start_time'];
+
+						$end_date_time = $data['event_end_date'] . ' ' . $data['event_end_time'];
+
+						$start_time	  = date( $time_format, strtotime( $start_date_time ) );
+						$end_time	  = date( $time_format, strtotime( $end_date_time ) );
+
 						?>
                         <li>
 							<?php if ( $data['event_start_date'] !== $data['event_end_date']): ?>
                             <span> <?php echo esc_html__( 'Date : ', "eventin" ); ?></span>
-							<?php echo esc_html( $data['event_start_date'] . $separate . $data['event_end_date'] ); ?>
+							<?php echo esc_html( $start_date . $separate . $end_date ); ?>
 
 							<?php else: ?>
 								<span> <?php echo esc_html__( 'Date : ', "eventin" ); ?></span>
-							<?php echo esc_html( $data['event_start_date'] ); ?>
+							<?php echo esc_html( $start_date ); ?>
 							<?php endif; ?>
                         </li>
 						<?php
@@ -224,7 +250,7 @@ class EventDetailsParts {
 						?>
                         <li>
                             <span><?php echo esc_html__( 'Time : ', "eventin" ); ?></span>
-							<?php echo esc_html( $data['event_start_time'] . $separate . $data['event_end_time'] ); ?>
+							<?php echo esc_html( $start_time . $separate . $end_time ); ?>
                             <span class="etn-event-timezone">
                             <?php
                             if ( ! empty( $data['event_timezone'] ) && ! isset( $event_options["etn_hide_timezone_from_details"] ) ) {

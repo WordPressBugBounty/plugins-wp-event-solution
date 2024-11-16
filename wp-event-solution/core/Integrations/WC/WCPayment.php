@@ -30,4 +30,44 @@ class WCPayment implements PaymentInterface {
             'id' => $cart_id,
         ];
     }
+
+    /**
+     * Create refund for woocommere order
+     *
+     * @param   OrderModel  $order
+     *
+     * @return
+     */
+    public function refund( OrderModel $order ) {
+        $args = [
+            'post_type'   => 'shop_order_placehold',
+            'post_status' => 'any',
+            'posts_per_page' => -1,
+            'fields'          => 'ids',        
+            'meta_query'    => [
+                [
+                    'key'   => 'eventin_order_id',
+                    'value' => $order->id,
+                    'compare' => '='
+                ]
+            ]
+        ];
+
+
+        $orders_ids = get_posts( $args );
+
+        if ( ! $orders_ids ) {
+            return false;
+        }
+
+        $order = wc_get_order( $orders_ids[0] );
+
+        if ( $order ) {
+            $order->update_status( 'refunded' );
+
+            return true;
+        }
+
+        return false;
+    }
 }

@@ -2,6 +2,7 @@
 namespace Eventin\Admin;
 
 use Eventin\Abstracts\Provider;
+use Eventin\AccessControl\PermissionManager;
 use Eventin\Admin\Role\RoleManager;
 use Eventin\Integrations\Integration;
 use Eventin\Integrations\Webhook\WebhookIntegration;
@@ -27,5 +28,6 @@ class AdminProvider extends Provider {
         OrderTicket::class,
         WebhookIntegration::class,
         RoleManager::class,
+        PermissionManager::class,
     ];
 }

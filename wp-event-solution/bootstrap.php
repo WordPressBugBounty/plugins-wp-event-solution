@@ -272,18 +272,16 @@ final class Bootstrap {
 	public function add_shortcode_menu() {
 
 		// Add settings menu if user has specific access
-		if ( current_user_can( 'manage_etn_settings' ) && current_user_can( 'manage_options' ) ) {
-
-			add_submenu_page(
-				'eventin',
-				esc_html__( 'Shortcodes', 'eventin' ),
-				esc_html__( 'Shortcodes', 'eventin' ),
-				'manage_options',
-				'etn-event-shortcode',
-				[ $this, 'etn_shortcode_page' ],
-				5
-			);
-		}
+		add_submenu_page(
+			'eventin',
+			esc_html__( 'Shortcodes', 'eventin' ),
+			esc_html__( 'Shortcodes', 'eventin' ),
+			'etn_manage_shortcode',
+			'etn-event-shortcode',
+			[ $this, 'etn_shortcode_page' ],
+			7
+		);
+		
 	}
 
 	/**
@@ -320,7 +318,7 @@ final class Bootstrap {
 				'manage_options',
 				'etn_addons',
 				[ $this, 'etn_addons_page' ],
-				6
+				9
 			);
 		}
 	}
@@ -420,7 +418,6 @@ final class Bootstrap {
 	public function initialize_settings_dependent_cpt_modules() {
 		add_action( 'admin_menu', [ $this, 'add_shortcode_menu' ], 100 );
 		add_action( 'admin_menu', [ $this, 'add_wizard_menu' ], 101 );
-		add_action( 'admin_menu', [ $this, 'add_addons_menu' ], 102 );
 		
 		// Initialize event module.
 		Core\Event\Hooks::instance()->init();
@@ -484,70 +481,10 @@ final class Bootstrap {
 			// ->is_test(true)
 			->set_filter(ltrim($filter_string, ','))
 			->set_api_url('https://demo.themewinter.com/public/jhanda')
-			->set_plugin_screens('edit-etn')
-			->set_plugin_screens('eventin_page_etn_sales_report')
-			->set_plugin_screens('edit-etn-attendee')
-  			->set_plugin_screens('eventin_page_eventin_get_help')
+			->set_plugin_screens('toplevel_page_eventin')
+
  			->call();
-		// show get-help and upgrade-to-premium menu.
-		$this->handle_get_help_and_upgrade_menu();
-	}
-
-	/**
-	 * Show menu for get-help
-	 * Show menu for upgrade-te-premium if pro version not active
-	 *
-	 * @return void
-	 */
-	public function handle_get_help_and_upgrade_menu() {
-
-		/**
-		 * Show go Premium menu
-		 */
-		\Wpmet\Libs\Pro_Awareness::instance( 'eventin' )
-			->set_parent_menu_slug( 'eventin' )
-			->set_plugin_file( 'wp-event-solution/eventin.php' )
-			// ->set_pro_link( $this->has_pro ? '' : 'https://themewinter.com/eventin/' )
-			->set_default_grid_thumbnail( \Wpeventin::plugin_url() . '/utils/pro-awareness/assets/document.png' )
-			->set_default_grid_link( 'https://support.themewinter.com/docs/plugins/docs-category/eventin/' )
-			->set_default_grid_desc( esc_html__( 'Learn More', 'eventin' ) )
-			->set_page_grid(
-				array(
-					'url'         => 'https://themewinter.com/support/',
-					'title'       => esc_html__( 'Email Support', 'eventin' ),
-					'thumbnail'   => \Wpeventin::plugin_url() . '/utils/pro-awareness/assets/envelope.png',
-					'description' => esc_html__( 'Learn More', 'eventin' ),
-				)
-			)
-			->set_page_grid(
-				array(
-					'url'         => 'https://themewinter.com/',
-					'title'       => esc_html__( 'Live Chat', 'eventin' ),
-					'thumbnail'   => \Wpeventin::plugin_url() . '/utils/pro-awareness/assets/chat.png',
-					'description' => esc_html__( 'Learn More', 'eventin' ),
-				)
-			)
-			->set_page_grid(
-				array(
-					'url'         => 'https://www.youtube.com/watch?v=FSC-jtN9xgg&list=PLW54c-mt4ObDwu0GWjJIoH0aP1hQHyKj7',
-					'title'       => esc_html__( 'Video Tutorials', 'eventin' ),
-					'thumbnail'   => \Wpeventin::plugin_url() . '/utils/pro-awareness/assets/video.png',
-					'description' => esc_html__( 'Learn More', 'eventin' ),
-				)
-			)
-			->set_plugin_row_meta( 'Documentation', 'https://support.themewinter.com/docs/plugins/docs-category/eventin/', array( 'target' => '_blank' ) )
-			->set_plugin_row_meta( 'Facebook Community', 'https://www.facebook.com/groups/themewinter', array( 'target' => '_blank' ) )
-			->set_plugin_action_link( 'Settings', admin_url() . 'admin.php?page=eventin#/settings/event-settings/event-details' )
-			->set_plugin_action_link(
-				( $this->has_pro ? '' : 'Go Premium' ),
-				'https://themewinter.com/eventin/',
-				array(
-					'target' => '_blank',
-					'style'  => 'color: #FCB214; font-weight: bold;',
-				)
-			)
-			->set_plugin_row_meta( 'Rate the plugin ★★★★★', 'https://wordpress.org/support/plugin/wp-event-solution/reviews/#new-post', array( 'target' => '_blank' ) )
-			->call();
+	
 	}
 
 	/**

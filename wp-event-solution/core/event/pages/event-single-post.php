@@ -24,7 +24,7 @@ class Event_single_post {
 
     public function event_single_page($template) {
         global $post;
-        if ($post->post_type == 'etn' && is_singular('etn')) {
+        if ($post && $post->post_type == 'etn' && is_singular('etn')) {
             $default_file = \Wpeventin::plugin_dir() . 'core/event/views/event-single-page.php';
             if (file_exists($default_file)) {
                  return $default_file;

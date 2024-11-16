@@ -90,7 +90,8 @@ class SpeakerCategoryController extends WP_REST_Controller {
      * @return WP_Error|boolean
      */
     public function get_item_permissions_check( $request ) {
-        return current_user_can( 'manage_options' ) || current_user_can( 'seller' );
+        return current_user_can( 'etn_manage_organizer' )
+                    || current_user_can( 'etn_manage_event' );
     }
 
     /**
@@ -167,7 +168,8 @@ class SpeakerCategoryController extends WP_REST_Controller {
      * @return WP_Error|boolean
      */
     public function create_item_permissions_check( $request ) {
-        return current_user_can( 'manage_options' ) || current_user_can( 'seller' );
+        return current_user_can( 'etn_manage_organizer' )
+                    || current_user_can( 'etn_manage_event' );
     }
 
     /**
@@ -203,7 +205,8 @@ class SpeakerCategoryController extends WP_REST_Controller {
      * @return WP_Error|boolean
      */
     public function update_item_permissions_check( $request ) {
-        return current_user_can( 'manage_options' ) || current_user_can( 'seller' );
+        return current_user_can( 'etn_manage_organizer' )
+                    || current_user_can( 'etn_manage_event' );
     }
 
     /**
@@ -254,7 +257,8 @@ class SpeakerCategoryController extends WP_REST_Controller {
      * @return true|WP_Error True if the request has access to delete the item, otherwise false or WP_Error object.
      */
     public function delete_item_permissions_check( $request ) {
-        return current_user_can( 'manage_options' ) || current_user_can( 'seller' );
+        return current_user_can( 'etn_manage_organizer' )
+                    || current_user_can( 'etn_manage_event' );
     }
 
     /**
