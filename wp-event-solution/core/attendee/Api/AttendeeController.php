@@ -629,7 +629,7 @@ class AttendeeController extends WP_REST_Controller {
         }
 
         if ( ! $ids ) {
-            return new WP_Error( 'data_error', __( 'Invalid ids', 'eventin' ), ['status' => 409] );
+            $ids = (new Attendee_Model())->get_ids();
         }
 
         $exporter = new Attendee_Exporter();

@@ -672,7 +672,7 @@ class SpeakerController extends WP_REST_Controller {
         }
 
         if ( ! $ids ) {
-            return new WP_Error( 'data_error', __( 'Invalid ids', 'eventin' ), ['status' => 409] );
+            $ids = User_Model::get_ids();
         }
 
         $exporter = new Speaker_Exporter();

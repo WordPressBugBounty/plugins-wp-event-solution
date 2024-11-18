@@ -207,6 +207,22 @@ class EventDetailsParts {
 		$event_options = get_option( "etn_event_options" );
 		$hide_location = ! empty( $event_options["etn_hide_location_from_details"] ) ? $event_options["etn_hide_location_from_details"] : '';
 		$data          = Helper::single_template_options( $single_event_id );
+
+		$separate = ! empty( $data['event_end_date'] ) ? ' - ' : '';
+
+		$date_format = get_option( 'date_format' );
+		$time_format = get_option( 'time_format' );
+
+		$start_date   = date( $date_format, strtotime( $data['event_start_date'] ) );
+		$end_date     = date( $date_format, strtotime( $data['event_end_date'] ) );
+
+		$start_date_time = $data['event_start_date'] . ' ' . $data['event_start_time'];
+
+		$end_date_time = $data['event_end_date'] . ' ' . $data['event_end_time'];
+
+		$start_time	  = date( $time_format, strtotime( $start_date_time ) );
+		$end_time	  = date( $time_format, strtotime( $end_date_time ) );
+
 		if ( ! empty( $data['event_start_date'] ) || ! empty( $data['event_start_time'] ) || ! empty( $data['etn_event_location'] )) :
 			?>
             <div class="etn-event-meta-info etn-widget">
@@ -214,21 +230,6 @@ class EventDetailsParts {
 					<?php
 					// event date
 					if ( ! isset( $event_options["etn_hide_date_from_details"] ) && ! empty( $data['event_start_date'] ) ) {
-						$separate = ! empty( $data['event_end_date'] ) ? ' - ' : '';
-
-						$date_format = get_option( 'date_format' );
-						$time_format = get_option( 'time_format' );
-
-						$start_date   = date( $date_format, strtotime( $data['event_start_date'] ) );
-						$end_date     = date( $date_format, strtotime( $data['event_end_date'] ) );
-
-						$start_date_time = $data['event_start_date'] . ' ' . $data['event_start_time'];
-
-						$end_date_time = $data['event_end_date'] . ' ' . $data['event_end_time'];
-
-						$start_time	  = date( $time_format, strtotime( $start_date_time ) );
-						$end_time	  = date( $time_format, strtotime( $end_date_time ) );
-
 						?>
                         <li>
 							<?php if ( $data['event_start_date'] !== $data['event_end_date']): ?>

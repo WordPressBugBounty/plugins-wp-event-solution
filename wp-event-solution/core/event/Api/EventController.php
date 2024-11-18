@@ -1337,7 +1337,7 @@ class EventController extends WP_REST_Controller {
         }
 
         if ( ! $ids ) {
-            return new WP_Error( 'data_error', __( 'Invalid ids', 'eventin' ), ['status' => 409] );
+            $ids = (new Event_Model())->get_ids();
         }
 
         $exporter = new Event_Exporter();

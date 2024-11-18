@@ -98,6 +98,7 @@ class AdminAssets implements AssetsInterface {
             ],
             'event-manager-admin'    => [
                 'src' => \Wpeventin::plugin_url( 'build/css/event-manager-admin.css' ),
+                'deps' => ['wp-edit-blocks']
             ],
             'etn-onboard-index'    => [
                 'src' => \Wpeventin::plugin_url( 'build/css/index-onboard.css' ),
@@ -106,7 +107,7 @@ class AdminAssets implements AssetsInterface {
                 'src' => \Wpeventin::plugin_url( 'build/css/index-ai-style.css' ),
             ],
             'etn-dashboard'    => [
-                'src' => \Wpeventin::plugin_url( 'build/css/dashboard.css' ),
+                'src' => \Wpeventin::plugin_url( 'build/css/event-manager-admin.css' ),
                 'deps' => ['wp-edit-blocks']
             ],
         ];

@@ -3,7 +3,7 @@ Contributors: themewinter, ataurr, abrasel600, rezakhan995
 Tags: event, calendar, tickets, organizer, schedule
 Requires at least: 5.2
 Tested up to: 6.7
-Stable tag: 4.0.15
+Stable tag: 4.0.16
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -280,6 +280,12 @@ Yes, Eventin offers a unique QR scanner solution to scan all the single/bulk tic
 
 
 == Changelog ==
+
+= 4.0.16 ( November 18, 2024 )=
+Tweak : Export all functionality added
+Fix   : Wordpress backward compatibility issue with eventin
+Fix   : Access Control version mismatch issue fixed
+Fix   : Theme issue in Manage Access settings
 
 = 4.0.15 ( November 16, 2024 )=
 New     : Eventin Dashboard

@@ -1751,7 +1751,15 @@ class Hooks {
             return;
         }
 
-        $eventin_order_id = get_post_meta( $order->ID, 'eventin_order_id', true );
+        $is_enable_custom_order_table = get_option( 'woocommerce_custom_orders_table_enabled', true );
+
+        if ( 'no' === $is_enable_custom_order_table ) {
+            $order_id = $order->ID;
+        } else {
+            $order_id = $order->get_id();
+        }
+
+        $eventin_order_id = get_post_meta( $order_id, 'eventin_order_id', true );
 
         $args = array(
             'post_type'      => 'etn-attendee',

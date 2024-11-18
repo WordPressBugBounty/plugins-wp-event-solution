@@ -268,4 +268,25 @@ abstract class Post_Model {
 
         return $this;
     }
+
+    /**
+     * Get post ids
+     *
+     * @param   array  $args  [$args description]
+     *
+     * @return  []             [return description]
+     */
+    public function get_ids( $args = [] ) {
+        $defaults = [
+            'post_type'      => $this->post_type,
+            'post_status'    => 'any',
+            'posts_per_page' =>  -1,
+            'fields'         => 'ids'
+        ];
+
+        $args  = wp_parse_args( $args, $defaults );
+        $posts = get_posts( $args );
+
+        return $posts;
+    }
 }

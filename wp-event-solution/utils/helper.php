@@ -1153,10 +1153,13 @@ class Helper {
 				$schedule_topics = get_post_meta($post_id, 'etn_schedule_topics', true);
 				if(!empty($schedule_topics)){
 					foreach($schedule_topics as $key => $value){
-						if (is_array($value['speakers']) && in_array($user_id, $value['speakers'])) {
-							// Add the post ID to the matched posts array
-							$matched_posts[] = $post_id;
+						if ( ! empty( $value['speakers'] ) ) {
+							if (is_array($value['speakers']) && in_array($user_id, $value['speakers'])) {
+								// Add the post ID to the matched posts array
+								$matched_posts[] = $post_id;
+							}
 						}
+						
 					}
 				}
 			

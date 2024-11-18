@@ -809,4 +809,22 @@ class User_Model {
             'items' => $users->get_results(),
         ];
     }
+
+    /**
+     * Get user ids
+     *
+     * @return  array
+     */
+    public static function get_ids( $args = [] ) {
+        $defaults = [
+            'role__in' => [ 'etn-speaker', 'etn-organizer' ],
+            'fields'   => 'ids',
+            'number'   => -1
+        ];
+
+        $args  = wp_parse_args( $args, $defaults );
+        $users = get_users( $args );
+
+        return $users;
+    }
 }
