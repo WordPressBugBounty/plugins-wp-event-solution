@@ -1334,7 +1334,7 @@ class Helper {
 	}
 
 	public static function get_name_structure_from_label( $label ) {
-		return strtolower( preg_replace( "/[^a-zA-Z0-9]/", "_", $label ) );
+		return strtolower( preg_replace( '/[^а-яА-ЯёЁa-zA-Z0-9]+/u', '_', $label ) );
 	}
 
 	/**

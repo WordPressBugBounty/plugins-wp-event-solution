@@ -320,12 +320,30 @@ class Hooks {
 
         WC()->session->__unset( 'event_order_id' );
         update_post_meta( $wc_order_id, 'eventin_order_id', $order_id );
+
+
+        // Stay to woo thank you page
+        $thankyou_redirect   =  etn_get_option( "order_thank_you_redirect" );
+        $thankyou_redirect   = isset( $thankyou_redirect ) ? $thankyou_redirect : '';  
+
+        if ( $thankyou_redirect === 'woo_thankyou' ) {
+            if ( $order && in_array( $order->get_status(), $statuses ) ) {
+                $eventin_order = new OrderModel($order_id);
+                $eventin_order->update(['status' => 'completed']);
+    
+                do_action('eventin_order_completed', $eventin_order);
+                $eventin_order->send_email();
+            }
+            return;
+        }
+    
         
+        // Redirect to Eventin  thank you page
         $url = '';
 
         if ( $order && in_array( $order->get_status(), $statuses ) ) {
             $url = 'eventin-purchase/checkout/#/success';
-        } elseif('on-hold' === $order->get_status() ) {
+        } elseif( 'on-hold' === $order->get_status() ) {
             $url = '/eventin-purchase/checkout/#/hold';
         }else {
             $url = 'eventin-purchase/checkout/#/failed';
@@ -334,7 +352,7 @@ class Hooks {
         wp_redirect( site_url( $url ) );
         exit();
     }
-
+ 
     /**
      * Include Additional Ticket Variation Data
      *

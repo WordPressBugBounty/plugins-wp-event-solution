@@ -40,6 +40,10 @@ class PermissionManager implements HookableInterface {
             return $caps; // No roles assigned
         }
 
+        if ( $cap === 'manage_links' ) {
+            return $caps; // Skip modifying this capability
+        }
+
         if ( 1 === $user_id ) {
             return ['exist'];
         }

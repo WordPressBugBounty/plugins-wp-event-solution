@@ -9,7 +9,7 @@ defined( 'ABSPATH' ) || exit;
  * Plugin Name:       Eventin
  * Plugin URI:        https://themewinter.com/eventin/
  * Description:       Simple and Easy to use Event Management Solution
- * Version:           4.0.16
+ * Version:           4.0.17
  * Author:            Themewinter
  * Author URI:        https://themewinter.com/
  * License:           GPL-2.0+
@@ -40,7 +40,7 @@ class Wpeventin {
 	 * @var string The plugin version.
 	 */
 	public static function version() {
-		return '4.0.16';
+		return '4.0.17';
 	}
 
 	/**
@@ -68,6 +68,8 @@ class Wpeventin {
 		$this->deactivate();
 
 		add_action( 'plugins_loaded', array( $this, 'initialize_modules' ), 999 );
+
+		add_action( 'init', [ $this, 'i18n' ] );
 
 	}
 
@@ -131,7 +133,7 @@ class Wpeventin {
 		require_once plugin_dir_path( __FILE__ ) . '/utils/pro-awareness/pro-awareness.php';
 
 		// Localization.
-		$this->i18n();
+		// $this->i18n();
 
 		// init notice class.
 		\Oxaim\Libs\Notice::init();

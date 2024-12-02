@@ -11,6 +11,7 @@ use Etn\Core\Event\Event_Exporter;
 use Etn\Core\Event\Event_Importer;
 use Etn\Core\Event\Event_Model;
 use Eventin\Event\MeetingPlatforms\MeetingPlatform;
+use Eventin\Input;
 use WP_Error;
 use WP_Query;
 use WP_REST_Controller;
@@ -189,6 +190,48 @@ class EventController extends WP_REST_Controller {
                     'methods'             => WP_REST_Server::CREATABLE,
                     'callback'            => array( $this, 'import_items' ),
                     'permission_callback' => array( $this, 'import_permissions_check' ),
+                ),
+ 
+            ),
+        );
+
+        register_rest_route(
+            $this->namespace,
+            '/' . $this->rest_base . '/authors',
+            array(
+                'args' => array(
+                    'id' => array(
+                        'description' => __( 'Unique identifier for the post.', 'eventin' ),
+                        'type'        => 'integer',
+                    ),
+                ),
+                array(
+                    'methods'             => WP_REST_Server::READABLE,
+                    'callback'            => array( $this, 'get_authors' ),
+                    'permission_callback' => function() {
+                        return current_user_can( 'etn_manage_event' );
+                    },
+                ),
+ 
+            ),
+        );
+
+        register_rest_route(
+            $this->namespace,
+            '/' . $this->rest_base . '/authors',
+            array(
+                'args' => array(
+                    'id' => array(
+                        'description' => __( 'Unique identifier for the post.', 'eventin' ),
+                        'type'        => 'integer',
+                    ),
+                ),
+                array(
+                    'methods'             => WP_REST_Server::EDITABLE,
+                    'callback'            => array( $this, 'update_author' ),
+                    'permission_callback' => function() {
+                        return current_user_can( 'etn_manage_event' );
+                    },
                 ),
  
             ),
@@ -387,6 +430,16 @@ class EventController extends WP_REST_Controller {
             return $prepared_event;
         }
 
+        if ( 'online' === $prepared_event['event_type'] ) {
+            $platform_name = is_array( $prepared_event['location'] ) ? $prepared_event['location']['integration'] : '';
+
+            $meeting_platform = MeetingPlatform::get_platform( $platform_name );
+
+            if ( ! $meeting_platform->is_connected() ) {
+                return new WP_Error( 'not_connected', __( $platform_name . ' is not connected', 'eventin' ), ['status' => 400] );
+            }
+        }
+
         $event   = new Event_Model();
         $created = $event->create( $prepared_event );
 
@@ -410,7 +463,7 @@ class EventController extends WP_REST_Controller {
 
         // Manage online event.
         if ( 'online' === $prepared_event['event_type'] ) {
-            $meeting_link = $this->prepare_meeting_link( $prepared_event );
+            $meeting_link = $this->prepare_meeting_link( $prepared_event, $event );
 
             if ( is_wp_error( $meeting_link ) ) {
                 return $meeting_link;
@@ -472,6 +525,18 @@ class EventController extends WP_REST_Controller {
             $prepared_event['is_clone'] = false;
         }
 
+        // Manage online event.
+        if ( 'online' === $prepared_event['event_type'] ) {
+            $meeting_link = $this->prepare_meeting_link( $prepared_event, $event );
+            if ( is_wp_error( $meeting_link ) ) {
+                return $meeting_link;
+            }
+
+            $event->update( [
+                'meeting_link' => $meeting_link,
+            ] );
+        }
+
         $updated = $event->update( $prepared_event );
 
         if ( ! $updated ) {
@@ -493,21 +558,6 @@ class EventController extends WP_REST_Controller {
         } 
         if(isset($request['id'])){ 
             set_post_thumbnail($request['id'], $request['event_banner_id']);
-        }
-
-        // Manage online event.
-        $platform = is_array( $prepared_event['location'] ) && ! empty( $prepared_event['location']['integration'] ) ? $prepared_event['location']['integration'] : '';
-
-        if ( 'online' === $prepared_event['event_type'] ) {
-            
-            $meeting_link = $this->prepare_meeting_link( $prepared_event );
-            if ( is_wp_error( $meeting_link ) ) {
-                return $meeting_link;
-            }
-
-            $event->update( [
-                'meeting_link' => $meeting_link,
-            ] );
         }
 
         $post = get_post( $event->id );
@@ -844,13 +894,18 @@ class EventController extends WP_REST_Controller {
     /**
      * Prepare online meeting link
      *
-     * @param   array  $prepared_event
+     * @param   array  $prepared_event  [$prepared_event description]
+     * @param   Event_Model  $event           [$event description]
      *
-     * @return  mixed
+     * @return  string  
      */
-    protected function prepare_meeting_link( $prepared_event ) {
+    protected function prepare_meeting_link( $prepared_event, $event ) {
         $platform_name = is_array( $prepared_event['location'] ) ? $prepared_event['location']['integration'] : '';
         
+        if ( $event->has_meeting_link() && $platform_name === $event->get_meeting_platform() ) {
+            return $event->meeting_link;
+        }
+
         try {
             $meeting_platform = MeetingPlatform::get_platform( $platform_name );
 
@@ -1389,5 +1444,67 @@ class EventController extends WP_REST_Controller {
      */
     public function import_permissions_check( $request ) {
         return current_user_can( 'etn_manage_event' );
+    }
+
+    /**
+     * Get author lists
+     *
+     * @param   WP_Rest_Request  $request  [$request description]
+     *
+     * @return  WP_Rest_Response | WP_Error
+     */
+    public function get_authors( $request ) {
+        $users_data = [];
+
+        $users = get_users();
+
+        foreach ( $users as $user ) {
+            $users_data[] = [
+                'id'   => $user->ID,
+                'name' => $user->display_name
+            ];
+        }
+
+        return rest_ensure_response( $users_data );
+    }
+
+    /**
+     * Update event author
+     *
+     * @param   WP_Rest_Request  $request  [$request description]
+     *
+     * @return  WP_Rest_Response | WP_Error
+     */
+    public function update_author( $request ) {
+        $input = new Input( json_decode( $request->get_body(), true ) );
+
+        $event_id  = $input->get('event_id');
+        $author_id = $input->get('author_id');
+
+        $post = get_post( $event_id );
+        $user = get_userdata( $author_id );
+
+        if ( ! $post || 'etn' !== $post->post_type ) {
+            return new WP_Error('invalid_event', __( 'Invalid event id', 'eventin' ), ['status' => 422]);
+        }
+
+        if ( ! $user ) {
+            return new WP_Error('invalid_author', __( 'Invalid author id', 'eventin' ), ['status' => 422]);
+        }
+
+        $updated = wp_update_post([
+            'ID'          => $event_id,
+            'post_author' => $author_id
+        ]);
+
+        if ( is_wp_error( $updated ) ) {
+            return new WP_Error('failed_update', $updated->get_error_message() , ['status' => 422]);
+        }
+
+        $response = [
+            'message'   => __( 'Successfully author updated', 'eventin' ),
+        ];
+
+        return rest_ensure_response( $response );
     }
 }

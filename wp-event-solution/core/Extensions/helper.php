@@ -2,6 +2,8 @@
 
 namespace Etn\Core\Addons;
 
+use Wpeventin_Pro;
+
 defined( 'ABSPATH' ) || exit;
 
 class Helper {
@@ -51,8 +53,11 @@ class Helper {
 	 * @return void
 	 */
 	public function pro_version_checking( $version_number = '1.0.0' ) {
-		$plugin_data = get_plugin_data( WP_PLUGIN_DIR . '/eventin-pro/eventin-pro.php' );
-		if ( ! ( version_compare( $plugin_data['Version'], $version_number, '<' ) ) ) {
+		if ( ! class_exists( 'Wpeventin_Pro' ) ) {
+			return false;
+		}
+
+		if ( ! ( version_compare( Wpeventin_Pro::version(), $version_number, '<' ) ) ) {
 			return true;
 		} else {
 			return false;

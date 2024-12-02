@@ -2,6 +2,7 @@
 	namespace Etn\Core\Attendee;
 
 	use Etn\Utils\Helper;
+	use Etn\Core\Event\Event_Model;
 
 	defined( 'ABSPATH' ) || exit;
 
@@ -180,6 +181,24 @@
 		$time_zone      = ! empty( $time_zone ) ? ' (' . $time_zone . ') ' : '';
 		$date_separator = ! empty( $end_date ) ? ' - ' : '';
 		$time_separator = ! empty( $end_time ) ? ' - ' : '';
+
+		// Format date time following wordpress settings.
+
+		$date_format = get_option( 'date_format' );
+		$time_format = get_option( 'time_format' );
+
+		$event = new Event_Model( $event_id );
+
+		$start_date   = date( $date_format, strtotime( $event->etn_start_date ) );
+		$end_date     = date( $date_format, strtotime( $event->etn_end_date ) );
+
+		$start_date_time = $event->etn_start_date . ' ' . $event->etn_start_time;
+		$end_date_time 	 = $event->etn_end_date . ' ' . $event->etn_end_time;
+
+		$start_time	  = date( $time_format, strtotime( $start_date_time ) );
+		$end_time	  = date( $time_format, strtotime( $end_date_time ) );
+
+
 		$date           = $start_date . $date_separator . $end_date;
 		$time           = $start_time . $time_separator . $end_time . $time_zone;
 

@@ -289,7 +289,7 @@
             if ( $event->event_type == 'offline' ) {
                 echo esc_html( $event->get_address() );
             } else {
-                echo printf( 'Online meeting link: %s', $event->meeting_link );
+                printf( 'Online meeting link: %s', $event->meeting_link );
             }
         ?>
         </p>

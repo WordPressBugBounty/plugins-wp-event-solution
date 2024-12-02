@@ -24,6 +24,7 @@ defined( 'ABSPATH' ) || exit;
             $new_ticket_download_link = $ticket_download_link;
             $new_edit_information_link = $edit_information_link;
             $attendee_id           = $attendee->ID;
+            $attendee_name         = get_post_meta( $attendee_id, 'etn_name', true );
             $etn_email             = get_post_meta( $attendee_id, 'etn_email', true );
             $etn_phone             = get_post_meta( $attendee_id, 'etn_phone', true );
             $ticket_status         = get_post_meta( $attendee_id, 'etn_attendeee_ticket_status', true );
@@ -38,7 +39,7 @@ defined( 'ABSPATH' ) || exit;
             $new_edit_information_link .= urlencode( $attendee_id ) . "&etn_info_edit_token=" . urlencode( $edit_token );
             ?>
             <tr>
-                <td><?php echo esc_html( $attendee->post_title ); ?></td>
+                <td><?php echo esc_html( $attendee_name ); ?></td>
                 <?php if ( $include_email ) { ?>
                     <td><?php echo esc_html( $etn_email ); ?></td>
                 <?php } ?>

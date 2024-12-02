@@ -37,6 +37,8 @@ class OrderAttendee implements HookableInterface {
                 $attendee->update([
                     'etn_status' => 'success'
                 ]);
+
+                do_action( 'eventin_attendee_payment_completed', $attendee );
             }
         }
     }

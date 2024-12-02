@@ -285,6 +285,11 @@ abstract class Post_Model {
         ];
 
         $args  = wp_parse_args( $args, $defaults );
+
+        if ( ! current_user_can( 'manage_options' ) ) {
+            $args['author'] = get_current_user_id(); 
+        }
+
         $posts = get_posts( $args );
 
         return $posts;

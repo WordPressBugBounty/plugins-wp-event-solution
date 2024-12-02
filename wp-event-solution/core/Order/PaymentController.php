@@ -147,8 +147,10 @@ class PaymentController extends WP_REST_Controller {
      * @return  bool
      */
     private function wc_payment( $eventin_order_id ) {
+        $post_type = etn_is_enable_wc_synchronize_order() ? 'shop_order' : 'shop_order_placehold'; 
+
         $args = [
-            'post_type'   => 'shop_order_placehold',
+            'post_type'   => $post_type,
             'post_status' => 'any',
             'posts_per_page' => -1,
             'fields'          => 'ids',        

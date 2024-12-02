@@ -56,7 +56,7 @@ class AdminAssets implements AssetsInterface {
             ],
             'etn-onboard-index' => [
                 'src'       => \Wpeventin::plugin_url( 'build/js/index-onboard.js' ),
-                'deps'      => [ 'jquery' ],
+                'deps'      => [ 'jquery', 'react', 'react-dom' ],
                 'in_footer' => true,
             ],
             'etn-ai' => [

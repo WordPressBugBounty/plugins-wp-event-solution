@@ -638,8 +638,10 @@ class OrderController extends WP_REST_Controller {
 
         // Add extra fields meta key prefix.
         foreach( $extra_fields as $key => $value ) {
-            $meta_key = $prefix . $key;
+            $text = preg_replace('/[^а-яА-ЯёЁa-zA-Z0-9]+/u', '_', $key);
 
+            $meta_key = $prefix . $text;
+            
             $data[$meta_key] = $value;
         }
 

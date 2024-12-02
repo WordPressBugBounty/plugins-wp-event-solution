@@ -121,9 +121,10 @@ class Attendee_Exporter implements Post_Exporter_Interface {
                     break;
 
                     case 'date': 
-                        $date_options    = Helper::get_date_formats();
-                        $selected_format = Helper::get_option( 'date_format' );
-                        $data[$key]      = ! empty( $extra_field_value) ? ( ! empty( $selected_format ) ? date_i18n( $date_options[ $selected_format ], strtotime( $post_meta_value ) ) : date_i18n( get_option( 'date_format' ), strtotime( $post_meta_value ) ) ) : ''; 
+                        $date_format = get_option( 'date_format' );
+                        $date   = date( $date_format, strtotime( $extra_field_value ) );
+
+                        $data[$key] = $date;
                     break;
 
                     default:

@@ -336,6 +336,20 @@ class SpeakerController extends WP_REST_Controller {
             return $data;
         }
 
+        $assign_role = $this->assign_role_for_existing_user( $data );
+
+        if ( is_wp_error( $assign_role ) ) {
+            return $assign_role;
+        }
+
+        if ( $assign_role ) {
+            $response = [
+                'message' => __( 'The email you provided is exist and assign speaker or organizer role', 'eventin' )
+            ];
+
+            return rest_ensure_response( $response );
+        }
+
         $speaker = new User_Model();
 
         $created = $speaker->create( $data );
@@ -385,7 +399,20 @@ class SpeakerController extends WP_REST_Controller {
         $user = get_user_by( 'email', $data['etn_speaker_website_email'] );
 
         if ( $user && $speaker->get_speaker_website_email() != $data['etn_speaker_website_email'] ) {
-            return new WP_Error( 'email_error', __( 'A user is exist with this email.', 'eventin' ), ['status' => 409] );
+
+            $assign_role = $this->assign_role_for_existing_user( $data );
+
+            if ( is_wp_error( $assign_role ) ) {
+                return $assign_role;
+            }
+
+            if ( $assign_role ) {
+                $response = [
+                    'message' => __( 'The email you provided is exist and assign speaker or organizer role', 'eventin' )
+                ];
+
+                return rest_ensure_response( $response );
+            }
         }
 
         $updated = $speaker->update( $data );
@@ -571,6 +598,11 @@ class SpeakerController extends WP_REST_Controller {
         $prepared_data['etn_speaker_company_logo']  = ! empty( $input_data['company_logo'] ) ? sanitize_url( $input_data['company_logo'] ) : '';
         $prepared_data['etn_company_logo_id']       = ! empty( $input_data['company_logo_id'] ) ? intval( $input_data['company_logo_id'] ): attachment_url_to_postid( $input_data['company_logo'] );
 
+
+        if ( isset( $input_data['hide_user'] ) ) {
+            $prepared_data['hide_user'] = $input_data['hide_user'];
+        }
+        
         return $prepared_data;
     }
 
@@ -720,6 +752,54 @@ class SpeakerController extends WP_REST_Controller {
      * @return  bool
      */
     public function import_item_permissions_check( $request ) {
+        return true;
+    }
+
+    /**
+     * Assign role for existing user
+     *
+     * @param   string  $email  [$email description]
+     * @param   array  $roles  [$roles description]
+     *
+     * @return  array          [return description]
+     */
+    private function assign_role_for_existing_user( $data ) {
+        $email  = $data['etn_speaker_website_email'];
+        $roles  = $data['etn_speaker_category'];
+        $groups = $data['etn_speaker_group'];
+
+        $user = get_user_by( 'email', $email );
+
+        if ( ! $user ) {
+            return false;
+        }
+
+        $updated_roles = [];
+
+        if ( is_array( $roles ) ) {
+            foreach ( $roles as $role ) {
+                $role_name = 'etn-' . strtolower( $role );
+                
+                $updated_roles[] = $role_name;
+            }
+        }
+
+        $exists_with_role = empty( array_diff( $updated_roles, $user->roles ) );
+
+        if ( $exists_with_role ) {
+            return new WP_Error( 'organizer_speaker_exists', __( 'Speaker or Organizer already exists', 'eventin' ), ['status' => 422] );
+        }
+
+        foreach ( $updated_roles as $role ) {
+            if ( ! in_array( $role, $user->roles ) ) {
+                $user->add_role( $role );
+            }
+        }
+
+        foreach ( $data as $key => $value ) {
+            update_user_meta( $user->ID, $key, $value );
+        }
+
         return true;
     }
 }

@@ -975,3 +975,31 @@ if ( ! function_exists( 'etn_get_wc_order_statuses' ) ) {
         return $settings;
     }
 }
+
+if ( ! function_exists( 'etn_is_enable_wc_synchronize_order' ) ) {
+    /**
+     * Check wc order synchronizes orders to the posts table enable or not
+     *
+     * @return  bool Retur true if synchronizes orders is enable otherwise false
+     */
+    function etn_is_enable_wc_synchronize_order() {
+
+        if ( false === get_option( 'woocommerce_custom_orders_table_enabled' ) ) {
+            return true;
+        }
+
+        $enable_custom_order_table = get_option( 'woocommerce_custom_orders_table_enabled', true );
+
+        if ( 'no' === $enable_custom_order_table ) {
+            return true;
+        }
+
+        $data_sync_enabled          = get_option( 'woocommerce_custom_orders_table_data_sync_enabled', true );
+
+        if ( 'yes' === $data_sync_enabled ) {
+            return true;
+        }
+
+        return false;
+    }
+}

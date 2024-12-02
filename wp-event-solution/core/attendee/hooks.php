@@ -231,15 +231,38 @@ class Hooks {
             $event_id = !is_null( $item->get_meta( 'event_id', true ) ) ? $item->get_meta( 'event_id', true ) : "";
 
             if ( !empty( $event_id ) ) {
+
+                $is_enable_custom_order_table = get_option( 'woocommerce_custom_orders_table_enabled', true );
+
+                if ( 'no' === $is_enable_custom_order_table ) {
+                    $order_id = $order->ID;
+                } else {
+                    $order_id = $order->get_id();
+                }
+
+                $eventin_order_id = get_post_meta( $order_id, 'eventin_order_id', true );
+
                 $args = array(
-                    'post_type'     => 'etn-attendee',
-                    'post_status'   => 'publish',
-                    'meta_key'      => 'etn_attendee_order_id',
-                    'meta_value'    => $order->get_id(),
-                    'numberposts'   => -1
+                    'post_type'      => 'etn-attendee',
+                    'post_status'    => 'publish',
+                    'posts_per_page' => -1,
+                    'meta_query'     => [
+                        'relation'  => 'OR',
+                        [
+                            'key'       => 'eventin_order_id',
+                            'value'     => $eventin_order_id,
+                            'compare'   => '='
+                        ],
+                        [
+                            'key'       => 'etn_attendee_order_id',
+                            'value'     => $eventin_order_id,
+                            'compare'   => '='
+                        ]
+                    ]
                 );
-                
+
                 $attendees = get_posts($args);
+                
                 if( count( $attendees ) > 0 ) {
                     $settings        = Helper::get_settings();
                     $include_email   = !empty( $settings["reg_require_email"] ) ? true : false;

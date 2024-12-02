@@ -287,6 +287,29 @@ class Event_Model extends Post_Model {
     }
 
     /**
+     * Get ticket price by ticket name
+     *
+     * @param   string  $ticket_name  [$ticket_name description]
+     *
+     * @return  int | float
+     */
+    public function get_ticket_slug_by_name( $ticket_name ) {
+        $tickets = $this->etn_ticket_variations;
+
+        if ( is_array( $tickets ) ) {
+            foreach( $tickets as $ticket ) {
+                $input = new Input( $ticket );
+
+                if ( $input->get( 'etn_ticket_name' ) === $ticket_name ) {
+                    return $input->get( 'etn_ticket_slug' );
+                }
+            }
+        }
+
+        return '';
+    }
+
+    /**
      * Check seatp is enable or not
      *
      * @return  bool
@@ -295,5 +318,25 @@ class Event_Model extends Post_Model {
         $seat_map_switcher = ! metadata_exists( 'post', $this->id, 'enable_seatmap' ) && $this->seat_plan ? true : $this->enable_seatmap;
 
         return $seat_map_switcher;
+    }
+
+    /**
+     * Check event already has meeting link or not
+     *
+     * @return  bool  Return true if an event has a meeting link otherwise false
+     */
+    public function has_meeting_link() {
+        return $this->meeting_link ? true : false;
+    }
+
+    /**
+     * Get meeting platform name
+     *
+     * @return  string  Meeting platform name: zoom, google-meet, custom-url
+     */
+    public function get_meeting_platform() {
+        $location = $this->etn_event_location;
+
+        return ! empty( $location['integration'] ) ? $location['integration'] : '';
     }
 }

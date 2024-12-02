@@ -3,7 +3,7 @@ Contributors: themewinter, ataurr, abrasel600, rezakhan995
 Tags: event, calendar, tickets, organizer, schedule
 Requires at least: 5.2
 Tested up to: 6.7
-Stable tag: 4.0.16
+Stable tag: 4.0.17
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -280,6 +280,18 @@ Yes, Eventin offers a unique QR scanner solution to scan all the single/bulk tic
 
 
 == Changelog ==
+
+= 4.0.17 ( December 01, 2024 )=
+New : Update author from event list
+Fix : Woocommerce High-performance order storage compatibility
+Fix : Every save change an event, meeting link changed
+Fix : Datetime formating on event details page
+Fix : Admin and attendee order email meeting link has an extra character added
+Fix : Meeting platform name could't show on edit event
+Fix : Couldn't show attendee details on my account event purchase
+Fix : Assign speaker and organizer role to existing user
+Fix : Online location not displaying in Edit Event Mode
+Fix : Date time format on ticket templates
 
 = 4.0.16 ( November 18, 2024 )=
 Tweak : Export all functionality added

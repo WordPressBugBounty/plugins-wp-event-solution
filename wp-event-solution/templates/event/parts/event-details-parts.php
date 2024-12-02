@@ -2,6 +2,7 @@
 
 namespace Etn\Templates\Event\Parts;
 
+use Etn\Core\Event\Event_Model;
 use Etn\Utils\Helper;
 
 defined( 'ABSPATH' ) || exit;
@@ -213,12 +214,14 @@ class EventDetailsParts {
 		$date_format = get_option( 'date_format' );
 		$time_format = get_option( 'time_format' );
 
-		$start_date   = date( $date_format, strtotime( $data['event_start_date'] ) );
-		$end_date     = date( $date_format, strtotime( $data['event_end_date'] ) );
+		$event = new Event_Model( $single_event_id );
 
-		$start_date_time = $data['event_start_date'] . ' ' . $data['event_start_time'];
+		$start_date   = date( $date_format, strtotime( $event->etn_start_date ) );
+		$end_date     = date( $date_format, strtotime( $event->etn_end_date ) );
 
-		$end_date_time = $data['event_end_date'] . ' ' . $data['event_end_time'];
+		$start_date_time = $event->etn_start_date . ' ' . $event->etn_start_time;
+
+		$end_date_time = $event->etn_end_date . ' ' . $event->etn_end_time;
 
 		$start_time	  = date( $time_format, strtotime( $start_date_time ) );
 		$end_time	  = date( $time_format, strtotime( $end_date_time ) );
@@ -233,8 +236,9 @@ class EventDetailsParts {
 						?>
                         <li>
 							<?php if ( $data['event_start_date'] !== $data['event_end_date']): ?>
-                            <span> <?php echo esc_html__( 'Date : ', "eventin" ); ?></span>
-							<?php echo esc_html( $start_date . $separate . $end_date ); ?>
+                            <span> <?php echo esc_html__( 'Date :', "eventin" ); ?></span>
+							<?php echo $start_date . $separate . $end_date; ?>
+							
 
 							<?php else: ?>
 								<span> <?php echo esc_html__( 'Date : ', "eventin" ); ?></span>

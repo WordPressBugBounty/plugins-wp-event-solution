@@ -39,8 +39,9 @@ class WCPayment implements PaymentInterface {
      * @return
      */
     public function refund( OrderModel $order ) {
+        $post_type = etn_is_enable_wc_synchronize_order() ? 'shop_order' : 'shop_order_placehold'; 
         $args = [
-            'post_type'   => 'shop_order_placehold',
+            'post_type'   => $post_type,
             'post_status' => 'any',
             'posts_per_page' => -1,
             'fields'          => 'ids',        

@@ -56,7 +56,8 @@ class User_Model {
         'company_name'      => '',
         'speaker_group'     => [],
         'date'              => '',
-        'clone'             => false
+        'clone'             => false,
+        'hide_user'         => true,
     ];
 
     /**
@@ -380,7 +381,8 @@ class User_Model {
             'speaker_group'     => $this->get_speaker_group(),
             'company_name'      => $this->get_company_name(),
             'author_url'        => $this->get_author_url(),
-            'date'              => $this->get_date()
+            'date'              => $this->get_date(),
+            'hide_user'         => $this->get_hide_user(),
         ];
 
     }    
@@ -823,8 +825,28 @@ class User_Model {
         ];
 
         $args  = wp_parse_args( $args, $defaults );
+
+        if ( ! current_user_can( 'manage_options' ) ) {
+            $args['meta_query'] = [
+                [
+                    'key'     => 'author',
+                    'value'   => get_current_user_id(),
+                    'compare' => '=',
+                ]
+            ];
+        }
+
         $users = get_users( $args );
 
         return $users;
+    }
+
+    /**
+     * Get hide user value
+     *
+     * @return  bool
+     */
+    public  function get_hide_user() {
+        return get_user_meta( $this->id, 'hide_user', true );
     }
 }
