@@ -193,6 +193,18 @@ class OrderController extends WP_REST_Controller {
             ];
         }
 
+        if ( ! current_user_can( 'manage_options' ) ) {
+            $event     = new Event_Model();
+            $event_ids = $event->get_ids_by_author( get_current_user_id() );
+            $event_ids = ! empty( $event_ids ) ? $event_ids : '';
+
+            $meta_query[] = [
+                'key'     => 'event_id',
+                'value'   => $event_ids,
+                'compare' => 'IN',
+            ];
+        }
+
         if ( $strt_datetime && $end_datetime ) {
             $args['date_query'] = [
                 'relation' => 'AND',
@@ -307,6 +319,8 @@ class OrderController extends WP_REST_Controller {
         // Create order.
         $order     = new OrderModel();
         $order->create( $prepared_order );
+
+        do_action( 'eventin_before_attendees_create', $order);
 
         // Create attendees.
         $attendees = $this->prepare_attendee_data( $prepared_order['attendees'], $prepared_order['event_id'], $order->id );
@@ -597,6 +611,8 @@ class OrderController extends WP_REST_Controller {
                 $ticket_slug = isset( $attendee['ticket_slug'] ) ? $attendee['ticket_slug'] : '';
                 $ticket = $event->get_ticket( $ticket_slug );
 
+                $ticket = apply_filters( 'etn/order-controller/ticket', $ticket, $order_id, $event_id );
+
                 $new_attendee = [
                     'id'                   => isset( $attendee['id'] ) ? $attendee['id'] : '',
                     'etn_name'             => isset( $attendee['name'] ) ? $attendee['name'] : '', 
@@ -638,7 +654,7 @@ class OrderController extends WP_REST_Controller {
 
         // Add extra fields meta key prefix.
         foreach( $extra_fields as $key => $value ) {
-            $text = preg_replace('/[^а-яА-ЯёЁa-zA-Z0-9]+/u', '_', $key);
+            $text = mb_strtolower( preg_replace( '/[^\p{L}\p{N}]+/u', '_', trim($key) ) );
 
             $meta_key = $prefix . $text;
             
@@ -708,8 +724,8 @@ class OrderController extends WP_REST_Controller {
 
             $total_price += $event_ticket['etn_ticket_price'] * $ticket['ticket_quantity'];
         }
-
-        return $total_price;
+        
+        return apply_filters( 'etn/orders/total_price',$total_price, $event_id, $order_tickets );
     }
 
     /**

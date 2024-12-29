@@ -488,7 +488,24 @@ class Helper {
 					],
 				];
 			}
-
+			
+			if ( 'ongoing' === $filter_with_status ) {
+				$args['meta_query'] = [
+					'relation' => 'AND',
+					[
+						'key'     => 'etn_start_date',
+						'value'   => date( 'Y-m-d H:i:s' ),
+						'compare' => '<=',
+						'type'    => 'DATETIME'
+					],
+					[
+						'key'     => 'etn_end_date',
+						'value'   => date( 'Y-m-d H:i:s' ),
+						'compare' => '>=',
+						'type'    => 'DATETIME'
+					],
+				];
+			}
 		}
 
 		if ( 'child' !== $post_parent || 'hide_both' == $post_parent ) {
@@ -1334,7 +1351,7 @@ class Helper {
 	}
 
 	public static function get_name_structure_from_label( $label ) {
-		return strtolower( preg_replace( '/[^а-яА-ЯёЁa-zA-Z0-9]+/u', '_', $label ) );
+		return mb_strtolower( preg_replace( '/[^\p{L}\p{N}]+/u', '_', trim($label) ) );
 	}
 
 	/**
@@ -2597,6 +2614,7 @@ class Helper {
 		$event_status = [
 			"$key=''"         => esc_html__( 'All', 'eventin' ),
 			"$key='upcoming'" => esc_html__( 'Upcoming', 'eventin' ),
+			"$key='ongoing'"   => esc_html__( 'Ongoing', 'eventin' ),
 			"$key='expire'"   => esc_html__( 'Expire', 'eventin' ),
 		];
 

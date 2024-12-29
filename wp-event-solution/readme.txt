@@ -3,7 +3,7 @@ Contributors: themewinter, ataurr, abrasel600, rezakhan995
 Tags: event, calendar, tickets, organizer, schedule
 Requires at least: 5.2
 Tested up to: 6.7
-Stable tag: 4.0.18
+Stable tag: 4.0.19
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -280,6 +280,15 @@ Yes, Eventin offers a unique QR scanner solution to scan all the single/bulk tic
 
 
 == Changelog ==
+
+= 4.0.19 ( December 24, 2024 )=
+New   : Added SEO plugin support
+Fix   : Global extra fields data couldn't export
+Fix   : After refunding an order it make all seats available
+Fix   : schedule last items showing issue
+Fix   : Date invalid issue in safari browser
+Tweak : Userwise order list access
+Tweak : Added some new hooks to compatible integration.
 
 = 4.0.18 ( December 03, 2024 )=
 Fix : Users are unable to access the RSVP report due to insufficient permissions.

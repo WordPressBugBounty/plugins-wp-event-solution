@@ -13,23 +13,40 @@ class Event_single_post {
     }
 
     public function event_archive_template($template) {
-        if (is_post_type_archive('etn')) {
-            $default_file = \Wpeventin::plugin_dir() . 'core/event/views/event-archive-page.php';
-            if (file_exists($default_file)) {
-                 return $default_file;
-            } 
+        if ( ! is_post_type_archive('etn') ) {
+            return $template;
         }
+
+        $enable_event_template_builder = etn_get_option( 'enable_event_template_builder' );
+        
+        if ( $enable_event_template_builder ) {
+            $template = \Wpeventin::plugin_dir() . 'core/event/views/block-archive-template.php';
+        } else {
+            $template = \Wpeventin::plugin_dir() . 'core/event/views/event-archive-page.php';
+        }
+
         return $template;
     }
 
-    public function event_single_page($template) {
+    public function event_single_page( $template ) {
         global $post;
-        if ($post && $post->post_type == 'etn' && is_singular('etn')) {
-            $default_file = \Wpeventin::plugin_dir() . 'core/event/views/event-single-page.php';
-            if (file_exists($default_file)) {
-                 return $default_file;
-            }  
+
+        if ( ! $post ) {
+            return $template;
         }
+
+        if ( $post->post_type !== 'etn' ) {
+            return $template;
+        }
+
+        $enable_event_template_builder = etn_get_option( 'enable_event_template_builder' );
+
+        if ( $enable_event_template_builder ) {
+            $template = \Wpeventin::plugin_dir() . 'core/event/views/block-single-template.php';
+        } else {
+            $template = \Wpeventin::plugin_dir() . 'core/event/views/event-single-page.php';
+        }
+
         return $template;
     }
 

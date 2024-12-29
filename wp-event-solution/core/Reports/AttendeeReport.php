@@ -1,6 +1,7 @@
 <?php
 namespace Eventin\Reports;
 use Eventin\Input;
+use Etn\Core\Event\Event_Model;
 
 /**
  * Speaker Report class
@@ -54,11 +55,28 @@ class AttendeeReport extends AbstractReport {
         $start_date = $input->get( 'start_date' );
         $end_date   = $input->get( 'end_date' );
 
-        return self::get_posts( [
+        $args = [
             'post_type'  => 'etn-attendee',
             'start_date' => $start_date,
             'end_date'   => $end_date,
-        ] );
+            'meta_query' => [
+                'Relation' => 'AND',
+            ]
+        ];
+
+        if ( ! current_user_can( 'manage_options' ) ) {
+            $event = new Event_Model();
+            $event_ids = $event->get_ids_by_author( get_current_user_id() );
+            $event_ids = ! empty( $event_ids ) ? $event_ids : '';
+            
+            $args['meta_query'][] = [
+                'key'       => 'etn_event_id',
+                'value'     => $event_ids,
+                'compare'   => 'IN',
+            ];
+        }
+
+        return self::get_posts( $args );
     }
 
     /**

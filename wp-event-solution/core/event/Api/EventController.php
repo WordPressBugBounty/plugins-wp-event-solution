@@ -836,6 +836,7 @@ class EventController extends WP_REST_Controller {
             'event_banner_id'         => get_post_meta( $id, 'event_banner_id', true ),
             'edit_with_elementor'     => $this->check_post_edit_with_elementor( $id ),
             'elementor_supported'     => $this->is_etn_post_type_supported_by_elementor( ),
+            'enable_legacy_certificate_template' => get_post_meta( $id, 'enable_legacy_certificate_template', true ),
         ];
 
         $location_type = get_post_meta( $id, 'etn_event_location_type', true );
@@ -1299,7 +1300,9 @@ class EventController extends WP_REST_Controller {
             $event_data['_virtual'] = $input_data['_virtual'];
         }
 
-        
+        if ( isset( $input_data['enable_legacy_certificate_template'] ) ) {
+            $event_data['enable_legacy_certificate_template'] = $input_data['enable_legacy_certificate_template'];
+        }
         
         return $event_data;
     }

@@ -127,7 +127,8 @@ class OrderModel extends Post_Model {
             }
         }
 
-        return $tickets;
+        
+        return apply_filters( 'etn/order-model/tickets',$tickets,$event,$this->event_id, $this->id );
     }
 
     /**

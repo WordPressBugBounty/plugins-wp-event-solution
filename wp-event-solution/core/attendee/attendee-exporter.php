@@ -103,7 +103,7 @@ class Attendee_Exporter implements Post_Exporter_Interface {
         $settings     = etn_get_option();
         $data         = [];
         if ( ! $extra_fields ) {
-            $extra_fields = ! empty( $settings['attendee_extra_fields'] ) ? $settings['attendee_extra_fields'] : [];
+            $extra_fields = ! empty( $settings['extra_fields'] ) ? $settings['extra_fields'] : [];
         }
 
         if ( $extra_fields ) {
@@ -124,6 +124,10 @@ class Attendee_Exporter implements Post_Exporter_Interface {
                         $date_format = get_option( 'date_format' );
                         $date   = date( $date_format, strtotime( $extra_field_value ) );
 
+                        if ( ! $extra_field_value ) {
+                            $date = '';
+                        }
+                        
                         $data[$key] = $date;
                     break;
 

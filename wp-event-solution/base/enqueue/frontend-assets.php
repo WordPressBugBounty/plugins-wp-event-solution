@@ -44,7 +44,7 @@ class FrontendAssets implements AssetsInterface {
             ],
             'etn-app-index'     => [
                 'src'       => \Wpeventin::plugin_url( 'build/js/index-calendar.js' ),
-                'deps'      => [ 'jquery' ],
+                'deps'      =>[ 'jquery', 'wp-scripts' ],
                 'in_footer' => true,
             ],
             'eventin-block-js' => [

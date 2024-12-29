@@ -51,7 +51,7 @@ class ExtensionController extends WP_REST_Controller {
                 'methods'             => \WP_REST_Server::READABLE,
                 'callback'            => [$this, 'get_items'],
                 'permission_callback' => function () {
-                    return current_user_can( 'manage_options' );
+                    return current_user_can( 'etn_manage_addons' );
                 },
             ],
         ] );
@@ -61,7 +61,7 @@ class ExtensionController extends WP_REST_Controller {
                 'methods'             => \WP_REST_Server::EDITABLE,
                 'callback'            => [$this, 'update_item'],
                 'permission_callback' => function () {
-                    return current_user_can( 'manage_options' );
+                    return current_user_can( 'etn_manage_addons' );
                 },
             ],
         ] );

@@ -1,7 +1,6 @@
 <?php
 namespace Eventin;
 
-use Eventin\AccessControl\Api\PermissionController;
 use Eventin\Attendee\Api\AttendeeController;
 use Eventin\Customer\Api\CustomerController;
 use Eventin\Event\Api\EventController;
@@ -17,6 +16,7 @@ use Eventin\Settings\Api\SettingsController;
 use Eventin\Speaker\Api\SpeakerCategoryController;
 use Eventin\Speaker\Api\SpeakerController;
 use Eventin\Extensions\Api\ExtensionController;
+use Eventin\Template\Api\TemplateController;
 use WP_REST_Controller;
 
 /**
@@ -44,7 +44,7 @@ class ApiManager {
         CustomerController::class,
         ExtensionController::class,
         ReportController::class,
-        PermissionController::class,
+        TemplateController::class
     ];
 
     /**

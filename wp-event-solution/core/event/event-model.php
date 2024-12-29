@@ -8,6 +8,7 @@ namespace Etn\Core\Event;
 
 use Etn\Base\Post_Model;
 use Eventin\Input;
+use Etn\Core\Attendee\Attendee_Model;
 
 /**
  * Event Model
@@ -79,7 +80,8 @@ class Event_Model extends Post_Model {
         'event_logo_id'                      => '',
         'event_banner_id'                   => '',
         'excerpt_enable'                    => false,
-        'enable_seatmap'                    => false,         
+        'enable_seatmap'                    => false,
+        'enable_legacy_certificate_template' => false,         
     ];
 
     /**
@@ -338,5 +340,36 @@ class Event_Model extends Post_Model {
         $location = $this->etn_event_location;
 
         return ! empty( $location['integration'] ) ? $location['integration'] : '';
+    }
+
+    /**
+     * Get evend ids by author
+     *
+     * @param   integer  $author_id  [$author_id description]
+     *
+     * @return  array
+     */
+    public function get_ids_by_author( $author_id ) {
+        $event_ids = get_posts( [
+            'post_type'      => 'etn',
+            'author'         => $author_id,
+            'fields'         => 'ids',
+            'posts_per_page' => -1, // Fetch all events by this author
+        ] );
+    
+        return $event_ids;
+    }
+
+    /**
+     * Get all attenddes for an order
+     *
+     * @return  array Attendee data
+     */
+    public function get_attendees() {
+        $attendee_obect = new Attendee_Model();
+
+        $attendees = $attendee_obect->get_attendees_by( 'etn_event_id', $this->id );
+
+        return $attendees;
     }
 }

@@ -55,11 +55,17 @@ class EventReport extends AbstractReport {
         $start_date = $input->get( 'start_date' );
         $end_date   = $input->get( 'end_date' );
 
-        return self::get_posts( [
+        $args = [
             'post_type'  => 'etn',
             'start_date' => $start_date,
-            'end_date'   => $end_date,
-        ] );
+            'end_date'   => $end_date     
+        ]; 
+
+        if ( ! current_user_can( 'manage_options' ) ) {
+            $args['author'] = get_current_user_id();
+        }
+
+        return self::get_posts( $args );
     }
 
     /**

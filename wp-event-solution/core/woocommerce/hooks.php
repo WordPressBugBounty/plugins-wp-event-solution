@@ -39,7 +39,7 @@ class Hooks {
 
         // Handle actions on order status change
         // add_action('woocommerce_order_status_changed', [$this, 'update_event_stock_on_order_status_update' ], 10, 3);
-        add_action('woocommerce_order_status_changed', [$this, 'update_event_revenue_on_refunded' ], 10, 3);
+        // add_action('woocommerce_order_status_changed', [$this, 'update_event_revenue_on_refunded' ], 10, 3);
         add_action('woocommerce_order_status_changed', [$this, 'change_attendee_payment_status_on_order_status_update' ], 10, 3);
         add_action('woocommerce_order_status_changed', [$this, 'change_purchase_report_status_on_order_status_update' ], 10, 3);
         add_action('woocommerce_order_status_changed', [$this, 'email_zoom_event_details_on_order_status_update' ], 10, 3);
@@ -47,6 +47,7 @@ class Hooks {
 
         add_filter('woocommerce_hidden_order_itemmeta', [$this, 'hide_order_itemmeta_on_order_status_update'], 10, 1);
 
+        add_action( 'woocommerce_new_order', [ $this, 'attatch_eventin_order_id' ] );
         
 
 
@@ -148,6 +149,13 @@ class Hooks {
             return;
         }
 
+        $event_order_id = WC()->session->get('event_order_id');
+
+        if ( $event_order_id ) {
+            return;
+        }
+
+
         $statuses = [ 'completed', 'processing' ];
         $eventin_order_id = get_post_meta( $order_id, 'eventin_order_id', true );
         $event_order      = new OrderModel( $eventin_order_id );
@@ -178,6 +186,27 @@ class Hooks {
 
             do_action( 'eventin_order_refund', $event_order );
         }
+    }
+
+    /**
+     * Attatch eventin order id on wc order id 
+     *
+     * @return  void
+     */
+    public function attatch_eventin_order_id( $wc_order_id ) {
+        $event_order_id = WC()->session->get('event_order_id');
+
+        if ( ! $event_order_id ) {
+            return;
+        }
+
+        $order = wc_get_order( $wc_order_id );
+
+        // Update meta data         
+        $order->update_meta_data( 'eventin_order_id', $event_order_id );
+        
+        // Save
+        $order->save();
     }
 
     /**
@@ -320,7 +349,6 @@ class Hooks {
 
         WC()->session->__unset( 'event_order_id' );
         update_post_meta( $wc_order_id, 'eventin_order_id', $order_id );
-
 
         // Stay to woo thank you page
         $thankyou_redirect   =  etn_get_option( "order_thank_you_redirect" );
@@ -595,7 +623,7 @@ class Hooks {
             $seat_ids = get_post_meta( $event_id, '_etn_seat_unique_id', true );
 
             if ( $seat_ids ) {
-                update_post_meta( $event_id, '_etn_seat_unique_id', '' );
+                // update_post_meta( $event_id, '_etn_seat_unique_id', '' );
             }
         }
 
@@ -1079,7 +1107,7 @@ class Hooks {
             $cart_item_data['etn_status_update_key'] = $post_arr['attendee_info_update_key'];
         }
 
-        return $cart_item_data;
+        return apply_filters('etn_add_cart_item_data', $cart_item_data );
     }
 
      /**
@@ -2110,7 +2138,7 @@ class Hooks {
         if ( $type !==  'etn' ) {
             return;
         }
-
+        WC()->session->__unset( 'event_order_id');
         $update_status_token = !empty($cart->cart_contents[$cart_item_key]['unique_key']) ? $cart->cart_contents[$cart_item_key]['unique_key'] : '';
         if ( $update_status_token ==  '' ) {
             return;

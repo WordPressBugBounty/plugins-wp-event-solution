@@ -537,6 +537,12 @@ if ( ! function_exists( 'etn_get_default_email_settings' )  ) {
                 'body'    => __( 'You have purchased ticket(s). Attendee ticket details are as follows.', 'eventin' ),
                 'send_to_admin' => true,
             ],
+            'certificate_email' => [
+                'from'    => get_option( 'admin_email' ),
+                'subject' => sprintf( __( 'Event Certificate', 'eventin' ) ),
+                'body'    => sprintf( __( '<p>Congratulations for successfully attending/completing the event \'%1$s\'. Your certificate is ready! Click on the link provided below to get the PDF certificate. </p>', 'eventin' ), '<span>{%event_title%}</span>' ),
+                'send_to_admin' => true,
+            ],
             'rsv_email' => [
                 'from'          => get_option( 'admin_email' ),
                 'response_type' => 'going',

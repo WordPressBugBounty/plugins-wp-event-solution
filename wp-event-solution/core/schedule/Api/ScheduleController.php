@@ -376,7 +376,7 @@ class ScheduleController extends WP_REST_Controller {
 
         $response = $this->prepare_item_for_response( $clone_schedule, $request );
 
-        do_action( 'eventin_event_after_clone', $clone_schedule->id );
+        do_action( 'eventin_schedule_after_clone', $clone_schedule->id );
 
         return rest_ensure_response( $response );
     }

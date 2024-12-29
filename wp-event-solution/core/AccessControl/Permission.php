@@ -219,6 +219,7 @@ class Permission {
     private static function permissions() {
         return [
             'etn_manage_dashboard'     => __( 'Dashboard', 'eventin' ),
+            'etn_manage_template'      => __( 'Template', 'eventin' ),
             'etn_manage_event'         => __( 'Events', 'eventin' ),
             'etn_manage_organizer'     => __( 'Organizer', 'eventin' ),
             'etn_manage_schedule'      => __( 'Schedules', 'eventin' ),

@@ -22,6 +22,7 @@ abstract class AbstractReport {
         $start_date = $input->get( 'start_date' );
         $end_date   = $input->get( 'end_date' );
         $meta_query = $input->get( 'meta_query' );
+        $author     = $input->get( 'author' );
 
         $args = [
             'post_type'      => $post_type,
@@ -29,6 +30,10 @@ abstract class AbstractReport {
             'fields'         => 'ids',
             'posts_per_page' => -1,
         ];
+
+        if ( $author ) {
+            $args['author'] = $author;
+        }
 
         if ( $start_date && $end_date ) {
             $args['date_query'] = [
@@ -75,6 +80,16 @@ abstract class AbstractReport {
                     'before'    => $end_date,
                     'inclusive' => true,
                 ],
+            ];
+        }
+
+        if ( ! current_user_can( 'manage_options' ) ) {
+            $args['meta_query'] = [
+                [
+                    'key'   => 'author',
+                    'value' => get_current_user_id(),
+                    'compare' => '='
+                ]
             ];
         }
 

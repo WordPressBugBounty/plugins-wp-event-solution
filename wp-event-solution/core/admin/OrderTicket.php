@@ -164,7 +164,6 @@ class OrderTicket implements HookableInterface {
 
         if ( $event_tickets ) {
             foreach( $event_tickets as &$ticket ) {
-                error_log(print_r($ticket, true));
                 $ticket_amount = $order->get_total_ticket_by_ticket( $ticket['etn_ticket_slug'] );
                 if ( $ticket_amount > 0 ) {
                     $ticket['etn_sold_tickets'] = $ticket['etn_sold_tickets'] - $ticket_amount;
@@ -175,5 +174,18 @@ class OrderTicket implements HookableInterface {
         $event->update([
             'etn_ticket_variations' => $event_tickets,
         ]);
+
+        // Update seat on refunded.
+        $event_seats = get_post_meta( $event->id, '_etn_seat_unique_id', true );
+        $order_seats = $order->seat_ids;
+
+        if ( $order_seats ) {
+            $event_seats = explode(',', $event_seats );
+
+            $event_seats = array_diff( $event_seats, $order_seats );
+            $event_seats = implode( ',', array_unique( $event_seats ) );
+
+            update_post_meta( $event->id, '_etn_seat_unique_id', $event_seats );
+        }
     }
 }

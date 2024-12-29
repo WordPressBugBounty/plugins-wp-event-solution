@@ -12,6 +12,7 @@ use Etn\Core\Attendee\Attendee_Model;
 use Etn\Core\Event\Event_Model;
 use Eventin\Attendee\Attendee\TicketIdGenerator;
 use Eventin\Customer\CustomerModel;
+use Eventin\Emails\AttendeeCertificateEmail;
 use Eventin\Order\OrderModel;
 use Eventin\Emails\AttendeeOrderEmail;
 use Eventin\Input;
@@ -113,6 +114,14 @@ class AttendeeController extends WP_REST_Controller {
                 'methods'             => WP_REST_Server::READABLE,
                 'callback'            => [$this, 'resend_ticket'],
                 'permission_callback' => [$this, 'resend_ticket_permissions_check'],
+            ],
+        ] );
+
+        register_rest_route( $this->namespace, $this->rest_base . '/(?P<id>[\d]+)' . '/send-certificate', [
+            [
+                'methods'             => WP_REST_Server::READABLE,
+                'callback'            => [$this, 'send_certificate'],
+                'permission_callback' => [$this, 'send_certificate_permissions_check'],
             ],
         ] );
     }
@@ -801,5 +810,53 @@ class AttendeeController extends WP_REST_Controller {
         $post_ids = get_posts( $args );
 
         return $post_ids;
+    }
+
+    /**
+     * Send certificate email by attendee
+     *
+     * @param   WP_Rest_Request  $request
+     *
+     * @return  WP_Rest_Response | WP_Error
+     */
+    public function send_certificate( $request ) {
+        $id = intval( $request['id'] );
+
+        $post = get_post( $id );
+
+        if ( ! $post ) {
+            return new WP_Error( 'id_error', __( 'Invalid attendee id', 'eventin' ), ['status' => 422] );
+        }
+
+        if ( 'etn-attendee' !== $post->post_type ) {
+            return new WP_Error( 'id_error', __( 'Invalid attendee id', 'eventin' ), ['status' => 422] );
+        }
+
+        $attendee = new Attendee_Model( $id );
+        $event    = new Event_Model( $attendee->etn_event_id );
+        $from      = etn_get_email_settings( 'purchase_email' )['from'];
+
+        if ( ! is_email( $attendee->etn_email ) ) {
+            return new WP_Error( 'email_error', __( 'The attendee doesn\'t have valid email', 'eventin' ), ['status' => 422] );
+        }
+
+        Mail::to( $attendee->etn_email )->from( $from )->send( new AttendeeCertificateEmail( $event, $attendee ) );
+
+        $response = [
+            'message'   => __( 'Successfully send certificate email', 'eventin' ),
+        ];
+
+        return rest_ensure_response( $response );
+    }
+
+    /**
+     * Check permissions for resend ticket to attendee
+     *
+     * @param   WP_Rest_Request  $request  [$request description]
+     *
+     * @return  bool
+     */
+    public function send_certificate_permissions_check( $request ) {
+        return current_user_can( 'etn_manage_attendee' );
     }
 }

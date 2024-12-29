@@ -1,4 +1,6 @@
 <?php
+$elementor_post_types = get_option('elementor_cpt_support', []);
+
 $data = [
     'ajax_url'                    => admin_url( 'admin-ajax.php' ),
     'site_url'                    => site_url(),
@@ -36,6 +38,7 @@ $data = [
     'decimals'                    => etn_get_decimals(),
     'price_format'                => etn_get_price_format(),
     'currency_position'           => etn_get_currency_position(),
+    'elementor_supported'         => class_exists( '\Elementor\Plugin' ) && in_array( 'etn-template', $elementor_post_types ),
 
 ];
 

@@ -61,12 +61,17 @@ class AdminAssets implements AssetsInterface {
             ],
             'etn-ai' => [
                 'src'       => \Wpeventin::plugin_url( 'build/js/index-ai-script.js' ),
-                'deps'      => [ 'jquery' ],
+                'deps'      => [ 'jquery', 'wp-scripts' ],
                 'in_footer' => true,
+            ],
+             'etn-html-2-canvas' => [
+                'src'       => \Wpeventin::plugin_url( 'assets/lib/js/html2canvas.min.js' ),
+                'deps'      => ['jquery'],
+                'in_footer' => false,
             ],
             'etn-dashboard' => [
                 'src'       => \Wpeventin::plugin_url( 'build/js/dashboard.js' ),
-                'deps'      => ['etn-packages', 'wp-format-library'],
+                'deps'      => ['etn-packages', 'wp-format-library','etn-html-2-canvas'],
                 'in_footer' => true,
             ],
         ];
@@ -107,7 +112,7 @@ class AdminAssets implements AssetsInterface {
                 'src' => \Wpeventin::plugin_url( 'build/css/index-ai-style.css' ),
             ],
             'etn-dashboard'    => [
-                'src' => \Wpeventin::plugin_url( 'build/css/event-manager-admin.css' ),
+                'src' => \Wpeventin::plugin_url( 'build/css/dashboard.css' ),
                 'deps' => ['wp-edit-blocks']
             ],
         ];

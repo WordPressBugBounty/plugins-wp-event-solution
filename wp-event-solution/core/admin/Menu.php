@@ -121,6 +121,12 @@ class Menu implements HookableInterface {
 				'url'        => 'admin.php?page=' . $this->menu_slug . '#/get-help',
                 'position'   => 999999,
 			],
+            [
+				'title'      => __( 'Template Builder', 'eventin' ),
+				'capability' => $this->base_capability,
+				'url'        => 'admin.php?page=' . $this->menu_slug . '#/template-builder',
+                'position'   => 99,
+			],
 		];
 
 		$is_attendee_registation = etn_get_option( 'attendee_registration' );

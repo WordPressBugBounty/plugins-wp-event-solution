@@ -160,7 +160,7 @@ final class Bootstrap {
 		// Instantiate Eventin AI module.
 		\Etn\Core\Modules\Eventin_Ai\Eventin_AI::instance()->init();
 		// Initialize Template Api.
-		Api_Template::instance()->init();
+		//Api_Template::instance()->init(); 
 
 		// Ticket style enqueue.
 		// Todo: Need to register this one style file from base qnqueue class

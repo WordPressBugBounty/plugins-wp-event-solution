@@ -11,6 +11,8 @@ use Etn\Base\Importer\Post_Importer;
 use Etn\Core\Event\Event_Model;
 use Etn\Traits\Singleton;
 use Eventin\Integrations\Zoom\ZoomCredential;
+use Eventin\Template\CPT;
+use Eventin\Template\DefaultTemplate;
 use Eventin\Upgrade\Upgrade;
 use Eventin\Upgrade\Upgraders\V_4_0_8;
 use WP_Error;
@@ -61,6 +63,10 @@ class Hooks {
         add_action( 'eventin_event_updated', [ $this, 'update_seat_price' ] );
 
         add_action( 'eventin_event_after_clone', [ $this, 'update_clone_event_sold_tickets' ] );
+
+        add_action( 'init', [$this, 'register_post_type' ] );
+
+        add_action( 'init', [ $this, 'proxy_image' ] );
 
     }
 
@@ -672,5 +678,59 @@ class Hooks {
         $event->update([
             'etn_ticket_variations' => $tickets
         ]);
+    }
+    
+    /**
+     * Register post type
+     *
+     * @return  void
+     */
+    public function register_post_type() {
+        $template_post_type = new CPT();
+
+        $template_post_type->register_post_type();
+    }
+
+    public function proxy_image() {
+        $action = isset( $_GET['action'] ) ? $_GET['action'] : '';
+
+        if ( $action !== 'proxy_image' ) {
+            return;
+        }
+
+        ob_start();
+
+        if ( $_SERVER['REQUEST_METHOD'] === 'OPTIONS' ) {
+            http_response_code(200);
+            ob_end_flush();
+            exit;
+        }
+
+        $imageUrl = isset( $_GET['url'] ) ? $_GET['url'] : null;
+
+        if ( $imageUrl ) {
+            $imageContent = file_get_contents( $imageUrl );
+
+            if ( $imageContent !== false ) {
+                $finfo    = finfo_open( FILEINFO_MIME_TYPE );
+                $mimeType = finfo_buffer( $finfo, $imageContent );
+                finfo_close( $finfo );
+                header("Content-Type: $mimeType");
+
+                
+                $tempStream = fopen('php://temp', 'r+');
+                fwrite( $tempStream, $imageContent );
+                rewind( $tempStream );
+
+                fpassthru( $tempStream );
+                fclose( $tempStream );
+            } else {
+                http_response_code(404);
+            }
+        } else {
+            http_response_code(400);
+        }
+
+        ob_end_flush(); // End output buffering
     }
 }

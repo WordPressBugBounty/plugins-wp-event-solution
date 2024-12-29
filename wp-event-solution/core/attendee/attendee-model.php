@@ -125,6 +125,28 @@ class Attendee_Model extends Post_Model {
     }
 
     /**
+     * Get extra fields as html content
+     *
+     * @return  string
+     */
+    public function get_extra_fields_content() {
+        $fields = '<ul class="etn-attendee-extra-data">';
+        $extra_fields = $this->get_extra_fields();
+
+        if ( $extra_fields ) {
+            foreach ( $extra_fields as $key => $field ) {
+                $label = ucfirst( $key );
+                $fields_array[] = "<li><label>{$label}:</label> <span>{$field}</span></li>";
+            }
+    
+            $fields = implode( '', $fields_array );
+        }
+        
+        $fields .= '</ul>';
+        return $fields;
+    }
+
+    /**
      * Get attendde data
      *
      * @return  array

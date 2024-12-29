@@ -215,11 +215,19 @@
 			$ticket_style = $layouts[$event_ticket_template];
 		}
 
-		if ( $ticket_style === 'style-1' && file_exists( \Wpeventin::core_dir() . "attendee/views/ticket/ticket-markup.php" ) ) {
-			include_once \Wpeventin::core_dir() . "attendee/views/ticket/ticket-markup.php";
-		} else if ( class_exists( 'Wpeventin_Pro' ) && $settings['attendee_ticket_style'] === 'style-2' && file_exists( \Wpeventin_Pro::core_dir() . "attendee/ticket-markup-style-2.php" ) ) {
-			include_once \Wpeventin_Pro::core_dir() . "attendee/ticket-markup-style-2.php";
+		$post = get_post( $event_ticket_template );
+
+		if ( $post && $post->post_type !== 'etn-template' ) {
+			$post = get_post( etn_get_option('attendee_ticket_style') );
 		}
+		
+		if ( $post && $post->post_type === 'etn-template' ) {
+
+			include_once \Wpeventin::core_dir() . "attendee/views/ticket/ticket-markup-block.php";
+		} else {
+			include_once \Wpeventin::core_dir() . "attendee/views/ticket/ticket-markup.php";
+		}
+
 	}
 
 	/**
