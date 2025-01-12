@@ -684,6 +684,16 @@ class EventController extends WP_REST_Controller {
 
         $clone_event = $event->clone();
 
+        // Add Copy Text to the title.
+        $event_title = get_the_title( $event_id );
+        $clone_title = $event_title . ' - ' . __( 'Copy', 'eventin' );
+
+        // Update the title of the cloned event.
+        $clone_event->update( [
+            'post_title' => $clone_title,
+        ] );
+
+
         $response = $this->prepare_item_for_response( get_post( $clone_event->id ), $request );
 
         // Manage categories.

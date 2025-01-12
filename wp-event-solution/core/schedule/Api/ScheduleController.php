@@ -374,6 +374,12 @@ class ScheduleController extends WP_REST_Controller {
 
         $clone_schedule = $schedule->clone();
 
+        $schedule_title = get_post_meta( $schedule_id, 'etn_schedule_title', true );
+
+        // Add Copy Text to the title
+        $clone_title    = $schedule_title . ' - ' . __( 'Copy', 'eventin' );
+        update_post_meta( $clone_schedule->id, 'etn_schedule_title', $clone_title );
+
         $response = $this->prepare_item_for_response( $clone_schedule, $request );
 
         do_action( 'eventin_schedule_after_clone', $clone_schedule->id );

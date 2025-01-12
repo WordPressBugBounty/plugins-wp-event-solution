@@ -3,7 +3,7 @@ Contributors: themewinter, ataurr, abrasel600, rezakhan995
 Tags: event, calendar, tickets, organizer, schedule
 Requires at least: 5.2
 Tested up to: 6.7
-Stable tag: 4.0.19
+Stable tag: 4.0.20
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -280,6 +280,15 @@ Yes, Eventin offers a unique QR scanner solution to scan all the single/bulk tic
 
 
 == Changelog ==
+
+= 4.0.20 ( January 12, 2025 )=
+Tweak : Elementor pro archive template support added
+Tweak : Update hooks to compatible integration.
+Fix   : Couldn't load calender
+Fix   : Schedule clone couldn’t work properly
+Fix   : Elementor pro archive template support added
+Fix   : Add to cart redirect to blank page issue
+
 
 = 4.0.19 ( December 24, 2024 )=
 New   : Added SEO plugin support

@@ -1091,6 +1091,7 @@ class Hooks {
     public function add_cart_item_data( $cart_item_data, $product_id, $variation_id ){
 
         $post_arr = filter_input_array( INPUT_POST, FILTER_SANITIZE_SPECIAL_CHARS );
+        $event_id = 0;
 
         if( isset( $post_arr['add-to-cart'] ) ) {
             $event_id = intval( $post_arr['add-to-cart'] );
@@ -1107,7 +1108,7 @@ class Hooks {
             $cart_item_data['etn_status_update_key'] = $post_arr['attendee_info_update_key'];
         }
 
-        return apply_filters('etn_add_cart_item_data', $cart_item_data );
+        return apply_filters('etn_add_cart_item_data', $cart_item_data, $event_id );
     }
 
      /**

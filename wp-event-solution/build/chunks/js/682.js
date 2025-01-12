@@ -431,31 +431,31 @@
 `,{useBreakpoint:R}=p.Ay,V=(0,o.withDispatch)((e=>({setShouldRevalidateEventList:e("eventin/global").setRevalidateEventList}))),B=(0,r.compose)(V)((e=>{const{setShouldRevalidateEventList:t}=e,{form:n,saveButtonLoading:r,id:o,sourceData:p,isLoading:h}=(0,S.useEventSelectContext)(),{setSourceData:F}=(0,S.useEventDispatchContext)(),O="draft"===p?.status,[I,D]=(0,s.useState)(!O),[V,B]=(0,s.useState)(!1),[M,W]=(0,s.useState)(O);(0,s.useEffect)((()=>{const e="draft"===p?.status;D(!e),W(e)}),[p?.status]);const q=(0,l.useNavigate)(),j=n.getFieldValue("title"),$=n.getFieldValue("start_date"),K=n.getFieldValue("start_time"),U=`${f()($).format("ddd")}, ${(0,N.getWordpressFormattedDate)($)}, ${(0,N.getWordpressFormattedTime)(K)} `,Y=p?.link,G={pointerEvents:"none",opacity:"0.5",cursor:"not-allowed"},H=z.default.div`
 		${e=>e.disabled&&G}
 	`,Q=async e=>{const a={...L(p),status:e},l="publish"===e?(0,m.__)("Event published successfully!","eventin"):(0,m.__)("Event status changed to draft!","eventin");!I&&B(!0);try{const i=await T.A.events.updateEvent(o,a);F(i),D((e=>!e)),W((e=>!e)),t(!0),(0,c.doAction)("eventin_notification",{type:"success",message:l}),n.setFieldsValue({status:e,event_slug:i?.event_slug})}catch(e){console.error(e.message),(0,c.doAction)("eventin_notification",{type:"error",message:(0,m.__)("Couldn't change event status!","eventin"),description:`Reason: ${e?.response?.message}`})}finally{B(!1)}},J=[!M&&{label:(0,a.createElement)(x.Ay,{className:"eventin-event-detail-header-dropdown-button",variant:x.qy,size:"small",icon:(0,a.createElement)(A.DraftOutlined,{width:"16",height:"16"}),sx:{"&:hover":{color:"#6B2EE5",backgroundColor:"#f0eafc"}}},(0,m.__)("Draft","eventin")),key:"0",onClick:()=>Q("draft")},{label:(0,a.createElement)(x.i8,{className:"eventin-event-detail-header-dropdown-button",copy:Y,variant:x.qy,icon:(0,a.createElement)(A.CloneOutlined,{width:"16",height:"16"}),size:"small",sx:{"&:hover":{color:"#6B2EE5"}}},(0,m.__)("Copy event link","eventin")),key:"1",className:"copy-event"},{label:(0,a.createElement)(x.Ay,{className:"eventin-event-detail-header-dropdown-button",variant:x.qy,onClick:()=>{(0,y.A)({title:(0,m.__)("Are you sure?","eventin"),content:(0,m.__)("Are you sure you want to delete this event?","eventin"),onOk:async()=>{try{await T.A.events.deleteEvent(o),t(!0),q("/")}catch(e){console.error("Error deleting event",e)}}})},icon:(0,a.createElement)(A.DeleteOutlined,{width:"16",height:"16"}),size:"small",sx:{color:"#FF4D4F"}},(0,m.__)("Delete event","eventin")),key:"2",className:"delete-event"}].filter(Boolean),X=R().sm;return(0,a.createElement)(i.Fill,{name:w.PRIMARY_HEADER_NAME},(0,a.createElement)(g.A,{gutter:[8,8],style:{alignItems:"center"},className:"eventin-event-details-header"},(0,a.createElement)(u.A,{xs:24,sm:12,xl:12},(0,a.createElement)(v.A,{align:"center",gap:16},(0,a.createElement)(x.Ay,{variant:x.Vt,icon:(0,a.createElement)(A.AngleLeftIcon,null),sx:{height:"36px",width:"36px",backgroundColor:"#fafafa",borderColor:"transparent",lineHeight:"1"},onClick:()=>q("/events")}),(0,a.createElement)(v.A,{vertical:!0},(0,a.createElement)(P,null,(0,a.createElement)(k.A,{ellipsis:{tooltip:j},sx:{margin:"0 0 5px",fontSize:"22px",lineHeight:"26px",color:"rgba(0, 0, 0, 0.80)",fontWeight:"600"}},h?(0,a.createElement)(_.A.Input,{active:!0,size:"small"}):j)),(0,a.createElement)(b.A,{sx:{fontSize:"16px",color:"rgba(0, 0, 0, 0.50)"}},h?(0,a.createElement)(_.A.Input,{active:!0,style:{height:"12px"}}):U)))),(0,a.createElement)(u.A,{xs:24,sm:12,xl:12},(0,a.createElement)(g.A,{gutter:[8,8],style:{alignItems:"center",justifyContent:X?"flex-end":"flex-start"}},(0,a.createElement)(u.A,null,(0,a.createElement)("a",{href:Y,target:"_blank"},(0,a.createElement)(x.Ay,{variant:x.Qq,sx:{color:"#6B2EE5",fontWeight:"500",display:"flex",alignItems:"center",fontSize:"16px","&:hover":{backgroundColor:"transparent"}}},(0,a.createElement)(A.ExternalLinkOutlined,{width:"18",height:"18"}),X&&(0,m.__)("Preview","eventin")))),(0,a.createElement)(u.A,null,(0,a.createElement)(d.mL,{styles:C.S}),(0,a.createElement)(E.A.Button,{trigger:["click"],placement:"bottomRight",overlayClassName:"action-dropdown",className:"ent-compact-btn eventin-event-details-header-dropdown",size:"large",arrow:!0,variant:"tertiary",icon:(0,a.createElement)(A.AngleDownIcon,null),onClick:()=>Q("publish"),loading:V,menu:{items:J},buttonsRender:([e,t])=>[(0,a.createElement)(H,{disabled:I},e),t]},(0,m.__)("Publish Event","eventin"))),(0,a.createElement)(u.A,null,(0,a.createElement)(x.Ay,{loading:r,onClick:n.submit,variant:x.zB,sx:{fontSize:"16px"}},(0,m.__)("Save Changes","eventin")))))))}));var M=n(32099),W=n(84976),q=n(22451),j=n(52171),$=n(62567),K=n(60742),U=n(90070),Y=n(43960),G=n(49871),H=n(18138),Q=n(48842),J=n(10012);const X=e=>(0,a.createElement)(g.A,{gutter:[16,10],justify:"center"},(0,a.createElement)(u.A,{md:24,xs:24},e.children));var Z=n(82654);const ee=z.default.div`
-	margin: 30px 0;
-	.ant-alert-message {
-		font-size: 16px;
-		color: #020617;
-		font-weight: 500;
-	}
-	.ant-alert-description {
-		font-size: 14px;
-		color: #747474;
-	}
-	.etn-seo-alert {
-		@media only screen and ( max-width: 520px ) {
-			flex-direction: column;
-		}
-	}
-	.ant-alert-action {
-		@media only screen and ( max-width: 520px ) {
-			margin-top: 20px;
-		}
-	}
-	p {
-		margin-bottom: 0;
-		font-size: 14px;
-		color: #747474;
-	}
+  margin: 30px 0;
+  .ant-alert-message {
+    font-size: 16px;
+    color: #020617;
+    font-weight: 500;
+  }
+  .ant-alert-description {
+    font-size: 14px;
+    color: #747474;
+  }
+  .etn-seo-alert {
+    @media only screen and (max-width: 520px) {
+      flex-direction: column;
+    }
+  }
+  .ant-alert-action {
+    @media only screen and (max-width: 520px) {
+      margin-top: 20px;
+    }
+  }
+  p {
+    margin-bottom: 0;
+    font-size: 14px;
+    color: #747474;
+  }
 `,te=({id:e})=>{const t=`${window.localized_data_obj.admin_url}post.php?post=${e}&action=edit`;return(0,a.createElement)(ee,null,(0,a.createElement)(Z.A,{style:{border:"1px solid #C9C9C9",backgroundColor:"#fff",marginTop:"20px"},message:(0,m.__)("SEO Meta Information","eventin"),className:"etn-seo-alert",description:(0,a.createElement)("div",null,(0,a.createElement)("p",null,(0,m.__)("Set SEO meta information to enhance search engine visibility. For more information, please check the ","eventin")," ",(0,a.createElement)("a",{href:"https://support.themewinter.com/docs/plugins/plugin-docs/integration/how-to-integrate-seo-plugins/",target:"_blank",rel:"noopener noreferrer"},(0,m.__)("documentation","eventin")),"."),(0,a.createElement)("p",null,(0,a.createElement)("strong",null,(0,m.__)("Note:","eventin"))," ",(0,m.__)("Please ensure that an SEO plugin is installed.","eventin"))),action:(0,a.createElement)(x.Ay,{variant:x.Vt,size:"middle",sx:{color:"#6B2EE5",border:"1px solid #6B2EE5"},onClick:()=>window.open(t,"_blank")},(0,m.__)("Set SEO Meta","eventin"))}))},ne=!!window.localized_data_obj.evnetin_pro_active,ae=(0,z.default)($.A)`
 	.ant-collapse-content {
 		display: none;

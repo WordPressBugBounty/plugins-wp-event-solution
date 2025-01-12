@@ -58,6 +58,7 @@ class Hooks {
 		// Update woocommerce supported meta data.
 		add_action( 'eventin_event_created', [ $this, 'added_woo_supported_meta' ] );
 		add_action( 'eventin_event_after_clone', [ $this, 'added_woo_supported_meta' ] );
+		add_action( 'eventin_event_updated', [ $this, 'added_woo_supported_meta' ] );
 
 		// Google meet support.
 		add_action( 'eventin_event_created', [ $this, 'google_meet_support' ] );
