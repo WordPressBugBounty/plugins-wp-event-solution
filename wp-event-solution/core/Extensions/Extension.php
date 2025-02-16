@@ -38,6 +38,19 @@ class Extension {
     }
 
     /**
+     * Get all addons
+     *
+     * @return  array
+     */
+    public static function plugins() {
+        $extensions = self::get(); // Fixed the typo
+
+        return array_values( array_filter($extensions, function($extension) {
+            return $extension['type'] === 'plugin';
+        } ) );
+    }
+
+    /**
      * Get all extensions
      *
      * @return  array
@@ -47,6 +60,7 @@ class Extension {
         
         return array_map( function( $extension ) {
             $settings = get_option( 'etn_addons_options', [] );
+
             if ( isset( $settings[ $extension['name'] ] ) && $settings[ $extension['name']] === 'on' ) {
                 $extension['status'] = 'on';
 
@@ -92,6 +106,24 @@ class Extension {
                 }
 
             }
+
+            if ( 'plugin' === $extension['type'] ) {
+                if ( 
+                        self::is_need_upgrade( $extension['name'] )
+                        && ! PluginManager::is_installed( $extension['slug'] )
+                    ) {
+                    $extension['status'] = 'upgrade';
+                }
+
+                if ( PluginManager::is_installed( $extension['slug'] ) ) {
+                    $extension['status'] = 'install';
+                }
+
+                if ( PluginManager::is_activated( $extension['slug'] ) ) {
+                    $extension['status'] = 'activate';
+                }
+            }
+
             return $extension;
             
         }, $extensions );
@@ -135,6 +167,24 @@ class Extension {
         $result = true;
 
         if ( 'addon' === $extension['type'] && 'on' === $updated_status ) {
+            if ( ! $slug ) {
+                return false;
+            }
+
+            if ( 'install' === $status && ! PluginManager::is_installed( $slug ) ) {
+                $result = PluginManager::install_plugin( $slug );
+            }
+
+            if ( 'activate' === $status && ! PluginManager::is_activated( $slug ) ) {
+                $result = PluginManager::activate_plugin( $slug );
+            }
+
+            if ( 'deactivate' === $status && PluginManager::is_activated( $slug ) ) {
+                $result = PluginManager::deactivate_plugin( $slug );
+            }
+        }
+
+        if ( 'plugin' === $extension['type'] ) {
             if ( ! $slug ) {
                 return false;
             }
@@ -435,6 +485,38 @@ class Extension {
                 'settings_link' => '',
                 'doc_link'      => 'https://support.themewinter.com/docs/plugins/plugin-docs/integration/oxygen-builder-integration-pro',
             ],
+            'wpcafe' => [
+                'name'          => 'wpcafe',
+                'slug'          => 'wpcafe',
+                'type'          => 'plugin',
+                'upgrade'       => false,
+                'upgrade_link'  => 'https://themewinter.com/purchase-history',
+                'status'        => 'on',
+                'is_pro'        => false,
+                'title'         => __( 'WPCafe', 'eventin' ),
+                'description'   => __( 'Online Food Ordering, Restaurant Menu, Delivery, and Reservations for WooCommerce.', 'eventin' ),
+                'icon'          => ExtensionIcon::get( 'wpcafe' ),
+                'notice'        => '',
+                'demo_link'     => 'https://product.themewinter.com/wpcafe',
+                'settings_link' => '',
+                'doc_link'      => 'https://support.themewinter.com/docs/plugins/docs/wpcafe',
+            ],
+            'timetics' => [
+                'name'          => 'timetics',
+                'slug'          => 'timetics',
+                'type'          => 'plugin',
+                'upgrade'       => false,
+                'upgrade_link'  => 'https://themewinter.com/purchase-history',
+                'status'        => 'on',
+                'is_pro'        => false,
+                'title'         => __( 'Timetics', 'eventin' ),
+                'description'   => __( 'AI-powered Booking System for Daily Meetings, & Appointments – WP Timetics.', 'eventin' ),
+                'icon'          => ExtensionIcon::get( 'timetics' ),
+                'notice'        => '',
+                'demo_link'     => 'https://arraytics.com/timetics',
+                'settings_link' => '',
+                'doc_link'      => 'https://support.themewinter.com/docs/plugins/docs/timetics',
+            ]
         ];
     }
 }

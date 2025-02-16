@@ -588,12 +588,12 @@ class Hooks {
             $license_key = \EventinPro\License\Utils::get_license_key();
             
             new \Etn_Pro\Utils\Updater\Edd_Warper(
-                \Wpeventin_Pro::get_store_url(),
+                'https://themewinter.com',
                 'eventin-pro/eventin-pro.php',
                 array(
-                    'version' => \Wpeventin_Pro::version(),
+                    'version' => Wpeventin_Pro::version(),
                     'license' => $license_key,
-                    'item_id' => \Wpeventin_Pro::get_product_id(),
+                    'item_id' => '1013',
                     'author'  => 'themewinter',
                     'url'     => site_url(),
                 )

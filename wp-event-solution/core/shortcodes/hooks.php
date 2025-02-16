@@ -149,14 +149,24 @@ class Hooks {
         $post_parent = Helper::show_parent_child( $show_parent_event, $show_child_event );
 
         // Validate and adjust column settings
-        $etn_event_col = match ( $etn_event_col ) {
-            6, 5 => 2,
-            4 => 3,
-            3 => 4,
-            2 => 6,
-            1 => 12,
-            default => $etn_event_col,
-        };
+        switch ( $etn_event_col ) {
+            case 6:
+            case 5:
+                $etn_event_col = 2;
+                break;
+            case 4:
+                $etn_event_col = 3;
+                break;
+            case 3:
+                $etn_event_col = 4;
+                break;
+            case 2:
+                $etn_event_col = 6;
+                break;
+            case 1:
+                $etn_event_col = 12;
+                break;
+        }
 
         // Sanitize orderby
         $post_attributes = ['title', 'ID', 'name', 'post_date'];

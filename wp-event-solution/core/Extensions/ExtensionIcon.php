@@ -28,12 +28,15 @@ class ExtensionIcon {
      * @return  string
      */
     public static function get_svg( $file_name ) {
-        $file = Wpeventin::assets_dir() . 'images/addons/' . $file_name . '.svg';
-        
-        if ( file_exists( $file ) ) {
-            return file_get_contents( $file );
-        }
+        $extensions = ['svg', 'jpg', 'png', 'webp'];
+        $base_path  = Wpeventin::assets_dir() . 'images/addons/';
+        $base_url   = Wpeventin::assets_url() . 'images/addons/';
 
-        return null;
+        foreach ( $extensions as $ext ) {
+            $file = $base_path . $file_name . '.' . $ext;
+            if ( file_exists( $file ) ) {
+                return $ext === 'svg' ? file_get_contents( $file ) : $base_url . $file_name . '.' . $ext;
+            }
+        }
     }
 }

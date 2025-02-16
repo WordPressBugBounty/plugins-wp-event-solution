@@ -81,6 +81,7 @@ class ExtensionController extends WP_REST_Controller {
         $types = [
             'module' => Extension::modules(), 
             'addon'  => Extension::addons(),
+            'plugin' => Extension::plugins(),
             'all'    => Extension::get()
         ];
 
