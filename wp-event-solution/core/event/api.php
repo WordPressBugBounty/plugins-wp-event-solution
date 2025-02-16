@@ -633,4 +633,3 @@ class Api extends \Etn\Base\Api_Handler {
 
 }
 
-new Api();

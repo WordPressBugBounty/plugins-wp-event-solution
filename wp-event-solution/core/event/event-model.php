@@ -9,6 +9,7 @@ namespace Etn\Core\Event;
 use Etn\Base\Post_Model;
 use Eventin\Input;
 use Etn\Core\Attendee\Attendee_Model;
+use Etn\Core\Speaker\User_Model;
 
 /**
  * Event Model
@@ -81,7 +82,8 @@ class Event_Model extends Post_Model {
         'event_banner_id'                   => '',
         'excerpt_enable'                    => false,
         'enable_seatmap'                    => false,
-        'enable_legacy_certificate_template' => false,         
+        'enable_legacy_certificate_template' => false,
+        '_tax_status'                        => 'taxable'         
     ];
 
     /**
@@ -110,22 +112,33 @@ class Event_Model extends Post_Model {
      * @return  string
      */
     public function get_status() {
+        $start_date = $this->etn_start_date;
+        $start_time = $this->etn_start_time;
         $end_date   = $this->etn_end_date;
         $end_time   = $this->etn_end_time;
         $status     = get_post_status( $this->id );
         $timezone   = $this->event_timezone ? etn_create_date_timezone( $this->event_timezone ) : 'Asia/Dhaka';
 
-        $end_date_time = $end_date . ' ' . $end_time;
+        $start_date_time = $start_date . ' ' . $start_time;
+        $end_date_time   = $end_date . ' ' . $end_time;
 
         // Create a DateTime object for the start date and time in the given timezone
-        $end_date = new \DateTime( $end_date_time, new \DateTimeZone( $timezone ) );
+        $start_date = new \DateTime( $start_date_time, new \DateTimeZone( $timezone ) );
+        $end_date   = new \DateTime( $end_date_time, new \DateTimeZone( $timezone ) );
     
         // Create a DateTime object for the current date and time in the given timezone
         $current_date = new \DateTime('now', new \DateTimeZone( $timezone ) );
 
         if ( 'publish' === $status ) {
-            $status = $current_date > $end_date ? __( 'Expired', 'eventin' ) : __( 'Upcoming', 'eventin' );
+            if ( $current_date > $end_date ) {
+                $status = __( 'Expired', 'eventin' );
+            } elseif ( $current_date >= $start_date && $current_date <= $end_date ) {
+                $status = __( 'Ongoing', 'eventin' );
+            } else {
+                $status = __( 'Upcoming', 'eventin' );
+            }
         }
+
 
         return $status;
     }
@@ -164,6 +177,26 @@ class Event_Model extends Post_Model {
         $post = get_post( $this->id );
 
         return $post->post_title;
+    }
+
+    /**
+     * Get event description
+     *
+     * @return  string
+     */
+    public function get_description() {
+        $post = get_post( $this->id );
+
+        return $post->post_content;
+    }
+
+    /**
+     * Get event social media
+     *
+     * @return  array
+     */
+    public function get_social() {
+        return $this->etn_event_socials;
     }
 
     /**
@@ -371,5 +404,169 @@ class Event_Model extends Post_Model {
         $attendees = $attendee_obect->get_attendees_by( 'etn_event_id', $this->id );
 
         return $attendees;
+    }
+
+    /**
+     * Get related events based on etn_tags.
+     *
+     * @param int $limit Number of related events to fetch.
+     * @return array List of related Event_Model objects.
+     */
+    public function get_related_events( $limit = 5 ) {
+        $tags = get_the_terms( $this->id, 'etn_tags' );
+
+        if ( empty( $tags ) || is_wp_error( $tags ) ) {
+            return [];
+        }
+
+        $tag_ids = wp_list_pluck( $tags, 'term_id' );
+
+        $args = [
+            'post_type'      => $this->post_type,
+            'post_status'    => 'any',
+            'posts_per_page' => $limit,
+            'post__not_in'   => [ $this->id ], // Exclude the current event
+            'tax_query'      => [
+                [
+                    'taxonomy' => 'etn_tags',
+                    'field'    => 'term_id',
+                    'terms'    => $tag_ids,
+                ]
+            ],
+        ];
+
+        $posts = get_posts( $args );
+
+        if ( ! $posts ) {
+            return [];
+        }
+
+        $related_events = [];
+
+        foreach ( $posts as $post ) {
+            $related_events[] = new self( $post->ID );
+        }
+
+        return $related_events;
+    }
+
+    /**
+     * Get event speakers based on the event's speaker IDs
+     *
+     * @return array
+     */
+    public function get_speakers() {
+        $speakers = [];
+
+        // Get speaker IDs associated with the event
+        $speaker_ids = $this->etn_event_speaker;
+
+        if ( ! $speaker_ids ) {
+            return [];
+        }
+
+        // Loop through speaker IDs and create User_Model objects for each
+        foreach ( $speaker_ids as $speaker_id ) {
+            $speakers[] = new User_Model( $speaker_id );
+        }
+
+        return $speakers;
+    }
+
+    /**
+     * Get event organizers based on the event's organizer IDs
+     *
+     * @return array
+     */
+    public function get_organizers() {
+        $organizers = [];
+
+        // Get organizer IDs associated with the event
+        $organizer_ids = $this->etn_event_organizer;
+
+        if ( ! $organizer_ids ) {
+            return [];
+        }
+
+        // Loop through organizer IDs and create User_Model objects for each
+        foreach ( $organizer_ids as $organizer_id ) {
+            $organizers[] = new User_Model( $organizer_id );
+        }
+
+        return $organizers;
+    }
+
+    /**
+     * Get start date
+     *
+     * @param   string  $format  Date format that will be need to display
+     *
+     * @return  string
+     */
+    public function get_start_date( $format = 'Y-m-d') {
+        return $this->get_start_datetime( $format );
+    }
+
+    /**
+     * Get start time
+     *
+     * @param   string  $format  Time format that will be need to display
+     *
+     * @return  string
+     */
+    public function get_start_time( $format = 'h:i a') {
+        return $this->get_start_datetime( $format );
+    }
+
+    /**
+     * Get end date
+     *
+     * @param   string  $format  Date format that will be need to display
+     *
+     * @return  string
+     */
+    public function get_end_date( $format = 'Y-m-d') {
+        return $this->get_end_datetime( $format );
+    }
+
+    /**
+     * Get end time
+     *
+     * @param   string  $format  Time format that will be need to display
+     *
+     * @return  string
+     */
+    public function get_end_time( $format = 'h:i a') {
+        return $this->get_end_datetime( $format );
+    }
+    
+    /**
+     * Get event tags
+     *
+     * @return  array  All tags for this event
+     */
+    public function get_tags() {
+        $tags = get_the_terms( $this->id, 'etn_tags' );
+
+        if ( ! $tags ) {
+            return [];
+        }
+
+        return $tags;
+    }
+
+    /**
+     * Get event tags
+     *
+     * @return  array  All tags for this event
+     */
+    public function get_categories() {
+        $tags = get_the_terms( $this->id, 'etn_category' );
+
+        if ( ! $tags ) {
+            return [];
+        }
+
+        return $tags;
     }
 }

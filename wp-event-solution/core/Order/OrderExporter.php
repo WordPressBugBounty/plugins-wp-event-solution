@@ -6,8 +6,8 @@
  */
 namespace Eventin\Order;
 
-use Etn\Base\Exporter\Exporter_Factory;
-use Etn\Base\Exporter\Post_Exporter_Interface;
+use Eventin\Exporter\ExporterFactory;
+use Eventin\Exporter\PostExporterInterface;
 use Exception;
 use WP_Error;
 
@@ -16,7 +16,7 @@ use WP_Error;
  *
  * Export Order Data
  */
-class OrderExporter implements Post_Exporter_Interface {
+class OrderExporter implements PostExporterInterface {
     /**
      * Store file name
      *
@@ -52,7 +52,7 @@ class OrderExporter implements Post_Exporter_Interface {
         $file_name = $this->file_name;
 
         try {
-            $exporter = Exporter_Factory::get_exporter( $format );
+            $exporter = ExporterFactory::get_exporter( $format );
 
             $exporter->export( $rows, $columns, $file_name );
         } catch(Exception $e) {

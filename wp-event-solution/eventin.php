@@ -1,5 +1,6 @@
 <?php
 
+use Eventin\Eventin;
 use Eventin\Upgrade\Upgrade;
 use Eventin\Upgrade\Upgraders\V_3_3_57;
 
@@ -9,7 +10,7 @@ defined( 'ABSPATH' ) || exit;
  * Plugin Name:       Eventin
  * Plugin URI:        https://themewinter.com/eventin/
  * Description:       Simple and Easy to use Event Management Solution
- * Version:           4.0.20
+ * Version:           4.0.21
  * Author:            Themewinter
  * Author URI:        https://themewinter.com/
  * License:           GPL-2.0+
@@ -40,7 +41,7 @@ class Wpeventin {
 	 * @var string The plugin version.
 	 */
 	public static function version() {
-		return '4.0.20';
+		return '4.0.21';
 	}
 
 	/**
@@ -124,27 +125,11 @@ class Wpeventin {
 	public function initialize_modules() {
 		do_action( 'eventin/before_load' );
 
-		require_once plugin_dir_path( __FILE__ ) . 'autoloader.php';
-		require_once plugin_dir_path( __FILE__ ) . 'bootstrap.php';
+		Eventin::instance();
 
-		// block for showing banner.
-		require_once plugin_dir_path( __FILE__ ) . '/utils/notice/notice.php';
-		require_once plugin_dir_path( __FILE__ ) . '/utils/banner/banner.php';
-		require_once plugin_dir_path( __FILE__ ) . '/utils/pro-awareness/pro-awareness.php';
-
-		// Localization.
-		// $this->i18n();
-
-		// init notice class.
-		\Oxaim\Libs\Notice::init();
-
-		// init pro menu class.
-		\Wpmet\Libs\Pro_Awareness::init();
-
-		// action plugin instance class.
-		Etn\Bootstrap::instance()->init();
-
-		do_action( 'eventin/after_load' );
+		if ( class_exists( 'Wpeventin_Pro' ) && version_compare( Wpeventin_Pro::version(), '4.0.16', '>' ) ) {
+			do_action( 'eventin/after_load' );
+		}
 	}
 
 
@@ -319,71 +304,23 @@ class Wpeventin {
 			$v3_3_57->run();
 		}
 	}
-
-    /**
-     * Create roles and capabilities.
-     */
-    public function prepare_roles_capabilities() {
-        global $wp_roles;
-
-        if ( ! class_exists( 'WP_Roles' ) ) {
-            return;
-        }
-
-        if ( ! isset( $wp_roles ) ) {
-            $wp_roles = new \WP_Roles();
-        }
-
-        $capabilities = $this->get_core_capabilities();
-
-        foreach ( $capabilities as $cap_group ) {
-            foreach ( $cap_group as $cap ) {
-                $wp_roles->use_db = true;
-                $wp_roles->add_cap( 'administrator', $cap );
-                $wp_roles->add_cap( 'editor', $cap );
-                $wp_roles->add_cap( 'author', $cap );
-            }
-        }
-
-		flush_rewrite_rules();
-    }
-
+	
+	/**
+	 * Fire on activation hook
+	 *
+	 * @return  void
+	 */
 	public function activate_actions() {
-		$this->prepare_roles_capabilities();
 		Upgrade::register();
 
 		// Update plugin version and existing user roles.
 		$version			= get_option( 'etn_version', true );
 		$current_version 	= self::version();
 
-		if ( $current_version !== $version ) {
-			$this->prepare_roles_capabilities();
-			update_option( 'etn_version', $current_version );
-		}
-
 		delete_transient( 'etn_event_list' );
 
 		flush_rewrite_rules();
 	}
-
-    /**
-     * Get capabilities for WooCommerce - these are assigned to admin/shop manager during installation or reset.
-     *
-     * @return array
-     */
-    public function get_core_capabilities() {
-        $capabilities = array();
-        $capabilities['eventin'] = array(
-            'manage_etn_event',
-            'manage_etn_speaker',
-            'manage_etn_schedule',
-            'manage_etn_attendee',
-            'manage_etn_zoom',
-            'manage_etn_settings',
-        );
-
-        return $capabilities;
-    }
 }
 
 /**

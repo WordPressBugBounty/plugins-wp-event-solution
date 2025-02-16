@@ -52,7 +52,7 @@ function etn_wpml_alter_original_translation_event_id( $order_id ) {
 }; 
         
 // if WPML is activated, change the event_id meta with the original translation's event_id
-add_action( 'woocommerce_checkout_update_order_meta', 'etn_wpml_alter_original_translation_event_id', 9, 1 ); 
+// add_action( 'woocommerce_checkout_update_order_meta', 'etn_wpml_alter_original_translation_event_id', 9, 1 ); 
 
 /**
  * Change add to cart message for wpml

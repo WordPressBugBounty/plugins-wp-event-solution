@@ -216,8 +216,8 @@ class EventDetailsParts {
 
 		$event = new Event_Model( $single_event_id );
 
-		$start_date   = date( $date_format, strtotime( $event->etn_start_date ) );
-		$end_date     = date( $date_format, strtotime( $event->etn_end_date ) );
+		$start_date   = wp_date( $date_format, strtotime( $event->etn_start_date ) );
+		$end_date     = wp_date( $date_format, strtotime( $event->etn_end_date ) );
 
 		$start_date_time = $event->etn_start_date . ' ' . $event->etn_start_time;
 
@@ -233,6 +233,7 @@ class EventDetailsParts {
 					<?php
 					// event date
 					if ( ! isset( $event_options["etn_hide_date_from_details"] ) && ! empty( $data['event_start_date'] ) ) {
+					
 						?>
                         <li>
 							<?php if ( $data['event_start_date'] !== $data['event_end_date']): ?>
@@ -271,7 +272,7 @@ class EventDetailsParts {
 					?>
 					
 					<?php
-					$location = \Etn\Core\Event\Helper::instance()->display_event_location( $single_event_id );
+					$location = $event->etn_event_location;
 					$location = etn_prepare_address( $location );
 					$event_location_type = $data['etn_event_location_type'];
 					if ( ! empty( $location) ) {

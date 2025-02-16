@@ -132,6 +132,8 @@ class SettingsController extends WP_REST_Controller {
             'currency_position'        => etn_get_currency_position(),
             'show_ticket_expiry_date'  => etn_get_option( 'show_ticket_expiry_date', false ),
             'default_extra_fields'     => etn_get_option( 'default_extra_fields' ),
+            'show_phone_number'        => etn_get_option( 'show_phone_number', false ),
+            'require_last_name'        => etn_get_option( 'require_last_name', false ),
         ];
 
         if ( function_exists( 'WC' ) ) {

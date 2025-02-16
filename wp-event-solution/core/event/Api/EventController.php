@@ -7,8 +7,8 @@
 namespace Eventin\Event\Api;
 
 use Error;
-use Etn\Core\Event\Event_Exporter;
-use Etn\Core\Event\Event_Importer;
+use Eventin\Event\EventExporter;
+use Eventin\Event\EventImporter;
 use Etn\Core\Event\Event_Model;
 use Eventin\Event\MeetingPlatforms\MeetingPlatform;
 use Eventin\Input;
@@ -740,7 +740,6 @@ class EventController extends WP_REST_Controller {
      */
     public function prepare_item_for_response( $item, $request ) {
         $event          = new Event_Model( $item->ID );
-        $status         = get_post_status( $item->ID );
         $id             = $item->ID;
         $parent         = $item->post_parent;
         $author         = get_userdata( $item->post_author )->display_name;
@@ -749,8 +748,6 @@ class EventController extends WP_REST_Controller {
         $categories     = $categories ? array_column( $categories, 'term_id' ) : [];
         $tags           = get_the_terms( $id, $this->tag_taxonomy );
         $tags           = $tags ? array_column( $tags, 'term_id' ) : [];
-        $end_date       = strtotime( get_post_meta( $id, 'etn_end_date', true ) );
-        $curretn_date   = strtotime( date( 'Y-m-d' ) );
 
         $schedules       = get_post_meta( $id, 'etn_event_schedule', true );
         $organizer       = get_post_meta( $id, 'etn_event_organizer', true );
@@ -763,7 +760,6 @@ class EventController extends WP_REST_Controller {
         $speaker_type    = get_post_meta( $id, 'speaker_type', true );
         $organizer_type  = get_post_meta( $id, 'organizer_type', true );
         $seat_plan       = get_post_meta( $id, 'seat_plan', true );
-        $event_slug      = '';
         $enable_seatmap  = get_post_meta( $id, 'enable_seatmap', true );
 
         $seat_map_switcher = ! metadata_exists( 'post', $id, 'enable_seatmap' ) && $seat_plan ? true : $enable_seatmap;
@@ -774,10 +770,6 @@ class EventController extends WP_REST_Controller {
 
         $extra_fields    = is_array( $extra_fields ) ? array_values( $extra_fields ) : [];
         
-        if ( 'publish' === $status ) {
-            $status = $curretn_date > $end_date ? __( 'Past', 'eventin' ) : __( 'Upcoming', 'eventin' );
-        }
-
         $post = get_post( $id );
 
         $event_data = [
@@ -792,7 +784,7 @@ class EventController extends WP_REST_Controller {
             'author'                  => $author,
             'categories'              => $categories,
             'tags'                    => $tags,
-            'status'                  => $status,
+            'status'                  => $event->get_status(),
             'link'                    => get_permalink( $id ),
             'schedules'               => is_array( $schedules ) ? array_map('intval', $schedules ) : [],
             'organizer'               => 'single' === $organizer_type && $organizer ? $organizer : [],
@@ -847,6 +839,7 @@ class EventController extends WP_REST_Controller {
             'edit_with_elementor'     => $this->check_post_edit_with_elementor( $id ),
             'elementor_supported'     => $this->is_etn_post_type_supported_by_elementor( ),
             'enable_legacy_certificate_template' => get_post_meta( $id, 'enable_legacy_certificate_template', true ),
+            '_tax_status'             => get_post_meta( $id, '_tax_status', true )
         ];
 
         $location_type = get_post_meta( $id, 'etn_event_location_type', true );
@@ -1044,7 +1037,7 @@ class EventController extends WP_REST_Controller {
      * @return WP_Error|object $prepared_item
      */
     protected function prepare_item_for_database( $request ) {
-        $input_data = json_decode( $request->get_body(), true ) ?? [];
+        $input_data = is_a( $request, 'WP_REST_Request' ) ? json_decode( $request->get_body(), true ) : $request;
          $validate   = etn_validate( $input_data, [
             'title'      => [
                 'required',
@@ -1310,6 +1303,10 @@ class EventController extends WP_REST_Controller {
             $event_data['_virtual'] = $input_data['_virtual'];
         }
 
+        if ( isset( $input_data['_tax_status'] ) ) {
+            $event_data['_tax_status'] = $input_data['_tax_status'];
+        }
+
         if ( isset( $input_data['enable_legacy_certificate_template'] ) ) {
             $event_data['enable_legacy_certificate_template'] = $input_data['enable_legacy_certificate_template'];
         }
@@ -1408,7 +1405,7 @@ class EventController extends WP_REST_Controller {
             $ids = (new Event_Model())->get_ids();
         }
 
-        $exporter = new Event_Exporter();
+        $exporter = new EventExporter();
         $exporter->export( $ids, $format );
     }
 
@@ -1438,7 +1435,7 @@ class EventController extends WP_REST_Controller {
             return new WP_Error( 'empty_file', __( 'You must provide a valid file.', 'eventin' ), ['status' => 409] );
         }
 
-        $importer = new Event_Importer();
+        $importer = new EventImporter();
         $importer->import( $file );
 
         $response = [

@@ -1009,3 +1009,110 @@ if ( ! function_exists( 'etn_is_enable_wc_synchronize_order' ) ) {
         return false;
     }
 }
+
+if ( ! function_exists( 'etn_gutenberg_template_path' ) ) {
+    /**
+     * Gutenberg block paths
+     *
+     * @return  string
+     */
+    function etn_block_path() {
+        return Wpeventin::core_dir() . 'Blocks/';
+    }
+}
+
+if ( ! function_exists( 'etn_upload_image_from_url' ) ) {
+    /**
+     * Upload image from url
+     *
+     * @param   string  $image_url  Public Image url
+     *
+     * @return  integer Image attatchment id
+     */
+    function etn_upload_image_from_url( $image_url ) {
+        // Check if the URL is valid
+        if ( empty( $image_url ) || ! filter_var( $image_url, FILTER_VALIDATE_URL ) ) {
+            return new WP_Error('invalid_url', __('Invalid image URL.', 'eventin'));
+        }
+    
+        // Get the file name from the URL
+        $file_name = basename( parse_url( $image_url, PHP_URL_PATH ) );
+    
+        // Download the image
+        $image_data = wp_remote_get( $image_url, [
+            'timeout' => 30, // Increase timeout to 30 seconds
+            'blocking' => true,
+        ] );
+        if ( is_wp_error( $image_data ) ) {
+            return new WP_Error( 'download_failed', __( 'Failed to download image.', 'eventin') );
+        }
+    
+        $image_body = wp_remote_retrieve_body( $image_data );
+        if ( empty( $image_body ) ) {
+            return new WP_Error( 'empty_image', __( 'Downloaded image is empty.', 'eventin' ) );
+        }
+    
+        // Get the upload directory
+        $upload_dir = wp_upload_dir();
+        $file_path = $upload_dir['path'] . '/' . $file_name;
+    
+        // Save the image file
+        if ( ! file_put_contents( $file_path, $image_body ) ) {
+            return new WP_Error( 'file_write_error', __('Failed to write image file.', 'eventin' ) );
+        }
+    
+        // Prepare file data for WordPress upload
+        $file_info = [
+            'name'     => $file_name,
+            'type'     => mime_content_type( $file_path ),
+            'tmp_name' => $file_path,
+            'error'    => 0,
+            'size'     => filesize( $file_path ),
+        ];
+    
+        // Include WordPress file handling functions
+        require_once ABSPATH . 'wp-admin/includes/image.php';
+        require_once ABSPATH . 'wp-admin/includes/file.php';
+        require_once ABSPATH . 'wp-admin/includes/media.php';
+    
+        // Upload image to WordPress media library
+        $attachment_id = media_handle_sideload($file_info, 0);
+    
+        // Check for errors
+        if ( is_wp_error( $attachment_id ) ) {
+            @unlink($file_path); // Delete the temporary file if upload fails
+            return $attachment_id;
+        }
+    
+        // Delete the temporary file after successful upload
+        @unlink($file_path);
+    
+        return $attachment_id; // Return the attachment ID
+    }
+}
+
+if ( ! function_exists( 'etn_date_format' ) ) {
+    /**
+     * Get date formate from wordpress
+     *
+     * @return  string
+     */
+    function etn_date_format() {
+        $date_format = get_option( 'date_format' );
+
+        return $date_format;
+    }
+}
+
+if ( ! function_exists( 'etn_time_format' ) ) {
+    /**
+     * Get time formate from wordpress
+     *
+     * @return  string
+     */
+    function etn_time_format() {
+        $time_format = get_option( 'time_format' );
+
+        return $time_format;
+    }
+}

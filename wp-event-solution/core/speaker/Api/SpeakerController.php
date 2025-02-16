@@ -6,13 +6,14 @@
  */
 namespace Eventin\Speaker\Api;
 
-use Etn\Core\Speaker\Speaker_Exporter;
-use Etn\Core\Speaker\Speaker_Importer;
+use Eventin\Speaker\SpeakerExporter;
+use Eventin\Speaker\SpeakerImporter;
 use Etn\Core\Speaker\User_Model;
 use WP_Error;
 use WP_User_Query;
 use WP_REST_Controller;
 use WP_REST_Server;
+use WP_User;
 
 /**
  * Speaker Controller Class
@@ -160,8 +161,12 @@ class SpeakerController extends WP_REST_Controller {
 
         if ( $group ) {
             $group_user_ids = $this->get_user_ids_by_group($group);
-            $user_ids       = array_intersect($user_ids, $group_user_ids);
+            $user_ids       = ! empty( $group_user_ids ) ? $group_user_ids : [-1];
+        }
 
+        if ( $type ) {
+            $role_name = 'etn-' . strtolower( $type );
+            $user_ids = $this->get_user_ids_by_role( $role_name );
         }
         
         $offset = ( $paged - 1 ) * $per_page;
@@ -180,12 +185,15 @@ class SpeakerController extends WP_REST_Controller {
 
         $args = [
             'role__in' => [ 'etn-speaker', 'etn-organizer' ],
-            // 'include'       => $user_ids,
             'number'        => $per_page,
             'offset'        => $offset,
             'exclude'       => $exclude_ids,
         ];
         
+        if ( ! empty( $user_ids ) ) {
+            $args['include'] = $user_ids;
+        }
+
         if ( ! current_user_can( 'manage_options' ) ) {
             $args['meta_query'] = [
                 [
@@ -278,6 +286,27 @@ class SpeakerController extends WP_REST_Controller {
         $response->header( 'X-WP-Total', $total_posts );
 
         return $response;
+    }
+
+    /**
+     * Get users by rol name
+     *
+     * @param   array  $roles  User roles that need search
+     *
+     * @return  []              User ids for searching results
+     */
+    private function get_user_ids_by_role( $roles = [] ) {
+        if ( empty( $roles ) ) {
+            return [];
+        }
+    
+        $args = [
+            'role__in' => (array) $roles,
+            'fields'   => 'ID', // Only fetch user IDs
+        ];
+    
+        $user_query = new WP_User_Query($args);
+        return $user_query->get_results();
     }
 
     /**
@@ -501,19 +530,33 @@ class SpeakerController extends WP_REST_Controller {
 
         foreach ( $ids as $id ) {
             $speaker = new User_Model( $id );
-
             $previous = User_Model::instance()->get_data( $id );
-            if( ! array_intersect( ['speaker', 'organizer'] , $previous['category'] ) ) {
-                return new WP_Error(
-                    'rest_cannot_delete',
-                    __( 'The speaker cannot be deleted.', 'eventin' ),
-                    array( 'status' => 500 )
-                );
+        
+            if ( ! array_intersect( ['speaker', 'organizer'], $previous['category'] ) ) {
+                return new WP_Error( 'rest_cannot_delete', __( 'The speaker cannot be deleted.', 'eventin' ), [ 'status' => 500 ] );
             }
-            if ( $speaker->delete() ) {
-                $count++;
+        
+            $user = new WP_User( $id );
+            $user_roles = $user->roles;
+            $allowed_roles = ['speaker', 'organizer'];
+            $hide_user = get_user_meta( $id, 'hide_user', true );
+
+            $has_only_allowed_roles = empty(array_diff( $user_roles, $allowed_roles )) 
+                                    && !empty(array_intersect( $user_roles, $allowed_roles ));
+
+            if ( ! $has_only_allowed_roles ) {
+                if ( $hide_user == 1 ) update_user_meta( $id, 'hide_user', '' ); 
+                $user->remove_role( 'speaker' );
+                $user->remove_role( 'organizer' );
+            } else {
+                $speaker->delete();
             }
+
+        
+            $count++;
         }
+        
+
 
         if ( $count == 0 ) {
             return new WP_Error(
@@ -707,7 +750,7 @@ class SpeakerController extends WP_REST_Controller {
             $ids = User_Model::get_ids();
         }
 
-        $exporter = new Speaker_Exporter();
+        $exporter = new SpeakerExporter();
         $response = $exporter->export( $ids, $format );
 
         if ( is_wp_error( $response ) ) {
@@ -734,7 +777,7 @@ class SpeakerController extends WP_REST_Controller {
             return new WP_Error( 'empty_file', __( 'You must provide a valid file.', 'eventin' ), ['status' => 409] );
         }
 
-        $importer = new Speaker_Importer();
+        $importer = new SpeakerImporter();
         $importer->import( $file );
 
         $response = [

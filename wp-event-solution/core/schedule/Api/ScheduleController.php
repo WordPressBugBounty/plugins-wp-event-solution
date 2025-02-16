@@ -6,8 +6,8 @@
  */
 namespace Eventin\Schedule\Api;
 
-use Etn\Core\Schedule\Schedule_Exporter;
-use Etn\Core\Schedule\Schedule_Importer;
+use Eventin\Schedule\ScheduleExporter;
+use Eventin\Schedule\ScheduleImporter;
 use Etn\Core\Schedule\Schedule_Model;
 use WP_Error;
 use WP_Query;
@@ -430,6 +430,7 @@ class ScheduleController extends WP_REST_Controller {
 
         if ( ! empty( $input_data['program_title'] ) ) {
             $prepared_data['etn_schedule_title'] = $input_data['program_title'];
+            $prepared_data['post_title']         = $input_data['program_title'];
         }
 
         if ( ! empty( $input_data['date'] ) ) {
@@ -506,7 +507,7 @@ class ScheduleController extends WP_REST_Controller {
             $ids = (new Schedule_Model())->get_ids();
         }
 
-        $exporter = new Schedule_Exporter();
+        $exporter = new ScheduleExporter();
         $exporter->export( $ids, $format );
     }
 
@@ -534,7 +535,7 @@ class ScheduleController extends WP_REST_Controller {
             return new WP_Error( 'empty_file', __( 'You must provide a valid file.', 'eventin' ), ['status' => 409] );
         }
 
-        $importer = new Schedule_Importer();
+        $importer = new ScheduleImporter();
         $importer->import( $file );
 
         $response = [

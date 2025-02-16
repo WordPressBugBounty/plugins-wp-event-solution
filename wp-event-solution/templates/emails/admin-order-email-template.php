@@ -141,8 +141,8 @@
         <!-- Single Ticket Information -->
         <?php foreach( $order->get_attendees() as $attendee ): ?>
         <div>
-            <p style="margin: 8px 0px">Ticket name: <?php echo esc_html( $attendee['ticket_name'] ); ?></p>
-            <p style="margin: 8px 0px">Attendee: <?php echo esc_html( $attendee['etn_name'] ); ?></p>
+            <p style="margin: 8px 0px"><?php echo esc_html__( 'Ticket name: ', 'eventin' ) . esc_html( $attendee['ticket_name'] ); ?></p>
+            <p style="margin: 8px 0px"><?php echo esc_html__( 'Attendee: ', 'eventin' ) . esc_html( $attendee['etn_name'] ); ?></p>
             <div
                 style="
                 display: flex;
@@ -251,11 +251,13 @@
         >
         
         <?php
+            $date_format = etn_date_format();
+            $time_format = etn_time_format();
         
             if ( $event->etn_start_date == $event->etn_end_date ) {
-                printf( '%s from %s - %s %s', $event->get_start_datetime('l, F d, Y'), $event->get_start_datetime('h:i A'), $event->get_start_datetime('h:i A'), $event->get_timezone() );
+                printf( '%s from %s - %s %s', $event->get_start_datetime( $date_format ), $event->get_start_datetime( $time_format ), $event->get_start_datetime( $time_format ), $event->get_timezone() );
             } else {
-                printf( '%s at %s - %s at %s %s', $event->get_start_datetime('l, F d, Y'), $event->get_start_datetime('h:i A'), $event->get_end_datetime('l, F d, Y'), $event->get_end_datetime('h:i A'), $event->get_timezone() );
+                printf( '%s at %s - %s at %s %s', $event->get_start_datetime( $date_format ), $event->get_start_datetime( $time_format ), $event->get_end_datetime( $date_format ), $event->get_end_datetime( $time_format ), $event->get_timezone() );
             }
         ?>
         </p>

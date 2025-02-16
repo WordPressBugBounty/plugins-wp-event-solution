@@ -362,7 +362,7 @@ class Helper {
 		$unique_users = array_unique($user_data, SORT_REGULAR);
 
 		// Sort the users by name if 'title' is passed as the orderby argument
-		if ($orderby === 'title' || $orderby === 'name') {
+		if ( $orderby === 'title' || $orderby === 'display_name' ) {
 			usort($unique_users, function($a, $b) use ($order) {
 				return $order === 'ASC' ? strcmp($a->display_name, $b->display_name) : strcmp($b->display_name, $a->display_name);
 			});
@@ -2028,9 +2028,6 @@ class Helper {
 			}
 		}
 
-		// Attendee by event id
-		\Etn\Core\Event\Helper::instance()->attendee_by_events( $query );
-
 		return $query;
 	}
 
@@ -3480,7 +3477,13 @@ class Helper {
 
 			if ( class_exists( 'Wpeventin_Pro' ) ) {
 
-				$location_tax_array    = array_column( wp_get_post_terms( $event_id, 'etn_location', [ 'fields' => 'all' ] ), 'name' );
+				$terms = wp_get_post_terms( $event_id, 'etn_location', [ 'fields' => 'all' ] );
+
+				if ( is_wp_error( $terms ) ) {
+					$terms = [];
+				}
+
+				$location_tax_array    = array_column( $terms, 'name' );
 				$selected_etn_location = implode( ', ', $location_tax_array );
 				$location_type         = get_post_meta( $event_id, 'etn_event_location_type', true );
 				$event->location       = 'new_location' === $location_type ? $selected_etn_location : $location;

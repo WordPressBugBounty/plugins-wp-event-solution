@@ -4,7 +4,7 @@ namespace Etn\Core\Woocommerce;
 
 defined( 'ABSPATH' ) || exit;
 
-class Base extends \Etn\Base\Common {
+class Base {
 
     use \Etn\Traits\Singleton;
 

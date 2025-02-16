@@ -32,6 +32,7 @@ class TemplateModel extends Post_Model {
         'is_clone'      => '',
         'is_pro'        => '',
         'thumbnail'     => '',
+        'template_css'  => '',
     ];
 
     /**

@@ -25,6 +25,16 @@ if ( is_array($etn_event_schedule) && !empty($etn_event_schedule) ) {
         <?php
             $i = -1;
             if( is_array( $schedule_query ) ){
+                usort(
+                    $schedule_query,
+                    function( $a, $b ) {
+                        $a_timestamp = strtotime( get_post_meta( $a->ID, 'etn_schedule_date', true ) ?: '0' );
+                        $b_timestamp = strtotime( get_post_meta( $b->ID, 'etn_schedule_date', true ) ?: '0' );
+            
+                        return $a_timestamp <=> $b_timestamp;
+                    }
+                );
+                
                 foreach ($schedule_query as $post) :
                     $single_schedule_id = $post->ID;
                     $i++;

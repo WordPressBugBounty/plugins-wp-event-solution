@@ -113,7 +113,7 @@ class Helper {
         if ( 'offline' === $event_type && ! empty( $location ) ) { 
             return is_array( $location ) &&  ! empty( $location['address'] ) ? $location['address']: '';
         } else if ('online' === $event_type) {
-            return $event_type;
+            return ucwords($event_type);
         }
     
         return '';
@@ -346,5 +346,3 @@ class Helper {
 	}
 
 }
-
-

@@ -6,14 +6,14 @@
  */
 namespace Eventin\Order;
 
-use Etn\Base\Importer\Post_Importer_Interface;
-use Etn\Base\Importer\Reader_Factory;
+use Eventin\Importer\PostImporterInterface;
+use Eventin\Importer\ReaderFactory;
 use Etn\Core\Attendee\Attendee_Model;
 
 /**
  * Class Attendee Importer
  */
-class OrderImporter implements Post_Importer_Interface {
+class OrderImporter implements PostImporterInterface {
     /**
      * Store File
      *
@@ -35,7 +35,7 @@ class OrderImporter implements Post_Importer_Interface {
      */
     public function import( $file ) {
         $this->file  = $file;
-        $file_reader = Reader_Factory::get_reader( $file );
+        $file_reader = ReaderFactory::get_reader( $file );
 
         $this->data = $file_reader->read_file();
         $this->create_attendee();

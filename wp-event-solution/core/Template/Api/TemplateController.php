@@ -126,6 +126,7 @@ class TemplateController extends WP_REST_Controller {
             'is_clone'      => $item->is_clone,
             'is_pro'        => $item->is_pro,
             'edit_with_elementor' => $this->check_post_edit_with_elementor( $item->id ),
+            'template_css'  => $item->template_css,
         ];
 
         return $response;

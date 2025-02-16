@@ -1,5 +1,5 @@
 <?php
-namespace Etn\Base\Enqueue;
+namespace Eventin\Enqueue;
 
 /**
  * Scripts and Styles class
@@ -13,9 +13,9 @@ class Register {
     public function __construct() {
         if ( is_admin() ) {
             add_action( 'admin_enqueue_scripts', [$this, 'register'], 5 );
-        } else {
-            add_action( 'wp_enqueue_scripts', [$this, 'register'], 5 );
-        }
+        } 
+        
+        add_action( 'wp_enqueue_scripts', [$this, 'register'], 5 );
     }
 
     /**

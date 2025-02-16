@@ -1,5 +1,5 @@
 <?php
-namespace Etn\Base\Enqueue;
+namespace Eventin\Enqueue;
 
 use Wpeventin;
 
@@ -14,6 +14,7 @@ class Admin {
      */
     public function __construct() {
         add_action( 'admin_enqueue_scripts', [$this, 'enqueue_scripts'] );
+        add_action( 'elementor/frontend/before_enqueue_scripts', array( $this, 'elementor_js' ) );
     }
 
     public function i18n_loader() {
@@ -47,41 +48,70 @@ class Admin {
      * @return  void
      */
     public function enqueue_scripts( $top ) {
+        wp_enqueue_style( 'etn-event-manager-admin' ); 
+        
         $screens = [
             'toplevel_page_eventin',
             'eventin_page_etn-event-shortcode',
             'eventin_page_etn_addons',
             'eventin_page_etn-license',
-            'eventin_page_eventin_get_help'
+            'eventin_page_eventin_get_help',
+            'admin_page_etn-wizard',
         ];
 
         if ( ! in_array( $top, $screens ) ) {
             return;
         }
 
+        wp_enqueue_style( 'etn-dashboard' );
+        
+        // Block editor styles and scripts 
+        do_action('enqueue_block_assets');
+        $settings = etn_editor_settings();
+        wp_add_inline_script( 'etn-dashboard', 'window.eventinEditorSettings = ' . wp_json_encode( $settings ) . ';' );
+        wp_enqueue_script('wp-edit-post');
+
+        wp_enqueue_style( 'etn-public-css' );
+
+        
+        //experimental enqueue by Sajib
+        wp_enqueue_script('etn-dashboard' , plugins_url('build/js/dashboard.js', __FILE__), array('wp-edit-post'), \Wpeventin::version(), true);
+        
+        /**
+         * @method wp_set_script_translations
+         * It helps to load the translation file for the script
+         */ 
+        wp_set_script_translations( 'etn-dashboard', 'eventin' );
+
+        wp_localize_script('etn-dashboard' , 'eventinData', array(
+        'publicPath' => plugins_url('../../build/', __FILE__),
+        ));
+
         $this->i18n_loader();
 
         $screen    = get_current_screen();
-		$screen_id = $screen->id;
-		
-		if ( 'toplevel_page_eventin' === $screen_id ) {
+        $screen_id = $screen->id;
+        
+        if ( 'toplevel_page_eventin' === $screen_id ) {
             wp_enqueue_style( 'etn-ai' );
             wp_enqueue_script( 'etn-ai' );
-		}
+        }
 
         
         wp_enqueue_script( 'wp-color-picker' );
         wp_enqueue_script( 'media-upload' );
-        wp_enqueue_script( 'thickbox' );
-        wp_enqueue_script( 'jquery-ui-datepicker' );
-        wp_enqueue_script( 'flatpickr' );
-        wp_enqueue_script( 'jquery-repeater' );
-        wp_enqueue_script( 'select2' );
-        wp_enqueue_script( 'etn' );
-        wp_enqueue_script( 'jquery-ui' );
         wp_set_script_translations( 'etn-app-index', 'eventin' );
         wp_enqueue_script( 'etn-app-index' );
+        
+        // Enqueue the WordPress editor scripts
+        wp_enqueue_editor();
+        
+        //setting pro translations for pro components via hooks
+        wp_set_script_translations( 'etn-script-pro', 'eventin-pro' );
+        
        
+
+
         if ( ! did_action( 'wp_enqueue_media' ) ) {
             wp_enqueue_media();
         }
@@ -89,16 +119,24 @@ class Admin {
         if ( ! wp_style_is( 'wp-color-picker', 'enqueued' ) ) {
             wp_enqueue_style( 'wp-color-picker' );
         }
-        wp_enqueue_style( 'thickbox' );
-        wp_enqueue_style( 'select2' );
-        wp_enqueue_style( 'etn-icon' );
-        wp_enqueue_style( 'etn-ui' );
-        wp_enqueue_style( 'jquery-ui' );
-        wp_enqueue_style( 'flatpickr-min' );
-        wp_enqueue_style( 'event-manager-admin' );
-        wp_enqueue_style( 'etn-common' );
-        wp_enqueue_style( 'etn-public-css' ); // Just for the grid system this file is loaded in the admin which could be removed by using some flex or grid css: https://prnt.sc/XxFHXh7Q8Gsx https://prnt.sc/KtqFLFMvYAWt
+        
         wp_enqueue_style( 'etn-app-index' ); 
+        
+        wp_enqueue_style( 'etn-onboard-index' );
+        wp_enqueue_script( 'etn-onboard-index' );
+        wp_set_script_translations( 'etn-onboard-index', 'eventin' );
+        $localize_data = etn_get_locale_data();
+        wp_localize_script( 'etn-onboard-index', 'localized_data_obj', $localize_data );
+        wp_enqueue_style( 'etn-icon' );
+    }
 
+    /**
+     * Enqueue Elementor Assets
+     *
+     * @return void
+     */
+    public function elementor_js() {
+        wp_enqueue_script( 'etn-elementor-inputs', \Wpeventin::assets_url() . 'js/elementor.js', array( 'elementor-frontend' ), \Wpeventin::version(), true );
+        wp_enqueue_script( 'etn-app-index' );
     }
 }

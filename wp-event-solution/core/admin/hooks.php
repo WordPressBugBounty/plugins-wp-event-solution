@@ -31,30 +31,17 @@ class Hooks {
      * @return  void
      */
     public function init() {
-        // Add export and import tab on post types
-        add_action( 'manage_posts_extra_tablenav', [$this, 'add_export_import_button'] );
-
-        add_action( 'admin_init', [$this, 'export_data'] );
-
-        add_action( 'wp_ajax_etn_file_import', [$this, 'import_file'] );
-
-        add_action( 'save_post', [$this, 'add_flush_rules'] );
+        $this->handle_buy_pro_module();
 
         add_filter( 'eventin_settings', [$this, 'add_settings'] );
 
         add_filter( 'get_edit_post_link', [ $this, 'modifiy_event_edit_link' ], 10, 2 );
 
         add_action( 'in_plugin_update_message-' . Wpeventin::plugins_basename(), function( $plugin_data ) {
-			$this->version_update_warning( Wpeventin::version(), $plugin_data['new_version'] );
-		} );
-
-        add_action( 'admin_notices', [ $this, 'migration_notice' ] );
-
-        add_action( 'wp_ajax_etn_run_migration', [ $this, 'run_migration' ] );
+            $this->version_update_warning( Wpeventin::version(), $plugin_data['new_version'] );
+        } );
 
         add_action( 'admin_init', [ $this, 'do_upgrade' ] );
-
-        add_action( 'admin_init', [ $this, 'save_addons' ] );
 
         add_action( 'admin_init', [$this, 'etn_speaker_group_insert_to_user'] );
 
@@ -68,80 +55,13 @@ class Hooks {
 
         add_action( 'init', [ $this, 'proxy_image' ] );
 
-    }
+        add_action( 'after_setup_theme', [ $this, 'etn_activation_redirect' ], 99 );
 
-    /**
-     * Add export and import button
-     *
-     * @return  void
-     */
-    public function add_export_import_button( $which ) {
+        new \Etn\Core\Event\Api();
 
-        if ( 'top' != $which ) {
-            return;
-        }
-
-        global $post_type_object;
-
-        $export_posts = ['etn', 'etn-schedule', 'etn-speaker', 'etn-attendee'];
-        $import_posts = ['etn-schedule', 'etn-speaker', 'etn', 'etn-attendee'];
-        $nonce_action = 'etn_data_export_nonce_action';
-        $nonce_name   = 'etn_data_export_nonce';
-
-        $url      = admin_url( 'edit.php?post_type=' . $post_type_object->name );
-        $json_url = $url . '&etn-action=export&format=json';
-        $csv_url  = $url . '&etn-action=export&format=csv';
-
-        // Export button.
-        if ( in_array( $post_type_object->name, $export_posts ) ) {
-            printf( '
-            <div class="dropdown">
-                <a href="#" class="button etn-post-export">%s</a>
-                    <div class="dropdown-content">
-                        <a href="%s">%s</a>
-                        <a href="%s">%s</a>
-                    </div>
-            </div>
-        ', __( 'Export', 'eventin' ), wp_nonce_url( $json_url, $nonce_action, $nonce_name ),  __( 'Export JSON Format', 'eventin' ), wp_nonce_url( $csv_url, $nonce_action, $nonce_name ), __( 'Export CSV Format', 'eventin' ) );
-        }
-
-        // Import Button.
-        if ( in_array( $post_type_object->name, $import_posts ) ) {
-            printf( '
-            <a href="%s" class="button etn-post-import">%s</a>
-        ', $url . '&action=import', __( 'Import', 'eventin' ) );
-
-        }
-    }
-
-    /**
-     * Export data
-     *
-     * @return  void
-     */
-    public function export_data() {
-        $nonce = isset( $_GET['etn_data_export_nonce'] ) ? sanitize_text_field( $_GET['etn_data_export_nonce'] ) : '';
-
-        if ( ! wp_verify_nonce( $nonce, 'etn_data_export_nonce_action' ) ) {
-            return;
-        }
-
-        if ( ! current_user_can( 'manage_options' ) ) {
-            return;
-        }
-
-        $action    = isset( $_GET['etn-action'] ) ? sanitize_text_field( $_GET['etn-action'] ) : '';
-        $post_type = isset( $_GET['post_type'] ) ? sanitize_text_field( $_GET['post_type'] ) : '';
-        $format    = isset( $_GET['format'] ) ? sanitize_text_field( $_GET['format'] ) : '';
-
-        if ( 'export' != $action ) {
-            return;
-        }
-
-        $post_ids      = $this->get_post_ids( $post_type );
-        $post_exporter = Post_Exporter::get_post_exporter( $post_type );
-
-        $post_exporter->export( $post_ids, $format );
+        // Todo: Temporary added this function for version compatibility. Need to remove this after 4.0.21
+        add_action( 'admin_notices', [ $this, 'eventin_pro_admin_notice' ] );
+        $this->add_eventin_pro_plugin_upgrade_notice();
     }
 
     /**
@@ -162,67 +82,6 @@ class Hooks {
         $posts = get_posts( $args );
 
         return $posts;
-    }
-
-    /**
-     * Import file
-     *
-     * @return  void
-     */
-    public function import_file() {
-        $nonce      = isset( $_POST['etn_data_import_nonce'] ) ? sanitize_text_field( $_POST['etn_data_import_nonce'] ) : '';
-
-        if ( ! wp_verify_nonce( $nonce, 'etn_data_import_action' ) ) {
-            return;
-        }
-
-        if ( ! current_user_can( 'manage_options' ) ) {
-            return;
-        }
-
-        $file       = isset( $_FILES['file'] ) ? $_FILES['file'] : '';
-        $post_type  = isset( $_POST['post_type'] ) ? sanitize_text_field( $_POST['post_type'] ) : '';
-
-        if ( ! $file ) {
-            return new WP_Error( 'file_error', __( 'File can not be empty', 'eventin' ) );
-        }
-
-        $importer = Post_Importer::get_importer( $post_type );
-        $importer->import( $file );
-
-        wp_send_json_success( [
-            'success' => 1,
-            'message' => __( 'Successfully imported file', 'eventin' ),
-        ] );
-    }
-
-    /**
-     * Add flush rewrite rules after saving a post
-     *
-     * @param   integer  $pos_id
-     *
-     * @return  void
-     */
-    public function add_flush_rules( $pos_id ) {
-        $post_type = ! empty( $_POST['post_type'] ) ? sanitize_text_field( $_POST['post_type'] ) : '';
-
-        $post_types = [
-            'etn', 
-            'etn-schedule', 
-            'etn-speaker', 
-            'etn-attendee', 
-            'etn-zoom-meeting',
-        ];
-
-        if ( ! current_user_can( 'manage_options' ) ) {
-            return;
-        }
-
-        if ( ! in_array( $post_type, $post_types ) ) {
-            return;
-        }
-
-        flush_rewrite_rules();
     }
 
     /**
@@ -435,98 +294,6 @@ class Hooks {
     }
 
     /**
-     * Migration notice
-     *
-     * @return  void
-     */
-    public function migration_notice() {
-
-        $is_migrated = get_option( 'etn_is_migrated' );
-
-        if ( get_transient( 'etn_migration_success' ) ) {
-            ?>
-            <div class="notice notice-success is-dismissible">
-                <p><?php _e('Migration completed successfully!', 'eventin' ); ?></p>
-            </div>
-            <?php
-            // Delete the transient after displaying the message
-            delete_transient( 'etn_migration_success' );
-        }
-        
-        if ( $is_migrated ) {
-            return;
-        }  
-
-        $ajaxurl = admin_url( 'admin-ajax.php' );
-        $nonce   = wp_create_nonce( 'etn-migration-nonce' );
-
-        ?>
-            <div class="notice notice-warning">
-                <p><?php _e('You didn\'t run the Eventin migration. Click the button below to run it.', 'eventin'); ?></p>
-                <p><button id="etn-migrate-button" class="button button-primary"><?php _e('Run Eventin Migration', 'eventin'); ?></button></p>
-            </div>
-
-            <script>
-                jQuery(document).ready(function($) {
-                    $('#etn-migrate-button').on('click', function(e) {
-                        e.preventDefault();
-
-                        $.ajax( {
-                            url: "<?php echo $ajaxurl; ?>",
-                            type: 'POST',
-                            data: {
-                                action: 'etn_run_migration',
-                                nonce: "<?php echo $nonce; ?>"
-                            },
-                            success: function(response) {
-                                if ( response.success ) {
-                                    location.reload();
-                                } else {
-                                    alert('Migration failed.');
-                                }
-                            },
-                            error: function() {
-                                alert('An error occurred while running the migration.');
-                            }
-                        } );
-                    });
-                });
-
-            </script>
-        <?php
-    }
-
-    /**
-     * Run migration
-     *
-     * @return  void
-     */
-    public function run_migration() {
-        $nonce = ! empty( $_POST['nonce'] ) ? $_POST['nonce'] : '';
-
-        if ( ! wp_verify_nonce( $nonce, 'etn-migration-nonce' ) ) {
-            return;
-        }
-
-        if ( ! current_user_can( 'manage_options' ) ) { 
-            return; 
-        }
-
-        $is_migrated = get_option( 'etn_is_migrated' );
-
-        if ( $is_migrated ) {
-            return;
-        } 
-        
-        Upgrade::register();
-
-        set_transient( 'etn_migration_success', true, 60 );
-
-        wp_send_json_success( array( 'message' => __( 'Migration completed successfully!', 'eventin' ) ) );
-
-    }
-
-    /**
      * Upgrade the plugin migration
      *
      * @return  void
@@ -543,32 +310,11 @@ class Hooks {
     }
 
     /**
-     * Save addons settings
-     *
-     * @return  void
+     * Include speaker group to user
+     * 
+     * @since 4.0.7
+     * return void
      */
-    public function save_addons() {
-        if ( ! current_user_can( 'manage_options' ) ) {
-            return;
-        }
-
-        $nonce = ! empty( $_POST['eventin-addons-page'] ) ? sanitize_text_field( $_POST['eventin-addons-page'] ) : '';
-
-        if ( ! wp_verify_nonce( $nonce, 'eventin-addons-page' ) ) {
-            return;
-        }
-
-        $post_arr = filter_input_array( INPUT_POST, FILTER_SANITIZE_SPECIAL_CHARS );
-
-        update_option( 'etn_addons_options', $post_arr );
-    }
-
-    /**
-	 * Include speaker group to user
-	 * 
-	 * @since 4.0.7
-	 * return void
-	 */
     public function etn_speaker_group_insert_to_user() {
 
         // Check if the 'Uncategorized' term exists in the 'etn_speaker_category' taxonomy
@@ -691,6 +437,11 @@ class Hooks {
         $template_post_type->register_post_type();
     }
 
+    /**
+     * Preapre proxi image for template builder
+     *
+     * @return  string
+     */
     public function proxy_image() {
         $action = isset( $_GET['action'] ) ? $_GET['action'] : '';
 
@@ -732,5 +483,121 @@ class Hooks {
         }
 
         ob_end_flush(); // End output buffering
+    }
+
+    /**
+     * Show buy-pro menu if pro plugin not active
+     *
+     * @return void
+     */
+    public function handle_buy_pro_module() {
+
+        /**
+         * Show banner (codename: jhanda)
+         */
+        $filter_string = 'eventin,eventin-free-only';
+
+        if ( class_exists( 'Wpeventin_Pro' ) ) {
+
+            $filter_string .= ',eventin-pro';
+            $filter_string = str_replace( ',eventin-free-only', '', $filter_string );
+
+        }
+        \Wpmet\Libs\Banner::instance('eventin')
+            // ->is_test(true)
+            ->set_filter(ltrim($filter_string, ','))
+            ->set_api_url('https://demo.themewinter.com/public/jhanda')
+            ->set_plugin_screens('toplevel_page_eventin')
+
+             ->call();
+    }
+
+    /**
+     * redirect to setup wizard when active pluginn
+     *
+     */
+    public function etn_activation_redirect() {
+        if ( ( ! get_option( 'etn_wizard' ) ) ) {
+            update_option( 'etn_wizard', 'active' );
+            wp_redirect( admin_url( 'admin.php?page=etn-wizard' ) );
+            exit;
+        }
+    }
+
+    /**
+     * Add admin notice
+     * if eventin is not acitve add notice to active eventin
+     * if eventin pro version is 4.0.0 then add notice to required eventin verion 4.0.0
+     * @return void
+     */
+    public function eventin_pro_admin_notice() {
+
+        if ( ! current_user_can( 'manage_options' ) ) {
+            return;
+        }
+
+        $message = '';
+
+        $eventin_pro_required_version = '4.0.17';
+
+        if ( class_exists( 'Wpeventin_Pro' ) && version_compare( Wpeventin_Pro::version(), '4.0.17', '<' ) ) {
+            $message = sprintf(
+                '<div class="notice notice-warning is-dismissible">
+                    <p><strong>%s</strong> %s <a href="%s" target="_blank">%s</a></p>
+                </div>',
+                __( 'Important Update:', 'eventin' ),
+                __( 'A new version of <strong>Eventin Pro</strong> is available with major improvements and new features. Please update to the latest version for the best experience.', 'eventin' ),
+                esc_url( 'https://themewinter.com/eventin/pricing' ),
+                __( 'Update Now', 'eventin' )
+            );
+        }
+
+        if ( ! empty( $message ) ) {
+            ?>
+                <p>
+                    <?php echo wp_kses_post( $message ); ?>                
+                </p>
+            <?php
+        }
+    }
+    
+    /**
+     * Show plugin update notice for upgrade version
+     *
+     * @return  void
+     */
+    public function add_eventin_pro_plugin_upgrade_notice() {
+
+        if ( ! class_exists( 'Wpeventin_Pro' ) ) {
+            return;
+        }
+
+        require_once Wpeventin_Pro::plugin_dir() . 'utils/updater/edd-warper.php';
+        require_once Wpeventin_Pro::core_dir() . 'License/Utils.php';
+
+        $is_valid = \EventinPro\License\Utils::is_valid_license();
+
+        if ( ! $is_valid ) {
+            return;
+        }
+
+        $required_version = '4.0.17';
+        $pro_version      = Wpeventin_Pro::version();
+
+        if ( version_compare( $pro_version, $required_version, '<' ) ) {
+            $license_key = \EventinPro\License\Utils::get_license_key();
+            
+            new \Etn_Pro\Utils\Updater\Edd_Warper(
+                \Wpeventin_Pro::get_store_url(),
+                'eventin-pro/eventin-pro.php',
+                array(
+                    'version' => \Wpeventin_Pro::version(),
+                    'license' => $license_key,
+                    'item_id' => \Wpeventin_Pro::get_product_id(),
+                    'author'  => 'themewinter',
+                    'url'     => site_url(),
+                )
+            );
+        }
     }
 }

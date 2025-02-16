@@ -114,59 +114,83 @@ class Hooks {
 
         $event_cat = null;
         $event_tag = null;
-        $style            = !empty( $attributes["style"] ) ? $attributes["style"] : 'event-1';
 
-        if ( isset( $attributes['event_cat_ids'] ) && $attributes['event_cat_ids'] !== '' ) {
-            $event_cat = explode( ',', $attributes['event_cat_ids'] );
+        // Sanitize and validate attributes
+        $style = isset( $attributes['style'] ) && is_string( $attributes['style'] ) 
+            ? sanitize_text_field( $attributes['style'] ) 
+            : 'event-1';
+
+        if ( isset( $attributes['event_cat_ids'] ) && is_string( $attributes['event_cat_ids'] ) ) {
+            $event_cat = array_map( 'intval', explode( ',', $attributes['event_cat_ids'] ) );
         }
 
-        if ( isset( $attributes['event_tag_ids'] ) && $attributes['event_tag_ids'] !== '' ) {
-            $event_tag = explode( ',', $attributes['event_tag_ids'] );
+        if ( isset( $attributes['event_tag_ids'] ) && is_string( $attributes['event_tag_ids'] ) ) {
+            $event_tag = array_map( 'intval', explode( ',', $attributes['event_tag_ids'] ) );
         }
 
-        $event_count    = isset( $attributes["limit"] ) && is_numeric( $attributes["limit"] ) && is_numeric( $attributes["limit"] ) <= 3 ? intval( $attributes["limit"] ) : 3;
-        $order          = !empty( $attributes["order"] ) ? $attributes["order"] : 'DESC';
-        $etn_desc_limit = !empty( $attributes["desc_limit"] ) ? $attributes["desc_limit"] : 20;
-        $etn_event_col  = !empty( $attributes["etn_event_col"] ) ? $attributes["etn_event_col"] : 20;
+        $event_count = isset( $attributes['limit'] ) && is_numeric( $attributes['limit'] ) && intval( $attributes['limit'] ) <= 3 
+            ? intval( $attributes['limit'] ) 
+            : 3;
 
-        $show_parent_event = ! empty( $attributes['show_parent_event'] ) ? $attributes['show_parent_event'] : 'no';
-        $show_child_event  = ! empty( $attributes['show_child_event'] ) ? $attributes['show_child_event'] : 'yes';
-        $post_parent = Helper::show_parent_child( $show_parent_event , $show_child_event  );
+        $order = isset( $attributes['order'] ) && in_array( strtoupper( $attributes['order'] ), ['ASC', 'DESC'], true ) 
+            ? strtoupper( $attributes['order'] ) 
+            : 'DESC';
 
+        $etn_desc_limit = isset( $attributes['desc_limit'] ) ? intval( $attributes['desc_limit'] ) : 20;
+        $etn_event_col  = isset( $attributes['etn_event_col'] ) ? intval( $attributes['etn_event_col'] ) : 20;
 
-        if ( $etn_event_col == 6 ) {
-            $etn_event_col = 2;
-        } else if ( $etn_event_col == 5 ) {
-            $etn_event_col = 2;
-        } else if ( $etn_event_col == 4 ) {
-            $etn_event_col = 3;
-        } else if ( $etn_event_col == 3 ) {
-            $etn_event_col = 4;
-        } else if ( $etn_event_col == 2 ) {
-            $etn_event_col = 6;
-        } else if ( $etn_event_col == 1 ) {
-            $etn_event_col = 12;
-        }
+        $show_parent_event = isset( $attributes['show_parent_event'] ) 
+            ? sanitize_text_field( $attributes['show_parent_event'] ) 
+            : 'no';
+        $show_child_event  = isset( $attributes['show_child_event'] ) 
+            ? sanitize_text_field( $attributes['show_child_event'] ) 
+            : 'yes';
 
+        $post_parent = Helper::show_parent_child( $show_parent_event, $show_child_event );
 
-        $post_attributes    = ['title', 'ID', 'name', 'post_date'];
-        $orderby            = !empty( $attributes["orderby"] ) ? $attributes["orderby"] : 'title';
-        $orderby_meta       = in_array($orderby, $post_attributes) ? false : 'meta_value';
-        $filter_with_status = !empty( $attributes["filter_with_status"] ) ? $attributes["filter_with_status"] : '';
-        $show_end_date  = !empty( $attributes["show_end_date"] ) ? $attributes["show_end_date"] : 'no';
-        $show_event_location  = !empty( $attributes["show_event_location"] ) ? $attributes["show_event_location"] : 'yes';
+        // Validate and adjust column settings
+        $etn_event_col = match ( $etn_event_col ) {
+            6, 5 => 2,
+            4 => 3,
+            3 => 4,
+            2 => 6,
+            1 => 12,
+            default => $etn_event_col,
+        };
 
-        $etn_desc_show      = (isset($attributes["etn_desc_show"]) ? $attributes["etn_desc_show"] : 'yes');
+        // Sanitize orderby
+        $post_attributes = ['title', 'ID', 'name', 'post_date'];
+        $orderby = isset( $attributes['orderby'] ) && is_string( $attributes['orderby'] ) 
+            ? sanitize_text_field( $attributes['orderby'] ) 
+            : 'title';
+        $orderby_meta = ! in_array( $orderby, $post_attributes, true ) ? 'meta_value' : false;
 
+        $filter_with_status = isset( $attributes['filter_with_status'] ) 
+            ? sanitize_text_field( $attributes['filter_with_status'] ) 
+            : '';
+        $show_end_date = isset( $attributes['show_end_date'] ) 
+            ? sanitize_text_field( $attributes['show_end_date'] ) 
+            : 'no';
+        $show_event_location = isset( $attributes['show_event_location'] ) 
+            ? sanitize_text_field( $attributes['show_event_location'] ) 
+            : 'yes';
 
+        $etn_desc_show = isset( $attributes['etn_desc_show'] ) 
+            ? sanitize_text_field( $attributes['etn_desc_show'] ) 
+            : 'yes';
+
+        // Output buffering for rendering template
         ob_start();
 
-        if ( file_exists( \Wpeventin::widgets_dir() . "events/style/{$style}.php" ) ) {
+        // Validate file inclusion
+        $allowed_styles = ['event-1', 'event-2', 'event-3']; // Add allowed styles here
+        if ( in_array( $style, $allowed_styles, true ) && file_exists( \Wpeventin::widgets_dir() . "events/style/{$style}.php" ) ) {
             include \Wpeventin::widgets_dir() . "events/style/{$style}.php";
         }
 
         return ob_get_clean();
     }
+
     /**
      * Events Tab shortcode
      */
@@ -359,18 +383,6 @@ class Hooks {
         
 
         return ob_get_clean();
-    }
-
-    /**
-     * fetch meeting info function
-     */
-    private function fetch_meeting( $meeting_id ) {
-        $meeting_info = \Etn\Core\Zoom_Meeting\Api_Handlers::instance()->meeting_info( $meeting_id );
-        if ( count( $meeting_info ) === 0 ) {
-            return false;
-        }
-
-        return $meeting_info;
     }
 
     /**

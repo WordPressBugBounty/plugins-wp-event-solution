@@ -24,8 +24,6 @@ class AdminProvider extends Provider {
         Menu::class,
         EventReminder::class,
         TemplateRender::class,
-        OrderAttendee::class,
-        OrderTicket::class,
         WebhookIntegration::class,
         RoleManager::class,
         PermissionManager::class,

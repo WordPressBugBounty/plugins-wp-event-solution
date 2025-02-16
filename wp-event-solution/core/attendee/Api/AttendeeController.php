@@ -6,8 +6,8 @@
  */
 namespace Eventin\Attendee\Api;
 
-use Etn\Core\Attendee\Attendee_Exporter;
-use Etn\Core\Attendee\Attendee_Importer;
+use Eventin\Attendee\AttendeeExporter;
+use Eventin\Attendee\AttendeeImporter;
 use Etn\Core\Attendee\Attendee_Model;
 use Etn\Core\Event\Event_Model;
 use Eventin\Attendee\Attendee\TicketIdGenerator;
@@ -641,7 +641,7 @@ class AttendeeController extends WP_REST_Controller {
             $ids = (new Attendee_Model())->get_ids();
         }
 
-        $exporter = new Attendee_Exporter();
+        $exporter = new AttendeeExporter();
 
         $exporter->export( $ids, $format );
     }
@@ -672,7 +672,7 @@ class AttendeeController extends WP_REST_Controller {
             return new WP_Error( 'empty_file', __( 'You must provide a valid file.', 'eventin' ), ['status' => 409] );
         }
 
-        $importer = new Attendee_Importer();
+        $importer = new AttendeeImporter();
         $importer->import( $file );
 
         $response = [

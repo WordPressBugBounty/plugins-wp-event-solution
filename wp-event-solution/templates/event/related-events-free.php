@@ -5,6 +5,18 @@ use \Etn\Utils\Helper;
 defined( 'ABSPATH' ) || exit;
 
 if ( is_array( $data ) && ! empty( $data ) ) {
+
+    // Sort the data by start date
+    usort( $data, function ( $a, $b ) {
+        $start_date_a = get_post_meta( $a->ID, 'etn_start_date', true );
+        $start_date_b = get_post_meta( $b->ID, 'etn_start_date', true );
+
+        $timestamp_a = strtotime( $start_date_a );
+        $timestamp_b = strtotime( $start_date_b );
+
+        return $timestamp_a <=> $timestamp_b; // Ascending order
+    });
+
 	?>
     <div class="etn-event-related-post">
         <h3 class="related-post-title">

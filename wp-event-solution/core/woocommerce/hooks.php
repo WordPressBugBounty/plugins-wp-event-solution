@@ -149,14 +149,17 @@ class Hooks {
             return;
         }
 
-        $event_order_id = WC()->session->get('event_order_id');
+        if ( !is_admin() ) {
+            $event_order_id = WC()->session->get('event_order_id');
+        } else {
+            $event_order_id = get_post_meta($order_id, 'eventin_order_id', true);
+        }
 
-        if ( $event_order_id ) {
+        if ( ! $event_order_id ) {
             return;
         }
 
 
-        $statuses = [ 'completed', 'processing' ];
         $eventin_order_id = get_post_meta( $order_id, 'eventin_order_id', true );
         $event_order      = new OrderModel( $eventin_order_id );
 
@@ -164,7 +167,7 @@ class Hooks {
             return;
         }
         
-        if ( in_array( $order->get_status(), $statuses ) ) {
+        if ( 'completed' === $order->get_status() ) {
 
             if ( 'completed' === $event_order->status ) {
                 return;

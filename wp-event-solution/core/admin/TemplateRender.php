@@ -26,7 +26,7 @@ class TemplateRender implements HookableInterface {
             return $template;
         }
     
-        $checkout_template = \Wpeventin::templates_dir() . '/checkout-template.php';
+        $checkout_template = \Wpeventin::templates_dir() . 'checkout-template.php';
     
         if ( file_exists( $checkout_template ) ) {
             return $checkout_template;

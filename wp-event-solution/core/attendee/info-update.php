@@ -23,8 +23,8 @@ class InfoUpdate {
             $include_email   = !empty( $settings["reg_require_email"] ) ? true : false;
 
             // render template
-            if( file_exists( \Wpeventin::core_dir() . "attendee/views/ticket/info-update.php" ) ){
-                include_once \Wpeventin::core_dir() . "attendee/views/ticket/info-update.php";
+            if( file_exists( \Wpeventin::templates_dir() . "attendee/info-update.php" ) ){
+                include_once \Wpeventin::templates_dir() . "attendee/info-update.php";
             }
         }
         return;
@@ -36,8 +36,8 @@ class InfoUpdate {
             $post_arr = filter_input_array( INPUT_POST, FILTER_SANITIZE_SPECIAL_CHARS );  
 
             // render template
-            if( file_exists( \Wpeventin::core_dir() . "attendee/views/ticket/update-attendee.php" ) ){
-                include_once \Wpeventin::core_dir() . "attendee/views/ticket/update-attendee.php";
+            if( file_exists( \Wpeventin::templates_dir() . "attendee/update-attendee.php" ) ){
+                include_once \Wpeventin::templates_dir() . "attendee/update-attendee.php";
             }
         }
     }
