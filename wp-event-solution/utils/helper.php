@@ -4222,8 +4222,8 @@ class Helper {
 		include_once \Wpeventin::plugin_dir() . 'core/event/template-functions.php';
 
 		if ( class_exists( 'Wpeventin_Pro' ) ) { 
-			include_once \Wpeventin_Pro::core_dir().'event/template-functions.php';
-			include_once \Wpeventin_Pro::core_dir().'event/template-hooks.php';
+			include_once \Wpeventin_Pro::core_dir().'Event/template-functions.php';
+			include_once \Wpeventin_Pro::core_dir().'Event/template-hooks.php';
 		}
 	}
 		

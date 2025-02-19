@@ -566,7 +566,7 @@ class Hooks {
     public function etn_redirect_checkout_add_cart($url) {
         $cart = WC()->cart;
         // If there is no event in cart item, don't apply the redirect
-        if ( ! $cart->is_empty() ) {
+        if ( $cart instanceof \WC_Cart && ! $cart->is_empty() ) {
             foreach ( $cart->get_cart() as $cart_item_key => $cart_item ) {
                 if( ('Etn_Woo_Product' == get_class($cart_item['data']) ) && ( 'etn' == $cart_item['data']->post_type) ){
                     $add_to_cart_redirect       = etn_get_option( 'add_to_cart_redirect', 'event' );

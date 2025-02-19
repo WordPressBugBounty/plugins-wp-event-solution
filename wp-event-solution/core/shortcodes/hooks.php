@@ -116,33 +116,33 @@ class Hooks {
         $event_tag = null;
 
         // Sanitize and validate attributes
-        $style = isset( $attributes['style'] ) && is_string( $attributes['style'] ) 
+        $style = ! empty( $attributes['style'] ) && is_string( $attributes['style'] ) 
             ? sanitize_text_field( $attributes['style'] ) 
             : 'event-1';
 
-        if ( isset( $attributes['event_cat_ids'] ) && is_string( $attributes['event_cat_ids'] ) ) {
+        if ( ! empty( $attributes['event_cat_ids'] ) && is_string( $attributes['event_cat_ids'] ) ) {
             $event_cat = array_map( 'intval', explode( ',', $attributes['event_cat_ids'] ) );
         }
 
-        if ( isset( $attributes['event_tag_ids'] ) && is_string( $attributes['event_tag_ids'] ) ) {
+        if ( ! empty( $attributes['event_tag_ids'] ) && is_string( $attributes['event_tag_ids'] ) ) {
             $event_tag = array_map( 'intval', explode( ',', $attributes['event_tag_ids'] ) );
         }
 
-        $event_count = isset( $attributes['limit'] ) && is_numeric( $attributes['limit'] ) && intval( $attributes['limit'] ) <= 3 
+        $event_count = ! empty( $attributes['limit'] ) && is_numeric( $attributes['limit'] ) && intval( $attributes['limit'] ) <= 3 
             ? intval( $attributes['limit'] ) 
-            : 3;
+            : -1;
 
-        $order = isset( $attributes['order'] ) && in_array( strtoupper( $attributes['order'] ), ['ASC', 'DESC'], true ) 
+        $order = ! empty( $attributes['order'] ) && in_array( strtoupper( $attributes['order'] ), ['ASC', 'DESC'], true ) 
             ? strtoupper( $attributes['order'] ) 
             : 'DESC';
 
-        $etn_desc_limit = isset( $attributes['desc_limit'] ) ? intval( $attributes['desc_limit'] ) : 20;
-        $etn_event_col  = isset( $attributes['etn_event_col'] ) ? intval( $attributes['etn_event_col'] ) : 20;
+        $etn_desc_limit = ! empty( $attributes['desc_limit'] ) ? intval( $attributes['desc_limit'] ) : 20;
+        $etn_event_col  = ! empty( $attributes['etn_event_col'] ) ? intval( $attributes['etn_event_col'] ) : 20;
 
-        $show_parent_event = isset( $attributes['show_parent_event'] ) 
+        $show_parent_event = ! empty( $attributes['show_parent_event'] ) 
             ? sanitize_text_field( $attributes['show_parent_event'] ) 
             : 'no';
-        $show_child_event  = isset( $attributes['show_child_event'] ) 
+        $show_child_event  = ! empty( $attributes['show_child_event'] ) 
             ? sanitize_text_field( $attributes['show_child_event'] ) 
             : 'yes';
 

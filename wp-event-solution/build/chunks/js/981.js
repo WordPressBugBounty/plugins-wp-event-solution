@@ -117,7 +117,7 @@
 		max-width: 220px;
 
 		input.ant-input {
-			min-height: auto;
+			min-height: 32px !important;
 		}
 	}
 `},96031:(e,t,n)=>{n.d(t,{A:()=>x});var a=n(51609),r=n(56427),o=n(27723),i=n(92911),l=n(52741),s=n(11721),c=n(47767),d=n(69815),p=n(7638),u=n(79664),g=n(18062),m=n(27154),f=n(54725);const h=d.default.div`

@@ -111,13 +111,13 @@ class Menu implements HookableInterface {
             ],
             [
                 'title'      => __( 'Template Builder', 'eventin' ),
-                'capability' => $this->base_capability,
+                'capability' => 'etn_manage_template',
                 'url'        => 'admin.php?page=' . $this->menu_slug . '#/template-builder',
                 'position'   => 8,
 			],
             [
 				'title'      => __( 'Shortcodes', 'eventin' ),
-				'capability' => $this->base_capability,
+				'capability' => 'etn_manage_shortcode',
 				'url'        => 'admin.php?page=' . $this->menu_slug . '#/shortcodes',
                 'position'   => 9,
 			],

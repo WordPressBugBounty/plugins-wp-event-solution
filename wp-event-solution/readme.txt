@@ -3,7 +3,7 @@ Contributors: themewinter, ataurr, abrasel600, rezakhan995
 Tags: event, calendar, tickets, organizer, schedule
 Requires at least: 5.2
 Tested up to: 6.7
-Stable tag: 4.0.22
+Stable tag: 4.0.23
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -196,6 +196,15 @@ Of course! Since Eventin event manager plugin has integrated with WooCommerce, y
 Eventin event scheduling plugin supports multi-language on your WordPress site with WPML 
 
 == Changelog ==
+
+= 4.0.23 ( February 19, 2025 )=
+Fix : Events shortcode couldn't show events if catgory is blank
+Fix : Menu permission update for template and shortcode
+Fix : User already exist for speaker organizer if make speaker or organizer from user list
+Fix : Through exception if unknown timezone set
+Fix : Template file open error
+Fix : Null cart object error on woocommerce
+Fix : Error Notification before payment initialization for stripe and paypal
 
 = 4.0.22 ( February 16, 2025 )=
 Fix   : Updated php@7.4 compatible issues

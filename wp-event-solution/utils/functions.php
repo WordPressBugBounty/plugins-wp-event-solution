@@ -365,8 +365,8 @@ if ( ! function_exists( 'etn_create_date_timezone' ) ) {
             return $formattedOffset;
         }
 
-        // If the timezone string doesn't match any known format, throw an exception
-        throw new Exception('Unknown or bad timezone: ' . $timezoneString);
+        // If the timezone string doesn't match any known format, return default
+        return 'America/New_York';
     }
 }
 

@@ -113,6 +113,8 @@ class Hooks {
             'wc_order_status_list' => etn_get_wc_order_status_list(), 
             'wc_order_statuses'    => etn_get_wc_order_statuses(),
             'show_ticket_expiry_date'  => etn_get_option( 'show_ticket_expiry_date', false ),
+            "add_to_cart_redirect"     => etn_get_option( 'add_to_cart_redirect','checkout' ),
+            "order_thank_you_redirect" => etn_get_option( 'order_thank_you_redirect','eventin_thankyou' ),
         ];
 
         return array_merge( $settings, $new_settings );

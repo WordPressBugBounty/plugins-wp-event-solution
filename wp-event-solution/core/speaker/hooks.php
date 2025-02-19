@@ -136,6 +136,7 @@ class Hooks {
 
         if ( 'make_speaker' === $action ) {
             $user->add_role( 'etn-speaker' );
+            update_user_meta( $user->ID, 'etn_speaker_website_email', $user->user_email );
         }
 
         if ( 'remove_speaker' === $action ) {
@@ -144,6 +145,7 @@ class Hooks {
 
         if ( 'make_organizer' === $action ) {
             $user->add_role( 'etn-organizer' );
+            update_user_meta( $user->ID, 'etn_speaker_website_email', $user->user_email );
         }
 
         if ( 'remove_organizer' === $action ) {
