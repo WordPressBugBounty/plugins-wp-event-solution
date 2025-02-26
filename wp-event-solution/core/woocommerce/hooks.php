@@ -35,7 +35,7 @@ class Hooks {
         // Redirect success page after woocommerce payment.
         add_action( 'woocommerce_thankyou', [ $this, 'redirect_success_page' ] );
 
-        add_action( 'woocommerce_order_status_changed', [ $this, 'eventin_order_update' ], 10, 3 );
+        add_action( 'woocommerce_order_status_changed', [ $this, 'eventin_order_update' ], 10, 4 );
 
         // Handle actions on order status change
         // add_action('woocommerce_order_status_changed', [$this, 'update_event_stock_on_order_status_update' ], 10, 3);
@@ -142,7 +142,7 @@ class Hooks {
      *
      * @return  void    Updated order on woocoomerce order changed
      */
-    public function eventin_order_update( $order_id ) {
+    public function eventin_order_update( $order_id, $old_status, $new_status, $order ) {
         $order = wc_get_order( $order_id );
 
         if ( ! $order ) {
@@ -166,29 +166,37 @@ class Hooks {
         if ( ! $eventin_order_id ) {
             return;
         }
-        
-        if ( 'completed' === $order->get_status() ) {
 
-            if ( 'completed' === $event_order->status ) {
-                return;
-            }
+        switch ($order->get_status()) {
+            case "completed":
+                if ( 'completed' === $event_order->status ) {
+                    return;
+                }
 
-            $event_order->update([
-                'status' => 'completed'
-            ]);
+                $event_order->update([
+                    'status' => 'completed'
+                ]);
 
-            do_action( 'eventin_order_completed', $event_order );
+                do_action( 'eventin_order_completed', $event_order );
 
-            $event_order->send_email();
+                $event_order->send_email();
+            break;
+
+            case "refunded":
+                $event_order->update([
+                    'status' => 'refunded',
+                ]);
+
+                do_action( 'eventin_order_refund', $event_order );
+            break;
+            default:
+                $event_order->update([
+                    'status' => 'failed',
+                ]);
+
+                do_action( 'eventin_order_failed', $event_order );
         }
 
-        if ( 'refunded' === $order->get_status() ) {
-            $event_order->update([
-                'status' => 'refunded',
-            ]);
-
-            do_action( 'eventin_order_refund', $event_order );
-        }
     }
 
     /**
@@ -197,7 +205,11 @@ class Hooks {
      * @return  void
      */
     public function attatch_eventin_order_id( $wc_order_id ) {
-        $event_order_id = WC()->session->get('event_order_id');
+        if ( !is_admin() ) {
+            $event_order_id = WC()->session->get('event_order_id');
+        } else {
+            $event_order_id = get_post_meta($order_id, 'eventin_order_id', true);
+        }
 
         if ( ! $event_order_id ) {
             return;

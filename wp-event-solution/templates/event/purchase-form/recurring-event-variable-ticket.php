@@ -30,76 +30,77 @@ $event_end_time      = $event->etn_end_time;
 $event_end_date_time = strtotime( $event_end_date . ' ' . $event_end_time );
 
 ?>
-<div class="etn-widget etn-recurring-widget <?php echo esc_attr( $active_class ); ?>">
+<div class="etn-widget etn-recurring-widget <?php echo esc_attr($active_class); ?>"
+    <?php echo ($i < 3) ? 'style="display:block"' : 'style="display:none"'; ?>>
     <div class="etn-row">
         <div class="etn-col-lg-12">
             <div class="recurring-content <?php echo esc_attr( $active_class ); ?>">
                 <div class="etn-recurring-header">
                     <div class="etn-left-datemeta">
                         <div class="etn-date-meta">
-							<?php
+                            <?php
 							$start_date     = $data['event_start_date'];
 							$end_date       = $data['event_end_date'];
 							$same_day_event = ( $start_date === $end_date ) ? true : false;
 							?>
 
                             <p class="etn-date-text">
-								<?php echo esc_html( $start_date ); ?>
+                                <?php echo esc_html( $start_date ); ?>
                             </p>
 
-							<?php if ( ! $same_day_event ) : ?>
-                                <p class="etn-date-to">
-									<?php echo esc_html__( 'To', 'eventin' ) ?>
-                                </p>
+                            <?php if ( ! $same_day_event ) : ?>
+                            <p class="etn-date-to">
+                                <?php echo esc_html__( 'To', 'eventin' ) ?>
+                            </p>
 
-                                <p class="etn-date-text">
-									<?php echo esc_html( $end_date ); ?>
-                                </p>
-							<?php endif; ?>
+                            <p class="etn-date-text">
+                                <?php echo esc_html( $end_date ); ?>
+                            </p>
+                            <?php endif; ?>
                         </div>
-						<?php
+                        <?php
 						// show if this is a zoom event
 						if ( isset( $is_zoom_event ) && ( "on" == $is_zoom_event || "yes" == $is_zoom_event ) ) {
 							?>
-                            <div class="etn-zoom-event-notice">
-                                <img src="<?php echo esc_url( \Wpeventin::assets_url() . "images/zoom.svg" ); ?>"
-                                     alt="<?php echo esc_attr__( 'Zoom', 'eventin' ) ?>">
-								<?php echo esc_html__( "Zoom Event", "eventin" ); ?>
-                            </div>
-							<?php
+                        <div class="etn-zoom-event-notice">
+                            <img src="<?php echo esc_url( \Wpeventin::assets_url() . "images/zoom.svg" ); ?>"
+                                alt="<?php echo esc_attr__( 'Zoom', 'eventin' ) ?>">
+                            <?php echo esc_html__( "Zoom Event", "eventin" ); ?>
+                        </div>
+                        <?php
 						}
 						?>
                     </div>
                     <div class="etn-title-wrap">
                         <div class="etn-time-meta">
-							<?php
+                            <?php
 							if ( ! isset( $event_options["etn_hide_time_from_details"] ) ) {
 								$separate = ( ! empty( $data['event_end_time'] ) ) ? ' - ' : '';
 								?>
-                                <div>
-                                    <i class="etn-icon etn-clock"></i>
-									<?php echo esc_html( $data['event_start_time'] . $separate . $data['event_end_time'] ); ?>
-                                    <span class="etn-event-timezone">
-                                        <?php
+                            <div>
+                                <i class="etn-icon etn-clock"></i>
+                                <?php echo esc_html( $data['event_start_time'] . $separate . $data['event_end_time'] ); ?>
+                                <span class="etn-event-timezone">
+                                    <?php
                                         if ( ! empty( $data['event_timezone'] ) && ! isset( $event_options["etn_hide_timezone_from_details"] ) ) {
 	                                        ?>
-                                            (<?php echo esc_html( $data['event_timezone'] ); ?>)
-	                                        <?php
+                                    (<?php echo esc_html( $data['event_timezone'] ); ?>)
+                                    <?php
                                         }
                                         ?>
-                                    </span>
-                                </div>
-								<?php
+                                </span>
+                            </div>
+                            <?php
 							}
 							?>
                         </div>
                         <h4 class="etn-title etn-post-title etn-accordion-heading">
                             <a href="<?php echo esc_url( get_permalink( $single_event_id ) ); ?>">
-								<?php echo esc_html( $event_title ); ?>
+                                <?php echo esc_html( $event_title ); ?>
                             </a>
                         </h4>
                     </div>
-					
+
                     <?php
 					// Recurring event small thumbnail show / hide
 					$parent_post_id = wp_get_post_parent_id($single_event_id);
@@ -107,41 +108,44 @@ $event_end_date_time = strtotime( $event_end_date . ' ' . $event_end_time );
 
 					if($recurring_thumb != 'yes'){
 						?>
-						<div class="etn-thumb-wrap">
-							<?php echo get_the_post_thumbnail( $single_event_id ); ?>
-						</div>
-					<?php } ?>
+                    <div class="etn-thumb-wrap">
+                        <?php echo get_the_post_thumbnail( $single_event_id ); ?>
+                    </div>
+                    <?php } ?>
 
                     <i class="etn-icon etn-angle-down"></i>
                 </div>
-                <div class="etn-widget etn-variable-ticket-widget etn-form-wrap" <?php echo esc_attr( $active_item ); ?>>
+                <div class="etn-widget etn-variable-ticket-widget etn-form-wrap"
+                    <?php echo esc_attr( $active_item ); ?>>
                     <div class="etn-row">
                         <div class="etn-col-lg-4">
                             <div class="etn-recurring-add-calendar">
-								<?php
+                                <?php
 								etn_after_single_event_meta_add_to_calendar( $single_event_id );
 								?>
                             </div>
                         </div>
                         <div class="etn-col-lg-8">
-							<?php
+                            <?php
 
 							if($disable_purchase_form != 'yes'){
 						
 								$show_form_button = apply_filters( "etn_form_submit_visibility", true, $single_event_id );
 								if ( $event_left_ticket <= 0 ) {
 									?>
-									<h4><?php echo esc_html__( 'All Tickets Sold!!', "eventin" ); ?></h4>
-									<?php
+                            <h4><?php echo esc_html__( 'All Tickets Sold!!', "eventin" ); ?></h4>
+                            <?php
 								} else if ( time() > $event_end_date_time ) {
 									?>
-									<h4 class="registration-expired-message"><?php echo esc_html__( 'Registration Deadline Expired!!', "eventin" ); ?></h4>
-									<?php
+                            <h4 class="registration-expired-message">
+                                <?php echo esc_html__( 'Registration Deadline Expired!!', "eventin" ); ?></h4>
+                            <?php
 								} else if ( $show_form_button === false ) {
 									?>
-									<h4 class="registration-expired-message"><?php echo esc_html__( 'Registration Deadline Expired!!', "eventin" ); ?></h4>
-									<div class="etn-event-form-parent"></div>
-									<?php
+                            <h4 class="registration-expired-message">
+                                <?php echo esc_html__( 'Registration Deadline Expired!!', "eventin" ); ?></h4>
+                            <div class="etn-event-form-parent"></div>
+                            <?php
 								} else { 
 									Helper::eventin_ticket_widget( $single_event_id );
 								}

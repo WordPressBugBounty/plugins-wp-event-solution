@@ -227,12 +227,12 @@ if ( ! function_exists( 'etn_after_single_event_meta_ticket_form' ) ) {
 	
 		// Whether to show ticket selector and sell tickets, are controlled in frontend now.
 		?>
-		<div class="etn-single-event-ticket-wrap">
-			<?php if ($recurring_enabled !== 'yes') { 
+<div class="etn-single-event-ticket-wrap">
+    <?php if ($recurring_enabled !== 'yes') { 
 				Helper::eventin_ticket_widget( $single_event_id );
 			} ?>
-		</div>
-		<?php
+</div>
+<?php
 	}
 } 
 
@@ -275,10 +275,10 @@ if ( ! function_exists( 'etn_after_single_event_meta_recurring_event_ticket_form
 
 				}
 				?>
-			<div class="etn-single-event-ticket-wrap">
-				<?php Helper::woocommerce_recurring_events_ticket_widget( $single_event_id, $child_event_ids ); ?>
-			</div>
-			<?php
+<div class="etn-single-event-ticket-wrap">
+    <?php Helper::woocommerce_recurring_events_ticket_widget( $single_event_id, $child_event_ids ); ?>
+</div>
+<?php
 			}
 			 
 		}
@@ -361,9 +361,12 @@ if ( ! function_exists( 'etn_after_recurring_event_form_content' ) ) {
 	 */
 	function etn_after_recurring_event_form_content( $single_event_id ) {
 		?>
-    <button id="seeMore">
-        <?php echo esc_html__( 'Show More Event', 'eventin' ); ?> <i class="etn-icon etn-plus"></i>
-    </button>
+    <div>
+        <button id="seeMore" type="button">
+            <?php echo esc_html__( 'Show More Event', 'eventin' ); ?>
+            <i class="etn-icon etn-plus"></i>
+        </button>
+    </div>
 </div>
 
 <?php

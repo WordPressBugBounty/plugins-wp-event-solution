@@ -16,6 +16,8 @@ class Register {
         } 
         
         add_action( 'wp_enqueue_scripts', [$this, 'register'], 5 );
+
+        add_action( 'wp_head', [ $this, 'register_custom_inline' ] );
     }
 
     /**
@@ -210,5 +212,151 @@ class Register {
         }
 
         return $file_path;
+    }
+
+    /**
+     * Register custom inline css
+     *
+     * @return  void
+     */
+    public function register_custom_inline() {
+        $settings        = etn_get_option();
+		$etn_custom_css  = '';
+		$primary_color   = '#5D78FF';
+		$secondary_color = '';
+
+		// cart bg color.
+		if ( ! empty( $settings['etn_primary_color'] ) ) {
+			$primary_color = $settings['etn_primary_color'];
+		}
+
+		// cart icon color.
+		if ( ! empty( $settings['etn_secondary_color'] ) ) {
+			$secondary_color = $settings['etn_secondary_color'];
+		}
+
+		$etn_custom_css .= "
+        .etn-event-single-content-wrap .etn-event-meta .etn-event-category span,
+        .etn-event-item .etn-event-footer .etn-atend-btn .etn-btn-border,
+        .etn-btn.etn-btn-border, .attr-btn-primary.etn-btn-border,
+        .etn-attendee-form .etn-btn.etn-btn-border,
+        .etn-ticket-widget .etn-btn.etn-btn-border,
+        .etn-settings-dashboard .button-primary.etn-btn-border,
+        .etn-single-speaker-item .etn-speaker-content a:hover,
+        .etn-event-style2 .etn-event-date,
+        .etn-event-style3 .etn-event-content .etn-title a:hover,
+        .event-tab-wrapper ul li a.etn-tab-a,
+        .etn-speaker-item.style-3:hover .etn-speaker-content .etn-title a,
+		.etn-variable-ticket-widget .ticket-header,
+		.events_calendar_list .calendar-event-details:hover .calendar-event-title,
+        .etn-event-item:hover .etn-title a,
+		.etn-recurring-widget .etn-date-text,
+		
+		.etn-event-header ul li i {
+            color: {$primary_color};
+        }
+        .etn-event-item .etn-event-category span,
+        .etn-btn, .attr-btn-primary,
+        .etn-attendee-form .etn-btn,
+        .etn-ticket-widget .etn-btn,
+        .schedule-list-1 .schedule-header,
+        .speaker-style4 .etn-speaker-content .etn-title a,
+        .etn-speaker-details3 .speaker-title-info,
+        .etn-event-slider .swiper-pagination-bullet, .etn-speaker-slider .swiper-pagination-bullet,
+        .etn-event-slider .swiper-button-next, .etn-event-slider .swiper-button-prev,
+        .etn-speaker-slider .swiper-button-next, .etn-speaker-slider .swiper-button-prev,
+        .etn-single-speaker-item .etn-speaker-thumb .etn-speakers-social a,
+        .etn-event-header .etn-event-countdown-wrap .etn-count-item,
+        .schedule-tab-1 .etn-nav li a.etn-active,
+        .schedule-list-wrapper .schedule-listing.multi-schedule-list .schedule-slot-time,
+        .etn-speaker-item.style-3 .etn-speaker-content .etn-speakers-social a,
+        .event-tab-wrapper ul li a.etn-tab-a.etn-active,
+        .etn-btn, button.etn-btn.etn-btn-primary,
+        .etn-schedule-style-3 ul li:before,
+        .etn-zoom-btn,
+        .cat-radio-btn-list [type=radio]:checked+label:after,
+        .cat-radio-btn-list [type=radio]:not(:checked)+label:after,
+        .etn-default-calendar-style .fc-button:hover,
+        .etn-default-calendar-style .fc-state-highlight,
+		.etn-calender-list a:hover,
+        .events_calendar_standard .cat-dropdown-list select,
+		.etn-event-banner-wrap,
+		.events_calendar_list .calendar-event-details .calendar-event-content .calendar-event-category-wrap .etn-event-category,
+		.etn-variable-ticket-widget .etn-add-to-cart-block,
+		.etn-recurring-event-wrapper #seeMore,
+		.more-event-tag,
+        .etn-settings-dashboard .button-primary{
+            background-color: {$primary_color};
+        }
+
+        .etn-event-item .etn-event-footer .etn-atend-btn .etn-btn-border,
+        .etn-btn.etn-btn-border, .attr-btn-primary.etn-btn-border,
+        .etn-attendee-form .etn-btn.etn-btn-border,
+        .etn-ticket-widget .etn-btn.etn-btn-border,
+        .event-tab-wrapper ul li a.etn-tab-a,
+        .event-tab-wrapper ul li a.etn-tab-a.etn-active,
+        .etn-schedule-style-3 ul li:after,
+        .etn-default-calendar-style .fc-ltr .fc-basic-view .fc-day-top.fc-today .fc-day-number,
+        .etn-default-calendar-style .fc-button:hover,
+		.etn-variable-ticket-widget .etn-variable-total-price,
+        .etn-settings-dashboard .button-primary.etn-btn-border{
+            border-color: {$primary_color};
+        }
+        .schedule-tab-wrapper .etn-nav li a.etn-active,
+        .etn-speaker-item.style-3 .etn-speaker-content{
+            border-bottom-color: {$primary_color};
+        }
+        .schedule-tab-wrapper .etn-nav li a:after,
+        .etn-event-list2 .etn-event-content,
+        .schedule-tab-1 .etn-nav li a.etn-active:after{
+            border-color: {$primary_color} transparent transparent transparent;
+        }
+
+        .etn-default-calendar-style .fc .fc-daygrid-bg-harness:first-of-type:before{
+            background-color: {$primary_color}2A;
+        }
+		 .sidebar .etn-default-calendar-style .fc .fc-daygrid-bg-harness:nth-of-type(1)::before,
+		 .left-sidebar .etn-default-calendar-style .fc .fc-daygrid-bg-harness:nth-of-type(1)::before,
+		 .right-sidebar .etn-default-calendar-style .fc .fc-daygrid-bg-harness:nth-of-type(1)::before,
+		  .widget .etn-default-calendar-style .fc .fc-daygrid-bg-harness:nth-of-type(1)::before,
+		   .widgets .etn-default-calendar-style .fc .fc-daygrid-bg-harness:nth-of-type(1)::before,
+		   .main-sidebar .etn-default-calendar-style .fc .fc-daygrid-bg-harness:nth-of-type(1)::before,
+		    #sidebar .etn-default-calendar-style .fc .fc-daygrid-bg-harness:nth-of-type(1)::before{
+				background-color: {$primary_color};
+		 }
+
+
+        .etn-event-item .etn-event-location,
+        .etn-event-tag-list a:hover,
+        .etn-schedule-wrap .etn-schedule-info .etn-schedule-time{
+            color: {$secondary_color};
+        }
+        .etn-event-tag-list a:hover{
+            border-color: {$secondary_color};
+        }
+        .etn-btn:hover, .attr-btn-primary:hover,
+        .etn-attendee-form .etn-btn:hover,
+        .etn-ticket-widget .etn-btn:hover,
+        .speaker-style4 .etn-speaker-content p,
+        .etn-btn, button.etn-btn.etn-btn-primary:hover,
+        .etn-zoom-btn,
+		.events_calendar_list .calendar-event-details .event-calendar-action .etn-btn, .events_calendar_list .calendar-event-details .event-calendar-action .etn-price.event-calendar-details-btn,
+        .etn-speaker-item.style-3 .etn-speaker-content .etn-speakers-social a:hover,
+        .etn-single-speaker-item .etn-speaker-thumb .etn-speakers-social a:hover,
+		.etn-recurring-event-wrapper #seeMore:hover, .etn-recurring-event-wrapper #seeMore:focus,
+        .etn-settings-dashboard .button-primary:hover{
+            background-color: {$secondary_color};
+        }
+		.events_calendar_list .calendar-event-details .event-calendar-action .etn-btn {
+			max-width: 120px;
+			display: block;
+			text-align: center;
+			margin-left: auto;
+		}";
+
+		// add inline css.
+		wp_register_style( 'etn-custom-css', false );
+		wp_enqueue_style( 'etn-custom-css' );
+		wp_add_inline_style( 'etn-custom-css', $etn_custom_css );
     }
 }

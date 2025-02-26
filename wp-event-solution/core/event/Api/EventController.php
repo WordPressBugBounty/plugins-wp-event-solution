@@ -453,12 +453,12 @@ class EventController extends WP_REST_Controller {
 
         // Update event categories.
         if ( ! empty( $prepared_event['categories'] ) ) {
-            $this->assign_categories( $request['id'], $prepared_event['categories'] );
+            $this->assign_categories( $event->id, $prepared_event['categories'] );
         }
 
         // Update event tags.
         if ( ! empty( $prepared_event['tags'] ) ) {
-            $this->assign_tags( $request['id'], $prepared_event['tags'] );
+            $this->assign_tags( $event->id, $prepared_event['tags'] );
         }
 
         // Manage online event.

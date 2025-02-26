@@ -56,7 +56,7 @@ class EventImporter implements PostImporterInterface {
             $args = [
                 'post_status'                       => ! empty( $row['status'] ) ? $row['status'] : 'publish',
                 'post_title'                        => ! empty( $row['title'] ) ? sanitize_text_field( $row['title'] ) : '',
-                'post_content'  => ! empty( $row['description'] ) ? sanitize_text_field( $row['description'] ) : '',
+                'post_content'  => ! empty( $row['description'] ) ? $row['description'] : '',
                 'etn_start_date'                    => ! empty( $row['start_date'] ) ? sanitize_text_field( $row['start_date'] ) : '',
                 'etn_end_date'  => ! empty( $row['end_date'] ) ? sanitize_text_field( $row['end_date'] ) : '',
                 'etn_start_time'                    => ! empty( $row['start_time'] ) ? sanitize_text_field( $row['start_time'] ) : '',

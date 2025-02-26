@@ -28,7 +28,7 @@ class Frontend {
 	 *  Front-end scripts.
 	 */
 	public function js_css_front_end() {
-		$screen = get_current_screen();
+		// $screen = get_current_screen();
 		// Main script of seat plan script and js
  	}
 

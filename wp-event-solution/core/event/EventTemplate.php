@@ -60,6 +60,21 @@ class EventTemplate implements HookableInterface {
     public function event_single_page( $template ) {
         global $post;
 
+        if (class_exists('Elementor\Plugin')) {
+
+            $current_post_id = get_the_ID();
+            $page_settings_manager = \Elementor\Plugin::$instance->documents->get($current_post_id);
+
+            if ( $page_settings_manager ) {
+                $page_settings_manager = $page_settings_manager->get_settings();
+            }
+
+            if (isset($page_settings_manager['template']) && ( 'elementor_canvas' == $page_settings_manager['template'] || 'elementor_header_footer' == $page_settings_manager['template']) ) {
+                 
+                return $template;
+            }
+        }
+
         if ( ! $post ) {
             return $template;
         }

@@ -3,7 +3,7 @@ Contributors: themewinter, ataurr, abrasel600, rezakhan995
 Tags: event, calendar, tickets, organizer, schedule
 Requires at least: 5.2
 Tested up to: 6.7
-Stable tag: 4.0.23
+Stable tag: 4.0.24
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -196,6 +196,17 @@ Of course! Since Eventin event manager plugin has integrated with WooCommerce, y
 Eventin event scheduling plugin supports multi-language on your WordPress site with WPML 
 
 == Changelog ==
+
+= 4.0.24 ( February 25, 2025 )=
+New : Our plugins page added
+Fix : Category and tags added on event creation
+Fix : Couldn't show purchased event menu on wc myaccount page
+Fix : Primary and seconday color from setting doesn't effect on frontend
+Fix : Added ticket details on my account order details
+Fix : Event prevous date couldn't update
+Fix : Custom inline css not working
+Fix : Import description couldn't import properly
+Fix : Speaker imoprt not working throw frontend error
 
 = 4.0.23 ( February 19, 2025 )=
 Fix : Events shortcode couldn't show events if catgory is blank
