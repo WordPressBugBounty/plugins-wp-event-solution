@@ -365,8 +365,7 @@ class OrderController extends WP_REST_Controller {
         if ( is_wp_error( $prepared_order ) ) {
             return new WP_Error( 'order_create_error', $prepared_order->get_error_message(), ['status' => 400] );
         }
-
-        
+		
         // Create order.
         $order     = new OrderModel( $id );
         $order->update( $prepared_order );
@@ -381,7 +380,6 @@ class OrderController extends WP_REST_Controller {
         do_action( 'eventin_after_order_update', $order );
 
         return rest_ensure_response( $response );
-
     }
 
     /**
@@ -631,8 +629,7 @@ class OrderController extends WP_REST_Controller {
                 ];
 
                 $extra_fields = isset( $attendee['extra_fields'] ) ? $this->prepare_attendee_extra_fields( $attendee['extra_fields'] ) : [];
-
-
+				
                 $attendee_data[] = array_merge( $new_attendee, $extra_fields );;
             }
         }

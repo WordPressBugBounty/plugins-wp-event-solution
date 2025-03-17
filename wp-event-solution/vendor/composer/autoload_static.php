@@ -49,6 +49,7 @@ class ComposerStaticInita681316d01b1247f43d87e0547b28e33
         'Etn\\Core\\Event\\Api' => __DIR__ . '/../..' . '/core/event/api.php',
         'Etn\\Core\\Event\\Category' => __DIR__ . '/../..' . '/core/event/category.php',
         'Etn\\Core\\Event\\Cpt' => __DIR__ . '/../..' . '/core/event/cpt.php',
+        'Etn\\Core\\Event\\DependencyControls' => __DIR__ . '/../..' . '/core/event/DependencyControls.php',
         'Etn\\Core\\Event\\Event_Model' => __DIR__ . '/../..' . '/core/event/event-model.php',
         'Etn\\Core\\Event\\Helper' => __DIR__ . '/../..' . '/core/event/helper.php',
         'Etn\\Core\\Event\\Hooks' => __DIR__ . '/../..' . '/core/event/hooks.php',

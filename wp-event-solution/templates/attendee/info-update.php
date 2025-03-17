@@ -44,18 +44,129 @@ use Etn\Utils\Helper;
                     <div class="etn-attendee-form-wrap">
                         <?php
 
-                        // render template.
+                            // render template.
                             if( file_exists( \Wpeventin::core_dir() . "attendee/views/ticket/part/ticket-form.php" ) ){
                                 include_once \Wpeventin::core_dir() . "attendee/views/ticket/part/ticket-form.php";
                             }
 
                             $settings              = Helper::get_settings();
-                            $attendee_extra_fields = isset($settings['attendee_extra_fields']) ? $settings['attendee_extra_fields'] : [];
+                            //$attendee_extra_fields = isset($settings['attendee_extra_fields']) ? $settings['attendee_extra_fields'] : [];
+	                        
+	                        
+	                        
+                            // default_extra_fields
+                            $default_extra_fields = isset($settings['default_extra_fields']) ? $settings['default_extra_fields'] : [];
+                            if( is_array( $default_extra_fields ) && !empty( $default_extra_fields ) ) {
+		                        foreach( $default_extra_fields as $index => $default_extra_field ){
+			                        $label_content = $default_extra_field['label'];
+			                        if( !empty($label_content) && !empty($default_extra_field['field_type']) ){
+				                        $name_from_label         = \Etn\Utils\Helper::generate_name_from_label( "etn_", $label_content );
+				                        $extra_field_saved_value = get_post_meta( $user_id, $name_from_label, true );
+                                        $class_name_from_label   = \Etn\Utils\Helper::get_name_structure_from_label($label_content);
+				                        $etn_field_type = '';
+				                        $required_span  = '';
+				                        if ( !empty($default_extra_field['etn_field_type']) && $default_extra_field['etn_field_type'] == 'required'   ) {
+					                        $etn_field_type = 'required';
+					                        $required_span  = '<span class="etn-input-field-required">*</span>';
+				                        }
+				                        ?>
 
+                                        <div class="etn-<?php echo esc_attr( $class_name_from_label ); ?>-field etn-group-field">
+                                            <label for="etn_attendee_extra_field_<?php echo esc_attr( $index ); ?>">
+						                        <?php echo esc_html( $label_content ); echo  Helper::kses( $required_span ); ?>
+                                            </label>
+					                        <?php
+						                        if( $default_extra_field['field_type'] == 'radio' ){
+							                        $radio_arr = isset( $default_extra_field['radio'] ) ? $default_extra_field['radio'] : [];
+							                        if( is_array($radio_arr) && !empty($radio_arr) ){
+								                        ?>
+                                                        <div class="etn-radio-field-wrap">
+									                        <?php
+										                        foreach( $radio_arr as $radio_index => $radio_val ) {
+											                        ?>
+                                                                    <div class="etn-radio-field">
+                                                                        <input type="radio" name="<?php echo esc_attr( $name_from_label ); ?>" value="<?php echo esc_attr( $radio_index ); ?>"
+                                                                               class="attr-form-control1 etn-attendee-extra-fields1"
+                                                                               id="etn_attendee_extra_field_<?php echo esc_attr( $index ); ?>_radio_<?php echo esc_attr( $radio_index ); ?>"
+													                        <?php checked( $extra_field_saved_value, $radio_index, true ) ?>  data-etn_required="<?php echo esc_attr($etn_field_type);?>" />
+                                                                        <label for="etn_attendee_extra_field_<?php echo esc_attr( $index ); ?>_radio_<?php echo esc_attr( $radio_index ); ?>"><?php echo esc_html( $radio_val ); ?></label>
+                                                                    </div>
+											                        <?php
+										                        }
+									                        ?>
+                                                            <div class="etn-error <?php echo esc_attr( 'etn_attendee_extra_field_'.$key.'_attendee_'.$i.'_input_'.$index ); ?>"></div>
+                                                        </div>
+								                        <?php
+							                        }
+						                        } else if( $default_extra_field['field_type'] == 'checkbox' ) {
+							                        $checkbox_arr = isset( $default_extra_field['checkbox'] ) ? $default_extra_field['checkbox'] : [];
+							                        if( is_array( $checkbox_arr ) && ! empty( $checkbox_arr ) ) {
+								                        $extra_field_saved_value_arr = [];
+								                        if ( !empty( $extra_field_saved_value ) ) {
+									                        $extra_field_saved_value_arr = maybe_unserialize( $extra_field_saved_value );
+								                        }
+								                        ?>
+                                                        <div class="etn-checkbox-field-wrap">
+									                        <?php
+										                        foreach( $checkbox_arr as $checkbox_index => $checkbox_val ) {
+											                        $id = 'etn_attendee_extra_field_'.$key.'_attendee_'.$i.'_input_'.$index.'_checkbox_'.$checkbox_index.'';
+											                        ?>
+                                                                    <div class="etn-checkbox-field">
+                                                                        <input type="checkbox"
+													                        <?php checked( in_array( $checkbox_index, $extra_field_saved_value_arr ), true, true ) ?>
+                                                                               class="etn-attendee-extra-fields"
+                                                                               name="<?php echo esc_attr( $name_from_label ); ?>[]"
+                                                                               value="<?php echo esc_attr( $checkbox_index ); ?>"
+                                                                               id="<?php echo esc_attr( $id );?>"
+                                                                               data-etn_required="<?php echo esc_attr( $etn_field_type );?>"
+													                        <?php echo esc_attr( $etn_field_type ); ?>
+                                                                        />
+                                                                        <label for="<?php esc_attr_e( $id, 'eventin' );?>"><?php echo html_entity_decode( $checkbox_val );?></label>
+                                                                    </div>
+											                        <?php
+										                        }
+									                        ?>
+                                                            <div class="etn-error <?php echo esc_attr( 'etn_attendee_extra_field_'.$key.'_attendee_'.$i.'_input_'.$index ); ?>"></div>
+                                                        </div>
+								                        <?php
+							                        }
+						                        } else {
+							                        ?>
+                                                    <input type="<?php echo esc_html( $default_extra_field['field_type'] ); ?>"
+                                                           name="<?php echo esc_attr( $name_from_label ); ?>"
+                                                           value="<?php echo esc_attr( $extra_field_saved_value ); ?>"
+                                                           class="attr-form-control etn-attendee-extra-fields"
+                                                           id="etn_attendee_extra_field_<?php echo esc_attr( $index ); ?>"
+                                                           placeholder="<?php echo !empty( $default_extra_field['place_holder'] ) ? esc_attr( $default_extra_field['place_holder'] ) : ''; ?>"
+								                        <?php echo ($default_extra_field['field_type'] == 'number') ? "pattern='\d+'" : '' ?> <?php echo esc_attr($etn_field_type);?> />
+							                        <?php
+						                        }
+					                        ?>
+                                            <div class="etn-error etn_attendee_extra_field_<?php echo esc_attr( $index ); ?>"></div>
+                                        </div>
+				                        <?php
+			                        }
+			                        else { ?>
+                                        <p class="error-text"><?php echo esc_html__( 'Please Select input type & label name from admin', 'eventin' ); ?></p>
+				                        <?php
+			                        }
+		                        }
+	                        }
+	                        
+	                        $that_attendee = get_post($attendee_data[0]->post_id);
+	                        $id_of_that_event = $that_attendee->etn_event_id;
+	                        $that_event = get_post($id_of_that_event);
+	                        $attendee_extra_fields = $that_event->attendee_extra_fields;
+	                        //var_dump($attendee_extra_fields);
+	                        if ( empty($attendee_extra_fields) ) {
+		                        $attendee_extra_fields  = isset($settings['extra_fields']) ? $settings['extra_fields'] : [];
+	                        }
+                         
+	                        //$attendee_extra_fields = isset($settings['extra_fields']) ? $settings['extra_fields'] : [];
                             if( is_array( $attendee_extra_fields ) && !empty( $attendee_extra_fields ) ) {
                                 foreach( $attendee_extra_fields as $index => $attendee_extra_field ){
                                     $label_content = $attendee_extra_field['label'];
-                                    if( !empty($label_content) && !empty($attendee_extra_field['type']) ){
+                                    if( !empty($label_content) && !empty($attendee_extra_field['field_type']) ){
                                         $name_from_label         = \Etn\Utils\Helper::generate_name_from_label( "etn_attendee_extra_field_", $label_content );
                                         $extra_field_saved_value = get_post_meta( $user_id, $name_from_label, true );
                                         $class_name_from_label   = \Etn\Utils\Helper::get_name_structure_from_label($label_content);
@@ -72,7 +183,7 @@ use Etn\Utils\Helper;
                                                 <?php echo esc_html( $label_content ); echo  Helper::kses( $required_span ); ?>
                                             </label>
                                             <?php
-                                                if( $attendee_extra_field['type'] == 'radio' ){
+                                                if( $attendee_extra_field['field_type'] == 'radio' ){
                                                     $radio_arr = isset( $attendee_extra_field['radio'] ) ? $attendee_extra_field['radio'] : [];
                                                     if( is_array($radio_arr) && !empty($radio_arr) ){
                                                         ?>
@@ -94,7 +205,7 @@ use Etn\Utils\Helper;
                                                         </div>
                                                         <?php
                                                     }
-                                                } else if( $attendee_extra_field['type'] == 'checkbox' ) {
+                                                } else if( $attendee_extra_field['field_type'] == 'checkbox' ) {
                                                     $checkbox_arr = isset( $attendee_extra_field['checkbox'] ) ? $attendee_extra_field['checkbox'] : [];
                                                     if( is_array( $checkbox_arr ) && ! empty( $checkbox_arr ) ) {
                                                         $extra_field_saved_value_arr = [];
@@ -128,20 +239,21 @@ use Etn\Utils\Helper;
                                                     }
                                                 } else {
                                                     ?>
-                                                    <input type="<?php echo esc_html( $attendee_extra_field['type'] ); ?>"
+                                                    <input type="<?php echo esc_html( $attendee_extra_field['field_type'] ); ?>"
                                                         name="<?php echo esc_attr( $name_from_label ); ?>"
                                                         value="<?php echo esc_attr( $extra_field_saved_value ); ?>"
                                                         class="attr-form-control etn-attendee-extra-fields"
                                                         id="etn_attendee_extra_field_<?php echo esc_attr( $index ); ?>"
                                                         placeholder="<?php echo !empty( $attendee_extra_field['place_holder'] ) ? esc_attr( $attendee_extra_field['place_holder'] ) : ''; ?>"
-                                                        <?php echo ($attendee_extra_field['type'] == 'number') ? "pattern='\d+'" : '' ?> <?php echo esc_attr($etn_field_type);?> />
+                                                        <?php echo ($attendee_extra_field['field_type'] == 'number') ? "pattern='\d+'" : '' ?> <?php echo esc_attr($etn_field_type);?> />
                                                     <?php
                                                 }
                                             ?>
                                             <div class="etn-error etn_attendee_extra_field_<?php echo esc_attr( $index ); ?>"></div>
                                         </div>
                                         <?php
-                                    } else { ?>
+                                    }
+                                    else { ?>
                                         <p class="error-text"><?php echo esc_html__( 'Please Select input type & label name from admin', 'eventin' ); ?></p>
                                     <?php
                                     }

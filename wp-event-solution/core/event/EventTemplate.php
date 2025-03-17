@@ -60,6 +60,14 @@ class EventTemplate implements HookableInterface {
     public function event_single_page( $template ) {
         global $post;
 
+        if ( ! $post ) {
+            return $template;
+        }
+
+        if ( $post->post_type !== 'etn' || ! is_singular( 'etn' ) ) {
+            return $template;
+        }
+
         if (class_exists('Elementor\Plugin')) {
 
             $current_post_id = get_the_ID();
@@ -72,15 +80,10 @@ class EventTemplate implements HookableInterface {
             if (isset($page_settings_manager['template']) && ( 'elementor_canvas' == $page_settings_manager['template'] || 'elementor_header_footer' == $page_settings_manager['template']) ) {
                  
                 return $template;
+            }else{
+                $template = \Wpeventin::templates_dir() . 'event/event-single-page.php';
+                return $template;
             }
-        }
-
-        if ( ! $post ) {
-            return $template;
-        }
-
-        if ( $post->post_type !== 'etn' || ! is_singular( 'etn' ) ) {
-            return $template;
         }
 
         $event = new Event_Model( $post->ID );

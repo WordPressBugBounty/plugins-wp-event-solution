@@ -1781,6 +1781,9 @@ class Helper {
 			$month_start_date = date( 'Y-m-d', strtotime( date( 'Y-m' ) ) );
 			$month_end_date   = date( 'Y-m-d', strtotime( date( "Y-m-t", strtotime( $month_start_date ) ) ) );
 
+			$event_sorting   = ! empty( etn_get_option('archive_event_sorting') ) ? etn_get_option('archive_event_sorting') : "";
+			$event_sorting_order = ! empty( etn_get_option('archive_event_sorting_order') ) ? etn_get_option('archive_event_sorting_order') : "";
+
 			$etn_event_location = "";
 
 			if ( isset( $_GET['etn_event_location'] ) ) {
@@ -1975,6 +1978,63 @@ class Helper {
 				}
 
 			}
+			if( $event_sorting == 'upcoming' ){
+				$meta_sort_query = [
+					'relation' => 'AND',
+					[
+						'relation' => 'OR',
+						[
+							'key'     => 'etn_start_date',
+							'value'   => date( 'Y-m-d' ),
+							'compare' => '>=',
+							'type'    => 'DATE',
+						],
+						[
+							'key'     => 'etn_start_date',
+							'value'   => '',
+							'compare' => '=',
+						],
+					],
+					[
+						'relation' => 'OR',
+						[
+							'key'     => 'etn_end_date',
+							'value'   => date( 'Y-m-d' ),
+							'compare' => '>',
+							'type'    => 'DATE',
+						],
+						[
+							'key'     => 'etn_end_date',
+							'value'   => '',
+							'compare' => '=',
+						],
+					],
+				];
+			}elseif( $event_sorting == 'expire' ){
+				$meta_sort_query = [
+					'relation' => 'AND',
+					[
+						'key'     => 'etn_end_date',
+						'value'   => date( 'Y-m-d' ),
+						'compare' => '<',
+						'type'    => 'DATE',
+					],
+					[
+						'relation' => 'OR',
+						[
+							'key'     => 'etn_start_date',
+							'value'   => date( 'Y-m-d' ),
+							'compare' => '<=',
+							'type'    => 'DATE',
+						],
+						[
+							'key'     => 'etn_start_date',
+							'value'   => '',
+							'compare' => '=',
+						],
+					],
+				];
+			}
 
 			$meta_event_happen_query = [];
 
@@ -2001,6 +2061,10 @@ class Helper {
 			if ( ! empty( $meta_event_happen_query ) ) {
 				$meta_query[] = $meta_event_happen_query;
 			}
+
+			if ( ! empty( $meta_sort_query ) ) {
+				$meta_query[] = $meta_sort_query;
+			}
 			
 			$query->set('meta_query', $meta_query);
 			if ( ! empty( $keyword ) ) {
@@ -2025,9 +2089,11 @@ class Helper {
 				$query->set( 'order', 'DESC' );
 				$query->set( 'meta_key', 'etn_start_date' );
 				$query->set( 'orderby', 'meta_value' );
+				$query->set( 'order', $event_sorting_order );
 			}
 		}
 
+			
 		return $query;
 	}
 

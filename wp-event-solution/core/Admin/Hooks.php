@@ -96,7 +96,7 @@ class Hooks {
      */
     public function add_settings( $settings ) {
         $payment_method = etn_get_option( 'payment_method' );
-        $sells_engine   = etn_get_option( 'etn_sells_engine_stripe' ) ?: 'woocommerce';
+        $sells_engine   = etn_get_option( 'etn_sells_engine_stripe' ) ?: '';
         $payment_method = $payment_method ? $payment_method : $sells_engine; 
 
         $new_settings = [

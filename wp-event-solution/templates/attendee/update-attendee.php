@@ -10,16 +10,27 @@ add_action('wp_head', 'etn_viewport_meta', '1');
 
 wp_head();
 
-if ( !empty($post_arr["etn_attendee_id"]) && !empty($post_arr["name"]) ){
+//$extra_fields    = get_post_meta( $post_id, 'attendee_extra_fields', true );
+
+if ( !empty($post_arr["etn_attendee_id"]) && !empty($post_arr["etn_name"]) ){
 
     $attendee_id         = is_numeric( $post_arr["etn_attendee_id"] ) ? $post_arr["etn_attendee_id"] : 0;
-    $attendee_name       = !empty( $post_arr["name"] ) ? $post_arr["name"] : "";
-    $attendee_email      = !empty( $post_arr["email"] ) ? $post_arr["email"] : "";
-    $attendee_phone      = !empty( $post_arr["phone"] ) ? $post_arr["phone"] : "";
+    $attendee_name       = !empty( $post_arr["etn_name"] ) ? $post_arr["etn_name"] : "";
+    $attendee_email      = !empty( $post_arr["etn_email"] ) ? $post_arr["etn_email"] : "";
+    $attendee_phone      = !empty( $post_arr["etn_phone"] ) ? $post_arr["etn_phone"] : "";
     $attendee_edit_token = $post_arr["etn_info_edit_token"];
 
-    $attendee_data = Helper::get_attendee_by_token( 'etn_info_edit_token', $attendee_edit_token  );
-
+    $attendee_data   = Helper::get_attendee_by_token( 'etn_info_edit_token', $attendee_edit_token  );
+	
+    
+    
+//	$extra_fields    = get_post_meta( $attendee_data[0]->etn_event_id, 'attendee_extra_fields', true );
+    
+    
+    $that_attendee = get_post($attendee_data[0]->post_id);
+    $id_of_that_event = $that_attendee->etn_event_id;
+    $that_event = get_post($id_of_that_event);
+    
     if ( !empty( $attendee_data ) && ( $attendee_data[0]->post_id == $attendee_id ) ) {
         update_post_meta( $attendee_id, "etn_name", $attendee_name );
         update_post_meta( $attendee_id, "etn_email", $attendee_email );
@@ -27,18 +38,21 @@ if ( !empty($post_arr["etn_attendee_id"]) && !empty($post_arr["name"]) ){
 
         // check if there's any attendee extra field set from Plugin Settings
         $settings               = Helper::get_settings();
-        $attendee_extra_fields  = isset($settings['attendee_extra_fields']) ? $settings['attendee_extra_fields'] : [];
-
+	    
+	    $attendee_extra_fields = $that_event->attendee_extra_fields;
+        if ( empty($attendee_extra_fields) ) {
+            $attendee_extra_fields  = isset($settings['extra_fields']) ? $settings['extra_fields'] : [];
+        }
         $extra_field_array      = [];
         if( is_array( $attendee_extra_fields ) && !empty( $attendee_extra_fields )){
-
             foreach( $attendee_extra_fields as $attendee_extra_field ){
                 $label_content = $attendee_extra_field['label'];
-
+	            
                 if( $label_content != '' ){
                     $name_from_label['label'] = $label_content;
-                    $name_from_label['type']  = $attendee_extra_field['type'];
+                    $name_from_label['type']  = $attendee_extra_field['field_type'];
                     $name_from_label['name']  = Helper::generate_name_from_label("etn_attendee_extra_field_", $label_content);
+                    
                     array_push( $extra_field_array, $name_from_label );
                 }
             }
@@ -98,24 +112,25 @@ if ( !empty($post_arr["etn_attendee_id"]) && !empty($post_arr["name"]) ){
         </div>
         <?php
     }
-} else {
-        ?>
-        <div class="etn-es-events-page-container">
-            <div class="etn-event-single-wrap">
-                <div class="etn-container">
-                    <div class="section-inner">
-                        <h3 class="entry-title">
-                            <?php echo esc_html__("Invalid data. Make sure no required data is missing.", "eventin");?>
-                        </h3>
-                        <div class="intro-text">
-                            <a href="<?php echo esc_url( home_url() );?>"><?php echo esc_html__("Return to homepage", "eventin"); ?></a>
+    }
+    else {
+            ?>
+            <div class="etn-es-events-page-container">
+                <div class="etn-event-single-wrap">
+                    <div class="etn-container">
+                        <div class="section-inner">
+                            <h3 class="entry-title">
+                                <?php echo esc_html__("Invalid data. Make sure no required data is missing.", "eventin");?>
+                            </h3>
+                            <div class="intro-text">
+                                <a href="<?php echo esc_url( home_url() );?>"><?php echo esc_html__("Return to homepage", "eventin"); ?></a>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-        <?php
-}
+            <?php
+    }
 
 wp_footer();
 

@@ -132,11 +132,9 @@ abstract class Post_Model {
         $args    = wp_parse_args( $args, $defaults );
         $post_id = wp_update_post( $args );
 
-        if ( ! is_wp_error( $post_id ) ) {
+        if ( !is_wp_error( $post_id ) ) {
             $this->id = $post_id;
-
             $this->update_meta( $args );
-
             return true;
         }
 

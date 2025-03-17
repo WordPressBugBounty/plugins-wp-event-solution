@@ -33,6 +33,7 @@ return array(
     'Etn\\Core\\Event\\Api' => $baseDir . '/core/event/api.php',
     'Etn\\Core\\Event\\Category' => $baseDir . '/core/event/category.php',
     'Etn\\Core\\Event\\Cpt' => $baseDir . '/core/event/cpt.php',
+    'Etn\\Core\\Event\\DependencyControls' => $baseDir . '/core/event/DependencyControls.php',
     'Etn\\Core\\Event\\Event_Model' => $baseDir . '/core/event/event-model.php',
     'Etn\\Core\\Event\\Helper' => $baseDir . '/core/event/helper.php',
     'Etn\\Core\\Event\\Hooks' => $baseDir . '/core/event/hooks.php',

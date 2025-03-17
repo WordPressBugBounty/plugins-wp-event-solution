@@ -128,7 +128,7 @@ class Hooks {
             $event_tag = array_map( 'intval', explode( ',', $attributes['event_tag_ids'] ) );
         }
 
-        $event_count = ! empty( $attributes['limit'] ) && is_numeric( $attributes['limit'] ) && intval( $attributes['limit'] ) <= 3 
+        $event_count = ! empty( $attributes['limit'] ) && is_numeric( intval($attributes['limit']) )
             ? intval( $attributes['limit'] ) 
             : -1;
 

@@ -882,7 +882,7 @@ if ( ! function_exists( 'etn_get_decimals' ) ) {
             return wc_get_price_decimals();
         }
 
-        $decimals = etn_get_option( 'decimals', 2 );
+        $decimals = etn_get_option( 'decimals', 0 );
 
         return apply_filters( 'etn_decimals', $decimals );
     }

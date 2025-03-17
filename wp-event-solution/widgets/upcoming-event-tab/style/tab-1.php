@@ -12,7 +12,7 @@ $i = 0;
 				foreach( (array) $tab_list as $key=> $cat_id ) {
 						$i++;
 						$active_class = ($i===1) ? 'etn-active' : '';
-						?>
+		?>
 						<li>
 								<a href='#' class='etn-tab-a <?php echo esc_attr($active_class); ?>' data-id='tab<?php echo esc_attr($widget_id) . "-" . $i; ?>'>
 										<?php
@@ -50,7 +50,11 @@ $i = 0;
 								} else {
 										$orderby_meta       = null;
 								}
-								include \Wpeventin::plugin_dir() . "widgets/events/style/{$style}.php";
+								
+								// Validate file inclusion
+								$sanitize_filename = sanitize_file_name($style);
+								$style             = !empty($sanitize_filename) ? $sanitize_filename : 'event-1';
+                                include \Wpeventin::plugin_dir() . "widgets/events/style/{$style}.php";
 							?>
 					</div>
 

@@ -26,9 +26,7 @@ class WCPayment implements PaymentInterface {
 
         $cart_id  = WC()->cart->add_to_cart( $order->event_id );
 
-        return [
-            'id' => $cart_id,
-        ];
+        return [ 'id' => $cart_id ];
     }
 
     /**

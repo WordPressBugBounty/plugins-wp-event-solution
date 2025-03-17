@@ -46,11 +46,16 @@ class AdminAssets implements AssetsInterface {
             ],
             'etn-dashboard' => [
                 'src'       => \Wpeventin::plugin_url( 'build/js/dashboard.js' ),
-                'deps'      => ['etn-packages', 'wp-format-library','etn-html-2-canvas'],
+                'deps'      => ['wp-format-library','etn-html-2-canvas'],
                 'in_footer' => true,
             ],
         ];
-
+        // Conditionally add 'etn-packages' to 'etn-dashboard' dependencies
+         if (class_exists('Wpeventin_Pro')) {
+            $scripts['etn-dashboard']['deps'][] = 'etn-packages';
+            //Re-index the array to avoid possible issues.
+            $scripts['etn-dashboard']['deps'] = array_values(array_unique($scripts['etn-dashboard']['deps']));
+        }
            
         return apply_filters( 'etn_admin_register_scripts', $scripts );
     }
@@ -73,7 +78,7 @@ class AdminAssets implements AssetsInterface {
             ],
             'etn-dashboard'    => [
                 'src' => \Wpeventin::plugin_url( 'build/css/dashboard.css' ),
-                'deps' => ['wp-edit-blocks']
+                'deps' => ['wp-edit-blocks','wp-block-editor']
             ],
             'etn-event-manager-admin'    => [
                 'src' => \Wpeventin::plugin_url( 'build/css/event-manager-admin.css' ),

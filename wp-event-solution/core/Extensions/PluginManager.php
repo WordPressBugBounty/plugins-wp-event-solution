@@ -18,6 +18,11 @@ class PluginManager {
      * @return bool True if installed, false otherwise.
      */
     public static function is_installed( $slug ) {
+        // Ensure the get_plugins function is available
+        if ( ! function_exists( 'get_plugins' ) ) {
+            require_once ABSPATH . 'wp-admin/includes/plugin.php';
+        }
+
         $plugins = get_plugins();
 
         if ( is_array( $plugins ) ) {

@@ -140,6 +140,12 @@ if ( ( ETN_DEMO_SITE == true ) || ( ETN_DEMO_SITE === false && "event-one" === $
     add_action( "etn_after_single_event_content_body", "etn_after_single_event_content_body_show_meta", 10 );
 
     /**
+     * @see etn_pro_after_single_event_content_body_show_locations()
+     */
+    if ( class_exists( 'Wpeventin_Pro' ) ) {
+        add_action("etn_after_single_event_content_body", "etn_pro_after_single_event_content_body_show_locations", 11);
+    }
+    /**
      * @see etn_before_single_event_meta()
      */
     add_action( "etn_before_single_event_meta", "etn_before_single_event_meta" );

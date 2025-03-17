@@ -21,7 +21,7 @@ class InfoUpdate {
             $settings        = Helper::get_settings();
             $include_phone   = !empty( $settings["reg_require_phone"] ) ? true : false;
             $include_email   = !empty( $settings["reg_require_email"] ) ? true : false;
-
+			
             // render template
             if( file_exists( \Wpeventin::templates_dir() . "attendee/info-update.php" ) ){
                 include_once \Wpeventin::templates_dir() . "attendee/info-update.php";

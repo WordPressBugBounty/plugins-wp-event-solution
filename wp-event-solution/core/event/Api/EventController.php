@@ -407,6 +407,7 @@ class EventController extends WP_REST_Controller {
     public function get_item( $request ) {
         $id   = intval( $request['id'] );
         $post = get_post( $id );
+		
 
         $item = $this->prepare_item_for_response( $post, $request );
 
@@ -755,7 +756,7 @@ class EventController extends WP_REST_Controller {
         $organizer_group = get_post_meta( $id, 'organizer_group', true );
         $speaker_group   = get_post_meta( $id, 'speaker_group', true );
         $extra_fields    = get_post_meta( $id, 'attendee_extra_fields', true );
-        $meeting_link    = get_post_meta( $id, 'meeting_link', true );
+		$meeting_link    = get_post_meta( $id, 'meeting_link', true );
         $rsvp_settings   = get_post_meta( $id, 'rsvp_settings', true );
         $speaker_type    = get_post_meta( $id, 'speaker_type', true );
         $organizer_type  = get_post_meta( $id, 'organizer_type', true );
@@ -767,10 +768,12 @@ class EventController extends WP_REST_Controller {
         if ( ! empty( $rsvp_settings['rsvp_form_type'] ) ) {
             $rsvp_settings['rsvp_form_type'] = is_array( $rsvp_settings['rsvp_form_type'] ) ? array_values( $rsvp_settings['rsvp_form_type'] ) : [];
         }
-
+	    
         $extra_fields    = is_array( $extra_fields ) ? array_values( $extra_fields ) : [];
         
         $post = get_post( $id );
+		
+		
 
         $event_data = [
             'id'                      => $id,

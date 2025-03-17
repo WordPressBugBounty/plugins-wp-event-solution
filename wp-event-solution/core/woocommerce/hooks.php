@@ -149,7 +149,7 @@ class Hooks {
             return;
         }
 
-        if ( !is_admin() ) {
+        if ( !is_admin() && !wp_doing_cron() ) {
             $event_order_id = WC()->session->get('event_order_id');
         } else {
             $event_order_id = get_post_meta($order_id, 'eventin_order_id', true);
@@ -168,7 +168,7 @@ class Hooks {
         }
 
         switch ($order->get_status()) {
-            case "completed":
+            case in_array( $order->get_status(), etn_get_option('wc_order_statuses') ):
                 if ( 'completed' === $event_order->status ) {
                     return;
                 }
@@ -205,7 +205,7 @@ class Hooks {
      * @return  void
      */
     public function attatch_eventin_order_id( $wc_order_id ) {
-        if ( !is_admin() ) {
+        if ( !is_admin() && !wp_doing_cron() ) {
             $event_order_id = WC()->session->get('event_order_id');
         } else {
             $event_order_id = get_post_meta($order_id, 'eventin_order_id', true);
@@ -351,50 +351,59 @@ class Hooks {
      *
      * @return  void
      */
-    public function redirect_success_page( $wc_order_id ) {
-        $order_id = WC()->session->get('event_order_id');
-
-        if ( ! $order_id ) {
-            return;
-        }
-
-        $order = wc_get_order( $wc_order_id );
-
-        $statuses = etn_get_wc_order_statuses();
-
-        WC()->session->__unset( 'event_order_id' );
-        update_post_meta( $wc_order_id, 'eventin_order_id', $order_id );
-
-        // Stay to woo thank you page
-        $thankyou_redirect   =  etn_get_option( "order_thank_you_redirect" );
-        $thankyou_redirect   = isset( $thankyou_redirect ) ? $thankyou_redirect : '';  
-
-        if ( $thankyou_redirect === 'woo_thankyou' ) {
-            if ( $order && in_array( $order->get_status(), $statuses ) ) {
-                $eventin_order = new OrderModel($order_id);
-                $eventin_order->update(['status' => 'completed']);
-    
-                do_action('eventin_order_completed', $eventin_order);
-                $eventin_order->send_email();
-            }
-            return;
-        }
-    
+	public function redirect_success_page( $wc_order_id ) {
+		$order_id = WC()->session->get('event_order_id');
+		
+		if ( ! $order_id ) {
+			return;
+		}
+		
+		$wc_order = wc_get_order( $wc_order_id );
+		
+		$statuses = etn_get_wc_order_statuses();
+		
+		WC()->session->__unset( 'event_order_id' );
+		update_post_meta( $wc_order_id, 'eventin_order_id', $order_id );
+		
+		// Stay to woo thank you page
+		$thankyou_redirect   =  etn_get_option( "order_thank_you_redirect" );
+		$thankyou_redirect   = isset( $thankyou_redirect ) ? $thankyou_redirect : '';
+  
         
-        // Redirect to Eventin  thank you page
-        $url = '';
-
-        if ( $order && in_array( $order->get_status(), $statuses ) ) {
-            $url = 'eventin-purchase/checkout/#/success';
-        } elseif( 'on-hold' === $order->get_status() ) {
-            $url = '/eventin-purchase/checkout/#/hold';
-        }else {
-            $url = 'eventin-purchase/checkout/#/failed';
-        }
-
-        wp_redirect( site_url( $url ) );
-        exit();
-    }
+		
+		if ( $thankyou_redirect === 'woo_thankyou' ) {
+			if ( $wc_order && in_array( $wc_order->get_status(), $statuses ) ) {
+				$eventin_order = new OrderModel($order_id);
+				$eventin_order->update(['status' => 'completed']);
+				
+				do_action('eventin_order_completed', $eventin_order);
+				$eventin_order->send_email();
+			}
+			return;
+		}
+		
+		
+		$eventin_order = new OrderModel($order_id);
+		if ( $wc_order && in_array( $wc_order->get_status(), $statuses ) ) {
+			$eventin_order->update(['status' => 'completed']);
+			do_action('eventin_order_completed', $eventin_order);
+			$eventin_order->send_email();
+		}
+		
+		// Redirect to Eventin  thank you page
+		$url = '';
+		
+		if ( $wc_order && in_array( $wc_order->get_status(), $statuses ) ) {
+			$url = 'eventin-purchase/checkout/#/success';
+		} elseif( 'on-hold' === $eventin_order->get_status() ) {
+			$url = '/eventin-purchase/checkout/#/hold';
+		}else {
+			$url = 'eventin-purchase/checkout/#/failed';
+		}
+		
+		wp_redirect( site_url( $url ) );
+		exit();
+	}
  
     /**
      * Include Additional Ticket Variation Data

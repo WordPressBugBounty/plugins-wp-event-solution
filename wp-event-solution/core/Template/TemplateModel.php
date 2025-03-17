@@ -157,7 +157,11 @@ class TemplateModel extends Post_Model {
      * @return  string
      */
     public function get_html_content() {
-        return do_blocks( $this->add_proxy_image( $this->get_content() ) );
+        $content = $this->add_proxy_image( $this->get_content() );
+        $content = do_blocks( $content ); // Process Gutenberg blocks
+        $content = do_shortcode( $content ); // Process shortcodes
+
+        return $content;
     }
 
     /**

@@ -134,15 +134,15 @@ class AttendeeController extends WP_REST_Controller {
      */
     public function get_items( $request ) {
 
-        $per_page = ! empty( $request['per_page'] ) ? intval( $request['per_page'] ) : 20;
-        $paged    = ! empty( $request['paged'] ) ? intval( $request['paged'] ) : 1;
-        $type     = ! empty( $request['type'] ) ? sanitize_text_field( $request['type'] ) : '';
-        $event_id     = ! empty( $request['event_id'] ) ? sanitize_text_field( $request['event_id'] ) : '';
+        $per_page       = ! empty( $request['per_page'] ) ? intval( $request['per_page'] ) : 20;
+        $paged          = ! empty( $request['paged'] ) ? intval( $request['paged'] ) : 1;
+        $type           = ! empty( $request['type'] ) ? sanitize_text_field( $request['type'] ) : '';
+        $event_id       = ! empty( $request['event_id'] ) ? sanitize_text_field( $request['event_id'] ) : '';
         $payment_status = ! empty( $request['payment_status'] ) ? sanitize_text_field( $request['payment_status'] ) : '';
-        $ticket_status     = ! empty( $request['ticket_status'] ) ? sanitize_text_field( $request['ticket_status'] ) : '';
-        $ticket_id     = ! empty( $request['ticket_id'] ) ? sanitize_text_field( $request['ticket_id'] ) : '';
+        $ticket_status  = ! empty( $request['ticket_status'] ) ? sanitize_text_field( $request['ticket_status'] ) : '';
+        $ticket_id      = ! empty( $request['ticket_id'] ) ? sanitize_text_field( $request['ticket_id'] ) : '';
 
-        $search   = ! empty( $request['search'] ) ? sanitize_text_field( $request['search'] ) : '';
+        $search         = ! empty( $request['search'] ) ? sanitize_text_field( $request['search'] ) : '';
 
         $args = [
             'post_type'      => 'etn-attendee',

@@ -106,6 +106,10 @@ class Bootstrap {
         \Etn\Core\Speaker\Hooks::instance()->init();
         \Etn\Core\Admin\Hooks::instance()->init();
         \Etn\Core\Attendee\InfoUpdate::instance()->init();
+        new \Etn\Core\Attendee\Cpt();
+
+        // Dependency Controls
+        new \Etn\Core\Event\DependencyControls();
     }
 
     /**

@@ -432,3 +432,34 @@
   margin-bottom: 30px;
   padding-bottom: 20px;
 }
+
+.etn-button-loading {
+  position: relative; /* Ensures the spinner stays within the button */
+  pointer-events: none; /* Prevents interaction while loading */
+  opacity: 0.7; /* Slightly fade the button to indicate it's disabled */
+}
+
+/* Spinner pseudo-element */
+.etn-button-loading::after {
+  content: "";
+  position: absolute;
+  width: 20px; /* Size of the spinner */
+  height: 20px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%); /* Center the spinner */
+  border: 3px solid #ffffff; /* White border for visibility on most backgrounds */
+  border-top: 3px solid #007bff; /* Blue top border for spinning effect */
+  border-radius: 50%; /* Circular shape */
+  animation: spin 1s linear infinite; /* Spin animation */
+}
+
+/* Keyframes for spinning animation */
+@keyframes spin {
+  0% {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  100% {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}

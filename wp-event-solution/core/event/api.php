@@ -325,10 +325,10 @@ class Api extends \Etn\Base\Api_Handler {
 		if ( $type == "upcoming" ) {
 			$args['meta_query'] = [
 				[
-				'key'     => 'etn_start_date',
-				'value'   => date( 'Y-m-d' ),
-				'compare' => '>=',
-				'type'    => 'DATE',
+					'key'     => 'etn_start_date',
+					'value'   => date( 'Y-m-d' ),
+					'compare' => '>=',
+					'type'    => 'DATE',
 				],
 			];
 		}
@@ -355,7 +355,7 @@ class Api extends \Etn\Base\Api_Handler {
 	}
 
 	/**
-	 * Prepare event for respose
+	 * Prepare event for response
 	*
 	* @param   integer  $event_id  Event id
 	*
@@ -461,8 +461,8 @@ class Api extends \Etn\Base\Api_Handler {
 
 	/**
 	 * Get event ticket details
-	*
-	*/
+	 *
+	 */
 	public function get_seatmap_details() {
 
 		$request            = $this->request;

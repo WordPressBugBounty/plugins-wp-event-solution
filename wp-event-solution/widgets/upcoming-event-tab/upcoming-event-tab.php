@@ -64,7 +64,7 @@ class Etn_Upcoming_Event_Tab extends Widget_Base {
                 'default' => 'event-1',
                 'options' => [
                     'event-1' => esc_html__( 'Event 1', 'eventin' ),
-                    'event-2' => esc_html__( 'Event 2', 'eventin' ),
+                    'event-2' => esc_html__( 'Event 2', 'eventin' )
                 ],
             ]
         );

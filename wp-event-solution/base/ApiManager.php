@@ -52,6 +52,7 @@ class ApiManager {
      *
      * @return void
      * @throws \ReflectionException
+     *
      */
     public static function register(): void {
         $controllers = apply_filters( 'eventin_api_controllers', self::$controllers );
