@@ -2,6 +2,7 @@
 
 use Eventin\Settings;
 use Eventin\Validation\Validator;
+use Etn\Core\Event\Event_Model;
 
 if ( ! function_exists( 'etn_array_csv_column' ) ) {
     /**
@@ -1114,5 +1115,34 @@ if ( ! function_exists( 'etn_time_format' ) ) {
         $time_format = get_option( 'time_format' );
 
         return $time_format;
+    }
+}
+
+if ( ! function_exists( 'etn_validate_event_tickets' ) ) {
+    /**
+     * Validate event tickets that verify to prevent overselling
+     *
+     * @param   integer  $event_id       Event id that will be purchased
+     * @param   array  $order_tickets    Order ticket list
+     *
+     * @return  bool | WP_Error
+     */
+    function etn_validate_event_tickets( $event_id, $order_tickets ) {
+        $event         = new Event_Model( $event_id );
+
+        foreach( $order_tickets as $ticket ) {
+            $event_ticket = $event->get_ticket( $ticket['ticket_slug'] );
+
+            $available = $event_ticket['etn_avaiilable_tickets'];
+            $sold      = $event_ticket['etn_sold_tickets'];
+
+            $ticket_left = $available - $sold;
+
+            if ( $ticket['ticket_quantity'] > $ticket_left ) {
+                return new WP_Error( 'ticket_limit', __( 'The ticket limit has been exceeded', 'eventin' ), ['status' => 422] );
+            }
+        }
+        
+        return true;
     }
 }

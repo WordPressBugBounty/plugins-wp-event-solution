@@ -79,8 +79,13 @@
 			$order_id = !empty($data['order_id']) ? intval($data['order_id']) : 0;
 			$payment_method = !empty($data['payment_method']) ? sanitize_text_field($data['payment_method']) : '';
 			
-			$payment = PaymentFactory::get_method($payment_method);
-			$order = new OrderModel($order_id);
+			$payment         = PaymentFactory::get_method($payment_method);
+			$order           = new OrderModel($order_id);
+            $validate_ticket = $order->validate_ticket();
+
+            if ( is_wp_error( $validate_ticket ) ) {
+                return new WP_Error('payment_error', $validate_ticket->get_error_message());
+            }
 			
 			$response = $payment->create_payment($order);
 			
@@ -108,6 +113,13 @@
 			$order_id = !empty($data['order_id']) ? intval($data['order_id']) : 0;
 			$payment_status = !empty($data['payment_status']) ? $data['payment_status'] : 0;
 			$payment_method = !empty($data['payment_method']);
+
+            $order           = new OrderModel( $order_id );
+            $validate_ticket = $order->validate_ticket();
+
+            if ( is_wp_error( $validate_ticket ) ) {
+                return $validate_ticket;
+            }
 			
 			if (!in_array($data['payment_method'], ['stripe', 'paypal', 'free-ticket'])) {
 				return rest_ensure_response(["unauthorized"]);

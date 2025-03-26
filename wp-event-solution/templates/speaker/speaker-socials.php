@@ -16,7 +16,7 @@ $etn_speaker_socials = get_user_meta( $author_id, 'etn_speaker_social', true);
                     href="<?php echo esc_url($social['etn_social_url']); ?>" 
                     target="_blank" 
                     class="<?php echo esc_attr($etn_social_class); ?>"
-                    aria-label="<?php echo esc_attr($social['etn_social_title']); ?>"
+                    aria-label="<?php echo esc_attr($social['etn_social_url']); ?>"
                 >
                     <i class="etn-icon <?php echo esc_attr($social['icon']); ?>" rel="noopener"></i> 
                 </a>

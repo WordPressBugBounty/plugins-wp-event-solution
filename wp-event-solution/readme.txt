@@ -1,23 +1,22 @@
 ===Event Manager, Events Calendar, Tickets, Registrations - Eventin===
 Contributors: themewinter, ataurr, abrasel600, rezakhan995
-Tags: event, calendar, tickets, organizer, schedule
+Tags: event, events, calendar, tickets, organizer
 Requires at least: 5.2
 Tested up to: 6.7.2
-Stable tag: 4.0.25
+Stable tag: 4.0.26
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Eventin: Event Calendar Plugin for WordPress to create and manage Event Bookings, Recurring Events, Event Listings, Event RSVP, and sell Event Tickets.
+Best Event Calendar Plugin for WordPress to create and manage Event Bookings, Recurring Events, Event Listings, RSVP, and sell Event Tickets.
 
 == Description ==
-Create and manage events and sell **event tickets** to event attendees with the **AI-powered** Eventin event management plugin for WordPress.
-
-[Eventin](https://themewinter.com/eventin/) is an **event manager plugin** with a simple event calendar, event booking, event registrations, and event listings where you can manage event RSVP and sell event tickets in just a few clicks.
+Create, manage and sell event tickets with the **power of AI**
+[Eventin](https://themewinter.com/eventin/) event management plugin for WordPress is the ultimate event manager that comes with with event calendar, event booking, event registrations, and event listings where you can manage event RSVP and sell event tickets in just a few clicks.
 
 Whether you run [live or virtual events](https://themewinter.com/how-to-run-a-successful-virtual-event/), this [event organizer for WordPress](https://themewinter.com/how-to-add-event-organizer-page-in-wordpress/) is your all-in-one event plugin to easily manage [event calendar](https://support.themewinter.com/docs/plugins/plugin-docs/others-settings-eventin/calendar-module/), [event RSVP](https://support.themewinter.com/docs/plugins/plugin-docs/rsvp-settings/rsvp-general-settings/), [event planning](https://themewinter.com/how-to-plan-an-event/), [event listing](https://themewinter.com/how-to-add-event-list-in-wordpress/), [event registrations](https://support.themewinter.com/docs/plugins/plugin-docs/general-settings-eventin/create-event-tickets-free-paid/), [recurring events](https://themewinter.com/how-to-create-recurring-events-in-wordpress/), [event QR code](https://themewinter.com/event-management-using-qr-code/), and [event tickets](https://themewinter.com/how-to-create-a-customized-ticket-with-eventin/).
 
-**Check all the useful Eventin event management plugin inside WordPress [Tutorials + Demos](https://www.youtube.com/@ThemeWinter).**
+**Check all the useful Eventin event management plugin in WordPress [Tutorials + Demos](https://www.youtube.com/@ThemeWinter).**
 
 [Live Demo](https://product.themewinter.com/eventin/) | [Documentation](https://support.themewinter.com/docs/plugins/docs/eventin/) | [Roadmap](https://themewinter.com/eventin-roadmaps/) | [Buy Pro](https://themewinter.com/eventin/pricing/) | [Event Theme](https://themewinter.com/bizxpo/) | [Features and Integrations](https://themewinter.com/eventin/features/)
 
@@ -27,16 +26,16 @@ Need help setting up your Event Calendar Website? 👉 [Let Us Know](https://the
 
 **🚨 Who is Eventin Event Manager Plugin For?**
 
-👉 Event Organizers
-👉 Agency Owners
-👉 Digital Marketers
-👉 Online Tutors
-👉 Theme Developers
-👉 Meetup Hosts
-👉 Training Professionals
-👉 Music Trainers
-👉 Conference Event Organizers
-👉 Live and Virtual Event Planners
+🎭 Event Organizers
+👨‍💼 Agency Owners
+👨‍💻 Digital Marketers
+👨‍🏫 Online Tutors
+🎨 Theme Developers
+🤝 Meetup Hosts
+🏋️‍♂️ Training Professionals
+🎼 Music Trainers
+🎪 Conference Event Organizers
+💻 Live and Virtual Event Planners
 
 ### Discover How to Create Multiple Events in a few seconds with Eventin Pro Events Planner:
 
@@ -44,20 +43,22 @@ https://youtu.be/6AO-Exli57Q?si=BbVcjzWNm6ECK6_v
 
 >*Manage **Event Calendar** and Sell **Event Tickets** with Eventin Event Manager and Event Ticketing Plugin – Fully compatible with WordPress.*
 
-## ⚡ Experience The Easiest Event Management Plugin: Eventin for WordPress ##
+## Experience The Easiest Event Management Plugin: ##
 
-**Planning events** is easy with Eventin event registration plugin! This powerful event booking plugin for WordPress simplifies everything from **creating events** to [managing event attendees](https://themewinter.com/how-to-manage-event-attendees/), saving you valuable time and resources. This **event planner plugin** will make [event budgeting](https://themewinter.com/how-to-create-an-event-budget/), [event marketing](https://themewinter.com/boost-event-marketing/), [event management](https://themewinter.com/start-event-management-business-from-home/), selling event tickets, event registration, event RSVP, and event booking on WordPress smooth!
+**Planning events** is easy with Eventin event registration plugin! This powerful event booking plugin for WordPress with event calendar simplifies everything from **creating events** to [managing event attendees](https://themewinter.com/how-to-manage-event-attendees/), saving you valuable time and resources. 
 
-## 🤝 Create Engaging Events:
+This free **event planner plugin** will make [event budgeting](https://themewinter.com/how-to-create-an-event-budget/), [event marketing](https://themewinter.com/boost-event-marketing/), [event management](https://themewinter.com/start-event-management-business-from-home/), selling event tickets, event registration, event RSVP, and event booking on WordPress smooth!
+
+## 🤝 Create Engaging Events: ##
 
 * [Single or Multiple Events](https://support.themewinter.com/docs/plugins/plugin-docs/event/single-event-v4/): Schedule one-time events or set multiple events for days, weeks, months, or years. Create an **event template** and put it on repeat for effortless management of similar events.
 * [Event Lists & Calendar](https://support.themewinter.com/docs/plugins/plugin-docs/others-settings-eventin/calendar-module/): Showcase upcoming events with customizable lists that highlight the key details. Integrate easily with Elementor for further customization options.
 * [Informative Event Pages](https://support.themewinter.com/docs/plugins/plugin-docs/event/event-single-page-with-elementor-builder/): Display **real-time event information**, event countdowns, event speaker details, and even embed videos using YouTube for event attendees.
 
-## ⚡ Awesome Free Features to Improve Your Events: ##
+## ⚡️ Awesome Free Features to Improve Your Events: ##
 
 * [Comprehensive Speaker Profiles](https://support.themewinter.com/docs/plugins/plugin-docs/event/eventin-speaker-organizer/): Create **detailed profiles** for your [event speakers](https://themewinter.com/how-to-create-speakers-list-in-wordpress/), including descriptions, pictures, social media links, and [company logos](https://themewinter.com/how-to-add-event-banner-website-logo-in-wordpress/).
-* [Multiple Language Support](https://support.themewinter.com/docs/plugins/plugin-docs/general-settings-eventin/translations/): Cater to a global audience with [**RTL language support**](https://themewinter.com/how-to-enable-rtl-support-on-wordpress/), ensuring a smooth user experience for everyone, regardless of the language.
+* [Multiple Language Support](https://support.themewinter.com/docs/plugins/plugin-docs/general-settings-eventin/translations/): Cater to a global audience with [**RTL language support**](https://themewinter.com/how-to-enable-rtl-support-on-wordpress/), ensuring a smooth user experience for everyone, regardless of the language with Eventin event organizer.
 * [WooCommerce Integration](https://support.themewinter.com/docs/plugins/plugin-docs/payment-type/woocommerce/): Simplify the event ticket purchase process by [**integrating with WooCommerce**](https://themewinter.com/how-to-add-woocommerce-coupon-code/), your favorite e-commerce platform.
 
 Eventin event manager plugin empowers you to **create professional and engaging** live, virtual, or hybrid events with a user-friendly interface and a comprehensive set of features for WordPress.
@@ -70,7 +71,7 @@ Eventin event manager plugin empowers you to **create professional and engaging*
 ✅ Easy event speaker profiles with pictures, social links, and company logos
 ✅ Simplified event RSVP system with analytical reports
 ✅ Profitable event ticketing system with attendee tickets and QR codes
-✅ Ticket and certificate template builder
+✅ Event Landing, Event Tickets, and Event Certificate Template Builder
 ✅ Multiple language support
 ✅ Frontend event submission
 ✅ User role management
@@ -80,36 +81,36 @@ Eventin event manager plugin empowers you to **create professional and engaging*
 
 ## 🎯 Manage Events and RSVP: ##
 
-* [Event RSVP](https://support.themewinter.com/docs/plugins/plugin-docs/rsvp-settings/rsvp-general-settingspro-v4/): Allow attendees to **RSVP for events** directly through your website. Track responses and generate analytical reports to understand demographics and interests for [event attendee management](https://themewinter.com/how-to-create-event-attendee-list-in-wordpress/).
-* [Eventin AI](https://support.themewinter.com/docs/plugins/plugin-docs/integration/ai-integration/): Integrated with OpenAI, Eventin lets you [**create an event much faster**](https://themewinter.com/how-to-create-multiple-events-in-wordpress/) than any other event organizer plugin. All you have to do is give the prompt of your event details and see it done in seconds.
+* [Event RSVP](https://support.themewinter.com/docs/plugins/plugin-docs/rsvp-settings/rsvp-general-settingspro-v4/): Allow attendees to **RSVP for events** from your site. Track responses and generate analytical reports to understand demographics and interests for [event attendee management](https://themewinter.com/how-to-create-event-attendee-list-in-wordpress/).
+* [Eventin Ai](https://support.themewinter.com/docs/plugins/plugin-docs/integration/ai-integration/): Automatically generate event titles, descriptions, FAQs, tags, categories, and banners in seconds [with the power of Ai](https://themewinter.com/ai-event-creation-wordpress/).
 * [Visual Seat Arrangement](https://themewinter.com/eventin-timetics-integration-visual-seatplan/): Plan out your event floor map faster and [sell event tickets](https://themewinter.com/slash-ticket-resolution-time/) on each seat using visual seat arrangement integration by [WP Timetics](https://arraytics.com/timetics/).
 * [All-Sync Calendar](https://support.themewinter.com/docs/plugins/plugin-docs/others-settings-eventin/calendar-module/): Stay on track & updated with all the upcoming events with the **All-Sync calendar** on your dashboard.
 * [QR Code](https://support.themewinter.com/docs/plugins/plugin-docs/event/qr-code/): Make an **easy event registration experience** with event **QR codes**. Scan event tickets of your event attendees in just a few seconds.
-* [Recurring Events](https://themewinter.com/how-to-create-recurring-events-in-wordpress/): Stop wasting time creating the same events manually and [create **recurring events**](https://themewinter.com/automate-repetitive-tasks-at-no-additional-cost/) in just a few clicks!
-* [Certificate Builder](https://support.themewinter.com/docs/plugins/plugin-docs/event/certificate-builder-for-attendee/): Reward event attendees with PDF certificates effortlessly and make your online events even more interesting.
-* [Multi-Tiered Tickets](https://themewinter.com/multi-tier-ticket-pricing-for-events-2/): Never miss a single seat to [sell using multi-tiered tickets](https://themewinter.com/multi-tier-ticket-pricing-for-events-2/) like VIP, Gold, etc., or sell the event tickets in bulk.
+* [Recurring Events](https://themewinter.com/how-to-create-recurring-events-in-wordpress/): Stop wasting time creating the same events manually and [create **recurring events**](https://themewinter.com/automate-repetitive-tasks-at-no-additional-cost/) with an event calendar in just a few clicks!
+* [Certificate Builder](https://support.themewinter.com/docs/plugins/plugin-docs/event/certificate-builder-for-attendee/): Reward event attendees with PDF certificates effortlessly and make your online events even more interesting with the event manager.
+* [Multi-Tiered Tickets](https://themewinter.com/multi-tier-ticket-pricing-for-events-2/): Never miss a single seat to [sell using multi-tiered tickets](https://themewinter.com/multi-tier-ticket-pricing-for-events-2/) like VIP, Gold, etc., or sell the event tickets in bulk with the events organizer.
 * [Multivendor Event Marketplace](https://themewinter.com/build-a-multivendor-event-marketplace/): [Build your dream multivendor event marketplace](https://themewinter.com/multi-vendor-event-marketplace/) with Dokan integration. Grow more sales with an on-premise platform.
 
 ## 🚀 Super-Fast PRO Features to Grow Your Events: ##
 
 * [Frontend Event Submission](https://support.themewinter.com/docs/plugins/plugin-docs/event/front-end-event-submission/): Empower **event attendees to book events** directly on your website, saving them time and simplifying the process.
-* [Data Import & Export](https://support.themewinter.com/docs/plugins/plugin-docs/event/event-attendee/): Effortlessly **migrate your event data** between Eventin and other platforms using the import and export functionalities. This ensures a **smooth transition** and simplifies event data management.
+* [Data Import & Export](https://support.themewinter.com/docs/plugins/plugin-docs/event/event-attendee/): Effortlessly **migrate your event data** between Eventin event manager and other platforms using the import and export functionalities. This ensures a **smooth transition** and simplifies event data management.
 * [Event Analytics (PRO)](https://themewinter.com/measure-the-success-of-your-event/#4-analyzing-speaker-and-session-performance): Gain valuable insights into your event’s performance with **comprehensive event analytics**. Track key metrics like event registrations, event ticket sales, event attendee demographics, and more to optimize future events.
 * [Event Reminders](https://support.themewinter.com/docs/plugins/plugin-docs/event/eventin-notifications/): Schedule [automated email](https://support.themewinter.com/docs/plugins/plugin-docs/event/eventin-notifications/#reminder-email-pro) or [SMS reminders](https://support.themewinter.com/docs/plugins/plugin-docs/integration/eventin-twilio-sms/) to keep event attendees informed and engaged. Reduce no-shows and [ensure a successful event turnout](https://themewinter.com/how-to-utilize-an-event-management-plugin/).
-* [Ticket and Certificate Template Builder](https://support.themewinter.com/docs/plugins/plugin-docs/teamplate-builder/template-builder-for-eventin-certificate-and-ticket/): Easily design and customize event tickets and [event certificates tailored to the specific needs of your event](https://themewinter.com/how-to-create-event-certificate-easily/).
+* **Event Landing, Event Tickets, and Event Certificate Template Builder:** [Create stunning and customizable Event Landing Templates](https://themewinter.com/custom-event-template-builder-wordpress/) for events, certificates, and tickets with just a few clicks.
 
 ## ✨ Additional Features to Improve Your Events: ##
 
-* **10+ Multi-Event Widgets:** Design your **event page** with more event details using various widgets.
-* **5+ Speaker Widgets:** Create attractive [event attendee and speaker pages](https://themewinter.com/how-to-create-event-landing-page/).
-* **3+ Single Event Widgets:** Spend less time **designing your event organizer page** with dedicated event widgets.
+* **10+ Multi-Event Widgets:** Design your **event page** with more event details using various widgets using Eventin event manager.
+* **5+ Speaker Widgets:** Create attractive [event attendee and speaker pages](https://themewinter.com/how-to-create-event-landing-page/) using Eventin event organizer.
+* **3+ Single Event Widgets:** Spend less time **designing your event organizer page** with dedicated event widgets using Eventin event manager.
 * **Filter Events by Tag Name (Elementor widget):** Add event filtering based on tag names using the Elementor widget.
 * [Reminder/ Notification about Upcoming Events](https://support.themewinter.com/docs/plugins/plugin-docs/event/eventin-notifications/): Remind **attendees and users** of upcoming events with **reminder notifications** so they [never miss a single event](https://themewinter.com/event-budget-planning/).
 * [Detailed Attendee Reports](https://support.themewinter.com/docs/plugins/plugin-docs/event/event-attendee/): Track event attendee details, event registration status, and event ticket purchases to gain valuable insights and improve future events.
 * [User Role Management](https://support.themewinter.com/docs/plugins/plugin-docs/general-settings-eventin/user-roles-and-permissions/): Assign specific **user roles** for event creation, event ticket sales, event QR code scanning, and manual event attendee registration for [secure event management](https://themewinter.com/why-eventin-event-management-system-stands-out/).
 * [Add Unlimited F.A.Q. to an Event](https://support.themewinter.com/docs/plugins/plugin-docs/event/single-event-v4/): Answer common questions for your events list by **adding unlimited FAQs** for each event.
 * [Event Banner Option with Color or Custom Image](https://support.themewinter.com/docs/plugins/plugin-docs/event/single-event-v4/): Customize your event page with a [**custom banner image or color**](https://themewinter.com/how-to-add-event-banner-website-logo-in-wordpress/) that matches your event theme.
-* [Print Event Invoices](https://support.themewinter.com/docs/plugins/plugin-docs/general-settings-eventin/create-event-tickets-free-paid/): Easily **print invoices** for event attendees.
+* [Print Event Invoices](https://support.themewinter.com/docs/plugins/plugin-docs/general-settings-eventin/create-event-tickets-free-paid/): Easily **print invoices** for event attendees with Eventin event organizer.
 * [Unified Ticketing System](https://support.themewinter.com/docs/plugins/plugin-docs/general-settings-eventin/create-event-tickets-free-paid/): Simplify event ticketing with a **unified ticketing system**.
 * [Update Attendee Data](https://support.themewinter.com/docs/plugins/plugin-docs/event/adding-attendees-manually/): Allow event attendees to **update their information** post-ticket purchase.
 * [Personalized Email Notifications](https://support.themewinter.com/docs/plugins/plugin-docs/event/eventin-notifications/): Send **personalized email notifications** to event participants.
@@ -149,8 +150,6 @@ Eventin event manager plugin empowers you to **create professional and engaging*
 - [WPAstra](https://wpastra.com/plugins/wordpress-event-calendar-plugins/): “With a diverse set of features, it is dedicated to simplifying event organization and ensuring a smooth, efficient process.”
 - [Kinsta](https://kinsta.com/blog/wordpress-events-plugin/): “The plugin’s exceptional quality is not only reflected in user reviews but also evidenced by ThemeWinter’s long-standing commitment to delivering top-notch products.”
 - [InstaWP](https://instawp.com/essential-wordpress-event-plugins/): “Eventin saves time by automating many tasks, allowing you to focus on other aspects of your event management.”
-- [Webnus](https://webnus.net/modern-events-calendar/comparison-table/): “This fun plugin might not be the most popular plugin in the market, but has been welcomed tremendously by new WP users.”
-- [WP Floor](https://www.wpfloor.com/best-wordpress-event-plugins/): “Eventin caters to various event types, enhancing user experience and brand consistency.”
 
 **📚 Support and Essential Documentation**
 
@@ -168,10 +167,9 @@ Eventin event manager plugin empowers you to **create professional and engaging*
 
 If you’re impressed with Eventin Event Manager Plugin for WordPress, please check out our other awesome WordPress plugins:
 
-🍔 [WPCafe](https://wordpress.org/plugins/wp-cafe/): Manage **Online Food Business** and make more sales–all in one **Food Ordering plugin on WordPress**.
-📅 [WP Timetics](https://wordpress.org/plugins/timetics/): An **AI-powered Appointment Scheduling plugin for WordPress**, with [visual seat arrangement](https://themewinter.com/visual-seat-plan-to-boost-event-roi/).
-✍ [Authorsy](https://wordpress.org/plugins/authorsy/): A **Multi-Style Author Manager Plugin for WordPress** to show your work to the world.
-💻 [Poptics](https://wordpress.org/plugins/poptics/): A **Popup Builder plugin for WordPress** designed to increase leads and sales for your website.
+🍔 **[WPCafe](https://wordpress.org/plugins/wp-cafe/)** : Food Ordering plugin on WordPress
+📅 **[WP Timetics](https://wordpress.org/plugins/timetics/)** : AI-powered Appointment Scheduling plugin for WordPress
+💻 **[Poptics](https://wordpress.org/plugins/poptics/)** : All-in-one Popup Builder plugin for WordPress
 
 If you’re interested, visit [ThemeWinter](http://themewinter.com/) to learn more about WordPress scheduling, event management, restaurant reservationss, and lots of [Marketing Tips & Tricks](https://themewinter.com/blog/)! 🎉
 
@@ -181,21 +179,44 @@ If you’re interested, visit [ThemeWinter](http://themewinter.com/) to learn mo
 
 = Do you have an Event RSVP available? =
 
-Yes, we do! Eventin event management plugin offers an RSVP solution to send your event attendees a customizable response form to respond to your events immediately.
+Eventin event management plugin offers an RSVP solution to send your event attendees a customizable response form to respond to your events immediately.
 
-= Do you have any features to design event seat arrangements? =
+= Does Eventin have a Template Builder? =
 
-Absolutely! Eventin WordPress events plugin has a seat arrangement feature, integrated with WP Timetics. You can easily use this drag-n-drop visual seat map builder to draw your [event venue](https://themewinter.com/how-to-add-a-venue-to-events/), design seating arrangements and put ticket pricing on each seat based on different categories like VIP, GOLD, PLATINUM, etc.
+Eventin offers a certificate, ticket, and event template builder. You can customize easily according to your event.
 
-= Do you support all kinds of payments? =
+= What Payment methods does Eventin support? =
 
-Of course! Since Eventin event manager plugin has integrated with WooCommerce, you can access all popular payment methods on WooCommerce including Stripe and PayPal.
+Eventin event manager plugin supports all payment methods available through WooCommerce, Stripe, and PayPal payment gateways.
 
 = Does it support multi-language? =
 
-Eventin event scheduling plugin supports multi-language on your WordPress site with WPML 
+Eventin event scheduling plugin supports multi-language on your WordPress site with WPML compatability.
+
+= Does Eventin have a QR scanner to verify your attendees on tickets? =
+
+Yes, Eventin event ticketing plugin offers a unique event QR scanner solution to scan all the single/bulk tickets at once and save tons of time during event registration. 
 
 == Changelog ==
+
+= 4.0.26 ( March 25, 2025 )=
+Tweak : Overselling protection
+Tweak : Booking status update from bookings list
+Tweak : Get PRO fiel URL update
+Tweak : Calendar "Upcoming Event" show/hide, date foramt fix and order by event date 
+Tweak : Patchstack LFI vulnerability fix
+Fix   : Missing speaker page profile links
+Fix   : Blur image in dashboard
+Fix   : Banner removal not working
+Fix   : Email Translation
+Fix   : Calener upcoming event issues
+Fix   : Attendee QR Checkin Time
+Fix   : Speaker bulk delete issue
+Fix   : Add-ons and our plugin module save skeleton render issue
+Fix   : Bankd transfer payment critical error
+Fix   : One lilne event pro shortcode issue
+Fix   : UX improvemnt
+Fix   : Date format fix
 
 = 4.0.25 ( March 17, 2025 )=
 

@@ -154,5 +154,14 @@ class OrderModel extends Post_Model {
     public function get_customer() {
         return CustomerModel::find( $this->customer_id );
     }
+
+    /**
+     * Validate event order tickets
+     *
+     * @return  bool | WP_Error
+     */
+    public function validate_ticket() {
+       return etn_validate_event_tickets( $this->event_id, $this->tickets );
+    }
 }
 

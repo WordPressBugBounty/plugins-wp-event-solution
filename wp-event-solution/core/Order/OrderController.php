@@ -358,8 +358,40 @@ class OrderController extends WP_REST_Controller {
      * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
      */
     public function update_item( $request ) {
-        $id = intval( $request['id'] );
-        
+		
+		// if request for status update
+	    if ( isset( $request['action'] ) && $request['action'] == "update_booking_status" ) {
+		    $status = $request['status'];
+			if ( !in_array($status, ["failed", "completed", "refunded"]) ) {
+				return new WP_Error( 'order_update_booking_status_error', "invalid status", ['status' => 400] );
+			}
+			
+            $id        = intval( $request['id'] );
+		    $order     = new OrderModel( $id );
+		    
+		    $order->update(["status" => $status]);
+			
+		    $attendeeModel = new Attendee_Model();
+		    $attendees = $attendeeModel->get_attendees_model_by_eventin_order_id(intval($order->id));
+		    
+			foreach ($attendees as $attendee) {
+				if ( $status === "completed") {
+					update_post_meta($attendee->ID, 'etn_status', "success");
+				} else {
+					update_post_meta($attendee->ID, 'etn_status', "failed");
+				}
+			}
+			
+			if ( $order->payment_method == "wc" ) {
+				$status = $status == "failed" ? "cancelled" : $status;
+				$this->wc_order_status_update($id, $status);
+			}
+			
+		    $response  = $this->prepare_item_for_response( $order, $request );
+			return rest_ensure_response( $response );
+	    }
+	    
+	    $id = intval( $request['id'] );
         $prepared_order = $this->prepare_item_for_database( $request );
 
         if ( is_wp_error( $prepared_order ) ) {
@@ -540,10 +572,16 @@ class OrderController extends WP_REST_Controller {
         $validate = etn_validate( $input_data, [
             'event_id'          => ['required'],
             'tickets'           => ['required'],
-        ] );
+        ]);
 
         if ( is_wp_error( $validate ) ) {
             return $validate;
+        }
+
+        $ticket_validation = etn_validate_event_tickets( $input_data['event_id'], $input_data['tickets'] );
+
+        if ( is_wp_error( $ticket_validation ) ) {
+            return $ticket_validation;
         }
 
         $order_data = [];
@@ -584,6 +622,10 @@ class OrderController extends WP_REST_Controller {
 
         if ( isset( $input_data['attendee_seats'] ) ) {
             $order_data['attendee_seats'] = $input_data['attendee_seats'];
+        }
+
+        if ( isset( $input_data['status'] ) ) {
+            $order_data['status'] = $input_data['status'];
         }
 
         $order_data['total_price'] = $this->total_price($order_data['event_id'], $order_data['tickets']);
@@ -944,4 +986,39 @@ class OrderController extends WP_REST_Controller {
     public function refund_ticket_permissions_check( $request ) {
         return current_user_can( 'manage_options' );
     }
+	
+	
+	private function wc_order_status_update( $eventin_order_id, $status ) {
+		$post_type = etn_is_enable_wc_synchronize_order() ? 'shop_order' : 'shop_order_placehold';
+		$args = [
+			'post_type'   => $post_type,
+			'post_status' => 'any',
+			'posts_per_page' => -1,
+			'fields'          => 'ids',
+			'meta_query'    => [
+				[
+					'key'   => 'eventin_order_id',
+					'value' => $eventin_order_id,
+					'compare' => '='
+				]
+			]
+		];
+		
+		
+		$orders_ids = get_posts( $args );
+		
+		if ( ! $orders_ids ) {
+			return false;
+		}
+		
+		$order = wc_get_order( $orders_ids[0] );
+		
+		if ( $order ) {
+			$order->update_status( $status );
+			
+			return true;
+		}
+		
+		return false;
+	}
 }

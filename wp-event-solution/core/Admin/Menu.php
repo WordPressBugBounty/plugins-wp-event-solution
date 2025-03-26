@@ -156,7 +156,7 @@ class Menu implements HookableInterface {
             $this->submenus[] = [
                 'title'      => __( 'Go Pro', 'eventin' ),
                 'capability' => 'etn_manage_go_pro',
-                'url'        => 'https://themewinter.com/eventin/',
+                'url'        => 'https://themewinter.com/eventin/pricing/',
                 'position'   => 9999,
             ];
         }

@@ -546,8 +546,8 @@ class SpeakerController extends WP_REST_Controller {
 
             if ( ! $has_only_allowed_roles ) {
                 if ( $hide_user == 1 ) update_user_meta( $id, 'hide_user', '' ); 
-                $user->remove_role( 'speaker' );
-                $user->remove_role( 'organizer' );
+                $user->remove_role( 'etn-speaker' );
+                $user->remove_role( 'etn-organizer' );
             } else {
                 $speaker->delete();
             }

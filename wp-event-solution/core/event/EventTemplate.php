@@ -68,9 +68,11 @@ class EventTemplate implements HookableInterface {
             return $template;
         }
 
-        if (class_exists('Elementor\Plugin')) {
+        $current_post_id = get_the_ID();
+        $is_elementor_editor = get_post_meta($current_post_id, '_elementor_edit_mode', true) === 'builder';
 
-            $current_post_id = get_the_ID();
+        if (class_exists('Elementor\Plugin') && $is_elementor_editor ) {
+
             $page_settings_manager = \Elementor\Plugin::$instance->documents->get($current_post_id);
 
             if ( $page_settings_manager ) {

@@ -51,6 +51,7 @@ class Hooks {
 
         $event_count        = isset( $attributes["limit"] ) && is_numeric( $attributes["limit"] ) && is_numeric( $attributes["limit"] ) <= 3 ? intval( $attributes["limit"] ) : 15;
         $show_desc          = !empty( $attributes["show_desc"] ) ? $attributes["show_desc"] : 'no';
+        $show_upcoming_event= !empty( $attributes["show_upcoming_event"] ) ? $attributes["show_upcoming_event"] : 'no';
         $calendar_show      = !empty( $attributes["calendar_show"] ) ? $attributes["calendar_show"] : 'left';
         $style              = !empty( $attributes["style"] ) ? $attributes["style"] : 'style-1';
 
@@ -84,6 +85,7 @@ class Hooks {
             'limit' => $event_count, 
             'select_cat_text' => esc_html__('All Categories', 'eventin'),
             'show_desc' => $show_desc,
+            'show_upcoming_event' => $show_upcoming_event,
             'calendar_show' =>$calendar_show, 
             'style' =>$style, 
             'selected_date_text' => esc_html__('Showing events for', 'eventin'),
@@ -209,6 +211,7 @@ class Hooks {
         $event_cats = null;
         $event_tag = null;
         $style            = !empty( $attributes["style"] ) ? $attributes["style"] : 'event-1';
+        $allowed_styles = ['event-1', 'event-2']; // Add allowed styles here
 
         if ( isset( $attributes['event_cat_ids'] ) && $attributes['event_cat_ids'] !== '' ) {
             $event_cats = explode( ',', $attributes['event_cat_ids'] );
@@ -255,7 +258,8 @@ class Hooks {
 
         ob_start();
 
-        if ( file_exists( \Wpeventin::widgets_dir() . "/events-tab/style/tab-1.php" ) ) {
+        if ( in_array( $style, $allowed_styles, true ) 
+            && file_exists( \Wpeventin::widgets_dir() . "events/style/{$style}.php" ) ) {
             include \Wpeventin::widgets_dir() . "/events-tab/style/tab-1.php";
 
         }

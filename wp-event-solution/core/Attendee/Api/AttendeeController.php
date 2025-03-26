@@ -532,6 +532,7 @@ class AttendeeController extends WP_REST_Controller {
     public function prepare_item_for_response( $item, $request ) {
         $data =  $item->get_data();
         $data['extra_fields'] = $item->get_extra_fields();
+        $data['scanner_update_time'] = $item->get_scanner_update_time();
 
         return $data;
     }

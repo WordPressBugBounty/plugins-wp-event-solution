@@ -17,6 +17,7 @@ class Seatplan_Form {
 	 */
 	public function init() {
 		add_action( 'etn_after_single_event_details_rsvp_form', array( $this, 'seat_plan_form' ), 10 );
+		add_action( 'etn_after_add_to_cart_widget_block', array( $this, 'seat_plan_form' ), 10 );
 	}
 
 	/**

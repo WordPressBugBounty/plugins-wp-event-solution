@@ -35,7 +35,7 @@
             margin-top: 0;
         "
         >
-        Download Ticket
+	        <?php echo esc_html__( 'Download Ticket', 'eventin' ); ?>
         </h2>
         <!-- Single Ticket Information -->
         <div>
@@ -82,8 +82,8 @@
                     />
                     </svg>
                 </span>
-                Download Ticket</a
-                >
+	                <?php echo esc_html__( 'Download Ticket', 'eventin' ); ?>
+                </a>
                 <a
                 href="<?php echo esc_url( site_url("etn-attendee?etn_action=edit_information&attendee_id={$attendee->id}&etn_info_edit_token={$attendee->etn_info_edit_token}") ); ?>"
                 style="
@@ -93,8 +93,9 @@
                     border-left: 1.5px solid #334155;
                     padding-left: 8px;
                 "
-                >Edit Information</a
                 >
+	                <?php echo esc_html__( 'Edit Information', 'eventin' ); ?>
+                </a>
             </div>
         </div>
             <!-- Separator -->

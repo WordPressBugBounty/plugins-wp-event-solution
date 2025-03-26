@@ -125,6 +125,23 @@ class Attendee_Model extends Post_Model {
     }
 
     /**
+     * Get scanner update time
+     *
+     * @return  string
+     */
+    public function get_scanner_update_time() {
+        $scanner_update_time = get_post_meta( $this->id, 'scanner_update_time', true );
+
+        if ( empty( $scanner_update_time ) ) {
+            return null;
+        }
+		
+	    $date_format = get_option( 'date_format' );
+	    $time_format = get_option( 'time_format' );
+	    return date_i18n( $date_format . ' ' . $time_format, strtotime($scanner_update_time) );
+    }
+
+    /**
      * Get extra fields as html content
      *
      * @return  string
@@ -169,4 +186,23 @@ class Attendee_Model extends Post_Model {
 
         return $response_data;
     }
+	
+	
+	
+	public function get_attendees_model_by_eventin_order_id( $eventin_order_id ) {
+		$args = [
+			'post_type'      => 'etn-attendee',
+			'post_status'    => 'any',
+			'posts_per_page' => -1,
+			'meta_query'     => [
+				[
+					'key'     => "eventin_order_id",
+					'value'   => $eventin_order_id,
+					'compare' => '=',
+				]
+			]
+		];
+		
+		return  get_posts( $args );
+	}
 }

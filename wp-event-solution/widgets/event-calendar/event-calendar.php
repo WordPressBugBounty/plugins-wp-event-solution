@@ -139,7 +139,17 @@ class Etn_Event_Calendar extends Widget_Base {
 				'default' => 'yes',
 						]
 				);
-
+				$this->add_control(
+					'show_upcoming_event',
+					[
+                        'label'   => esc_html__( 'Show Upcoming Events', 'eventin' ),
+                        'type'    => Controls_Manager::SWITCHER,
+                        'label_on' => esc_html__( 'Yes', 'eventin' ),
+                        'label_off' => esc_html__( 'No', 'eventin' ),
+                        'return_value' => 'yes',
+                        'default' => 'no',
+					]
+				);
         $this->end_controls_section();
 
          // Title style section
@@ -330,10 +340,11 @@ class Etn_Event_Calendar extends Widget_Base {
         $style              = (isset($settings["style"]) ? $settings["style"] : 'style-1');
 		$show_child_event   = $settings["show_child_event"];
         $show_parent_event  = $settings["show_parent_event"];
+        $show_upcoming_event  = $settings["show_upcoming_event"];
         $catsIds            = !empty($event_cat) ?  implode(",",$event_cat) : '';
 		$post_parent        = Helper::show_parent_child( $show_parent_event , $show_child_event  );
 
-        echo do_shortcode("[events_calendar style='$style' show_parent_event='$show_parent_event' show_child_event='$show_child_event' limit='$event_count' event_cat_ids='$catsIds' calendar_show=$calendar_show show_desc=$show_desc /]");
+        echo do_shortcode("[events_calendar style='$style' show_parent_event='$show_parent_event' show_child_event='$show_child_event' limit='$event_count' event_cat_ids='$catsIds' calendar_show=$calendar_show show_desc=$show_desc show_upcoming_event=$show_upcoming_event /]");
     }
 
     public function get_event_category() {

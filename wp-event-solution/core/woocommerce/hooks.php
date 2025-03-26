@@ -41,7 +41,7 @@ class Hooks {
         // add_action('woocommerce_order_status_changed', [$this, 'update_event_stock_on_order_status_update' ], 10, 3);
         // add_action('woocommerce_order_status_changed', [$this, 'update_event_revenue_on_refunded' ], 10, 3);
         add_action('woocommerce_order_status_changed', [$this, 'change_attendee_payment_status_on_order_status_update' ], 10, 3);
-        add_action('woocommerce_order_status_changed', [$this, 'change_purchase_report_status_on_order_status_update' ], 10, 3);
+        // add_action('woocommerce_order_status_changed', [$this, 'change_purchase_report_status_on_order_status_update' ], 10, 3);
         add_action('woocommerce_order_status_changed', [$this, 'email_zoom_event_details_on_order_status_update' ], 10, 3);
         add_action('woocommerce_order_status_changed', [$this, 'email_attendee_ticket_details_on_order_status_update' ], 10, 3);
 
@@ -369,11 +369,16 @@ class Hooks {
 		$thankyou_redirect   =  etn_get_option( "order_thank_you_redirect" );
 		$thankyou_redirect   = isset( $thankyou_redirect ) ? $thankyou_redirect : '';
   
-        
+        $eventin_order           = new OrderModel($order_id);
+        $validate_ticket         = $eventin_order->validate_ticket();
+
+        if ( is_wp_error( $validate_ticket ) ) {
+            wp_redirect( site_url( 'eventin-purchase/checkout/#/failed?action=ticket-limit-exit' ) );
+		    exit();
+        }
 		
 		if ( $thankyou_redirect === 'woo_thankyou' ) {
 			if ( $wc_order && in_array( $wc_order->get_status(), $statuses ) ) {
-				$eventin_order = new OrderModel($order_id);
 				$eventin_order->update(['status' => 'completed']);
 				
 				do_action('eventin_order_completed', $eventin_order);
@@ -382,8 +387,6 @@ class Hooks {
 			return;
 		}
 		
-		
-		$eventin_order = new OrderModel($order_id);
 		if ( $wc_order && in_array( $wc_order->get_status(), $statuses ) ) {
 			$eventin_order->update(['status' => 'completed']);
 			do_action('eventin_order_completed', $eventin_order);
@@ -395,7 +398,7 @@ class Hooks {
 		
 		if ( $wc_order && in_array( $wc_order->get_status(), $statuses ) ) {
 			$url = 'eventin-purchase/checkout/#/success';
-		} elseif( 'on-hold' === $eventin_order->get_status() ) {
+		} elseif( 'on-hold' === $wc_order->get_status() ) {
 			$url = '/eventin-purchase/checkout/#/hold';
 		}else {
 			$url = 'eventin-purchase/checkout/#/failed';

@@ -45,7 +45,14 @@ class Content {
         $template = self::$template;
 
         extract( self::$data );
-        $email_template = \Wpeventin::templates_dir() . 'emails/email.php';
+
+        if ( file_exists( get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . "emails/{$template}.php" ) ) {
+            $email_template = get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . "emails/{$template}.php";
+        } elseif ( file_exists( get_template_directory() . \Wpeventin::theme_templates_dir() . "emails/{$template}.php" ) ) {
+            $email_template = get_template_directory() . \Wpeventin::theme_templates_dir() . "emails/{$template}.php";
+        } else {
+            $email_template = \Wpeventin::templates_dir() . 'emails/email.php';
+        }
 
         ob_start();
 

@@ -561,6 +561,12 @@ class EventController extends WP_REST_Controller {
             set_post_thumbnail($request['id'], $request['event_banner_id']);
         }
 
+        if( empty($request['event_banner']) && empty($request['event_banner_id'])) {
+	        delete_post_thumbnail($request['id']);
+        }
+
+		
+		
         $post = get_post( $event->id );
 
         $item = $this->prepare_item_for_response( $post, $request );

@@ -3379,23 +3379,24 @@ class Helper {
 			'post_status' => 'publish',
 			'fields'      => 'ids',
 			'suppress_filters' => false,
-			'meta_query'  =>
-				array(
-					'relation' => 'OR',
-					array(
-						'key'     => 'etn_end_date',
-						'value'   => $start_date,
-						'compare' => '>=',
-						'type'    => 'DATE'
-					),
-					array(
-						'key'     => 'etn_start_date',
-						'value'   =>  $end_date,
-						'compare' => '<=',
-						'type'    => 'DATE'
-					),
-				)
-			
+			'meta_key'         => 'etn_start_date', // Specify the meta key to order by
+			'orderby'        => 'meta_value',    // Order by the meta value
+			'order'          => 'ASC',          // Ascending order
+			'meta_query'     => [
+				'relation' 	 => 'OR', // Allow for either condition to match
+				[
+					'key'     => 'etn_end_date',
+					'value'   => $start_date,
+					'compare' => '>=',
+					'type'    => 'DATE',
+				],
+				[
+					'key'     => 'etn_start_date',
+					'value'   => $end_date,
+					'compare' => '<=',
+					'type'    => 'DATE',
+				],
+			],
 		];
  
 		if (!is_array($selected_cats) || empty($selected_cats)) {
@@ -3982,17 +3983,17 @@ class Helper {
 		$etn_date = '';
 		
 		if ( '' !== $get_date ) {
-			$date_format  = Helper::get_option( "date_format" );
-			
-			$date_options = Helper::get_date_formats();
 			date_default_timezone_set( 'UTC' );
 			$new_date = str_replace( '/', '-', $get_date );
-			$etn_date = ! empty( $date_format ) && ! empty( $date_options[ $date_format ] ) ? date_i18n( $date_options[ $date_format ], strtotime( $new_date ) ) : date_i18n( get_option( "date_format" ), strtotime( $new_date ) );
-		}
-
+			
+			$etn_date = wp_date( get_option( "date_format" ), strtotime( $new_date ));
+        }
+		
+		
 		return $etn_date;
 	}
-
+	
+	
 	/**
 	 * Change default date format with time
 	 */

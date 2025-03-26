@@ -136,7 +136,7 @@
             margin-top: 0;
         "
         >
-        Download Ticket
+            <?php echo esc_html__( 'Download Ticket', 'eventin' ); ?>
         </h2>
         <!-- Single Ticket Information -->
         <?php foreach( $order->get_attendees() as $attendee ): ?>
