@@ -1,10 +1,13 @@
 <?php
+
 /**
  * Event Model Class
  *
  * @package Eventin
  */
 namespace Etn\Core\Event;
+
+defined( 'ABSPATH' ) || exit;
 
 use Etn\Base\Post_Model;
 use Eventin\Input;
@@ -83,7 +86,9 @@ class Event_Model extends Post_Model {
         'excerpt_enable'                    => false,
         'enable_seatmap'                    => false,
         'enable_legacy_certificate_template' => false,
-        '_tax_status'                        => 'taxable'         
+        '_tax_status'                        => 'taxable',
+        'pending_seats'                     => [],
+        'etn_last_update_date'              => ''
     ];
 
     /**
@@ -97,6 +102,10 @@ class Event_Model extends Post_Model {
 
         if ( is_array( $ticket_variations ) ) {
             foreach ( $ticket_variations as $ticket ) {
+                $is_unlimited = ! empty( $ticket['etn_unlimited_tickets'] ) || ( isset( $ticket['etn_avaiilable_tickets'] ) && intval( $ticket['etn_avaiilable_tickets'] ) === -1 );
+                if ( $is_unlimited ) {
+                    return -1;
+                }
                 if ( ! empty( $ticket['etn_avaiilable_tickets'] ) ) {
                     $total_ticket += $ticket['etn_avaiilable_tickets'];
                 }
@@ -111,36 +120,56 @@ class Event_Model extends Post_Model {
      *
      * @return  string
      */
-    public function get_status() {
+    public function get_status()
+    {
         $start_date = $this->etn_start_date;
         $start_time = $this->etn_start_time;
         $end_date   = $this->etn_end_date;
         $end_time   = $this->etn_end_time;
-        $status     = get_post_status( $this->id );
-        $timezone   = $this->event_timezone ? etn_create_date_timezone( $this->event_timezone ) : 'Asia/Dhaka';
+        $status     = get_post_status($this->id);
+        $timezone   = $this->event_timezone ? etn_create_date_timezone($this->event_timezone) : 'Asia/Dhaka';
 
-        $start_date_time = $start_date . ' ' . $start_time;
-        $end_date_time   = $end_date . ' ' . $end_time;
+        $start_date_time = str_replace(',', '', $start_date . ' ' . $start_time);
+        $end_date_time   = str_replace(',', '', $end_date . ' ' . $end_time);
 
-        // Create a DateTime object for the start date and time in the given timezone
-        $start_date = new \DateTime( $start_date_time, new \DateTimeZone( $timezone ) );
-        $end_date   = new \DateTime( $end_date_time, new \DateTimeZone( $timezone ) );
-    
-        // Create a DateTime object for the current date and time in the given timezone
-        $current_date = new \DateTime('now', new \DateTimeZone( $timezone ) );
-
-        if ( 'publish' === $status ) {
-            if ( $current_date > $end_date ) {
-                $status = __( 'Expired', 'eventin' );
-            } elseif ( $current_date >= $start_date && $current_date <= $end_date ) {
-                $status = __( 'Ongoing', 'eventin' );
-            } else {
-                $status = __( 'Upcoming', 'eventin' );
-            }
+        if (str_contains(strtolower($start_date_time), 'invalid') || str_contains(strtolower($end_date_time), 'invalid')) {
+            return $status;
         }
 
+        try {
+            $tz         = new \DateTimeZone($timezone);
+            $start_date = new \DateTime($start_date_time, $tz);
+            $end_date   = new \DateTime($end_date_time, $tz);
 
-        return $status;
+            // Create a DateTime object for the current date and time in the given timezone
+            $current_date = new \DateTime('now', new \DateTimeZone($timezone));
+
+            if ('publish' === $status) {
+                if ($current_date > $end_date) {
+                    $status = __('Expired', 'eventin');
+                    return [
+                        'key'=>"expired",
+                        'value'=> $status
+                    ];
+                } elseif ($current_date >= $start_date && $current_date <= $end_date) {
+                    $status = __('Ongoing', 'eventin');
+                    return [
+                        'key'=>"ongoing",
+                        'value'=> $status
+                    ];
+                } else {
+                    $status = __('Upcoming', 'eventin');
+                    return [
+                        'key'=>"upcoming",
+                        'value'=> $status
+                    ];
+                }
+            }
+
+            return $status;
+        } catch (\Exception $e) {
+            return $status;
+        }
     }
 
     /**
@@ -207,7 +236,7 @@ class Event_Model extends Post_Model {
     public function get_address() {
         $address = '';
 
-        if ( $this->event_type === 'offline' ) {
+        if ( $this->event_type === 'offline' || $this->event_type === 'hybrid' ) {
             $location = $this->etn_event_location;
 
             $address = ! empty( $location['address'] ) ? $location['address'] : '';
@@ -398,10 +427,10 @@ class Event_Model extends Post_Model {
      *
      * @return  array Attendee data
      */
-    public function get_attendees() {
+    public function get_attendees($status = ['publish', 'trash'], $limit = -1) {
         $attendee_obect = new Attendee_Model();
 
-        $attendees = $attendee_obect->get_attendees_by( 'etn_event_id', $this->id );
+        $attendees = $attendee_obect->get_attendees_by( 'etn_event_id', $this->id, $status, $limit );
 
         return $attendees;
     }

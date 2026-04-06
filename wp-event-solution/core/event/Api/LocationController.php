@@ -1,10 +1,13 @@
 <?php
+
 /**
  * Location Api Class
  *
  * @package Eventin\Event
  */
 namespace Eventin\Location\Api;
+
+defined( 'ABSPATH' ) || exit;
 
 use WP_Error;
 use WP_REST_Controller;

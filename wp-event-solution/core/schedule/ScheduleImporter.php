@@ -1,10 +1,13 @@
 <?php
+
 /**
  * Schedule Importer Class
  * 
  * @package Eventin
  */
 namespace Eventin\Schedule;
+
+defined( 'ABSPATH' ) || exit;
 
 use Eventin\Importer\PostImporterInterface;
 use Eventin\Importer\ReaderFactory;
@@ -37,6 +40,10 @@ class ScheduleImporter implements PostImporterInterface {
         $this->file = $file;
         $file_reader = ReaderFactory::get_reader( $file );
 
+        if ( is_wp_error( $file_reader ) ) {
+            return $file_reader;
+        }
+
         $this->data = $file_reader->read_file();
         $this->create_schedule();
     }
@@ -54,10 +61,11 @@ class ScheduleImporter implements PostImporterInterface {
 
         foreach( $rows as $row ) {
             $slots = ! empty( $row['schedule_slot'] ) ? $row['schedule_slot'] : '';
-            // error_log(print_r($row, true));
             if ( 'text/csv' == $file_type ) {
                 $slots = json_decode( $slots, true );
             }
+            // Sanitize slots to prevent PHP Object Injection
+            $slots = etn_sanitize_array_input( $slots );
 
             $args = [
                 'etn_schedule_title'    => ! empty( $row['program_title'] ) ? $row['program_title'] : '',

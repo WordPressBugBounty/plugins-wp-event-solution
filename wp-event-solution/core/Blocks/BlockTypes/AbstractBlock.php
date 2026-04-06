@@ -1,6 +1,8 @@
 <?php
+
 namespace Eventin\Blocks\BlockTypes;
 
+defined( 'ABSPATH' ) || exit;
 use Wpeventin;
 
 /**
@@ -56,6 +58,11 @@ abstract class AbstractBlock {
      * @return  void  Chunk paths
      */
     protected function register_block_type() {
+        // Skip if block is already registered
+        if ( \WP_Block_Type_Registry::get_instance()->is_registered( $this->get_block_type() ) ) {
+            return;
+        }
+
         $block_settings = [
             'render_callback'   => $this->get_block_type_render_callback(),
             'editor_script'     => $this->get_block_type_editor_script('handle'),
@@ -180,9 +187,12 @@ abstract class AbstractBlock {
      * @return string[]|null
      */
     protected function get_block_type_style() {
-        $this->register_style( 'eventin-blocks-style-' . $this->block_name, $this->get_block_asset_build_path( $this->block_name, 'css' ), [], 'all', true );
+        // Register the main blocks style if not already registered
+        if ( ! wp_style_is( 'etn-blocks-style', 'registered' ) ) {
+            wp_register_style( 'etn-blocks-style', \Wpeventin::plugin_url() . 'build/css/etn-block-styles.css', [], \Wpeventin::version(), 'all' );
+        }
 
-        return [ 'eventin-blocks-style', 'wc-blocks-style-' . $this->block_name ];
+        return [ 'etn-blocks-style' ];
     }
 
     /**
@@ -242,16 +252,112 @@ abstract class AbstractBlock {
     }
 
     /**
+     * Generate CSS for frontend display
+     *
+     * @param array $styles
+     * @param string $container_class
+     * @return string
+     */
+    protected function generate_frontend_css( $styles, $container_class ) {
+        if ( empty( $styles ) || empty( $container_class ) ) {
+            return '';
+        }
+
+        $css = '';
+        
+        // Desktop styles (default)
+        if ( ! empty( $styles['Desktop'] ) ) {
+            $css .= $this->generate_device_css( $styles['Desktop'], $container_class );
+        }
+
+        // Tablet styles
+        if ( ! empty( $styles['Tablet'] ) ) {
+            $css .= "@media screen and (max-width: 768px) {\n";
+            $css .= $this->generate_device_css( $styles['Tablet'], $container_class );
+            $css .= "}\n";
+        }
+
+        // Mobile styles
+        if ( ! empty( $styles['Mobile'] ) ) {
+            $css .= "@media screen and (max-width: 480px) {\n";
+            $css .= $this->generate_device_css( $styles['Mobile'], $container_class );
+            $css .= "}\n";
+        }
+
+        $safe_css = preg_replace( '/<script\b[^>]*>(.*?)<\/script>/is', '', $css );
+        return $safe_css;
+    }
+
+    /**
+     * Generate CSS for specific device
+     *
+     * @param array $device_styles
+     * @param string $container_class
+     * @return string
+     */
+    protected function generate_device_css( $device_styles, $container_class ) {
+        $css = '';
+        
+        foreach ( $device_styles as $selector => $properties ) {
+            $selector_with_dot = $selector;
+            if ( ! str_starts_with( $selector, '.' ) ) {
+                $selector_with_dot = '.' . $selector;
+            }
+
+            $css .= ".{$container_class} {$selector_with_dot} {\n";
+            
+            foreach ( $properties as $property => $value ) {
+                $kebab_property = $this->camel_to_kebab( $property );
+                $css .= "  {$kebab_property}: {$value};\n";
+            }
+            
+            $css .= "}\n";
+        }
+
+        return $css;
+    }
+
+    /**
+     * Convert camelCase to kebab-case
+     *
+     * @param string $str
+     * @return string
+     */
+    protected function camel_to_kebab( $str ) {
+        return strtolower( preg_replace( '/([a-z])([A-Z])/', '$1-$2', $str ) );
+    }
+
+    /**
+     * Render CSS style tag for frontend
+     *
+     * @param array $styles
+     * @param string $container_class
+     * @return string
+     */
+    protected function render_frontend_css( $styles, $container_class ) {
+        $frontend_css = $this->generate_frontend_css( $styles, $container_class );
+        
+        if ( ! empty( $frontend_css ) ) {
+            return '<style>' . $frontend_css . '</style>';
+        }
+        
+        return '';
+    }
+
+    /**
      * Returns the appropriate asset path for current builds.
      *
      * @param   string $filename  Filename for asset path (without extension).
      * @param   string $type      File type (.css or .js).
-     * @return  string             The generated path.
+     * @return  string            The generated path.
      */
     public function get_block_asset_build_path( $filename, $type = 'js' ) {
         // return "assets/blocks/$filename.$type";
+        if ( 'css' === $type ) {
+            return \Wpeventin::plugin_url( 'build/css/gutenberg-blocks.css' );
+        }
 
-        return \Wpeventin::plugin_url( 'build/js/gutenberg-block.js' ); // Need to remove when individual block script generated.
+        return \Wpeventin::plugin_url( 'build/js/gutenberg-blocks.js' ); // Need to remove when individual block script generated.
     }
 
     /**
@@ -266,6 +372,14 @@ abstract class AbstractBlock {
 
         if ( file_exists( $path ) ) {
             return $path;
+        }
+
+        // Fallback to source directory if build directory doesn't exist
+        $source_dir = Wpeventin::plugin_dir() . 'src/blocks/';
+        $source_path = $source_dir . $this->block_name . '/block.json';
+        
+        if ( file_exists( $source_path ) ) {
+            return $source_path;
         }
 
         return false;

@@ -1,10 +1,13 @@
 <?php
+
 /**
  * Settings Controller
  *
  * @package Eventin\Settings
  */
 namespace Eventin\Settings\Api;
+
+defined( 'ABSPATH' ) || exit;
 
 use Eventin\Settings;
 use WP_REST_Controller;
@@ -98,7 +101,11 @@ class SettingsController extends WP_REST_Controller {
      * @return  WP_Rest_Response | WP_Error
      */
     public function update_item( $request ) {
-        $params = $request->get_params();
+        $params = $request->get_json_params();
+
+        if ( empty( $params ) || ! is_array( $params ) ) {
+            return new \WP_Error( 'invalid_data', __( 'Invalid settings data.', 'eventin' ), [ 'status' => 400 ] );
+        }
 
         Settings::update( $params );
 
@@ -112,6 +119,8 @@ class SettingsController extends WP_REST_Controller {
      */
     public function get_public_item( $request ) {
         $extra_fields = etn_get_option( 'extra_fields', [] ) ?: etn_get_option( 'attendee_extra_fields', [] );
+        $extra_fields = array_values(array_filter($extra_fields, fn($v) => !is_null($v)));
+        
         $items = [
             'extra_fields'             => $extra_fields,
             'striple_publishable_key'  => etn_get_option( 'stripe_live_publishable_key' ),
@@ -119,6 +128,8 @@ class SettingsController extends WP_REST_Controller {
             'currency'                 => etn_currency(),
             'currency_symbol'          => etn_currency_symbol(),
             "paypal_status"            => etn_get_option( 'paypal_status' ),
+            'surecart_status'          => etn_get_option( 'surecart_status' ),
+            'local_payment_status'     => etn_get_option( 'local_payment_status' ),
             "attendee_registration"    => etn_get_option( 'attendee_registration' ),
             "reg_require_phone"        => etn_get_option( 'reg_require_phone' ),
             "reg_require_email"        => etn_get_option( 'reg_require_email' ),
@@ -135,6 +146,9 @@ class SettingsController extends WP_REST_Controller {
             'default_extra_fields'     => etn_get_option( 'default_extra_fields' ),
             'show_phone_number'        => etn_get_option( 'show_phone_number', false ),
             'require_last_name'        => etn_get_option( 'require_last_name', false ),
+            'require_phone_number'     => etn_get_option( 'require_phone_number', false ),
+            'ticket_purchase_timer'    => etn_get_option( 'ticket_purchase_timer', 10 ),
+            'ticket_purchase_timer_enable'   => etn_get_option( 'ticket_purchase_timer_enable', 'off' ),
         ];
 
         if ( function_exists( 'WC' ) ) {
@@ -152,6 +166,10 @@ class SettingsController extends WP_REST_Controller {
      * @return WP_Error|boolean
      */
     public function get_public_item_permissions_check( $request ) {
+        $nonce = $request->get_header( 'X-Wp-Nonce' );
+        if ( ! wp_verify_nonce( $nonce, 'wp_rest' ) ) {
+            return false;
+        }
         return true;
     }
 }

@@ -92,6 +92,7 @@ class Etn_Events extends Widget_Base {
                 'label'   => esc_html__( 'Event count', 'eventin' ),
                 'type'    => Controls_Manager::NUMBER,
                 'default' => '6',
+                'condition' => ['enable_pagination' => ''],
             ]
         );
 
@@ -186,7 +187,7 @@ class Etn_Events extends Widget_Base {
 				'default' => 'yes',
             ]
         );
-        
+
         $this->add_control(
             'show_end_date',
             [
@@ -222,6 +223,42 @@ class Etn_Events extends Widget_Base {
 				'default' => 'yes',
 						]
 				);
+
+                $this->add_control(
+                    'show_remaining_tickets',
+                    [
+                            'label'   => esc_html__( 'Show remaining tickets', 'eventin' ),
+                            'type'    => Controls_Manager::SWITCHER,
+                            'label_on' => esc_html__( 'Yes', 'eventin' ),
+                            'label_off' => esc_html__( 'No', 'eventin' ),
+                            'return_value' => 'yes',
+                            'default' => 'no',
+                        ]
+                );
+
+                $this->add_control(
+                    'enable_pagination',
+                    [
+                            'label'   => esc_html__( 'Enable Pagination', 'eventin' ),
+                            'type'    => Controls_Manager::SWITCHER,
+                            'label_on' => esc_html__( 'Yes', 'eventin' ),
+                            'label_off' => esc_html__( 'No', 'eventin' ),
+                            'return_value' => 'yes',
+                            'default' => 'no',
+                        ]
+                );
+
+                $this->add_control(
+                    'posts_per_page',
+                    [
+                            'label'   => esc_html__( 'Posts Per Page', 'eventin' ),
+                            'type'    => Controls_Manager::NUMBER,
+                            'default' => 6,
+                            'min'     => 1,
+                            'max'     => 50,
+                            'condition' => ['enable_pagination' => 'yes'],
+                        ]
+                );
 
         $this->end_controls_section();
 
@@ -720,7 +757,120 @@ class Etn_Events extends Widget_Base {
                     ],
                 ]
             );
-  
+
+
+        $this->end_controls_section();
+
+        // Pagination style section
+        $this->start_controls_section(
+            'pagination_section',
+            [
+                'label' => esc_html__( 'Pagination Style', 'eventin' ),
+                'tab'   => \Elementor\Controls_Manager::TAB_STYLE,
+                'condition' => ['enable_pagination' => 'yes'],
+            ]
+        );
+
+        $this->add_control(
+            'pagination_alignment',
+            [
+                'label' => esc_html__( 'Alignment', 'eventin' ),
+                'type' => Controls_Manager::CHOOSE,
+                'options' => [
+                    'left' => [
+                        'title' => esc_html__( 'Left', 'eventin' ),
+                        'icon' => 'eicon-text-align-left',
+                    ],
+                    'center' => [
+                        'title' => esc_html__( 'Center', 'eventin' ),
+                        'icon' => 'eicon-text-align-center',
+                    ],
+                    'right' => [
+                        'title' => esc_html__( 'Right', 'eventin' ),
+                        'icon' => 'eicon-text-align-right',
+                    ],
+                ],
+                'default' => 'center',
+                'selectors' => [
+                    '{{WRAPPER}} .etn-pagination-wrapper' => 'text-align: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'pagination_spacing',
+            [
+                'label' => esc_html__( 'Spacing', 'eventin' ),
+                'type' => Controls_Manager::SLIDER,
+                'size_units' => ['px'],
+                'range' => [
+                    'px' => [
+                        'min' => 0,
+                        'max' => 100,
+                    ],
+                ],
+                'default' => [
+                    'unit' => 'px',
+                    'size' => 20,
+                ],
+                'selectors' => [
+                    '{{WRAPPER}} .etn-pagination-wrapper' => 'margin-top: {{SIZE}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_group_control(
+            \Elementor\Group_Control_Typography::get_type(),
+            [
+                'name' => 'pagination_typography',
+                'label' => esc_html__( 'Typography', 'eventin' ),
+                'selector' => '{{WRAPPER}} .etn-pagination-link',
+            ]
+        );
+
+        $this->add_control(
+            'pagination_color',
+            [
+                'label' => esc_html__( 'Text Color', 'eventin' ),
+                'type' => Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}} .etn-pagination-link' => 'color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'pagination_bg_color',
+            [
+                'label' => esc_html__( 'Background Color', 'eventin' ),
+                'type' => Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}} .etn-pagination-link' => 'background-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'pagination_current_color',
+            [
+                'label' => esc_html__( 'Current Page Color', 'eventin' ),
+                'type' => Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}} .etn-pagination-current' => 'color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'pagination_current_bg',
+            [
+                'label' => esc_html__( 'Current Page Background', 'eventin' ),
+                'type' => Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}} .etn-pagination-current' => 'background-color: {{VALUE}};',
+                ],
+            ]
+        );
 
         $this->end_controls_section();
 
@@ -744,19 +894,33 @@ class Etn_Events extends Widget_Base {
         $orderby            = $settings["orderby"];
         $show_child_event   = $settings["show_child_event"];
         $show_parent_event  = $settings["show_parent_event"];
+        $show_remaining_tickets  = $settings["show_remaining_tickets"];
+        $enable_pagination  = (isset($settings["enable_pagination"]) ? $settings["enable_pagination"] : 'no');
+        $posts_per_page     = (isset($settings["posts_per_page"]) ? intval($settings["posts_per_page"]) : 6);
+
+        // Handle pagination
+        $etn_paged = 1;
+        if ($enable_pagination === 'yes') {            
+            // Get the page number from URL parameter
+            if (isset($_GET['etn_paged']) && is_numeric($_GET['etn_paged'])) {
+                $etn_paged = max(1, intval($_GET['etn_paged']));
+            }
+        }
+
+        $posts_to_show = ($enable_pagination === 'yes') ? $posts_per_page : $event_count;
 
         if ( $orderby == "etn_start_date" || $orderby == "etn_end_date" ) {
-            $orderby_meta       = "meta_value";
+            $orderby_meta = "meta_value";
         } else {
-            $orderby_meta       = null;
+            $orderby_meta = null;
         }
-        $filter_with_status       = $settings['filter_with_status'];
-
-			$post_parent = Helper::show_parent_child( $show_parent_event , $show_child_event  );
-
-       if ( file_exists( \Wpeventin::plugin_dir() . "widgets/events/style/{$style}.php") ) {
-         include \Wpeventin::plugin_dir() . "widgets/events/style/{$style}.php";
-        }
+        
+        // Pass all necessary variables to the template
+        $filter_with_status = isset( $settings['filter_with_status'] ) ? $settings['filter_with_status'] : '';
+        $post_parent = '0'; // Add this if needed
+        
+        // Include the template with all required variables in scope
+        include \Wpeventin::plugin_dir() . "widgets/events/style/{$style}.php";
     }
 
     public function get_event_category() {

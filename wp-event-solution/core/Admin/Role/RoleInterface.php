@@ -1,10 +1,13 @@
 <?php
+
 /**
  * RoleInterfacace 
  * 
  * @package Eventin
  */
 namespace Eventin\Admin\Role;
+
+defined( 'ABSPATH' ) || exit;
 
 /**
  * Role interface

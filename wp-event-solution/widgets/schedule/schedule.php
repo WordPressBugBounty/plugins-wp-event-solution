@@ -64,6 +64,7 @@ class Etn_Schedule extends Widget_Base {
                 'default' => 'schedule-1',
                 'options' => [
                     'schedule-1' => esc_html__( 'Schedule 1', 'eventin' ),
+                    'schedule-2' => esc_html__( 'Schedule 2', 'eventin' ),
                 ],
             ]
         );
@@ -88,6 +89,23 @@ class Etn_Schedule extends Widget_Base {
                 ],
             ]
         );
+        
+        $this->add_control(
+			'show_speaker_section',
+			[
+				'label' => esc_html__( 'Show Speakers', 'eventin' ),
+				'type' => \Elementor\Controls_Manager::SWITCHER,
+				'label_on' => esc_html__( 'Show', 'eventin' ),
+				'label_off' => esc_html__( 'Hide', 'eventin' ),
+				'return_value' => 'yes',
+				'default' => 'yes',
+                'condition'    => [
+                    'schedule_style' => 'schedule-2',
+                ],
+			]
+            
+		);
+        
         $this->end_controls_section();
         // End of schedule section
 
@@ -250,6 +268,82 @@ class Etn_Schedule extends Widget_Base {
         $this->end_controls_section();
         // End of nav section
 
+        // Start of schedule item style section
+        $this->start_controls_section(
+            'schedule_item_style',
+            [
+                'label' => esc_html__( 'Schedule Item Style', 'eventin' ),
+                'tab'   => \Elementor\Controls_Manager::TAB_STYLE,
+            ]
+        );
+
+        $this->add_responsive_control(
+            'etn_schedule_item_padding',
+            [
+                'label'      => esc_html__( 'Padding', 'eventin' ),
+                'type'       => Controls_Manager::DIMENSIONS,
+                'size_units' => ['px', 'em', '%'],
+                'selectors'  => [
+                    '{{WRAPPER}} .etn-schedule-wrap .etn-single-schedule-item' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_responsive_control(
+            'etn_schedule_item_margin',
+            [
+                'label'      => esc_html__( 'Margin', 'eventin' ),
+                'type'       => Controls_Manager::DIMENSIONS,
+                'size_units' => ['px', 'em', '%'],
+                'selectors'  => [
+                    '{{WRAPPER}} .etn-schedule-wrap .etn-single-schedule-item' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_group_control(
+            Group_Control_Border::get_type(),
+            [
+                'name'     => 'etn_schedule_item_border',
+                'label'    => esc_html__( 'Border', 'eventin' ),
+                'selector' => '{{WRAPPER}} .etn-schedule-wrap .etn-single-schedule-item',
+            ]
+        );
+
+        $this->add_responsive_control(
+            'etn_schedule_item_border_radius',
+            [
+                'label'      => esc_html__( 'Border Radius', 'eventin' ),
+                'type'       => Controls_Manager::DIMENSIONS,
+                'size_units' => ['px', 'em', '%'],
+                'selectors'  => [
+                    '{{WRAPPER}} .etn-schedule-wrap .etn-single-schedule-item' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_group_control(
+            Group_Control_Box_Shadow::get_type(),
+            [
+                'name'     => 'etn_schedule_item_box_shadow',
+                'label'    => esc_html__( 'Box Shadow', 'eventin' ),
+                'selector' => '{{WRAPPER}} .etn-schedule-wrap .etn-single-schedule-item',
+            ]
+        );
+
+        $this->add_group_control(
+            Group_Control_Background::get_type(),
+            [
+                'name'     => 'etn_schedule_item_background',
+                'label'    => esc_html__( 'Background', 'eventin' ),
+                'types'    => ['classic', 'gradient'],
+                'selector' => '{{WRAPPER}} .etn-schedule-wrap .etn-single-schedule-item',
+            ]
+        );
+
+        $this->end_controls_section();
+        // End of schedule item style section
+
         // Start of title section
         $this->start_controls_section(
             'title_style',
@@ -276,6 +370,27 @@ class Etn_Schedule extends Widget_Base {
                 'selectors' => [
                     '{{WRAPPER}} .etn-schedule-content .etn-title' => 'color: {{VALUE}};',
                 ],
+            ]
+        );
+
+        $this->add_responsive_control(
+            'etn_title_margin',
+            [
+                'label'      => esc_html__( 'Title Margin', 'eventin' ),
+                'type'       => Controls_Manager::DIMENSIONS,
+                'size_units' => ['px', 'em', '%'],
+                'selectors'  => [
+                    '{{WRAPPER}} .etn-schedule-wrap .etn-schedule-content .etn-title' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_group_control(
+            Group_Control_Border::get_type(),
+            [
+                'name'     => 'etn_title_border',
+                'label'    => esc_html__( 'Title Border', 'eventin' ),
+                'selector' => '{{WRAPPER}} .etn-schedule-wrap .etn-schedule-content .etn-title',
             ]
         );
 
@@ -307,6 +422,18 @@ class Etn_Schedule extends Widget_Base {
                 'type'      => Controls_Manager::COLOR,
                 'selectors' => [
                     '{{WRAPPER}} .etn-schedule-content p' => 'color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_responsive_control(
+            'etn_desc_margin',
+            [
+                'label'      => esc_html__( 'Description Margin', 'eventin' ),
+                'type'       => Controls_Manager::DIMENSIONS,
+                'size_units' => ['px', 'em', '%'],
+                'selectors'  => [
+                    '{{WRAPPER}} .etn-schedule-wrap .etn-schedule-content p' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                 ],
             ]
         );
@@ -366,6 +493,8 @@ class Etn_Schedule extends Widget_Base {
         $etn_schedule_order = !empty( $settings["etn_schedule_order"] ) ? $settings["etn_schedule_order"] : "";
         $etn_schedule_ids   = !empty( $settings["schedule_id"] ) ? $settings["schedule_id"] : '';
         $order              = isset($etn_schedule_order) ? $etn_schedule_order : 'ASC';
+        $show_speaker_section = !empty( $settings["show_speaker_section"] ) ? 'yes' : 'no';
+        
         if ( file_exists( \Wpeventin::plugin_dir() . "widgets/schedule/style/{$style}.php") ) {
             include \Wpeventin::plugin_dir() . "widgets/schedule/style/{$style}.php";
         }

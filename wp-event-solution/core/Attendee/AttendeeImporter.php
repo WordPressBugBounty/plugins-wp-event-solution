@@ -1,10 +1,13 @@
 <?php
+
 /**
  * Attendee Importer Class
  *
  * @package Eventin
  */
 namespace Eventin\Attendee;
+
+defined( 'ABSPATH' ) || exit;
 
 use Eventin\Importer\PostImporterInterface;
 use Eventin\Importer\ReaderFactory;
@@ -35,6 +38,10 @@ class AttendeeImporter implements PostImporterInterface {
     public function import( $file ) {
         $this->file  = $file;
         $file_reader = ReaderFactory::get_reader( $file );
+
+        if ( is_wp_error( $file_reader ) ) {
+            return $file_reader;
+        }
 
         $this->data = $file_reader->read_file();
         $this->create_attendee();

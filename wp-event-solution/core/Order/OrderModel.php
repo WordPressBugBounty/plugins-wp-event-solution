@@ -1,5 +1,8 @@
 <?php
+
 namespace Eventin\Order;
+
+defined( 'ABSPATH' ) || exit;
 use Etn\Base\Post_Model;
 use Etn\Core\Attendee\Attendee_Model;
 use Etn\Core\Event\Event_Model;
@@ -39,9 +42,16 @@ class OrderModel extends Post_Model {
         'tickets'           => '',
         'seat_ids'          => '',
         'total_price'       => '',
+        'discount_total'    => '',
+        'tax_total'         => 0,
+        'tax_display_mode'  => 'excl',
         'payment_id'        => '',
         'attendee_seats'    => '',
         'customer_id'       => '',
+        'remaining_time_to_pay' => 3,
+        'extra_fields'        => [],
+        'currency'			  => '',
+        'currency_symbol'     => ''
     ];
 
     /**
@@ -154,14 +164,60 @@ class OrderModel extends Post_Model {
     public function get_customer() {
         return CustomerModel::find( $this->customer_id );
     }
+	
+	
+	/**
+	 * Get all the orders by a list of orderIds
+	 *
+	 * @return array
+	 *
+	 */
+	public function getAllOrdersByIds() : array
+	{
+		return [];
+	}
 
     /**
      * Validate event order tickets
      *
      * @return  bool | WP_Error
      */
-    public function validate_ticket() {
-       return etn_validate_event_tickets( $this->event_id, $this->tickets );
+    public function validate_ticket($is_for_update = false) {
+       return etn_validate_event_tickets( $this->event_id, $this->tickets,$is_for_update );
     }
+	
+	
+	/**
+	 * @description
+	 * @return false|void
+	 */
+	public function findWCOrderByEventinOrder()
+	{
+		$post_type = etn_is_enable_wc_synchronize_order() ? 'shop_order' : 'shop_order_placehold';
+		$args = [
+			'post_type'   => $post_type,
+			'post_status' => 'any',
+			'posts_per_page' => 1,
+			'fields'          => 'ids',
+			'meta_query'    => [
+				[
+					'key'   => 'eventin_order_id',
+					'value' => $this->id,
+					'compare' => '='
+				]
+			]
+		];
+		
+		
+		$orders_ids = get_posts( $args );
+		
+		if ( ! $orders_ids ) {
+			return false;
+		}
+		
+		$wc_order = wc_get_order( $orders_ids[0] );
+		
+		return $wc_order;
+	}
 }
 

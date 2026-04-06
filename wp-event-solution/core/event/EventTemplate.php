@@ -1,5 +1,8 @@
 <?php
+
 namespace Eventin\Event;
+
+defined( 'ABSPATH' ) || exit;
 
 use Eventin\Interfaces\HookableInterface;
 use Etn\Core\Event\Event_Model;
@@ -33,7 +36,7 @@ class EventTemplate implements HookableInterface {
 
         // redirect to elementor pro archive page if any archive template is assigned
         if ($this->is_elementor_pro_archive_page('etn_archive')) {
-            echo \Elementor\Plugin::$instance->frontend->get_builder_content_for_display($template);
+            echo wp_kses_post( \Elementor\Plugin::$instance->frontend->get_builder_content_for_display($template) );
             return $template;
         }else{
             $enable_event_template_builder = etn_get_option( 'enable_event_template_builder' );
@@ -80,7 +83,6 @@ class EventTemplate implements HookableInterface {
             }
 
             if (isset($page_settings_manager['template']) && ( 'elementor_canvas' == $page_settings_manager['template'] || 'elementor_header_footer' == $page_settings_manager['template']) ) {
-                 
                 return $template;
             }else{
                 $template = \Wpeventin::templates_dir() . 'event/event-single-page.php';

@@ -1,5 +1,8 @@
 <?php
+
 namespace Eventin\Integrations\Zoom;
+
+defined( 'ABSPATH' ) || exit;
 
 /**
  * Manage zoom access token

@@ -1,10 +1,13 @@
 <?php
+
 /**
  * Report Api Class
  *
  * @package Eventin\Schedule
  */
 namespace Eventin\Reports\Api;
+
+defined( 'ABSPATH' ) || exit;
 
 use Eventin\Input;
 use Eventin\Reports\Report;

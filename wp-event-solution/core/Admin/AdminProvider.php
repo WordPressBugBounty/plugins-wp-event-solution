@@ -1,5 +1,8 @@
 <?php
+
 namespace Eventin\Admin;
+
+defined( 'ABSPATH' ) || exit;
 
 use Eventin\Abstracts\Provider;
 use Eventin\AccessControl\PermissionManager;

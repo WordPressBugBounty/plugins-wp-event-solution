@@ -16,11 +16,20 @@
             <div class="etn-speaker-thumb">
                 <img src="<?php echo esc_url($etn_speaker_image); ?>" alt="">
                 <div class="etn-speakers-social">
-                    <?php if (!empty( $social )) { ?>
-                        <?php foreach ($social as $social_value) {  ?>
-                            <a href="<?php echo esc_url($social_value["etn_social_url"]); ?>" title="<?php echo esc_attr($social_value["etn_social_title"]); ?>"><i class="etn-icon <?php echo esc_attr($social_value["icon"]); ?>"></i></a>
-                        <?php  } ?>
-                    <?php } ?>
+                    <?php 
+                    if (is_array($social)  & !empty( $social )) { 
+                     ?>
+                        <?php 
+                        foreach ($social as $social_value) {  
+                            if(!empty($social_value)){
+                            ?>
+                                <a href="<?php echo esc_url($social_value['etn_social_url']); ?>" title="<?php echo !empty($social_value['etn_social_title']) ? esc_attr($social_value['etn_social_title']) : ''; ?>"> <i class="etn-icon <?php echo esc_attr($social_value["icon"]); ?>"></i>
+                                </a>
+                                <?php  
+                                    }
+                                }
+                            } 
+                            ?>
                 </div>
             </div>
             <div class="etn-speaker-content">

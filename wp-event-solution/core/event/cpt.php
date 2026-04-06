@@ -64,7 +64,8 @@ class Cpt extends \Etn\Base\Cpt {
             'supports'            => [ 'title', 'editor', 'thumbnail','excerpt', 'author' ],
             'hierarchical'        => true,
             'public'              => true,
-            'show_ui'             => current_user_can( 'manage_etn_event' ),
+	        'show_ui'             => true,
+	        'show_in_menu'        => current_user_can( 'etn_manage_event' ),
             'show_admin_column'   => false,
             'menu_icon'           => 'dashicons-text-page',
             'menu_position'       => 10,
@@ -82,7 +83,7 @@ class Cpt extends \Etn\Base\Cpt {
 
         ];
 
-        if( current_user_can( 'manage_etn_event' ) ){
+        if( current_user_can( 'etn_manage_event' ) ){
             $args['show_in_menu']        = '';
         }
 

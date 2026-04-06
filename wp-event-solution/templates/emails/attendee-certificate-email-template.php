@@ -7,8 +7,8 @@
     color: #020617;
     "
 >
-    <?php 
-        printf( __( '<p>Event Certificate for %s</p>', 'eventin' ), '<span>' . $event->get_title() . '</span>' );
+    <?php
+        printf( esc_html__( 'Event Certificate for %s', 'eventin' ), '<span>' . esc_html( $event->get_title() ) . '</span>' );
     ?>
 </h1>
 
@@ -37,7 +37,7 @@
             margin-top: 0;
         "
         >
-        Download Certificate
+            <?php echo esc_html__( 'Download Certificate', 'eventin' ); ?>
         </h2>
         <!-- Single Ticket Information -->
         <div>
@@ -62,7 +62,8 @@
                     gap: 5px;
                 "
                 >
-                Download Certificate</a>
+                  <?php echo esc_html__( 'Download Certificate', 'eventin' ); ?>
+                </a>
             </div>
         </div>
             <!-- Separator -->
@@ -115,11 +116,13 @@
         >
         
         <?php
-        
+            $date_format = get_option( 'date_format' );
+            $time_format = get_option( 'time_format' );
+
             if ( $event->etn_start_date == $event->etn_end_date ) {
-                printf( '%s from %s - %s %s', $event->get_start_datetime('l, F d, Y'), $event->get_start_datetime('h:i A'), $event->get_start_datetime('h:i A'), $event->get_timezone() );
+                printf( '%s from %s - %s %s', esc_html( $event->get_start_datetime( $date_format ) ), esc_html( $event->get_start_datetime( $time_format ) ), esc_html( $event->get_end_datetime( $time_format ) ), esc_html( $event->get_timezone() ) );
             } else {
-                printf( '%s at %s - %s at %s %s', $event->get_start_datetime('l, F d, Y'), $event->get_start_datetime('h:i A'), $event->get_end_datetime('l, F d, Y'), $event->get_end_datetime('h:i A'), $event->get_timezone() );
+                printf( '%s at %s - %s at %s %s', esc_html( $event->get_start_datetime( $date_format ) ), esc_html( $event->get_start_datetime( $time_format ) ), esc_html( $event->get_end_datetime( $date_format ) ), esc_html( $event->get_end_datetime( $time_format ) ), esc_html( $event->get_timezone() ) );
             }
         ?>
         </p>
@@ -152,8 +155,11 @@
         <?php 
             if ( $event->event_type == 'offline' ) {
                 echo esc_html( $event->get_address() );
-            } else {
-                printf( 'Online meeting link: %s', $event->meeting_link );
+            } elseif ( $event->event_type == 'hybrid' ) {
+                echo esc_html( $event->get_address() );
+                printf( 'Online meeting link: %s', esc_html( $event->meeting_link ) );
+            } elseif ( $event->event_type == 'online' ) {
+                printf( 'Online meeting link: %s', esc_html( $event->meeting_link ) );
             }
         ?>
         </p>

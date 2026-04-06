@@ -1,10 +1,13 @@
 <?php
+
 /**
  * Event Exporter Class
  *
  * @package Eventin
  */
 namespace Eventin\Event;
+
+defined( 'ABSPATH' ) || exit;
 
 use Eventin\Exporter\ExporterFactory;
 use Eventin\Exporter\PostExporterInterface;

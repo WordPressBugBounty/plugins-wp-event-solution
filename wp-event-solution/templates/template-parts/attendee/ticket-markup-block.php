@@ -3,6 +3,7 @@
     // Add meta tag for responsive design in the head
 
 use Etn\Core\Event\Event_Model;
+use Etn\Utils\Helper;
 use Eventin\Template\TemplateModel;
 
     function etn_viewport_meta() {
@@ -10,9 +11,6 @@ use Eventin\Template\TemplateModel;
     }
     add_action('wp_head', 'etn_viewport_meta', '1');
 
-    
-    wp_head();
-    
     $ticket_file_name = sanitize_title_with_dashes($attendee_name);
     $payment_status =  get_post_meta( $attendee_id, 'etn_status', true);
 
@@ -56,6 +54,18 @@ use Eventin\Template\TemplateModel;
     $template = new TemplateModel( $template_id );
     $post     = get_post( $template_id );
 
+    // Enqueue Elementor styles if template is built with Elementor.
+    if ( did_action( 'elementor/loaded' ) && $post && $post->post_type === 'etn-template' ) {
+        $document = \Elementor\Plugin::$instance->documents->get( $template_id );
+        if ( $document && $document->is_built_with_elementor() ) {
+            \Elementor\Plugin::$instance->frontend->enqueue_styles();
+            $css_file = \Elementor\Core\Files\CSS\Post::create( $template_id );
+            $css_file->enqueue();
+        }
+    }
+
+    wp_head();
+
     if ( $post && $post->post_type == 'etn-template' ) {
         $template_html = $template->get_rendable_content( $attendee_id );
     } else {
@@ -68,7 +78,7 @@ use Eventin\Template\TemplateModel;
       <div class="etn-ticket-wrapper">
             <div class="etn-ticket-main-wrapper">
                 <div class="etn-ticket">
-                    <?php 
+                    <?php
                         if ( $post && $post->post_status === 'draft' ) {
                             ?>
                             <p><?php esc_html_e( 'The template is not published', 'eventin' ); ?></p>
@@ -87,10 +97,9 @@ use Eventin\Template\TemplateModel;
 <?php if ( $post && $post->post_status !== 'draft' ): ?>
 <div class="etn-download-ticket">
     <button class="etn-btn button etn-print-ticket-btn" id="etn_ticket_print_btn" data-ticketname="<?php echo esc_html( $ticket_file_name )?>" ><?php echo esc_html__( "Print", "eventin" ); ?></button>
-    
+
     <button class="etn-btn button etn-download-ticket-btn" id="etn_ticket_download_btn" data-ticketname="<?php echo esc_html( $ticket_file_name )?>" ><?php echo esc_html__( "Download", "eventin" ); ?></button>
 </div>
 <?php endif; ?>
 
 <?php wp_footer(); ?>
-

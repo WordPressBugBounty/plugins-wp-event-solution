@@ -1,10 +1,13 @@
 <?php
+
 /**
  * Manage access control
  * 
  * @package Eventin
  */
 namespace Eventin\AccessControl;
+
+defined( 'ABSPATH' ) || exit;
 
 use Eventin\Interfaces\HookableInterface;
 

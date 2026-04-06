@@ -1,8 +1,11 @@
 <?php
+
 /**
  * Customer model
  */
 namespace Eventin\Customer;
+
+defined( 'ABSPATH' ) || exit;
 
 use Eventin\Input;
 use Exception;
@@ -65,10 +68,11 @@ class CustomerModel {
      */
     public static function create( $data = [] ) {
         $input = new Input( $data );
-        $user_login = sanitize_title( $input->get( 'first_name' ) );
 
-        if ( get_user_by('login', $user_login ) ) {
-            $user_login = $user_login . substr(time(), 0, 3);
+        $user_login = sanitize_title( $input->get('first_name') );
+
+        if ( username_exists( $user_login ) ) {
+            $user_login .= '_' . wp_generate_password( 6, false );
         }
 
         $static = new self();

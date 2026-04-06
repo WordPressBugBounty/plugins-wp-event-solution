@@ -28,7 +28,7 @@
 <form method="post" class="etn-event-form-parent" data-etn_uid="<?php echo esc_html($unique_id); ?>">
     <?php  wp_nonce_field('ticket_purchase_next_step_two','ticket_purchase_next_step_two'); ?>
     <input name="event_name" type="hidden" value="<?php echo esc_html($event_title); ?>" />
-    <input name="specific_lang" type="hidden" value="<?php echo isset( $_GET['lang'] ) ? esc_html( $_GET['lang'] ) : ''; ?>" />
+    <input name="specific_lang" type="hidden" value="<?php echo isset( $_GET['lang'] ) ? esc_attr( sanitize_text_field( wp_unslash( $_GET['lang'] ) ) ) : ''; ?>" />
 
     <?php
     apply_filters( 'etn_pro/stripe/stripe_field', null );
@@ -100,7 +100,7 @@
         } else {
             ?>
             <small>
-            <?php echo esc_html__('Please', 'eventin'); ?> <a href="<?php echo wp_login_url( get_permalink( ) ); ?>"><?php echo esc_html__( "Login", "eventin" ); ?></a> <?php echo esc_html__(' to buy ticket!', "eventin"); ?>
+            <?php echo esc_html__('Please', 'eventin'); ?> <a href="<?php echo esc_url( wp_login_url( get_permalink( ) ) ); ?>"><?php echo esc_html__( "Login", "eventin" ); ?></a> <?php echo esc_html__(' to buy ticket!', "eventin"); ?>
             </small>
             <?php
         }

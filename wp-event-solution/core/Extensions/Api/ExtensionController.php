@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Extension Controller
  *
@@ -6,9 +7,13 @@
  */
 
 namespace Eventin\Extensions\Api;
+
+defined( 'ABSPATH' ) || exit;
 use Eventin\Extensions\Extension;
+use Eventin\Extensions\ImportAutomation;
 use Eventin\Extensions\PluginManager;
 use Eventin\Input;
+use Eventin\Settings;
 use WP_Error;
 use WP_HTTP_Response;
 use WP_REST_Controller;
@@ -82,6 +87,8 @@ class ExtensionController extends WP_REST_Controller {
             'module' => Extension::modules(), 
             'addon'  => Extension::addons(),
             'plugin' => Extension::plugins(),
+            'integration' => Extension::integrations(),
+            'all_except_plugins' => Extension::all_except_plugins(),
             'all'    => Extension::get()
         ];
 
@@ -120,7 +127,54 @@ class ExtensionController extends WP_REST_Controller {
             return new WP_Error( 'invalid_extension', __( 'Invalid extension.', 'eventin' ), ['status' => 422] );
         }
 
-        $update = Extension::update( $name, $status );  
+        if ( $name == 'zoom' ) {
+            etn_update_option('etn_zoom_api',$status??null);
+        }
+
+        if ( $name == 'google_meet' ) {
+            etn_update_option('etn_meet_api',$status??null);
+        }
+
+        if ( $name == 'google_map' ) {
+            etn_update_option('etn_googlemap_api',$status??null);
+        }
+
+        if ( $name == 'eventin_ai' ) {
+            etn_update_option('etn_ai_api',$status??null);
+        }
+
+        if ( $name == 'eventin-addon-for-surecart' ) {
+            etn_update_option('etn_surecart_enabled',$status=='on'?true:false);
+            if($status=='off'){
+                etn_update_option('surecart_status',false);
+            }
+        }
+        if ( $name == 'eventin-addon-for-fluentcart' ) {
+            etn_update_option('etn_fluentcart_enabled',$status=='on'?true:false);
+            if($status=='off'){
+                etn_update_option('fluentcart_status',false);
+            }
+        }
+
+
+        $update = Extension::update( $name, $status );
+
+        if($name == 'automation' && $update == 1 && $status == 'on') {
+            $is_email_automation_migrated = get_option( 'etn_email_automation_migrated' );
+            if ( ! $is_email_automation_migrated ) {
+                ImportAutomation::create_automation_flows();
+            }
+        }
+	    
+	    // Dokan Event Publish Approval
+	    // Automatically publish Dokan Vendor/Seller Event when an event is created.
+	    if ( $status == "on" ) {
+		    Settings::update(["dokan_event_auto_publish" => "on"]);
+	    }
+	    if ( $status == "off" ) {
+		    Settings::update(["dokan_event_auto_publish" => ""]);
+	    }
+		
         
         if ( is_wp_error( $update ) ) {
             return new WP_Error( 'update_error', strip_tags($update->get_error_message()), ['status' => 422] );

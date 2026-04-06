@@ -36,7 +36,8 @@ class Hooks {
 
 		//upcoming permalink structure
 		add_filter('post_type_link', [ $this, 'etn_upcoming_permalink' ], 10, 4);
-
+		
+		add_filter( "etn_form_submit_visibility", [$this, "form_submit_visibility"], 10, 2 );
 	}
 
 	/**
@@ -69,6 +70,16 @@ class Hooks {
 			$post_link = home_url('/etn/' . $post->post_name);
 		}
 		return $post_link;
+	}
+	
+	
+	public function form_submit_visibility( $visible, $post_id ) {
+		//get disable option setting from db
+		$is_visible           = true;
+		$reg_deadline_expired =  \Etn\Core\Event\Helper::instance()->event_registration_deadline( array('single_event_id' => $post_id ) );
+		$is_visible           = $reg_deadline_expired? false : true;
+		
+		return $is_visible;
 	}
 	
 }

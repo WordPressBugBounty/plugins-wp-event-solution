@@ -42,6 +42,13 @@ abstract class Post_Model {
     public $id;
 
     /**
+     * Cache for get_data() result to avoid repeated meta queries on each property access.
+     *
+     * @var array|null
+     */
+    private $_cached_data = null;
+
+    /**
      * Constructor for Post Model Class
      *
      * @return  void
@@ -65,12 +72,14 @@ abstract class Post_Model {
      */
     public function __get( $key ) {
         if ( ! isset( $this->data[$key] ) ) {
-            throw new Exception( __( 'Undefined property', 'eventin' ) );
+            throw new Exception( esc_html__( 'Undefined property', 'eventin' ) );
         }
 
-        $data = $this->get_data();
+        if ( null === $this->_cached_data ) {
+            $this->_cached_data = $this->get_data();
+        }
 
-        return $data[$key];
+        return $this->_cached_data[ $key ] ?? null;
     }
 
     /**
@@ -83,9 +92,9 @@ abstract class Post_Model {
      */
     public static function __callStatic( $method, $arguments ) {
         if ( ! method_exists( new self, $method ) ) {
-            throw new Exception( __( 'Call to undefined method', 'eventin' ) );
+            throw new Exception( esc_html__( 'Call to undefined method', 'eventin' ) );
         }
-        
+
         call_user_func( $method, $arguments );
     }
 
@@ -101,6 +110,7 @@ abstract class Post_Model {
             'post_type'   => $this->post_type,
             'post_status' => 'draft',
             'post_author' => get_current_user_id(),
+	        'menu_order'   => !empty($args['_etn_buddy_group_id']) ? $args['_etn_buddy_group_id'] : 0,
         ];
 
         $args    = wp_parse_args( $args, $defaults );
@@ -109,12 +119,32 @@ abstract class Post_Model {
         if ( ! is_wp_error( $post_id ) ) {
             $this->id = $post_id;
             $this->update_meta( $args );
-
             return true;
         }
 
         return false;
     }
+	
+	
+	public function create_and_return_post_id( $args = [] ) {
+		$defaults = [
+			'post_type'   => $this->post_type,
+			'post_status' => 'draft',
+			'post_author' => get_current_user_id(),
+		];
+		
+		$args    = wp_parse_args( $args, $defaults );
+		$post_id = wp_insert_post( $args );
+		
+		if ( ! is_wp_error( $post_id ) ) {
+			$this->id = $post_id;
+			$this->update_meta( $args );
+			
+			return $post_id;
+		}
+		
+		return false;
+	}
 
     /**
      * Update post
@@ -135,6 +165,7 @@ abstract class Post_Model {
         if ( !is_wp_error( $post_id ) ) {
             $this->id = $post_id;
             $this->update_meta( $args );
+            $this->_cached_data = null;
             return true;
         }
 
@@ -149,6 +180,13 @@ abstract class Post_Model {
     public function delete() {
         return wp_delete_post( $this->id );
     }
+
+    /**
+     * Put the post in trash
+     *
+     * @return  bool
+     */
+    
 
     /**
      * Update post meta
@@ -257,15 +295,36 @@ abstract class Post_Model {
         $data                 = $this->get_data();
         $data['post_title']   = $post->post_title;
         $data['post_content'] = $post->post_content;
-        $data['post_status']  = $post->post_status;
+        $data['post_status']  = 'draft';
         $data['is_clone'] = true;
-
-        $this->create( $data );
-
-        set_post_thumbnail( $this->id, get_post_meta( $this->id, 'event_banner_id', true ) );
+	    
+	    $this->create( $data );
+	    
+	    //$newly_created_post_id = $this->create_and_return_post_id($data);
+	    $this->copy_elementor_meta_data($post->ID, $this->id);
+	    
+	    
+	    set_post_thumbnail( $this->id, get_post_meta( $this->id, 'event_banner_id', true ) );
 
         return $this;
     }
+	
+	
+	/**
+	 * @desc 
+	 *
+	 * @param $post_id<int|string>
+	 * @param $newly_created_post_id<int|string>
+	 * @return void
+	 */
+	public function copy_elementor_meta_data($post_id, $newly_created_post_id): void
+	{
+		$is_elementor_editor = get_post_meta($post_id, '_elementor_edit_mode', true);
+		if ( class_exists('Elementor\Plugin') && ($is_elementor_editor === "builder") ) {
+			$elementor_data = get_post_meta($post_id, '_elementor_data', true);
+			update_post_meta($newly_created_post_id, "_elementor_data", $elementor_data);
+		}
+	}
 
     /**
      * Get post ids

@@ -71,7 +71,7 @@ class Hooks {
             $user = get_userdata($author_id);
     
             // Check if the user has the role 'etn-speaker' or 'etn-organizer'
-            if (in_array('etn-speaker', (array) $user->roles) || in_array('etn-organizer', (array) $user->roles)) {
+            if ($user && (in_array('etn-speaker', (array) $user->roles) || in_array('etn-organizer', (array) $user->roles))) {
                 // Set base for speakers and organizers
                 $link = home_url("/$slug/" . $author_nicename);
             }

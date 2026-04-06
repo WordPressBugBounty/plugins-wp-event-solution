@@ -50,9 +50,6 @@ class Api_Handler {
      */
     public function callback( $request ) {
         $this->request = $request;
-        if ( $this->request->get_params()['action'] == 'settings'  ) {
-            $this->request->set_header( 'X-WP-Nonce', wp_create_nonce( 'wp_rest' ) );
-        }
 
         $action_class = strtolower( $this->request->get_method() ) . '_' . $this->request['action'];
 
@@ -67,7 +64,19 @@ class Api_Handler {
      *
      * @return  bool
      */
-    public function permision_check() {
+    public function permision_check( $request ) {
+        $nonce  = $request->get_header( 'X-WP-Nonce' );
+        $action = $request['action'] ?? '';
+
+        if ( empty( $nonce ) || ! wp_verify_nonce( $nonce, 'wp_rest' ) ) {
+            return false;
+        }
+
+        // Administrative actions require manage_options capability
+        if ( in_array( $action, [ 'settings' ] ) ) {
+            return current_user_can( 'manage_options' );
+        }
+
         return true;
     }
 

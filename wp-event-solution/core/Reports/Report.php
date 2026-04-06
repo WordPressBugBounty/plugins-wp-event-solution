@@ -1,5 +1,8 @@
 <?php
+
 namespace Eventin\Reports;
+
+defined( 'ABSPATH' ) || exit;
 
 use Etn\Core\Event\Event_Model;
 use Eventin\Input;
@@ -25,12 +28,17 @@ class Report {
         $dates = wp_parse_args( $dates, $defaults );
 
         return [
-            'booking'      => OrderReport::get_total_order( $dates ),
-            'event'        => EventReport::get_total_event( $dates ),
-            'attendee'     => AttendeeReport::get_total_attendee( $dates ),
-            'speaker'      => SpeakerReport::get_total_speaker( $dates ),
-            'revenue'      => RevenueReport::get_total_revenue( $dates ),
-            'date_reports' => self::get_report_by_date_range( $dates ), 
+            'booking'               => OrderReport::get_total_order( $dates ),
+            'failed_booking'        => OrderReport::get_total_failed_order( $dates ),
+            'refunded_booking'      => OrderReport::get_total_refunded_order( $dates ),
+            'event'                 => EventReport::get_total_event( $dates ),
+            'attendee'              => AttendeeReport::get_total_attendee( $dates ),
+            'failed_attendees'      => AttendeeReport::get_total_failed_attendee( $dates ),
+            'successful_attendees'  => AttendeeReport::get_total_successful_attendee( $dates ),
+            'speaker'               => SpeakerReport::get_total_speaker( $dates ),
+            'revenue'               => RevenueReport::get_total_revenue( $dates ),
+            'refunded'              => RevenueReport::get_total_refunded_amount( $dates ),
+            'date_reports'          => self::get_report_by_date_range( $dates ), 
         ];
     }
 
@@ -151,7 +159,7 @@ class Report {
 
         return [
             'date'      => $date->format( $format ),
-            'revenue'   => RevenueReport::get_total_revenue( $dates ),
+            'revenue'   => RevenueReport::get_total_revenue( $dates )
         ];
     }
 
@@ -167,7 +175,7 @@ class Report {
 
         return [
             'date'      => $date->format( $format ),
-            'revenue'   => RevenueReport::get_total_revenue_by_event( $data ),
+            'revenue'   => RevenueReport::get_total_revenue_by_event( $data )
         ];
     }
 

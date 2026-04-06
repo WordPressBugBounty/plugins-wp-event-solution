@@ -1,5 +1,8 @@
 <?php
+
 namespace Eventin\Admin;
+
+defined( 'ABSPATH' ) || exit;
 
 use Eventin\Interfaces\HookableInterface;
 use Wpeventin;

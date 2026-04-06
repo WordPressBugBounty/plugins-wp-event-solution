@@ -1,5 +1,8 @@
 <?php
+
 namespace Eventin\Integrations\WC;
+
+defined( 'ABSPATH' ) || exit;
 
 use Eventin\Order\OrderModel;
 use Eventin\Order\PaymentInterface;

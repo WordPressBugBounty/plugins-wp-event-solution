@@ -57,7 +57,7 @@ class Hooks {
      */
     public function view_all_recurrence_page() {
 
-        if ( current_user_can( 'manage_etn_event' ) ) {
+        if ( current_user_can( 'etn_manage_event' ) ) {
             add_submenu_page(
                 '',
                 '',
@@ -199,20 +199,23 @@ class Hooks {
         $recurring_events               = $this->check_recurring_rules( $post_id );
         $maybe_recurring_actions_needed = $recurring_events['is_recurring'] ? true : false;
         $is_recurring_option_enabled    = get_post_meta( $post_id, 'recurring_enabled', true ); // on/no
-
+//	    $etn_event_recurrence           = get_post_meta( $post_id, 'etn_event_recurrence', true ); // on/no
+//
+//        $recurrence_freq = isset( $etn_event_recurrence["recurrence_freq"] ) ? $etn_event_recurrence["recurrence_freq"] : '';
+        
         if ( !isset( $is_recurring_option_enabled ) || $is_recurring_option_enabled == 'no' ) {
 
             // not trying to use the recurring event feature
             // check if there's existing recurrence. if so, try to remove them
             $this->remove_all_child_events_of_parent( $post_id );
-
+            
             return;
         }
 
         if ( $maybe_recurring_actions_needed ) {
-            $parent_post_slug    = basename( get_permalink( $post_id ) );
-            $new_matching_events = ( !empty( $recurring_events['matching_events'] ) && is_array( $recurring_events['matching_events'] ) ) ? $recurring_events['matching_events'] : [];
-            $existing_matches    = ( !empty( get_post_meta( $post_id, 'etn_recurrence_timestamps', true ) ) && is_array( get_post_meta( $post_id, 'etn_recurrence_timestamps', true ) ) ) ? get_post_meta( $post_id, 'etn_recurrence_timestamps', true ) : [];
+            $parent_post_slug       = basename( get_permalink( $post_id ) );
+            $new_matching_events    = ( !empty( $recurring_events['matching_events'] ) && is_array( $recurring_events['matching_events'] ) ) ? $recurring_events['matching_events'] : [];
+            $existing_matches       = ( !empty( get_post_meta( $post_id, 'etn_recurrence_timestamps', true ) ) && is_array( get_post_meta( $post_id, 'etn_recurrence_timestamps', true ) ) ) ? get_post_meta( $post_id, 'etn_recurrence_timestamps', true ) : [];
 
             $recurrence_data        = $this->valid_recurrences( $new_matching_events, $existing_matches );
             $matching_to_be_created = !empty( $recurrence_data['create_events'] ) ? $recurrence_data['create_events'] : [];
@@ -335,7 +338,6 @@ class Hooks {
 
                 //generate new available and sold ticket
                 $ticket_variations = $this->prepare_child_ticket_data( $recurrence_id, $ticket_variations );
-
                 $args['etn_ticket_variations'] = $ticket_variations;
                 
                 $recurring_child_event->update( $args );
@@ -441,6 +443,7 @@ class Hooks {
                     $result_arr['recurrence_span'] = !empty( $freq['recurrence_span'] ) ? $freq['recurrence_span'] : 1;
                 }
 
+                
                 switch ( $freq['recurrence_freq'] ) {
                 case 'day':
                     $daily_interval                = !empty( $freq['recurrence_daily_interval'] ) ? intval( $freq['recurrence_daily_interval'] ) : 1;
@@ -470,6 +473,11 @@ class Hooks {
                     $result_arr['matching_events'] = $this->yearly_recurrence_calculation( $freq, $recurrence_yearly_month, $recurrence_yearly_date, $event_range['start_date'], $event_range['end_date'], $event_range['etn_start_range'] );
                     break;
 
+                case 'custom':
+	                $recurrence_custom             = !empty( $freq['recurrence_custom'] ) ? $freq['recurrence_custom'] : 1;
+                    $result_arr['matching_events'] = $this->custom_recurrence_calculation( $recurrence_custom );
+                    break;
+
                 default:
                     break;
                 }
@@ -477,7 +485,7 @@ class Hooks {
             }
 
         }
-
+	    
         return $result_arr;
     }
 
@@ -564,7 +572,7 @@ class Hooks {
                     $meta_value = is_array( $meta_value ) ? $meta_value[0] : $meta_value;
 
                     if ( is_serialized( $meta_value ) ) {
-                        $meta_value = maybe_unserialize( $meta_value );
+                        $meta_value = etn_safe_decode( $meta_value );
                     }
 
                     update_post_meta( $recurrence_id, $meta_key, $meta_value );
@@ -791,6 +799,25 @@ class Hooks {
     }
 
     /**
+     * Custom Recurrence Calculation
+     *
+     * @param [type] $freq
+     * @param [type] $recurrence_weekly_day
+     * @param [type] $event_start_date
+     * @param [type] $event_end_date
+     * @return void
+     */
+    public function custom_recurrence_calculation( $recurrence_custom = [] ) {
+        $matching_days       = [];
+        foreach ( $recurrence_custom as $i => $date ) {
+            $current_date = ( new \DateTime( date( 'Y-m-d H:i:s', strtotime( $date ) ) ) )->setTime( 0, 0, 0 );
+            $matching_days[] = $current_date->getTimestamp();
+        }
+	    
+	    return $matching_days;
+    }
+
+    /**
      * Process Existing Recurrences That Are Not Needed Anymore
      *
      * @param array $events_to_be_removed
@@ -894,16 +921,12 @@ class Hooks {
 	 */
     public function remove_all_child_events_of_parent( $parent_post_id ) {
         $has_recurring_children = Helper::get_child_events( $parent_post_id );
-
         if ( $has_recurring_children && is_array( $has_recurring_children ) && !empty( $has_recurring_children ) ) {
-
             foreach ( $has_recurring_children as $single_child ) {
                 $child_event_id = $single_child->ID;
                 $this->detach_this_child_event_from_parent( $child_event_id );
             }
-
         }
-
     }
 
     /**
@@ -937,9 +960,15 @@ class Hooks {
         $modified_tickets = [];
         $post_start_date   = get_post_meta( $post_id, 'etn_start_date', true );
         $post_publish_date = get_the_date( 'Y-m-d', $post_id );
+        $previous_ticket_variations = get_post_meta( $post_id, 'etn_ticket_variations', true );
 
         if ( $ticket_variations ) {
             foreach( $ticket_variations as $ticket ) {
+                foreach( $previous_ticket_variations as $previous_ticket ) {
+                    if ( $ticket['etn_ticket_slug'] == $previous_ticket['etn_ticket_slug'] ) {
+                        $ticket['etn_sold_tickets'] = $previous_ticket['etn_sold_tickets'];
+                    }
+                }
                 $ticket['start_date'] = $post_publish_date;
                 $ticket['end_date']   = $post_start_date;
 

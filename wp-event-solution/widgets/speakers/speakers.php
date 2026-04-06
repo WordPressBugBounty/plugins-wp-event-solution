@@ -61,6 +61,7 @@ class Etn_Speakers extends Widget_Base {
                     'speaker-1' => esc_html__( 'Speaker 1', 'eventin' ),
                     'speaker-2' => esc_html__( 'Speaker 2', 'eventin' ),
                     'speaker-3' => esc_html__( 'Speaker 3', 'eventin' ),
+                    'speaker-4' => esc_html__( 'Speaker 4', 'eventin' ),
 
                 ],
             ]
@@ -83,7 +84,7 @@ class Etn_Speakers extends Widget_Base {
                 'type'      => Controls_Manager::SELECT2,
                 'multiple'  => true,
                 'options'   => $this->get_speakers_category(),
-                'condition' => ['speaker_style' => ['speaker-2','speaker-3']],
+                'condition' => ['speaker_style' => ['speaker-2','speaker-3','speaker-4']],
             ]
         );
 
@@ -93,7 +94,7 @@ class Etn_Speakers extends Widget_Base {
                 'label'     => esc_html__( 'Speaker Count', 'eventin' ),
                 'type'      => Controls_Manager::NUMBER,
                 'default'   => '6',
-                'condition' => ['speaker_style' => ['speaker-2','speaker-3']],
+                'condition' => ['speaker_style' => ['speaker-2','speaker-3','speaker-4']],
             ]
         );
 
@@ -109,7 +110,7 @@ class Etn_Speakers extends Widget_Base {
                     '6' => esc_html__( '2 Column', 'eventin' ),
 
                 ],
-                'condition' => ['speaker_style' => ['speaker-2','speaker-3']],
+                'condition' => ['speaker_style' => ['speaker-2','speaker-3','speaker-4']],
             ]
         );
 
@@ -124,7 +125,7 @@ class Etn_Speakers extends Widget_Base {
                     'title'     => esc_html__( 'Title', 'eventin' ),
                     'post_date' => esc_html__( 'Post Date', 'eventin' ),
                 ],
-                'condition' => ['speaker_style' => ['speaker-2','speaker-3']],
+                'condition' => ['speaker_style' => ['speaker-2','speaker-3','speaker-4']],
             ]
         );
 
@@ -138,13 +139,112 @@ class Etn_Speakers extends Widget_Base {
                     'DESC' => esc_html__( 'Descending', 'eventin' ),
                     'ASC'  => esc_html__( 'Ascending', 'eventin' ),
                 ],
-                'condition' => ['speaker_style' => ['speaker-2','speaker-3']],
+                'condition' => ['speaker_style' => ['speaker-2','speaker-3','speaker-4']],
+            ]
+        );
+
+        $this->add_control(
+            'enable_pagination',
+            [
+                'label'   => esc_html__( 'Enable Pagination', 'eventin' ),
+                'type'    => Controls_Manager::SWITCHER,
+                'label_on' => esc_html__( 'Yes', 'eventin' ),
+                'label_off' => esc_html__( 'No', 'eventin' ),
+                'return_value' => 'yes',
+                'default' => 'no',
+                'condition' => ['speaker_style' => ['speaker-2','speaker-3','speaker-4']],
+            ]
+        );
+
+        $this->add_control(
+            'posts_per_page',
+            [
+                'label'   => esc_html__( 'Speakers Per Page', 'eventin' ),
+                'type'    => Controls_Manager::NUMBER,
+                'default' => 6,
+                'min'     => 1,
+                'max'     => 50,
+                'condition' => [
+                    'speaker_style' => ['speaker-2','speaker-3','speaker-4'],
+                    'enable_pagination' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'show_designation_style_4',
+            [
+                'label' => esc_html__('Show Designation', 'eventin'),
+                'type' => Controls_Manager::SWITCHER,
+                'label_on' => esc_html__('Show', 'eventin'),
+                'label_off' => esc_html__('Hide', 'eventin'),
+                'return_value' => 'yes',
+                'default' => 'yes',
+                'condition' => ['speaker_style' => ['speaker-4']],
             ]
         );
 
         $this->end_controls_section();
 
         // End of speaker section
+
+         // Start of Speaker Item Wrapper Style section (first in style tab)
+         $this->start_controls_section(
+            'etn_speaker_item_wrapper_section',
+            [
+                'label' => esc_html__( 'Speaker Item Wrapper', 'eventin' ),
+                'tab'   => \Elementor\Controls_Manager::TAB_STYLE,
+            ]
+        );
+        $this->add_responsive_control(
+            'etn_speaker_item_padding',
+            [
+                'label'      => esc_html__( 'Padding', 'eventin' ),
+                'type'       => Controls_Manager::DIMENSIONS,
+                'size_units' => ['px', '%', 'em'],
+                'selectors'  => [
+                    '{{WRAPPER}} .etn-speaker-item' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                ],
+            ]
+        );
+        $this->add_group_control(
+            \Elementor\Group_Control_Border::get_type(),
+            [
+                'name'     => 'etn_speaker_item_border',
+                'label'    => esc_html__( 'Border', 'eventin' ),
+                'selector' => '{{WRAPPER}} .etn-speaker-item',
+            ]
+        );
+        $this->add_responsive_control(
+            'etn_speaker_item_border_radius',
+            [
+                'label'      => esc_html__( 'Border Radius', 'eventin' ),
+                'type'       => Controls_Manager::DIMENSIONS,
+                'size_units' => ['px', '%', 'em'],
+                'selectors'  => [
+                    '{{WRAPPER}} .etn-speaker-item' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                ],
+            ]
+        );
+        $this->add_group_control(
+            \Elementor\Group_Control_Box_Shadow::get_type(),
+            [
+                'name'     => 'etn_speaker_item_box_shadow',
+                'label'    => esc_html__( 'Box Shadow', 'eventin' ),
+                'selector' => '{{WRAPPER}} .etn-speaker-item',
+            ]
+        );
+        $this->add_control(
+            'etn_speaker_item_bg_color',
+            [
+                'label'     => esc_html__( 'Background Color', 'eventin' ),
+                'type'      => Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}} .etn-speaker-item' => 'background-color: {{VALUE}};',
+                ],
+            ]
+        );
+        $this->end_controls_section();
 
         // Start of title section
         $this->start_controls_section(
@@ -320,6 +420,80 @@ class Etn_Speakers extends Widget_Base {
 
         // End of designation section
 
+        // Start of email section (only for style 4)
+        $this->start_controls_section(
+            'email_section',
+            [
+                'label' => esc_html__( 'Email Section', 'eventin' ),
+                'tab'   => \Elementor\Controls_Manager::TAB_STYLE,
+                'condition' => ['speaker_style' => ['speaker-4']],
+            ]
+        );
+        //control for email typography
+        $this->add_group_control(
+            \Elementor\Group_Control_Typography::get_type(),
+            [
+                'name'     => 'etn_email_typography',
+                'label'    => esc_html__( 'Email Typography', 'eventin' ),
+                'selector' => '{{WRAPPER}} .etn-speaker-content .etn-email',
+            ]
+        );
+        //start of email color tabs (normal and hover)
+        $this->start_controls_tabs(
+            'etn_email_tabs'
+        );
+        //start of email normal color tab
+        $this->start_controls_tab(
+            'etn_email_normal_tab',
+            [
+                'label' => esc_html__( 'Normal', 'eventin' ),
+            ]
+        );
+        $this->add_control(
+            'etn_email_color',
+            [
+                'label'     => esc_html__( 'Email color', 'eventin' ),
+                'type'      => Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}} .etn-speaker-content .etn-email' => 'color: {{VALUE}};',
+                ],
+            ]
+        );
+        $this->end_controls_tab();
+        //start of email hover color tab
+        $this->start_controls_tab(
+            'etn_email_hover_tab',
+            [
+                'label' => esc_html__( 'Hover', 'eventin' ),
+            ]
+        );
+        $this->add_control(
+            'etn_email_hover_color',
+            [
+                'label'     => esc_html__( 'Email Hover color', 'eventin' ),
+                'type'      => Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}} .etn-speaker-item:hover .etn-speaker-content .etn-email' => 'color: {{VALUE}};',
+                ],
+            ]
+        );
+        $this->end_controls_tab();
+        $this->end_controls_tabs();
+        //end of email color tabs (normal and hover)
+        //control for email margin
+        $this->add_responsive_control(
+            'etn_email_margin',
+            [
+                'label'      => esc_html__( 'Email margin', 'eventin' ),
+                'type'       => Controls_Manager::DIMENSIONS,
+                'size_units' => ['px', '%', 'em'],
+                'selectors'  => [
+                    '{{WRAPPER}} .etn-speaker-content .etn-email' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                ],
+            ]
+        );
+        $this->end_controls_section();
+
         // Start of social section
         $this->start_controls_section(
             'social_section',
@@ -383,6 +557,119 @@ class Etn_Speakers extends Widget_Base {
         $this->end_controls_section();
 
         // End of social section
+
+        // Pagination style section
+        $this->start_controls_section(
+            'pagination_section',
+            [
+                'label' => esc_html__( 'Pagination Style', 'eventin' ),
+                'tab'   => \Elementor\Controls_Manager::TAB_STYLE,
+                'condition' => ['enable_pagination' => 'yes'],
+            ]
+        );
+
+        $this->add_control(
+            'pagination_alignment',
+            [
+                'label' => esc_html__( 'Alignment', 'eventin' ),
+                'type' => Controls_Manager::CHOOSE,
+                'options' => [
+                    'left' => [
+                        'title' => esc_html__( 'Left', 'eventin' ),
+                        'icon' => 'eicon-text-align-left',
+                    ],
+                    'center' => [
+                        'title' => esc_html__( 'Center', 'eventin' ),
+                        'icon' => 'eicon-text-align-center',
+                    ],
+                    'right' => [
+                        'title' => esc_html__( 'Right', 'eventin' ),
+                        'icon' => 'eicon-text-align-right',
+                    ],
+                ],
+                'default' => 'center',
+                'selectors' => [
+                    '{{WRAPPER}} .etn-pagination-wrapper' => 'text-align: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'pagination_spacing',
+            [
+                'label' => esc_html__( 'Spacing', 'eventin' ),
+                'type' => Controls_Manager::SLIDER,
+                'size_units' => ['px'],
+                'range' => [
+                    'px' => [
+                        'min' => 0,
+                        'max' => 100,
+                    ],
+                ],
+                'default' => [
+                    'unit' => 'px',
+                    'size' => 20,
+                ],
+                'selectors' => [
+                    '{{WRAPPER}} .etn-pagination-wrapper' => 'margin-top: {{SIZE}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_group_control(
+            \Elementor\Group_Control_Typography::get_type(),
+            [
+                'name' => 'pagination_typography',
+                'label' => esc_html__( 'Typography', 'eventin' ),
+                'selector' => '{{WRAPPER}} .etn-pagination-link',
+            ]
+        );
+
+        $this->add_control(
+            'pagination_color',
+            [
+                'label' => esc_html__( 'Text Color', 'eventin' ),
+                'type' => Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}} .etn-pagination-link' => 'color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'pagination_bg_color',
+            [
+                'label' => esc_html__( 'Background Color', 'eventin' ),
+                'type' => Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}} .etn-pagination-link' => 'background-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'pagination_current_color',
+            [
+                'label' => esc_html__( 'Current Page Color', 'eventin' ),
+                'type' => Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}} .etn-pagination-current' => 'color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'pagination_current_bg',
+            [
+                'label' => esc_html__( 'Current Page Background', 'eventin' ),
+                'type' => Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}} .etn-pagination-current' => 'background-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->end_controls_section();
 
         // Start of advance style section
         $this->start_controls_section(
@@ -466,6 +753,7 @@ class Etn_Speakers extends Widget_Base {
 
         $this->end_controls_section();
         // End of advance style section
+
     }
 
     protected function render() {
@@ -478,7 +766,27 @@ class Etn_Speakers extends Widget_Base {
         $speakers_category  = $settings["speakers_category"];
         $etn_speaker_order  = $settings["etn_speaker_order"];
         $orderby            = $settings["orderby"];
-        $orderby_meta       = null;
+        $enable_pagination  = (isset($settings["enable_pagination"]) ? $settings["enable_pagination"] : 'no');
+        $posts_per_page     = (isset($settings["posts_per_page"]) ? $settings["posts_per_page"] : 6);
+        $orderby_meta      = null;
+
+        // Handle pagination
+        $speaker_paged = 1;
+        if ($enable_pagination === 'yes') {
+            // Register the custom query var
+            add_filter('query_vars', [$this, 'register_query_vars']);
+            
+            // Get the page number from URL parameter
+            $speaker_paged = isset($_GET['speaker_paged']) ? absint($_GET['speaker_paged']) : 1;
+            $speaker_paged = max(1, $speaker_paged);
+            
+            // Set the query var for WordPress
+            set_query_var('speaker_paged', $speaker_paged);
+        }
+
+        
+        // Use posts_per_page for pagination, otherwise use etn_speaker_count
+        $speakers_to_show = ($enable_pagination === 'yes') ? $posts_per_page : $etn_speaker_count;
 
         $sanitize_filename = sanitize_file_name($style);
         $style             = !empty($sanitize_filename) ? $sanitize_filename : 'speaker-1';
@@ -490,6 +798,14 @@ class Etn_Speakers extends Widget_Base {
 
     protected function get_speakers() {
         return Helper::get_speakers();
+    }
+    
+    /**
+     * Register custom query vars for pagination
+     */
+    public function register_query_vars($vars) {
+        $vars[] = 'speaker_paged';
+        return $vars;
     }
 
     protected function get_speakers_category() {

@@ -165,10 +165,10 @@ if ( !function_exists( 'etn_single_speaker_template_select' ) ) {
                     $single_template_path = \Wpeventin::templates_dir() . "speaker-two-lite.php";
                     break;
                 case ETN_SPEAKER_TEMPLATE_TWO_ID :
-                    $single_template_path = \Wpeventin_Pro::templates_dir() . "speaker-two.php";
+                    $single_template_path = class_exists('Wpeventin_Pro') ? \Wpeventin_Pro::templates_dir() . "speaker-two.php" : \Wpeventin::templates_dir() . "speaker-one.php";
                     break;
                 case ETN_SPEAKER_TEMPLATE_THREE_ID :
-                    $single_template_path = \Wpeventin_Pro::templates_dir() . "speaker-three.php";
+                    $single_template_path = class_exists('Wpeventin_Pro') ? \Wpeventin_Pro::templates_dir() . "speaker-three.php" : \Wpeventin::templates_dir() . "speaker-one.php";
                     break;
                 default:
                     $single_template_path = \Etn\Utils\Helper::prepare_speaker_template_path( $default_template_name, $template_name );

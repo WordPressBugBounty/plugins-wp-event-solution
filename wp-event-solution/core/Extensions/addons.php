@@ -1,4 +1,6 @@
 <?php
+
+defined( 'ABSPATH' ) || exit;
 	$addons_options         = get_option( 'etn_addons_options', [] );
 	$pluginStatus           = \Etn\Core\Addons\Plugin_Status::instance();
 	$disable_facebook_event = $disable_seat_map = "disabled";

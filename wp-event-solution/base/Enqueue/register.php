@@ -13,8 +13,8 @@ class Register {
     public function __construct() {
         if ( is_admin() ) {
             add_action( 'admin_enqueue_scripts', [$this, 'register'], 5 );
+            add_action( 'admin_footer', [$this, 'admin_helpscout_beacon'] );
         } 
-        
         add_action( 'wp_enqueue_scripts', [$this, 'register'], 5 );
 
         add_action( 'wp_head', [ $this, 'register_custom_inline' ] );
@@ -225,14 +225,21 @@ class Register {
 		$primary_color   = '#5D78FF';
 		$secondary_color = '';
 
-		// cart bg color.
+		// SECURITY: Sanitize color values to prevent XSS
 		if ( ! empty( $settings['etn_primary_color'] ) ) {
-			$primary_color = $settings['etn_primary_color'];
+			$primary_color = sanitize_hex_color( $settings['etn_primary_color'] );
+			// Fallback to default if sanitization fails
+			if ( empty( $primary_color ) ) {
+				$primary_color = '#5D78FF';
+			}
 		}
 
-		// cart icon color.
 		if ( ! empty( $settings['etn_secondary_color'] ) ) {
-			$secondary_color = $settings['etn_secondary_color'];
+			$secondary_color = sanitize_hex_color( $settings['etn_secondary_color'] );
+			// Fallback to empty if sanitization fails
+			if ( empty( $secondary_color ) && ! empty( $settings['etn_secondary_color'] ) ) {
+				$secondary_color = '';
+			}
 		}
 
 		$etn_custom_css .= "
@@ -359,4 +366,44 @@ class Register {
 		wp_enqueue_style( 'etn-custom-css' );
 		wp_add_inline_style( 'etn-custom-css', $etn_custom_css );
     }
+
+    /**
+     * Add HelpScout script to admin footer
+     *
+     * @return  void
+     */
+    public function admin_helpscout_beacon() {
+        $screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+        $is_eventin_screen = false;
+ 
+        if ( $screen ) {
+            $screen_id = isset( $screen->id ) ? $screen->id : '';
+ 
+            // Simple check: only load on Eventin top-level admin page
+            if ( 'toplevel_page_eventin' === $screen_id ) {
+                $is_eventin_screen = true;
+            }
+        }
+ 
+        // Allow overriding detection via filter.
+        $is_eventin_screen = apply_filters( 'etn_is_eventin_admin_screen', $is_eventin_screen, $screen );
+ 
+        if ( ! $is_eventin_screen ) {
+            return;
+        }
+        ?>
+        <script type="text/javascript">!function(e,t,n){function a(){var e=t.getElementsByTagName("script")[0],n=t.createElement("script");n.type="text/javascript",n.async=!0,n.src="https://beacon-v2.helpscout.net",e.parentNode.insertBefore(n,e)}if(e.Beacon=n=function(t,n,a){e.Beacon.readyQueue.push({method:t,options:n,data:a})},n.readyQueue=[],"complete"===t.readyState)a();else if(e.attachEvent)e.attachEvent("onload",a);else e.addEventListener("load",a,!1)}(window,document,window.Beacon||function(){});</script>
+        <script type="text/javascript">
+        window.Beacon('config', {
+            color: "#6B2EE5",
+        });
+        window.Beacon('init', 'e0cc7920-ce99-4a2a-9475-8b3ae3be7448');
+        window.Beacon('on', 'ready', function(){
+            window.Beacon('hide');
+        });
+
+        </script>
+        <?php
+    }
+
 }

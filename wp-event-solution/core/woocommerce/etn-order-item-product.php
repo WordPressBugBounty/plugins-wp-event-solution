@@ -70,7 +70,7 @@ function etn_woo_product_class( $class_name, $product_type, $product_id ) {
 
 function etn_woocommerce_get_order_item_classname($class_name, $item_type, $id) {
     global $wpdb;
-    $is_etn = $wpdb->get_var("SELECT meta_value FROM {$wpdb->prefix}woocommerce_order_itemmeta WHERE meta_key = '_etn' AND order_item_id = {$id}");
+    $is_etn = $wpdb->get_var( $wpdb->prepare( "SELECT meta_value FROM {$wpdb->prefix}woocommerce_order_itemmeta WHERE meta_key = '_etn' AND order_item_id = %d", $id ) );
 
     if ('yes' === $is_etn) { 
         $class_name = 'Etn_WC_Order_Item_Product';

@@ -7,6 +7,7 @@
 namespace Etn\Core\Speaker;
 use Etn\Traits\Singleton;
 
+
 /**
  * User Model
  */
@@ -147,8 +148,13 @@ class User_Model {
      */
     public function get_speaker_group() {
         $value = get_user_meta($this->id, 'etn_speaker_group', true );
+	    $value = is_array($value) ? "[]" : $value;
+	    try {
+            $group = json_decode( $value );
+	    } catch (\Exception $e) {
+			$group = [];
+	    }
 
-        $group = maybe_unserialize( $value );
         return $group;
     }         
     
@@ -181,7 +187,26 @@ class User_Model {
         $user       = get_userdata( $this->id ); 
         $author_url = get_author_posts_url( $user->ID, $user->user_nicename );
         return esc_url($author_url);
-    }        
+    }
+    
+    /**
+     * Get author name
+     *
+     * @return string
+     */
+    public function get_author_name() {
+        $user_id     = $this->id;
+        $user_info   = get_userdata( $user_id );
+        $first_name  = get_user_meta( $user_id, 'first_name', true );
+        $last_name   = get_user_meta( $user_id, 'last_name', true );
+
+        if ( ! empty( $first_name ) || ! empty( $last_name ) ) {
+            return trim( $first_name . ' ' . $last_name );
+        }
+
+        // fallback to display_name if no first/last name
+        return $user_info ? $user_info->display_name : '';
+    }
     
     /**
      * Get speaker category
@@ -189,10 +214,10 @@ class User_Model {
      * @return string
      */
     public function get_speaker_category() {
-        $categories = $this->get_prop( 'category' ) ;
-        $categories = maybe_unserialize( $categories );
+        $categories = $this->get_prop( 'category' );
+        $categories = etn_safe_decode( $categories );
         $group = [];
-        if ( is_array($categories) ) {
+        if ( is_array( $categories ) ) {
             foreach($categories as $category) {
                 $group[] = $category;
             }    
@@ -206,8 +231,8 @@ class User_Model {
      * @return string
      */
     public function get_speaker_socials() {
-        $social = $this->get_prop( 'social' ) ;        
-        $social = maybe_unserialize( $social );
+        $social = $this->get_prop( 'social' ) ;
+        $social = etn_safe_decode( $social );
         return $social ? $social : [];
     }
 
@@ -380,9 +405,12 @@ class User_Model {
             'category'          => $this->get_speaker_category(),
             'speaker_group'     => $this->get_speaker_group(),
             'company_name'      => $this->get_company_name(),
+            'author_name'        => $this->get_author_name(),
             'author_url'        => $this->get_author_url(),
             'date'              => $this->get_date(),
             'hide_user'         => $this->get_hide_user(),
+            'organizer_bio'     => $this->get_organizer_bio(),
+            'phone'             => $this->get_phone(),
         ];
 
     }    
@@ -409,7 +437,7 @@ class User_Model {
             'image'                     => $this->get_image(),
             'image_id'                  => $this->get_image_id(),
             'etn_speaker_category'      => $this->get_speaker_category(),
-            'etn_speaker_group'         => $this->get_speaker_group(),
+            'etn_speaker_group'         => json_encode( $this->get_speaker_group() ),
             'etn_company_name'          => $this->get_company_name(),
             'date'                      => $this->get_date(),
             'clone'                     => true,
@@ -516,11 +544,23 @@ class User_Model {
                 }
                 $args['role'] = array_shift( $additional_roles );
             }
-        }else if ( $args['category'] ) {
+        } else if ( $args['category'] ) {
             $args['role'] = 'etn-'.strtolower( $args['category'] );
         }
 
+        $send_user_notification = etn_get_option( 'send_user_notification', null );
+
+        // Only send notification if explicitly set to 'on'
+        if($send_user_notification !== 'on') {
+            add_filter('wp_new_user_notification_email', '__return_false');            
+        }
+
         $user_id = wp_insert_user( $args );
+
+        // Remove the filter after user creation
+        if($send_user_notification !== 'on') {
+            remove_filter('wp_new_user_notification_email', '__return_false');
+        }
 
         if (is_wp_error($user_id)) {
             return $user_id;
@@ -540,7 +580,11 @@ class User_Model {
 
         $this->set_id( $user_id );
         $this->save_metadata( $args );
-        $this->retrieve_password();
+        
+        // Only send password reset email if notifications are enabled
+        if($send_user_notification === 'on') {
+            $this->retrieve_password();
+        }
 
         return $user_id;
     }
@@ -602,11 +646,11 @@ class User_Model {
         if ( !empty($args['email']) && $args['email'] != $user->user_email ) {
             $user_data['user_email'] = $args['email'];
         }
-    
+
         // Check if the current roles need to be updated
         if ( !empty($args['etn_speaker_category'] ) ) {
             foreach ( $user->roles as $role ) {
-                if ( ! in_array($role, $args['etn_speaker_category'] ) ) {
+                if ( str_contains($role, 'etn') && ! in_array($role, $args['etn_speaker_category'] ) ) {
                     $user->remove_role($role);
                 }
             }
@@ -839,6 +883,24 @@ class User_Model {
         $users = get_users( $args );
 
         return $users;
+    }
+
+    /**
+     * Get organizer bio
+     *
+     * @return  string
+     */
+    public function get_organizer_bio() {
+        return get_user_meta( $this->id, 'organizer_bio', true ) ?: '';
+    }
+
+    /**
+     * Get phone
+     *
+     * @return  string
+     */
+    public function get_phone() {
+        return get_user_meta( $this->id, 'phone', true ) ?: '';
     }
 
     /**

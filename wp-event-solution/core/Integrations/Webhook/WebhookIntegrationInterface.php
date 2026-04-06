@@ -1,10 +1,13 @@
 <?php
+
 /**
  * Webhook integration interface
  * 
  * @package Eventin
  */
 namespace Eventin\Integrations\Webhook;
+
+defined( 'ABSPATH' ) || exit;
 
 /**
  * WebhookIntegrationInterface

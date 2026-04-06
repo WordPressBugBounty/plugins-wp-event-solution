@@ -1,5 +1,8 @@
 <?php
+
 namespace Eventin\Speaker;
+
+defined( 'ABSPATH' ) || exit;
 
 use Eventin\Abstracts\Provider;
 

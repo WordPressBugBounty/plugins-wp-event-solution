@@ -1,8 +1,11 @@
 <?php
+
 namespace Eventin\Blocks;
 
+defined( 'ABSPATH' ) || exit;
+
 use Eventin\Blocks\BlockTypes\EventImage;
-use Eventin\Blocks\BlockTypes\RelatedEvents;
+use Eventin\Blocks\BlockTypes\EventTitle;
 use Eventin\Interfaces\HookableInterface;
 use Wpeventin;
 use Etn\Core\Event\Event_Model;
@@ -18,7 +21,8 @@ class BlockTypesController implements HookableInterface {
      * @var array
      */
     private $blocks = [
-        EventImage::class
+        EventImage::class,
+        EventTitle::class,
     ];
 
     /**
@@ -69,7 +73,7 @@ class BlockTypesController implements HookableInterface {
             $template_css = $template->template_css;
 
 
-            wp_add_inline_style( 'etn-blocks-style',  $template_css );
+            //wp_add_inline_style( 'etn-blocks-style',  $template_css );
         }
     }
 }

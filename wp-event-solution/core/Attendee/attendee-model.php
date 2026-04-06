@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Attendee Model Class
  *
@@ -6,7 +7,10 @@
  */
 namespace Etn\Core\Attendee;
 
+defined( 'ABSPATH' ) || exit;
+
 use Etn\Base\Post_Model;
+use function cli\err;
 
 /**
  * Attendee Model
@@ -69,11 +73,11 @@ class Attendee_Model extends Post_Model {
      *
      * @return  array
      */
-    public function get_attendees_by( $key, $value ) {
+    public function get_attendees_by( $key, $value, $post_status = ['publish', 'trash'], $limit = -1 ) {
         $args = [
             'post_type'      => 'etn-attendee',
-            'post_status'    => 'any',
-            'posts_per_page' => -1,
+            'post_status'    => $post_status,
+            'posts_per_page' => $limit,
             'meta_query'     => [
                 [
                     'key'     => $key,
@@ -88,6 +92,9 @@ class Attendee_Model extends Post_Model {
         $data = [];
 
         if ( $attendees ) {
+            $attendee_ids = wp_list_pluck( $attendees, 'ID' );
+            update_postmeta_cache( $attendee_ids );
+
             foreach( $attendees as $attendee ) {
                 $attendee_object = new Attendee_Model( $attendee->ID );
                 $attendee_data   = $attendee_object->get_data();
@@ -113,11 +120,12 @@ class Attendee_Model extends Post_Model {
         }
         
         foreach( $fields as $key => $value ) {
-            
             // Check extra fields exist or not.
             if ( strpos( $key, 'etn_attendee_extra_field_' ) !== false ) {
                 $new_key = str_replace( 'etn_attendee_extra_field_', '', $key );
-                $extra_fields[$new_key] = get_post_meta( $this->id, $key, true );
+                // $value is an array from get_post_meta($id) with no key; use first element directly
+                // to avoid a redundant DB round-trip (or cache hit) for get_post_meta($id, $key, true).
+                $extra_fields[ $new_key ] = get_post_meta( $this->id, $key, true );
             }
         }
 
@@ -147,22 +155,20 @@ class Attendee_Model extends Post_Model {
      * @return  string
      */
     public function get_extra_fields_content() {
-        $fields = '<ul class="etn-attendee-extra-data">';
+        $fields = '<ul class="etn-attendee-extra-data" style="list-style: none; padding-left: 0; margin-left: 0;">';
         $extra_fields = $this->get_extra_fields();
 
         if ( $extra_fields ) {
             foreach ( $extra_fields as $key => $field ) {
-                $label = ucfirst( $key );
-                $fields_array[] = "<li><label>{$label}:</label> <span>{$field}</span></li>";
+                // Format label: replace underscores with spaces and capitalize each word
+                $label = ucwords(str_replace('_', ' ', $key));
+
+                $fields .= "<li><label style='font-weight: bold;'>{$label}:</label> <span>{$field}</span></li>";
             }
-    
-            $fields = implode( '', $fields_array );
         }
-        
         $fields .= '</ul>';
         return $fields;
     }
-
     /**
      * Get attendde data
      *
@@ -174,6 +180,7 @@ class Attendee_Model extends Post_Model {
         $response_data = [
             'id'         => $this->id,
             'event_name' => $event ? $event->post_title : '',
+            'attendee_post_status' => get_post_status( $this->id ),
         ];
 
         foreach ( $this->data as $key => $value ) {
@@ -186,7 +193,6 @@ class Attendee_Model extends Post_Model {
 
         return $response_data;
     }
-	
 	
 	
 	public function get_attendees_model_by_eventin_order_id( $eventin_order_id ) {
@@ -204,5 +210,13 @@ class Attendee_Model extends Post_Model {
 		];
 		
 		return  get_posts( $args );
+	}
+	
+	
+	/**
+	 * @return bool
+	 */
+	public function trash_post() {
+		return !! wp_trash_post( $this->id );
 	}
 }

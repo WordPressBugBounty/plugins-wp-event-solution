@@ -1,10 +1,13 @@
 <?php
+
 /**
  * Speaker Category Api Class
  *
  * @package Eventin\Speaker
  */
 namespace Eventin\Speaker\Api;
+
+defined( 'ABSPATH' ) || exit;
 
 use WP_Error;
 use WP_REST_Controller;
@@ -48,6 +51,11 @@ class SpeakerCategoryController extends WP_REST_Controller {
                 'methods'             => WP_REST_Server::CREATABLE,
                 'callback'            => [$this, 'create_item'],
                 'permission_callback' => [$this, 'create_item_permissions_check'],
+            ],
+            [
+                'methods'             => WP_REST_Server::DELETABLE,
+                'callback'            => [$this, 'delete_items'],
+                'permission_callback' => [$this, 'delete_item_permissions_check'],
             ],
         ] );
 
@@ -106,6 +114,18 @@ class SpeakerCategoryController extends WP_REST_Controller {
             'hide_empty' => false,
         );
 
+        if ( ! current_user_can( 'manage_options' ) ) {
+            $author_id = get_current_user_id();
+            
+            $prepared_args['meta_query'] = array(
+                array(
+                    'key'     => 'author', 
+                    'value'   => $author_id,
+                    'compare' => '='
+                )
+            );
+        }
+
         $query_result = get_terms( $prepared_args );
 
         $response = array();
@@ -148,6 +168,13 @@ class SpeakerCategoryController extends WP_REST_Controller {
         }
 
         $category = wp_insert_term( $prepared_data['name'], $this->taxonomy, $prepared_data );
+
+        if ( ! is_wp_error( $category ) ) {
+            $term_id = $category['term_id'];
+
+            // Add author ID as term meta
+            add_term_meta( $term_id, 'author', get_current_user_id(), true );
+        }
 
         if ( is_wp_error( $category ) ) {
             return $category;
@@ -246,6 +273,45 @@ class SpeakerCategoryController extends WP_REST_Controller {
         );
 
         return $response;
+    }
+
+    /**
+     * Deletes a single term from a taxonomy.
+     *
+     * @since 4.7.0
+     *
+     * @param WP_REST_Request $request Full details about the request.
+     * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+     */
+    public function delete_items( $request ) {
+        $ids = ! empty( $request['ids'] ) ? $request['ids'] : [];
+
+        $count = 0;
+        foreach ( $ids as $id ) {
+            $term = $this->get_category( $id );
+            $retval = wp_delete_term( $term->term_id, $term->taxonomy );
+            if ( ! $retval ) {
+                return new WP_Error(
+                    'rest_cannot_delete',
+                    __( 'The term cannot be deleted.', 'eventin' ),
+                    array( 'status' => 500 )
+                );
+            }
+
+            $count++;
+        }
+
+        if ( $count == 0 ) {
+            return new WP_Error(
+                'rest_cannot_delete',
+                __( 'Terms cannot be deleted.', 'eventin' ),
+                array( 'status' => 500 )
+            );
+        }
+
+        $message = sprintf( __( '%d terms are deleted of %d', 'eventin' ), $count, count( $ids ) );
+
+        return rest_ensure_response( $message );
     }
 
     /**

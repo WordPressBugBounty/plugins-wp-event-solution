@@ -1,5 +1,8 @@
 <?php
+
 namespace Eventin\Event;
+
+defined( 'ABSPATH' ) || exit;
 
 use Eventin\Abstracts\Provider;
 

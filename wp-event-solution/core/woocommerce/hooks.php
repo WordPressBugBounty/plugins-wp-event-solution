@@ -36,6 +36,8 @@ class Hooks {
         add_action( 'woocommerce_thankyou', [ $this, 'redirect_success_page' ] );
 
         add_action( 'woocommerce_order_status_changed', [ $this, 'eventin_order_update' ], 10, 4 );
+        // Handle payment completion for Eventin orders
+        add_action( 'woocommerce_payment_complete', [ $this, 'eventin_payment_complete' ], 10, 1 );
 
         // Handle actions on order status change
         // add_action('woocommerce_order_status_changed', [$this, 'update_event_stock_on_order_status_update' ], 10, 3);
@@ -78,7 +80,7 @@ class Hooks {
 
 
         // add attendee id to order id at the time order is created for paypal payment
-        add_action( 'woocommerce_new_order', [ $this, 'process_all_once_order_created' ], 10, 2 );
+        // add_action( 'woocommerce_new_order', [ $this, 'process_all_once_order_created' ], 10, 2 );
        // add_action( 'woocommerce_checkout_update_order_meta', [ $this, 'process_all_once_order_created' ], 10, 1 );
 
         // custom metabox for showing attendee list on woocommerce order page
@@ -133,6 +135,259 @@ class Hooks {
         add_filter( 'woocommerce_order_again_cart_item_data', [ $this, 'order_again_custom_meta' ], 10, 3 );
         // disable 'Undo' option after removing item from cart
         add_action('woocommerce_cart_item_removed', [ $this, 'disable_undo_notice_for_events'], 5, 2);
+
+        $this->update_order_status_eventin();
+
+        add_action('woocommerce_thankyou', [ $this, 'show_eventin_ticket_details' ], 10, 1);
+        
+        // Add cart validation for ticket variants
+        add_action('woocommerce_check_cart_items', [ $this, 'validate_cart_ticket_variants' ]);
+
+
+        // Override Divi's dummy cart totals when Eventin products are present
+        add_filter( 'woocommerce_cart_subtotal', [ $this, 'override_divi_dummy_subtotal' ], 999, 3 );
+        add_filter( 'woocommerce_cart_totals_order_total_html', [ $this, 'override_divi_dummy_total' ], 999, 1 );
+        add_filter( 'woocommerce_cart_item_subtotal', [ $this, 'fix_cart_item_subtotal' ], 999, 3 );
+    }
+
+    /**
+     * Override Divi's dummy subtotal when Eventin products are in cart
+     * @param string $subtotal
+     * @param bool $compound
+     * @param WC_Cart $cart
+     * @return string
+     */
+    public function override_divi_dummy_subtotal( $subtotal, $compound, $cart ) {
+        // Check if there are Eventin products in cart
+        foreach ( WC()->cart->get_cart() as $cart_item ) {
+            if ( ! empty( $cart_item['event_id'] ) && get_post_type( $cart_item['event_id'] ) == 'etn' ) {
+                // Return actual subtotal, not Divi's dummy
+                return wc_price( WC()->cart->get_subtotal() );
+            }
+        }
+        return $subtotal;
+    }
+
+    /**
+     * Override Divi's dummy total when Eventin products are in cart
+     * @param string $value
+     * @return string
+     */
+    public function override_divi_dummy_total( $value ) {
+        // Check if there are Eventin products in cart
+        foreach ( WC()->cart->get_cart() as $cart_item ) {
+            if ( ! empty( $cart_item['event_id'] ) && get_post_type( $cart_item['event_id'] ) == 'etn' ) {
+                // Return actual total, not Divi's dummy
+                return sprintf( '<strong>%s</strong>', wc_price( WC()->cart->get_total( 'edit' ) ) );
+            }
+        }
+        return $value;
+    }
+
+    /**
+     * Fix individual cart item subtotal display for Eventin products
+     */
+    public function fix_cart_item_subtotal( $subtotal, $cart_item, $cart_item_key ) {
+        $product = $cart_item['data'];
+        
+        if ( 'etn' == $product->get_type() && ! empty( $cart_item['event_id'] ) ) {
+            $event_total_price = ! empty( $cart_item['_etn_variation_total_price'] ) ? $cart_item['_etn_variation_total_price'] : 0;
+            $quantity = $cart_item['quantity'];
+            
+            // Calculate the actual subtotal for this item
+            $item_subtotal = $event_total_price * $quantity;
+            
+            return wc_price( $item_subtotal );
+        }
+        
+        return $subtotal;
+    }
+
+    /**
+     * Check if any ticket variants in cart are inactive
+     *
+     * @param array $data Checkout form data
+     * @param WP_Error $errors Checkout validation errors
+     */
+    /**
+     * Validate ticket variants in cart
+     */
+    public function validate_cart_ticket_variants() {
+        // Only run this on the checkout pages
+        if ( is_checkout() ) {
+            
+            if (!WC()->cart) {
+                wc_add_notice(__('Unable to validate cart items. Please try again.', 'eventin'), 'error');
+                return;
+            }
+            
+            $cart = WC()->cart->get_cart();
+            
+            foreach ( $cart as $cart_item_key => $cart_item ) {
+                $event_id = isset( $cart_item['event_id'] ) ? $cart_item['event_id'] : 0;
+                
+                // Skip if not an event product
+                if ( ! isset( $cart_item['event_id'] ) ) {
+                    continue;
+                }
+                
+                $product = $cart_item['data'];
+                
+                // Check if this is a variable ticket
+                if ( isset( $cart_item['etn_ticket_variations'] ) && !empty( $cart_item['etn_ticket_variations'] ) ) {
+                    $event_id = $cart_item['event_id'];
+                    $ticket_variations = get_post_meta( $event_id, 'etn_ticket_variations', true );
+                    
+                    if ( is_array( $ticket_variations ) ) {
+                        foreach ( $cart_item['etn_ticket_variations'] as $variation ) {
+                            $variation_id = $variation['etn_ticket_slug'];
+                            
+                            // Find the variation in the event's variations
+                            foreach ( $ticket_variations as $ticket_variation ) {
+                                if ( $ticket_variation['etn_ticket_slug'] === $variation_id) {
+                                    // Check if the variant is active
+                                    if ( isset( $ticket_variation['etn_enable_ticket'] ) && !$ticket_variation['etn_enable_ticket']) {
+                                        $error_message = sprintf( 
+                                            __('The selected ticket variant for "%s" is no longer available. You have been redirected to the event page.', 'eventin'),
+                                            $product->get_name()
+                                        );
+                                        wc_add_notice($error_message, 'error');
+                                        
+                                        // Remove the invalid item from cart
+                                        WC()->cart->remove_cart_item($cart_item_key);
+                                        
+                                        // Redirect to the product page
+                                        wp_safe_redirect(get_permalink($event_id));
+                                        exit;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Show Eventin ticket details on the WooCommerce thank you page.
+     *
+     * @param   int  $order_id  WooCommerce order ID.
+     *
+     * @return  void
+     */
+    public function show_eventin_ticket_details( $order_id ) {
+        if ( ! $order_id ) return;
+
+        $eventin_order_id = get_post_meta($order_id, 'eventin_order_id', true);
+        if (! $eventin_order_id) return;
+
+        $event_order = new OrderModel($eventin_order_id);
+
+        if ( ! $event_order ) return;
+
+        $attendees = $event_order->get_attendees();
+        ?>
+            <?php if ( $attendees ): ?>
+            <h2 class="woocommerce-column__title"><?php esc_html_e( 'Eventin Ticket Details', 'eventin' ); ?></h2>
+            <table class="woocommerce-table woocommerce-table--order-details shop_table order_details">
+                <thead>
+                    <tr>
+                        <th class="woocommerce-table__product-name attendee-name"><?php esc_html_e( 'Attendee Name', 'eventin' ); ?></th>
+                        <th class="woocommerce-table__product-table attendee-ticket-name"><?php esc_html_e( 'Ticket Name', 'eventin' ); ?></th>
+                        <th class="woocommerce-table__product-table attendee-event"><?php esc_html_e( 'Event', 'eventin' ); ?></th>
+                        <th class="woocommerce-table__product-table attendee-action"><?php esc_html_e( 'Action', 'eventin' ); ?></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ( $attendees as $attendee ): ?>
+                    <?php
+                        // Get event information
+                        $event_id = get_post_meta( $attendee['id'], 'etn_event_id', true );
+                        $event_name = '';
+                        $event_start_date = '';
+                        
+                        if ( $event_id ) {
+                            $event_name = get_post_field( 'post_title', $event_id, 'raw' );
+                            $start_date = get_post_meta( $event_id, 'etn_start_date', true );
+                            
+                            if ( $start_date ) {
+                                $settings = etn_get_option();
+                                $date_options = get_option( 'date_format' );
+                                $etn_settings_date_format = ! empty( $settings["date_format"] ) ? $date_options[$settings["date_format"]] : get_option( "date_format" );
+                                $date_format = !empty($settings['date_format']) ? $etn_settings_date_format : get_option("date_format");
+                                $event_start_date = date_i18n($date_format, strtotime($start_date));
+                            }
+                        }
+                        
+                        $event_display = $event_name;
+                        if ( $event_start_date ) {
+                            $event_display .= '<br/>(' . $event_start_date . ')';
+                        }
+                    ?>
+                    <tr>
+                        <td><?php echo esc_html($attendee['etn_name']); ?></td>
+                        <td><?php echo esc_html($attendee['ticket_name']); ?></td>
+                        <td><?php echo wp_kses_post( $event_display ); ?></td>
+                        <td>
+                            <?php 
+                                $url = add_query_arg(
+                                    [
+                                        'etn_action'          => 'download_ticket',
+                                        'attendee_id'         => $attendee['id'],
+                                        'etn_info_edit_token' => get_post_meta( $attendee['id'], 'etn_info_edit_token', true ),
+                                    ],
+                                    site_url('etn-attendee/')
+                                );
+                            ?>
+                            <div class="">
+                                <a class="" target="_blank" href="<?php echo esc_url($url); ?>" rel="noopener"><?php esc_html_e( 'Download Ticket', 'eventin' ); ?></a>
+                            </div>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+            <?php endif; ?>
+        <?php
+    }
+
+
+    /**
+     * Update eventin order status on woocommerce order status change
+     *
+     * @return  void
+     */
+    public function update_order_status_eventin() {
+        $statuses = etn_get_wc_order_statuses(); // e.g., ['processing', 'completed']
+
+        foreach ( $statuses as $status ) {
+            add_action( "woocommerce_order_status_{$status}", [ $this, 'handle_wc_status_match' ], 100, 2 );
+        }
+    }
+
+    /**
+     * Handle WooCommerce order status changes.
+     *
+     * @param   integer  $order_id  WooCommerce order ID.
+     * @param   WC_Order  $order     WooCommerce order object.
+     *
+     * @return  void
+     */
+    public function handle_wc_status_match( $order_id, $order ) {
+        $event_order_id = get_post_meta( $order_id, 'eventin_order_id', true );
+
+        if ( ! $event_order_id ) return;
+
+        $event_order = new OrderModel( $event_order_id );
+
+        if ( $event_order->status === 'completed' ) return;
+
+        $event_order->update(['status' => 'completed']);
+
+        do_action('eventin_order_completed', $event_order);
+
+        $event_order->send_email();
     }
 
     /**
@@ -142,64 +397,102 @@ class Hooks {
      *
      * @return  void    Updated order on woocoomerce order changed
      */
-    public function eventin_order_update( $order_id, $old_status, $new_status, $order ) {
+	public function eventin_order_update( $order_id, $old_status, $new_status, $order ) {
+		$order = wc_get_order( $order_id );
+		
+		if ( ! $order ) {
+			return;
+		}
+		
+		if ( !is_admin() && !wp_doing_cron() ) {
+			$event_order_id = (WC() && WC()->session && WC()->session) ? WC()->session->get('event_order_id') : null;
+		} else {
+			$event_order_id = get_post_meta($order_id, 'eventin_order_id', true);
+		}
+		
+		if ( ! $event_order_id ) {
+			return;
+		}
+		
+		
+		$eventin_order_id = get_post_meta( $order_id, 'eventin_order_id', true );
+		$event_order      = new OrderModel( $eventin_order_id );
+		
+		if ( ! $eventin_order_id ) {
+			return;
+		}
+		
+		switch ($order->get_status()) {
+			case in_array( $order->get_status(), etn_get_option('wc_order_statuses') ):
+				 if ( 'completed' === $event_order->status ) {
+				    return;
+				}
+				$event_order->update([
+					'status' => 'completed'
+				]);
+				
+				do_action( 'eventin_order_completed', $event_order );
+				
+				$event_order->send_email();
+				break;
+			
+			case "refunded":
+				$event_order->update([
+					'status' => 'refunded',
+				]);
+				
+				do_action( 'eventin_order_refund', $event_order );
+				break;
+			default:
+				$event_order->update([
+					'status' => 'failed',
+				]);
+				
+				do_action( 'eventin_order_failed', $event_order );
+		}
+		
+	}
+	
+	/**
+     * Handle payment completion for Eventin orders
+     *
+     * @param   integer  $order_id  WooCommerce order ID
+     *
+     * @return  void
+     */
+    public function eventin_payment_complete( $order_id ) {
         $order = wc_get_order( $order_id );
-
+        
         if ( ! $order ) {
             return;
         }
-
-        if ( !is_admin() && !wp_doing_cron() ) {
-            $event_order_id = WC()->session->get('event_order_id');
-        } else {
-            $event_order_id = get_post_meta($order_id, 'eventin_order_id', true);
-        }
-
-        if ( ! $event_order_id ) {
-            return;
-        }
-
-
+        
+        // Get the Eventin order ID from meta
         $eventin_order_id = get_post_meta( $order_id, 'eventin_order_id', true );
-        $event_order      = new OrderModel( $eventin_order_id );
-
+        
         if ( ! $eventin_order_id ) {
             return;
         }
-
-        switch ($order->get_status()) {
-            case in_array( $order->get_status(), etn_get_option('wc_order_statuses') ):
-                if ( 'completed' === $event_order->status ) {
-                    return;
-                }
-
-                $event_order->update([
-                    'status' => 'completed'
-                ]);
-
-                do_action( 'eventin_order_completed', $event_order );
-
-                $event_order->send_email();
-            break;
-
-            case "refunded":
-                $event_order->update([
-                    'status' => 'refunded',
-                ]);
-
-                do_action( 'eventin_order_refund', $event_order );
-            break;
-            default:
-                $event_order->update([
-                    'status' => 'failed',
-                ]);
-
-                do_action( 'eventin_order_failed', $event_order );
+        
+        $event_order = new OrderModel( $eventin_order_id );
+        
+        // Check if the event order is already completed
+        if ( 'completed' === $event_order->status ) {
+            return;
         }
-
+        
+        // Update the event order status to completed
+        $event_order->update([
+            'status' => 'completed'
+        ]);
+        
+        // Trigger action for completed event order
+        do_action( 'eventin_order_completed', $event_order );
+        
+        // Send email notification
+        $event_order->send_email();
     }
-
-    /**
+	/**
      * Attatch eventin order id on wc order id 
      *
      * @return  void
@@ -208,7 +501,7 @@ class Hooks {
         if ( !is_admin() && !wp_doing_cron() ) {
             $event_order_id = WC()->session->get('event_order_id');
         } else {
-            $event_order_id = get_post_meta($order_id, 'eventin_order_id', true);
+            $event_order_id = get_post_meta($wc_order_id, 'eventin_order_id', true);
         }
 
         if ( ! $event_order_id ) {
@@ -370,29 +663,44 @@ class Hooks {
 		$thankyou_redirect   = isset( $thankyou_redirect ) ? $thankyou_redirect : '';
   
         $eventin_order           = new OrderModel($order_id);
-        $validate_ticket         = $eventin_order->validate_ticket();
+        $validate_ticket         = $eventin_order->validate_ticket(true);
 
         if ( is_wp_error( $validate_ticket ) ) {
             wp_redirect( site_url( 'eventin-purchase/checkout/#/failed?action=ticket-limit-exit' ) );
 		    exit();
         }
-		
+     
+        $wc_order_discount_total_price = $wc_order->get_data()["discount_total"];
+        $wc_order_tax_total_price = $wc_order->get_data()["total_tax"];
+
+        // $wc_order_total_price = $wc_order->get_data()["total"];
+        $eventin_order->update([
+                "discount_total" => $wc_order_discount_total_price,
+                "tax_total" => $wc_order_tax_total_price,
+                // "total_price" => $wc_order_total_price
+        ]);
+
 		if ( $thankyou_redirect === 'woo_thankyou' ) {
-			if ( $wc_order && in_array( $wc_order->get_status(), $statuses ) ) {
-				$eventin_order->update(['status' => 'completed']);
-				
-				do_action('eventin_order_completed', $eventin_order);
-				$eventin_order->send_email();
-			}
+            if ( $eventin_order->status !== 'completed' ) {
+                if ( $wc_order && in_array( $wc_order->get_status(), $statuses ) ) {
+                    $eventin_order->update(['status' => 'completed']);
+                    
+                    do_action('eventin_order_completed', $eventin_order);
+                    $eventin_order->send_email();
+			    }
+            }
+			
 			return;
 		}
 		
-		if ( $wc_order && in_array( $wc_order->get_status(), $statuses ) ) {
-			$eventin_order->update(['status' => 'completed']);
-			do_action('eventin_order_completed', $eventin_order);
-			$eventin_order->send_email();
-		}
-		
+        if ( $eventin_order->status !== 'completed' ) { 
+            if ( $wc_order && in_array( $wc_order->get_status(), $statuses ) ) {
+                $eventin_order->update(['status' => 'completed']);
+                do_action('eventin_order_completed', $eventin_order);
+                $eventin_order->send_email();
+		    }
+        }
+
 		// Redirect to Eventin  thank you page
 		$url = '';
 		
@@ -432,7 +740,7 @@ class Hooks {
                         <ul class="single-ticket-seats__list">
                             <?php
                                 if (!empty($single_variation['selected_seats'])) {
-                                    echo "<li>". $single_variation['selected_seats']. "</li>";
+                                    echo "<li>". esc_html( $single_variation['selected_seats'] ). "</li>";
                                 }
                             ?>
                         </ul>
@@ -713,6 +1021,7 @@ class Hooks {
         foreach ( $order->get_items() as $item_id => $item ) {
             $event_id       = \Etn\Core\Event\Helper::instance()->order_event_id($item);
             $event_object   = get_post( $event_id );
+            $sold_tickets   = $event_id ? (array)Helper::etn_get_sold_tickets_by_event( $event_id ) : [];
             if ( !empty( $event_object ) ) {
                 $ticket_variations  = !empty( get_post_meta( $event_id, "etn_ticket_variations", true ) ) ? get_post_meta( $event_id, "etn_ticket_variations", true ) : [];
 
@@ -745,8 +1054,10 @@ class Hooks {
                             $ticket_index = $this->search_array_by_value( $ticket_variations, $item_variation['etn_ticket_slug'] );
                             if ( isset( $ticket_variations[ $ticket_index ] ) ) {
                                 $variation_picked_qty   = absint( $item_variation[ 'etn_ticket_qty' ] );
-                                $etn_sold_tickets       = absint( $ticket_variations[ $ticket_index ]['etn_sold_tickets'] );
-                                $total_tickets          = absint( $ticket_variations[ $ticket_index ]['etn_avaiilable_tickets'] );
+                                $etn_sold_tickets       = $sold_tickets[$item_variation['etn_ticket_slug']] ?? 0;
+                                $raw_available          = $ticket_variations[ $ticket_index ]['etn_avaiilable_tickets'];
+                                $is_unlimited           = ! empty( $ticket_variations[ $ticket_index ]['etn_unlimited_tickets'] ) || intval( $raw_available ) === -1;
+                                $total_tickets          = $is_unlimited ? PHP_INT_MAX : absint( $raw_available );
 
                                 if ( $decrease_time ) {
                                     $updated_sold_tickets   = $etn_sold_tickets + $variation_picked_qty;
@@ -924,9 +1235,9 @@ class Hooks {
                 //update purchase history status
                 $status      = $order_status_array[$new_order_status];
                 $table_name  = ETN_EVENT_PURCHASE_HISTORY_TABLE;
-                $order_count = $wpdb->get_var( "SELECT COUNT(*) FROM $table_name WHERE post_id = '$event_id' AND form_id = '$order_id'" );
+                $order_count = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$table_name} WHERE post_id = %d AND form_id = %d", $event_id, $order_id ) );
                 if ( $order_count > 0 ) {
-                    $wpdb->query("UPDATE $table_name SET status = '$status' WHERE post_id = '$event_id' AND form_id = '$order_id'");
+                    $wpdb->query( $wpdb->prepare( "UPDATE {$table_name} SET status = %s WHERE post_id = %d AND form_id = %d", $status, $event_id, $order_id ) );
                 }
 
             }
@@ -1190,6 +1501,7 @@ class Hooks {
             $error_messages = $ticket_qty_errors = $cart_picked_data = [];
 
             $event_id   = $product_id;
+            $sold_tickets   = $event_id ? (array)Helper::etn_get_sold_tickets_by_event( $event_id ) : [];
             $event_name = get_the_title( $event_id );
             $ticket_variations = !empty( get_post_meta( $event_id, "etn_ticket_variations", true ) ) ? get_post_meta( $event_id, "etn_ticket_variations", true ) : [];
 
@@ -1225,13 +1537,17 @@ class Hooks {
                         if ( isset( $ticket_variations[ $ticket_index ] ) ) {
                             $error_cat = [];
 
-                            $total_tickets      = absint( $ticket_variations[ $ticket_index ]['etn_avaiilable_tickets'] );
-                            $etn_sold_tickets   = absint( $ticket_variations[ $ticket_index ]['etn_sold_tickets'] );
-                            $remaining_ticket   = $total_tickets - $etn_sold_tickets;
+                            $raw_available      = $ticket_variations[ $ticket_index ]['etn_avaiilable_tickets'];
+                            $is_unlimited       = ! empty( $ticket_variations[ $ticket_index ]['etn_unlimited_tickets'] ) || intval( $raw_available ) === -1;
+                            $total_tickets      = $is_unlimited ? PHP_INT_MAX : absint( $raw_available );
+                            $etn_sold_tickets   = $sold_tickets[$post_contents['ticket_slug'][ $quantity_index ]] ?? 0;
+                            $remaining_ticket   = $is_unlimited ? PHP_INT_MAX : ( $total_tickets - $etn_sold_tickets );
 
                             $etn_min_ticket     = absint( $ticket_variations[ $ticket_index ]['etn_min_ticket'] );
                             $etn_max_ticket     = absint( $ticket_variations[ $ticket_index ]['etn_max_ticket'] );
-                            $etn_max_ticket     = min( $remaining_ticket, $etn_max_ticket );
+                            if ( ! $is_unlimited ) {
+                                $etn_max_ticket = min( $remaining_ticket, $etn_max_ticket );
+                            }
 
                             if ( !empty( $etn_min_ticket ) && $variation_picked_qty < $etn_min_ticket ) {
                                 $error_cat['min_allowed'] = $etn_min_ticket;
@@ -1241,7 +1557,7 @@ class Hooks {
                                 $error_cat['max_allowed'] = $etn_max_ticket;
                             }
 
-                            if ( ( $etn_sold_tickets + $variation_picked_qty ) > $total_tickets ) {
+                            if ( ! $is_unlimited && ( $etn_sold_tickets + $variation_picked_qty ) > $total_tickets ) {
                                 $error_cat['remaining_allowed'] = ( $total_tickets - $etn_sold_tickets );
                             }
 
@@ -1250,7 +1566,7 @@ class Hooks {
                                 $cart_picked_qty = $cart_picked_data[ $event_id ][ $ticket_slug ]['variation_total_picked_qty'];
                                 $attempted_qty   = $cart_picked_qty + $variation_picked_qty;
 
-                                if ( ( $etn_sold_tickets + $attempted_qty ) > $total_tickets ) {
+                                if ( ! $is_unlimited && ( $etn_sold_tickets + $attempted_qty ) > $total_tickets ) {
                                     $error_cat['total_picked_qty']        = $attempted_qty;
                                     $error_cat['total_remaining_allowed'] = ( $total_tickets - $etn_sold_tickets );
                                 }
@@ -1386,9 +1702,11 @@ class Hooks {
                                 } else {
                                     $cart_picked_data[ $event_id ][ $ticket_index ]['variation_total_picked_qty'] += $variation_picked_qty;
                                 }
-                                $total_tickets      = ! empty( $ticket_variations[ $ticket_index ]['etn_avaiilable_tickets'] ) ? absint( $ticket_variations[ $ticket_index ]['etn_avaiilable_tickets'] ) : 100000;
+                                $raw_available      = $ticket_variations[ $ticket_index ]['etn_avaiilable_tickets'];
+                                $is_unlimited       = ! empty( $ticket_variations[ $ticket_index ]['etn_unlimited_tickets'] ) || intval( $raw_available ) === -1;
+                                $total_tickets      = $is_unlimited ? PHP_INT_MAX : ( ! empty( $raw_available ) ? absint( $raw_available ) : 100000 );
                                 $etn_sold_tickets   = absint( $ticket_variations[ $ticket_index ]['etn_sold_tickets'] );
-                                $remaining_ticket   = $total_tickets - $etn_sold_tickets;
+                                $remaining_ticket   = $is_unlimited ? PHP_INT_MAX : ( $total_tickets - $etn_sold_tickets );
 
                                 $etn_min_ticket     = ! empty( $ticket_variations[ $ticket_index ]['etn_min_ticket'] ) ? absint( $ticket_variations[ $ticket_index ]['etn_min_ticket'] ) : 0;
                                 $etn_max_ticket     =  ! empty( $ticket_variations[ $ticket_index ]['etn_max_ticket'] ) ? absint( $ticket_variations[ $ticket_index ]['etn_max_ticket'] ) : 100000;
@@ -1738,7 +2056,6 @@ class Hooks {
 
 				// ========================== Seat info saving end ========================= //
 			}
-
 		}
 
 		update_post_meta( $order_id, '_etn_save_trans_record_done', true );
@@ -1837,7 +2154,7 @@ class Hooks {
 
         $args = array(
             'post_type'      => 'etn-attendee',
-            'post_status'    => 'publish',
+            'post_status'    => ['publish','trash'],
             'posts_per_page' => -1,
             'meta_query'     => [
                 'relation'  => 'AND',
@@ -1854,22 +2171,59 @@ class Hooks {
         if ( $eventin_order_id && $attendees ) {
             $table_content = "<div class='etn-table-view'>
                 <div class='etn-table-row etn-table-header'>
-                    <div class='etn-column'>" . esc_html__('Attendee ID', 'eventin') . "</div>
+                    <div class='etn-column'>" . esc_html__('Attendee ID', 'eventin') . "</span></mark></div>
                     <div class='etn-column'>" . esc_html__('Ticket ID', 'eventin') . "</div>
                     <div class='etn-column'>" . esc_html__('Attendee Name', 'eventin') . "</div>
+                    <div class='etn-column'>" . esc_html__('Event', 'eventin') . "</div>
                 </div>";
                 
             foreach( $attendees as $attendee ) {
-                $table_content .= "<div class='etn-table-row'>
-                    <div class='etn-column'>" . esc_html( $attendee->ID ) . "</div>
-                    <div class='etn-column'>" . esc_html( $attendee->etn_unique_ticket_id ) . "</div>
-                    <div class='etn-column'><a href='" . esc_attr( admin_url("admin.php?page=eventin#/attendees/edit/{$attendee->ID}") ) . "' target='_blank' rel='noopener'>" . esc_html( get_post_meta( $attendee->ID, 'etn_name', true ) ) . "</a></div>
-                </div>";
+                $status = get_post_status( $attendee->ID );
+                
+                // Get event information
+                $event_id = get_post_meta( $attendee->ID, 'etn_event_id', true );
+                $event_name = '';
+                $event_start_date = '';
+                
+                if ( $event_id ) {
+                    $event_name = get_post_field( 'post_title', $event_id, 'raw' );
+                    $start_date = get_post_meta( $event_id, 'etn_start_date', true );
+                    
+                    if ( $start_date ) {
+                        $settings = etn_get_option();
+                        $date_options = get_option( 'date_format' );
+                        $etn_settings_date_format = ! empty( $settings["date_format"] ) ? $date_options[$settings["date_format"]] : get_option( "date_format" );
+                        $date_format = !empty($settings['date_format']) ? $etn_settings_date_format : get_option("date_format");
+                        $event_start_date = date_i18n($date_format, strtotime($start_date));
+                    }
+                }
+                
+                $event_display = $event_name;
+                if ( $event_start_date ) {
+                    $event_display .= '<br/>(' . $event_start_date . ')';
+                }
+
+                if($status == 'trash'){
+                    $table_content .= "<div class='etn-table-row'>
+                        <div class='etn-column'>" . esc_html( $attendee->ID ) . " <mark class='order-status status-failed tips'><span>". esc_html__('Trashed', 'eventin') . "</span></mark></div>
+                        <div class='etn-column'>" . esc_html( $attendee->etn_unique_ticket_id ) . "</div>
+                        <div class='etn-column'><a href='" . esc_attr( admin_url("admin.php?page=eventin#/attendees/edit/{$attendee->ID}") ) . "' target='_blank' rel='noopener'>" . esc_html( get_post_meta( $attendee->ID, 'etn_name', true ) ) . "</a></div>
+                        <div class='etn-column'>" . $event_display . "</div>
+                    </div>";
+                }
+                else{
+                    $table_content .= "<div class='etn-table-row'>
+                                        <div class='etn-column'>" . esc_html( $attendee->ID ) . "</div>
+                                        <div class='etn-column'>" . esc_html( $attendee->etn_unique_ticket_id ) . "</div>
+                                        <div class='etn-column'><a href='" . esc_attr( admin_url("admin.php?page=eventin#/attendees/edit/{$attendee->ID}") ) . "' target='_blank' rel='noopener'>" . esc_html( get_post_meta( $attendee->ID, 'etn_name', true ) ) . "</a></div>
+                                        <div class='etn-column'>" . $event_display . "</div>
+                                    </div>";
+                }
             }
         
             $table_content .= "</div>";
-        
-            echo $table_content;
+
+            echo wp_kses_post( $table_content );
         } else {
             echo esc_html__('No Attendee Found', 'eventin');
         }
@@ -1882,11 +2236,21 @@ class Hooks {
             echo '<style>
                 .etn-table-view{
                     display: grid;
-                    grid-template-columns: 1fr 1fr 2fr;
+                    grid-template-columns: 1fr 1fr 2fr 2fr;
                     grid-gap: 5px;
                 }
                 .etn-table-view h4{
                     margin: 5px 0;
+                }
+                .etn-table-view .etn-column{
+                    word-wrap: break-word;
+                    word-break: break-word;
+                    white-space: normal;
+                    overflow-wrap: break-word;
+                    hyphens: auto;
+                }
+                .etn-table-view .etn-table-header .etn-column{
+                    font-weight: bold;
                 }
               </style>';
         }

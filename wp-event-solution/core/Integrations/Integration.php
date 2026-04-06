@@ -1,8 +1,11 @@
 <?php
+
 /**
  * Integration provider;
  */
 namespace Eventin\Integrations;
+
+defined( 'ABSPATH' ) || exit;
 
 use Eventin\Integrations\Zoom\Zoom;
 use Eventin\Integrations\Zoom\ZoomToken;
@@ -53,7 +56,7 @@ class Integration implements HookableInterface {
 
         do_action( 'eventin_integration_auth', $query_var, $code );
 
-        $redirect_url = admin_url( 'admin.php?page=eventin#/settings/integrations/' . $endpoint );
+        $redirect_url = admin_url( 'admin.php?page=eventin#/extensions' );
 
         wp_redirect( $redirect_url );
         exit;

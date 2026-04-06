@@ -1,10 +1,13 @@
 <?php
+
 /**
  * Attendee Api Class
  *
  * @package Eventin\Attendee
  */
 namespace Eventin\Attendee\Api;
+
+defined( 'ABSPATH' ) || exit;
 
 use Eventin\Attendee\AttendeeExporter;
 use Eventin\Attendee\AttendeeImporter;
@@ -60,38 +63,38 @@ class AttendeeController extends WP_REST_Controller {
                 'permission_callback' => [$this, 'delete_item_permissions_check'],
             ],
         ] );
-
-        register_rest_route(
-            $this->namespace,
-            '/' . $this->rest_base . '/(?P<id>[\d]+)',
-            array(
-                'args'   => array(
-                    'id' => array(
-                        'description' => __( 'Unique identifier for the post.', 'eventin' ),
-                        'type'        => 'integer',
-                    ),
-                ),
-                array(
-                    'methods'             => WP_REST_Server::READABLE,
-                    'callback'            => array( $this, 'get_item' ),
-                    'permission_callback' => array( $this, 'get_item_permissions_check' ),
-                    'args'                => $this->get_collection_params(),
-                ),
-                array(
-                    'methods'             => WP_REST_Server::EDITABLE,
-                    'callback'            => array( $this, 'update_item' ),
-                    'permission_callback' => array( $this, 'update_item_permissions_check' ),
-                    'args'                => $this->get_endpoint_args_for_item_schema( WP_REST_Server::EDITABLE ),
-                ),
-                [
-                    'methods'             => WP_REST_Server::DELETABLE,
-                    'callback'            => [$this, 'delete_item'],
-                    'permission_callback' => [$this, 'delete_item_permissions_check'],
-                ],
-                // 'allow_batch' => $this->allow_batch,
-                'schema' => array( $this, 'get_item_schema' ),
-            ),
-        );
+	    
+	    register_rest_route(
+		    $this->namespace,
+		    '/' . $this->rest_base . '/(?P<id>[\d]+)',
+		    array(
+			    'args'   => array(
+				    'id' => array(
+					    'description' => __( 'Unique identifier for the post.', 'eventin' ),
+					    'type'        => 'integer',
+				    ),
+			    ),
+			    array(
+				    'methods'             => WP_REST_Server::READABLE,
+				    'callback'            => array( $this, 'get_item' ),
+				    'permission_callback' => array( $this, 'get_item_permissions_check' ),
+				    'args'                => $this->get_collection_params(),
+			    ),
+			    array(
+				    'methods'             => WP_REST_Server::EDITABLE,
+				    'callback'            => array( $this, 'update_item' ),
+				    'permission_callback' => array( $this, 'update_item_permissions_check' ),
+				    'args'                => $this->get_endpoint_args_for_item_schema( WP_REST_Server::EDITABLE ),
+			    ),
+			    [
+				    'methods'             => WP_REST_Server::DELETABLE,
+				    'callback'            => [$this, 'delete_item'],
+				    'permission_callback' => [$this, 'delete_item_permissions_check'],
+			    ],
+			    // 'allow_batch' => $this->allow_batch,
+			    'schema' => array( $this, 'get_item_schema' ),
+		    )
+	    );
 
         register_rest_route( $this->namespace, $this->rest_base . '/export', [
             [
@@ -124,6 +127,19 @@ class AttendeeController extends WP_REST_Controller {
                 'permission_callback' => [$this, 'send_certificate_permissions_check'],
             ],
         ] );
+
+        register_rest_route( $this->namespace, $this->rest_base . '/(?P<id>[\d]+)/edit-info', [
+            [
+                'methods'             => WP_REST_Server::READABLE,
+                'callback'            => [ $this, 'get_edit_info' ],
+                'permission_callback' => '__return_true',
+            ],
+            [
+                'methods'             => WP_REST_Server::EDITABLE,
+                'callback'            => [ $this, 'update_edit_info' ],
+                'permission_callback' => '__return_true',
+            ],
+        ] );
     }
 
     /**
@@ -146,7 +162,7 @@ class AttendeeController extends WP_REST_Controller {
 
         $args = [
             'post_type'      => 'etn-attendee',
-            'post_status'    => 'any',
+            'post_status'    => ['publish'],
             'posts_per_page' => $per_page,
             'paged'          => $paged,
         ];
@@ -271,14 +287,43 @@ class AttendeeController extends WP_REST_Controller {
         $query_result = $post_query->query( $args );
         $total_posts  = $post_query->found_posts;
 
+        if ( $query_result ) {
+            // Prime the WordPress meta cache for all posts in a single DB query,
+            // so every subsequent get_post_meta() call in the loop is a cache hit.
+            update_meta_cache( 'post', wp_list_pluck( $query_result, 'ID' ) );
+        }
+
+        $currency_cache = [];
+
         foreach ( $query_result as $post ) {
             $attendee  = new Attendee_Model( $post->ID );
             $post_data = $this->prepare_item_for_response( $attendee, $request );
 
+            $post_data['post_status'] = get_post_status( $post->ID );
+
+            // Cache currency/symbol per order to avoid repeated meta queries.
+            $order_id = $post_data['eventin_order_id'] ?? '';
+            if ( $order_id && ! isset( $currency_cache[ $order_id ] ) ) {
+                $currency_cache[ $order_id ] = [
+                    'currency'        => get_post_meta( $order_id, 'currency', true ),
+                    'currency_symbol' => get_post_meta( $order_id, 'currency_symbol', true ),
+                ];
+            }
+            $cached_currency              = $order_id ? ( $currency_cache[ $order_id ] ?? [] ) : [];
+            $post_data['currency']        = ! empty( $cached_currency['currency'] ) ? $cached_currency['currency'] : etn_currency();
+            $post_data['currency_symbol'] = ! empty( $cached_currency['currency_symbol'] )
+                ? html_entity_decode( $cached_currency['currency_symbol'], ENT_QUOTES, 'UTF-8' )
+                : html_entity_decode( etn_currency_symbol() );
+
             $attendees[] = $this->prepare_response_for_collection( $post_data );
         }
 
-        $response = rest_ensure_response( $attendees );
+        $response = rest_ensure_response( [
+            'items' => $attendees,
+            'total_items' => $total_posts,
+            'paged' => $paged,
+            'per_page' => $per_page
+        ] );
 
         $response->header( 'X-WP-Total', $total_posts );
 
@@ -398,6 +443,32 @@ class AttendeeController extends WP_REST_Controller {
     public function update_item( $request ) {
         $prepared_item = $this->prepare_item_for_database( $request );
 
+        $order_id = get_post_meta( $request['id'], 'eventin_order_id', true );
+        $previous_status = get_post_meta( $request['id'], 'etn_status', true );
+        $current_status = $prepared_item['etn_status'];
+
+        if ( $current_status == 'success' && $previous_status != 'success' ) {
+            $order_status = get_post_meta( $order_id, 'status', true );
+            if ($order_status != 'completed') {
+                return new WP_Error(
+                    'attendee_update_error',
+                    __('Attendee status can not be success if order status is not completed.', 'eventin'),
+                    array('status' => 500)
+                );
+            }
+        }
+
+        if ( $current_status == 'failed' && $previous_status != 'failed' ) {
+            $order_status = get_post_meta( $order_id, 'status', true );
+            if ($order_status == 'completed') {
+                return new WP_Error(
+                    'attendee_update_error',
+                    __('You cannot set attendee status to failed if the order is completed.', 'eventin'),
+                    array('status' => 500)
+                );
+            }
+        }
+
         if ( is_wp_error( $prepared_item ) ) {
             return $prepared_item;
         }
@@ -450,7 +521,8 @@ class AttendeeController extends WP_REST_Controller {
         do_action( 'eventin_attendee_before_delete', $attendee );
 
 
-        $deleted  = $attendee->delete();
+        $trashed  = $attendee->trash_post();
+		
         $response = new \WP_REST_Response();
 
         $response->set_data(
@@ -460,13 +532,27 @@ class AttendeeController extends WP_REST_Controller {
             )
         );
 
-        if ( ! $deleted ) {
+        if ( ! $trashed ) {
             return new WP_Error(
                 'rest_cannot_delete',
                 __( 'The attendee cannot be deleted.', 'eventin' ),
                 array( 'status' => 500 )
             );
         }
+
+        $attendee_details = $attendee->get_data();
+        $ticket_slug = $attendee_details['ticket_slug'] ?? '';
+        $event_id = $attendee_details['etn_event_id'] ?? '';
+
+        if (!empty($ticket_slug) && !empty($event_id)) {
+            $formatted_booked_tickets[] = [
+                'ticket_slug' => $ticket_slug,
+                'ticket_quantity' => 1
+            ];
+
+            \Etn\Utils\Helper::decrease_count_by_ticket_slug($formatted_booked_tickets, $event_id);
+        }
+
 
         do_action( 'eventin_attendee_deleted', $id );
 
@@ -493,9 +579,26 @@ class AttendeeController extends WP_REST_Controller {
 
         foreach ( $ids as $id ) {
             $attendee = new Attendee_Model( $id );
+            do_action( 'eventin_attendee_before_delete', $attendee );
 
-            if ( $attendee->delete() ) {
+            if ( $attendee->trash_post() ) {
                 $count++;
+
+                $attendee_details = $attendee->get_data();
+                $ticket_slug = $attendee_details['ticket_slug'] ?? '';
+                $event_id = $attendee_details['etn_event_id'] ?? '';
+
+                if (!empty($ticket_slug) && !empty($event_id)) {
+                    $formatted_booked_tickets = [];
+                    $formatted_booked_tickets[] = [
+                        'ticket_slug' => $ticket_slug,
+                        'ticket_quantity' => 1
+                    ];
+                    
+                    \Etn\Utils\Helper::decrease_count_by_ticket_slug($formatted_booked_tickets, $event_id);
+                }
+
+                do_action('eventin_attendee_deleted', $id);
             }
         }
 
@@ -531,9 +634,19 @@ class AttendeeController extends WP_REST_Controller {
      */
     public function prepare_item_for_response( $item, $request ) {
         $data =  $item->get_data();
+        $event_id = !empty($data['etn_event_id']) ? $data['etn_event_id'] : 0;
         $data['extra_fields'] = $item->get_extra_fields();
         $data['scanner_update_time'] = $item->get_scanner_update_time();
+        $data['event_extra_field'] = get_post_meta( $event_id, 'attendee_extra_fields', true );
 
+        $event_extra_field = !empty($data['event_extra_field'])?$data['event_extra_field']:[];
+        $settings_extra_field = etn_get_option( 'extra_fields', [] ) ?: etn_get_option( 'attendee_extra_fields', [] );
+
+
+        $data['event_extra_field'] = !empty($event_extra_field) ? $event_extra_field : $settings_extra_field;
+
+		
+		
         return $data;
     }
 
@@ -674,7 +787,11 @@ class AttendeeController extends WP_REST_Controller {
         }
 
         $importer = new AttendeeImporter();
-        $importer->import( $file );
+        $result   = $importer->import( $file );
+
+        if ( is_wp_error( $result ) ) {
+            return $result;
+        }
 
         $response = [
             'message' => __( 'Successfully imported attendee', 'eventin' ),
@@ -859,5 +976,170 @@ class AttendeeController extends WP_REST_Controller {
      */
     public function send_certificate_permissions_check( $request ) {
         return current_user_can( 'etn_manage_attendee' );
+    }
+	
+	
+	
+	/**
+	 * Trash one item from the collection.
+	 *
+	 * @param WP_REST_Request $request Full data about the request.
+	 * @return WP_Error|WP_REST_Response
+	 */
+	public function trash_item( $request ) {
+		$id = intval( $request['id'] );
+		
+		$attendee = new Attendee_Model( $id );
+		$previous = $this->prepare_item_for_response( $attendee, $request );
+		
+		do_action( 'eventin_attendee_before_trash', $attendee );
+		
+		
+		$trashed  = $attendee->trash_post();
+		
+		
+		$response = new \WP_REST_Response();
+		
+		$response->set_data(
+			array(
+				'trashed'  => true,
+				'previous' => $previous,
+			)
+		);
+		
+		if ( ! $trashed ) {
+			return new WP_Error(
+				'rest_cannot_trashed',
+				__( 'The attendee cannot be trashed.', 'eventin' ),
+				array( 'status' => 500 )
+			);
+		}
+		
+		do_action( 'eventin_attendee_trashed', $id );
+		
+		return $response;
+	}
+	
+	/**
+	 * Recover From Trash multiple items from the collection.
+	 *
+	 * @param WP_REST_Request $request Full data about the request.
+	 * @return WP_Error|WP_REST_Response
+	 */
+	public function untrash_item( $request ) {
+		$id = intval( $request['id'] );
+		
+		$attendee = new Attendee_Model( $id );
+		$previous = $this->prepare_item_for_response( $attendee, $request );
+		
+		do_action( 'eventin_attendee_before_untrash', $attendee );
+		
+		
+		$untrashed  = $attendee->untrash_post();
+		
+		
+		$response = new \WP_REST_Response();
+		
+		$response->set_data(
+			array(
+				'untrashed'  => true,
+				'previous' => $previous,
+			)
+		);
+		
+		if ( ! $untrashed ) {
+			return new WP_Error(
+				'rest_cannot_untrashed',
+				__( 'The attendee cannot be untrashed.', 'eventin' ),
+				array( 'status' => 500 )
+			);
+		}
+		
+		do_action( 'eventin_attendee_untrashed', $id );
+
+		return $response;
+	}
+
+    /**
+     * Get attendee data for public token-based editing.
+     *
+     * @param WP_REST_Request $request
+     * @return WP_REST_Response|WP_Error
+     */
+    public function get_edit_info( $request ) {
+        $id    = intval( $request['id'] );
+        $token = sanitize_text_field( $request->get_param( 'etn_info_edit_token' ) );
+
+        if ( ! $id || ! $token || ! \Etn\Utils\Helper::verify_attendee_edit_token( $id, $token ) ) {
+            return new WP_Error(
+                'invalid_token',
+                __( 'Invalid or expired edit token.', 'eventin' ),
+                [ 'status' => 403 ]
+            );
+        }
+
+        $attendee = new Attendee_Model( $id );
+        $data     = $this->prepare_item_for_response( $attendee, $request );
+
+        // Never expose the edit token in the response.
+        unset( $data['etn_info_edit_token'] );
+
+        return rest_ensure_response( $data );
+    }
+
+    /**
+     * Update attendee data via public token-based editing.
+     * Only whitelisted fields (name, email, phone, extra_fields) are accepted.
+     *
+     * @param WP_REST_Request $request
+     * @return WP_REST_Response|WP_Error
+     */
+    public function update_edit_info( $request ) {
+        $id   = intval( $request['id'] );
+        $body = $request->get_json_params();
+
+        $token = sanitize_text_field( $body['etn_info_edit_token'] ?? '' );
+
+        if ( ! $id || ! $token || ! \Etn\Utils\Helper::verify_attendee_edit_token( $id, $token ) ) {
+            return new WP_Error(
+                'invalid_token',
+                __( 'Invalid or expired edit token.', 'eventin' ),
+                [ 'status' => 403 ]
+            );
+        }
+
+        // Whitelist: only allow safe attendee fields to be updated.
+        if ( ! empty( $body['etn_name'] ) ) {
+            update_post_meta( $id, 'etn_name', sanitize_text_field( $body['etn_name'] ) );
+            wp_update_post( [ 'ID' => $id, 'post_title' => sanitize_text_field( $body['etn_name'] ) ] );
+        }
+
+        if ( isset( $body['etn_email'] ) ) {
+            update_post_meta( $id, 'etn_email', sanitize_email( $body['etn_email'] ) );
+        }
+
+        if ( isset( $body['etn_phone'] ) ) {
+            update_post_meta( $id, 'etn_phone', sanitize_text_field( $body['etn_phone'] ) );
+        }
+
+        if ( ! empty( $body['extra_fields'] ) && is_array( $body['extra_fields'] ) ) {
+            $extra_fields = $this->prepare_attendee_extra_fields( $body['extra_fields'] );
+            foreach ( $extra_fields as $meta_key => $meta_value ) {
+                if ( is_array( $meta_value ) ) {
+                    // Checkbox / multi-select: sanitize each item and store as array.
+                    update_post_meta( $id, $meta_key, array_map( 'sanitize_text_field', $meta_value ) );
+                } else {
+                    update_post_meta( $id, $meta_key, sanitize_text_field( (string) $meta_value ) );
+                }
+            }
+        }
+
+        $attendee = new Attendee_Model( $id );
+        $data     = $this->prepare_item_for_response( $attendee, $request );
+        unset( $data['etn_info_edit_token'] );
+
+        do_action( 'eventin_attendee_updated', $attendee, $request );
+
+        return rest_ensure_response( $data );
     }
 }

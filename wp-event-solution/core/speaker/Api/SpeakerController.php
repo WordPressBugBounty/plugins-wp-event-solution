@@ -1,10 +1,13 @@
 <?php
+
 /**
  * Speaker Api Class
  *
  * @package Eventin\Speaker
  */
 namespace Eventin\Speaker\Api;
+
+defined( 'ABSPATH' ) || exit;
 
 use Eventin\Speaker\SpeakerExporter;
 use Eventin\Speaker\SpeakerImporter;
@@ -130,6 +133,22 @@ class SpeakerController extends WP_REST_Controller {
                 'permission_callback' => [$this, 'import_item_permissions_check'],
             ]
         ] );
+
+        register_rest_route( $this->namespace, 'organizers/export', [
+            [
+                'methods'             => WP_REST_Server::CREATABLE,
+                'callback'            => [$this, 'export_organizers'],
+                'permission_callback' => [$this, 'export_item_permissions_check'],
+            ]
+        ] );
+
+        register_rest_route( $this->namespace, 'organizers/import', [
+            [
+                'methods'             => WP_REST_Server::CREATABLE,
+                'callback'            => [$this, 'import_organizers'],
+                'permission_callback' => [$this, 'import_item_permissions_check'],
+            ]
+        ] );
     }
 
     /**
@@ -151,7 +170,7 @@ class SpeakerController extends WP_REST_Controller {
      */
     public function get_items( $request ) {
 
-        $per_page = ! empty( $request['per_page'] ) ? intval( $request['per_page'] ) : 20;
+        $per_page = ! empty( $request['per_page'] ) ? intval( $request['per_page'] ) : -1;
         $paged    = ! empty( $request['paged'] ) ? intval( $request['paged'] ) : 1;
         $type     = ! empty( $request['category'] ) ?  $request['category']  : [];
         $group    = ! empty( $request['speaker_group'] ) ? $request['speaker_group'] : '';
@@ -279,11 +298,18 @@ class SpeakerController extends WP_REST_Controller {
             $events[] = $this->prepare_response_for_collection( $post_data );
         }
 
-        $args     = apply_filters( 'eventin_speaker_query_args', $args, $events);
+        $args        = apply_filters( 'eventin_speaker_query_args', $args, $events );
+        $total_pages = $per_page > 0 ? ceil( $total_posts / $per_page ) : 1;
 
-        $response = rest_ensure_response( $events );
+        $data = [
+            'total_items' => $total_posts,
+            'total_pages' => $total_pages,
+            'items'       => $events,
+        ];
 
+        $response = rest_ensure_response( $data );
         $response->header( 'X-WP-Total', $total_posts );
+        $response->header( 'X-WP-TotalPages', $total_pages );
 
         return $response;
     }
@@ -360,7 +386,7 @@ class SpeakerController extends WP_REST_Controller {
      */
     public function create_item( $request ) {
         $data = $this->prepare_item_for_database( $request );
-
+		
         if ( is_wp_error( $data ) ) {
             return $data;
         }
@@ -372,7 +398,13 @@ class SpeakerController extends WP_REST_Controller {
         }
 
         if ( $assign_role ) {
+            $user = get_user_by( 'email', $data['etn_speaker_website_email'] );
+            if ( $user ) {
+                $user_id = $user->ID;
+            }
+
             $response = [
+                'id' => $user_id,
                 'message' => __( 'The email you provided is exist and assign speaker or organizer role', 'eventin' )
             ];
 
@@ -416,46 +448,69 @@ class SpeakerController extends WP_REST_Controller {
      * @param WP_REST_Request $request Full data about the request.
      * @return WP_Error|WP_REST_Response
      */
-    public function update_item( $request ) {
-        $data = $this->prepare_item_for_database( $request );
-
-        if ( is_wp_error( $data ) ) {
+    public function update_item($request){
+        $target_user_id = (int)$request->get_param('id');
+        $current_user = wp_get_current_user();
+        $target_user = get_userdata($target_user_id);
+        
+        // Validate target user exists
+        if ( ! $target_user ) {
+            return new WP_Error('user_not_found', __( 'User does not exist', 'eventin' ), array('status' => 404));
+        }
+        
+        // only allow to edit `speaker` or `organizer`
+        if ( ! current_user_can( 'edit_user', $target_user_id ) ) {
+            return new WP_Error('forbidden', __( 'Forbidden', 'eventin' ), array('status' => 403));
+        }
+        
+        // only allow to edit `speaker` or `organizer`
+        if (
+            ! in_array('etn-speaker', (array)$target_user->roles, true) &&
+            ! in_array('etn-organizer', (array)$target_user->roles, true)
+        ) {
+            return new WP_Error('forbidden', __( 'Forbidden', 'eventin' ), array('status' => 403));
+        }
+        
+        
+        $data = $this->prepare_item_for_database($request);
+        
+        if (is_wp_error($data)) {
             return $data;
         }
-
-        $speaker = new User_Model( $request['id'] );
-
-        $user = get_user_by( 'email', $data['etn_speaker_website_email'] );
-
-        if ( $user && $speaker->get_speaker_website_email() != $data['etn_speaker_website_email'] ) {
-
-            $assign_role = $this->assign_role_for_existing_user( $data );
-
-            if ( is_wp_error( $assign_role ) ) {
+        
+        $speaker = new User_Model($request['id']);
+        
+        $user = get_user_by('email', $data['etn_speaker_website_email']);
+        
+        if ($user && !empty($speaker->get_speaker_website_email()) && $speaker->get_speaker_website_email() != $data['etn_speaker_website_email']) {
+            
+            $assign_role = $this->assign_role_for_existing_user($data,true);
+            
+            if (is_wp_error($assign_role)) {
                 return $assign_role;
             }
-
-            if ( $assign_role ) {
+            
+            if ($assign_role) {
                 $response = [
-                    'message' => __( 'The email you provided is exist and assign speaker or organizer role', 'eventin' )
+                    'message' => __('The email you provided is exist and assign speaker or organizer role', 'eventin')
                 ];
-
-                return rest_ensure_response( $response );
+                
+                return rest_ensure_response($response);
             }
         }
-
-        $updated = $speaker->update( $data );
-
-        if ( ! $updated ) {
-            return new WP_Error( 'update_error', __( 'Speaker can not updated. Please try again', 'eventin' ), ['status' => 409] );
+        
+        $updated = $speaker->update($data);
+        
+        if (!$updated) {
+            return new WP_Error('update_error', __('Speaker can not updated. Please try again', 'eventin'), ['status' => 409]);
         }
-
+        
         $item = User_Model::instance()->get_data($updated);
-
-        do_action( 'eventin_speaker_update', $speaker, $request );
-
-        $response = rest_ensure_response( $item );
-
+        
+        do_action('eventin_speaker_update', $speaker, $request);
+        
+        $response = rest_ensure_response($item);
+        
         return $response;
     }
 
@@ -604,13 +659,20 @@ class SpeakerController extends WP_REST_Controller {
 
         if ( ! empty( $input_data['email'] ) ) {
             $prepared_data['etn_speaker_website_email'] = sanitize_text_field( $input_data['email'] );
-
-            $prepared_data['user_login']        = sanitize_email( $input_data['email'] );
+            $prepared_data['user_login']                = sanitize_email( $input_data['email'] );
         }
 
 
         if ( ! empty( $input_data['social'] ) ) {
             $prepared_data['etn_speaker_social'] = $input_data['social'] ;
+        }
+        
+        if ( ! empty( $input_data['organizer_bio'] ) ) {
+            $prepared_data['organizer_bio'] = sanitize_text_field($input_data['organizer_bio']);
+        }
+        
+        if ( ! empty( $input_data['phone'] ) ) {
+            $prepared_data['phone'] = sanitize_text_field($input_data['phone']);
         }
 
 
@@ -626,7 +688,7 @@ class SpeakerController extends WP_REST_Controller {
         }       
         
         if ( ! empty( $input_data['speaker_group'] ) ) {
-            $prepared_data['etn_speaker_group'] =  $input_data['speaker_group'] ? $input_data['speaker_group'] : [];
+            $prepared_data['etn_speaker_group'] =  $input_data['speaker_group'] ? json_encode($input_data['speaker_group']) : json_encode([]);
         }        
         
             
@@ -675,10 +737,12 @@ class SpeakerController extends WP_REST_Controller {
 
         foreach ( $users as $user ) {
             $meta_value = get_user_meta( $user->ID, 'etn_speaker_category', true );
+            $meta_value = empty($meta_value)?[]:$meta_value;
+            $meta_value = !is_array($meta_value)?[$meta_value]:$meta_value;
             
             if ( $category ) {
                 // Check if any of the categories are in the serialized meta value
-                if ( in_array( $category, maybe_unserialize( $meta_value ) ) ) {
+                if ( in_array( $category, etn_safe_decode( $meta_value ) ) ) {
                     $user_ids[] = $user->ID;
                 }
             }
@@ -716,7 +780,7 @@ class SpeakerController extends WP_REST_Controller {
                 $user_id = $user->ID;
     
                 // Step 2: Fetch the serialized meta values
-                $speaker_group = get_user_meta($user_id, 'etn_speaker_group', true);
+                $speaker_group = json_decode(get_user_meta($user_id, 'etn_speaker_group', true));
                 $speaker_speaker_group = get_user_meta($user_id, 'etn_speaker_speaker_group', true);
     
                 // Step 3: Check if the provided $group exists in either of the serialized arrays
@@ -739,7 +803,6 @@ class SpeakerController extends WP_REST_Controller {
      */
     public function export_items( $request ) {
         $format = ! empty( $request['format'] ) ? sanitize_text_field( $request['format'] ) : '';
-
         $ids    = ! empty( $request['ids'] ) ? $request['ids'] : '';
 
         if ( ! $format ) {
@@ -747,7 +810,7 @@ class SpeakerController extends WP_REST_Controller {
         }
 
         if ( ! $ids ) {
-            $ids = User_Model::get_ids();
+            $ids = User_Model::get_ids( ['role__in' => ['etn-speaker']] );
         }
 
         $exporter = new SpeakerExporter();
@@ -766,7 +829,8 @@ class SpeakerController extends WP_REST_Controller {
      * @return  bool
      */
     public function export_item_permissions_check( $request ) {
-        return true;
+        return current_user_can( 'etn_manage_organizer' )
+                    || current_user_can( 'etn_manage_event' );
     }
 
     public function import_items( $request ) {
@@ -778,13 +842,13 @@ class SpeakerController extends WP_REST_Controller {
         }
 
         $importer = new SpeakerImporter();
-        $importer->import( $file );
+        $result   = $importer->import( $file, 'etn-speaker' );
 
-        $response = [
-            'message' => __( 'Successfully imported speaker', 'eventin' ),
-        ];
+        if ( is_wp_error( $result ) ) {
+            return $result;
+        }
 
-        return rest_ensure_response( $response );
+        return rest_ensure_response( ['message' => __( 'Successfully imported speakers', 'eventin' )] );
     }
 
     /**
@@ -795,7 +859,58 @@ class SpeakerController extends WP_REST_Controller {
      * @return  bool
      */
     public function import_item_permissions_check( $request ) {
-        return true;
+	    return current_user_can( 'etn_manage_organizer' ) || current_user_can( 'etn_manage_event' );
+    }
+
+    /**
+     * Export only organizers (etn-organizer role)
+     *
+     * @param   WP_REST_Request  $request
+     * @return  void
+     */
+    public function export_organizers( $request ) {
+        $format = ! empty( $request['format'] ) ? sanitize_text_field( $request['format'] ) : '';
+        $ids    = ! empty( $request['ids'] ) ? $request['ids'] : '';
+
+        if ( ! $format ) {
+            return new WP_Error( 'format_error', __( 'Invalid data format', 'eventin' ) );
+        }
+
+        if ( ! $ids ) {
+            $ids = User_Model::get_ids( ['role__in' => ['etn-organizer']] );
+        }
+
+        $exporter = new SpeakerExporter();
+        $exporter->set_file_name( 'organizer-data' );
+        $response = $exporter->export( $ids, $format );
+
+        if ( is_wp_error( $response ) ) {
+            return $response;
+        }
+    }
+
+    /**
+     * Import and force all rows as organizers (etn-organizer role)
+     *
+     * @param   WP_REST_Request  $request
+     * @return  WP_REST_Response|WP_Error
+     */
+    public function import_organizers( $request ) {
+        $data = $request->get_file_params();
+        $file = ! empty( $data['organizer_import'] ) ? $data['organizer_import'] : '';
+
+        if ( ! $file ) {
+            return new WP_Error( 'empty_file', __( 'You must provide a valid file.', 'eventin' ), ['status' => 409] );
+        }
+
+        $importer = new SpeakerImporter();
+        $result   = $importer->import( $file, 'etn-organizer' );
+
+        if ( is_wp_error( $result ) ) {
+            return $result;
+        }
+
+        return rest_ensure_response( ['message' => __( 'Successfully imported organizers', 'eventin' )] );
     }
 
     /**
@@ -806,7 +921,7 @@ class SpeakerController extends WP_REST_Controller {
      *
      * @return  array          [return description]
      */
-    private function assign_role_for_existing_user( $data ) {
+    private function assign_role_for_existing_user( $data, $is_for_update=false ) {
         $email  = $data['etn_speaker_website_email'];
         $roles  = $data['etn_speaker_category'];
         $groups = $data['etn_speaker_group'];
@@ -829,7 +944,7 @@ class SpeakerController extends WP_REST_Controller {
 
         $exists_with_role = empty( array_diff( $updated_roles, $user->roles ) );
 
-        if ( $exists_with_role ) {
+        if ( $exists_with_role && !$is_for_update ) {
             return new WP_Error( 'organizer_speaker_exists', __( 'Speaker or Organizer already exists', 'eventin' ), ['status' => 422] );
         }
 
@@ -842,6 +957,8 @@ class SpeakerController extends WP_REST_Controller {
         foreach ( $data as $key => $value ) {
             update_user_meta( $user->ID, $key, $value );
         }
+
+        update_user_meta( $user->ID, 'author', get_current_user_id() );
 
         return true;
     }

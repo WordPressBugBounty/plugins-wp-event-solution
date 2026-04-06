@@ -51,7 +51,7 @@ class Hooks {
 
         $event_count        = isset( $attributes["limit"] ) && is_numeric( $attributes["limit"] ) && is_numeric( $attributes["limit"] ) <= 3 ? intval( $attributes["limit"] ) : 15;
         $show_desc          = !empty( $attributes["show_desc"] ) ? $attributes["show_desc"] : 'no';
-        $show_upcoming_event= !empty( $attributes["show_upcoming_event"] ) ? $attributes["show_upcoming_event"] : 'no';
+        $show_upcoming_event= !empty( $attributes["show_upcoming_event"] ) ? $attributes["show_upcoming_event"] : 'yes';
         $calendar_show      = !empty( $attributes["calendar_show"] ) ? $attributes["calendar_show"] : 'left';
         $style              = !empty( $attributes["style"] ) ? $attributes["style"] : 'style-1';
 
@@ -113,7 +113,6 @@ class Hooks {
      * Events shortcode
      */
     public function etn_events_widget( $attributes ) {
-
         $event_cat = null;
         $event_tag = null;
 
@@ -130,7 +129,7 @@ class Hooks {
             $event_tag = array_map( 'intval', explode( ',', $attributes['event_tag_ids'] ) );
         }
 
-        $event_count = ! empty( $attributes['limit'] ) && is_numeric( intval($attributes['limit']) )
+        $posts_to_show = ! empty( $attributes['limit'] ) && is_numeric( intval($attributes['limit']) )
             ? intval( $attributes['limit'] ) 
             : -1;
 
@@ -191,6 +190,10 @@ class Hooks {
             ? sanitize_text_field( $attributes['etn_desc_show'] ) 
             : 'yes';
 
+        $show_remaining_tickets = isset( $attributes['show_remaining_tickets'] ) 
+            ? sanitize_text_field( $attributes['show_remaining_tickets'] ) 
+            : 'no';
+
         // Output buffering for rendering template
         ob_start();
 
@@ -221,7 +224,7 @@ class Hooks {
             $event_tag = explode( ',', $attributes['event_tag_ids'] );
         }
 
-        $event_count    = isset( $attributes["limit"] ) && is_numeric( $attributes["limit"] ) && is_numeric( $attributes["limit"] ) <= 3 ? intval( $attributes["limit"] ) : 3;
+        $posts_to_show    = isset( $attributes["limit"] ) && is_numeric( $attributes["limit"] ) && is_numeric( $attributes["limit"] ) <= 3 ? intval( $attributes["limit"] ) : 3;
         $order          = !empty( $attributes["order"] ) ? $attributes["order"] : 'DESC';
         $etn_desc_limit = !empty( $attributes["desc_limit"] ) ? $attributes["desc_limit"] : 20;        
         $etn_event_col  = !empty( $attributes["etn_event_col"] ) ? $attributes["etn_event_col"] : 20;
@@ -257,7 +260,6 @@ class Hooks {
 
 
         ob_start();
-
         if ( in_array( $style, $allowed_styles, true ) 
             && file_exists( \Wpeventin::widgets_dir() . "events/style/{$style}.php" ) ) {
             include \Wpeventin::widgets_dir() . "/events-tab/style/tab-1.php";
@@ -297,8 +299,9 @@ class Hooks {
         $orderby            = !empty( $attributes["orderby"] ) ? $attributes["orderby"] : 'title';
         $orderby_meta       = in_array($orderby, $post_attributes) ? false : 'meta_value';
         $style  = !empty( $attributes["style"] ) ? $attributes["style"] : 'speaker-1';
+        $speakers_to_show   = $etn_speaker_count;
 
-        
+
         ob_start();
 
         if ( file_exists( \Wpeventin::widgets_dir() . "speakers/style/speaker-2.php" ) && $style =='speaker-1' ) {
@@ -376,7 +379,7 @@ class Hooks {
         $integration = ! empty( $location['integration'] ) ? $location['integration'] : '';
         $meeting_link = $event->meeting_link;
 
-        if ( 'online' == $event->event_type && 'zoom' == $integration ) {
+        if ( ('online' == $event->event_type || 'hybrid' == $event->event_type) && 'zoom' == $integration ) {
             ?>
                 <div class="meeting-wrapper">
                     <div class="meeting-row">

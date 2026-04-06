@@ -1,10 +1,13 @@
 <?php
+
 /**
  * Speaker Importer Class
  *
  * @package Eventin
  */
 namespace Eventin\Speaker;
+
+defined( 'ABSPATH' ) || exit;
 
 use Eventin\Importer\PostImporterInterface;
 use Eventin\Importer\ReaderFactory;
@@ -31,23 +34,30 @@ class SpeakerImporter implements PostImporterInterface {
     /**
      * Schedule import
      *
+     * @param   array        $file         File params from request
+     * @param   string|null  $forced_role  Force all imported rows to this role (etn-speaker or etn-organizer)
      * @return  void
      */
-    public function import( $file ) {
+    public function import( $file, $forced_role = null ) {
         $this->file  = $file;
         $file_reader = ReaderFactory::get_reader( $file );
 
+        if ( is_wp_error( $file_reader ) ) {
+            return $file_reader;
+        }
+
         $this->data = $file_reader->read_file();
 
-        $this->create_speaker();
+        $this->create_speaker( $forced_role );
     }
 
     /**
      * Create schedule
      *
+     * @param   string|null  $forced_role  Force all imported rows to this role
      * @return  void
      */
-    private function create_speaker() {
+    private function create_speaker( $forced_role = null ) {
         $file_type  = ! empty( $this->file['type'] ) ? $this->file['type'] : '';
         $rows       = $this->data;
 
@@ -60,6 +70,13 @@ class SpeakerImporter implements PostImporterInterface {
                 $social = json_decode( $social, true );
                 $group  = json_decode( $group, true );
             }
+
+	        // Force role if specified, otherwise validate role from data
+	        if ( $forced_role && in_array( $forced_role, ['etn-speaker', 'etn-organizer'] ) ) {
+		        $row['role'] = $forced_role;
+	        } elseif ( ! in_array( $row['role'], ['etn-speaker', 'etn-organizer'] ) ) {
+		        $row['role'] = 'etn-speaker';
+	        }
 
             $args = [
                 'first_name'                => ! empty( $row['name'] ) ? $row['name'] : '',

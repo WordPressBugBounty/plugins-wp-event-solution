@@ -1,3 +1,3 @@
 <div class="etn-block-components tickets">
-    Tickets
+	<?php echo esc_html__( 'Tickets', 'eventin' ); ?>
 </div>

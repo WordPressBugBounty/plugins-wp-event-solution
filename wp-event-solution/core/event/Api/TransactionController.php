@@ -1,10 +1,14 @@
 <?php
+
 /**
+ * @depricated may be not in use
  * Purchase Controller Class
  *
  * @package Eventin\Event
  */
 namespace Eventin\Event\Api;
+
+defined( 'ABSPATH' ) || exit;
 
 use WP_Error;
 use WP_REST_Controller;
@@ -116,8 +120,13 @@ class TransactionController extends WP_REST_Controller {
         // Define the name of your custom table
         $table_name = $wpdb->prefix . 'etn_events';
 
+        $offset = ( $paged - 1 ) * $per_page;
+
         // Query to retrieve data from the custom table
-        $results = $wpdb->get_results( "SELECT * FROM $table_name", OBJECT );
+        $results = $wpdb->get_results(
+            $wpdb->prepare( "SELECT * FROM {$table_name} LIMIT %d OFFSET %d", $per_page, $offset ),
+            OBJECT
+        );
 
         $items = [];
 
@@ -330,7 +339,7 @@ class TransactionController extends WP_REST_Controller {
             'invoice'           => $item->invoice,
             'amount'            => $item->event_amount,
             'ticket_quantity'   => $item->ticket_qty,
-            'ticket_variations' => maybe_unserialize( $item->ticket_variations ),
+            'ticket_variations' => etn_safe_decode( $item->ticket_variations ),
         ];
 
         return $transaction_data;

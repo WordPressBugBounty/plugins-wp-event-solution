@@ -93,7 +93,7 @@ class CSVExporter implements ExporterInterface {
         $export_row = [];
 
         foreach ( $colunms as $key => $colunm ) {
-            if ( ! empty( $row_data[$key] ) ) {
+            if ( isset( $row_data[$key] ) && '' !== $row_data[$key] ) {
                 $export_row[] = is_array( $row_data[$key] ) ? etn_array_csv_column( $row_data[$key] ) : $row_data[$key];
             } else {
                 $export_row[] = '';

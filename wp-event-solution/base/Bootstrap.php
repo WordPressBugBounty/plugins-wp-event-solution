@@ -10,6 +10,9 @@ use Eventin\Order\OrderProvider;
 use Eventin\Schedule\ScheduleProvider;
 use Eventin\Speaker\SpeakerProvider;
 use Eventin\Base\Speaker_role;
+use Eventin\Emails\EmailHookProvider;
+use Eventin\Template\TemplateProvider;
+use Eventin\Upgrade\Upgraders\V_4_0_29;
 
 /**
  * Class Bootstrap
@@ -32,6 +35,8 @@ class Bootstrap {
         AttendeeProvider::class,
         ScheduleProvider::class,
         SpeakerProvider::class,
+        EmailHookProvider::class,
+        TemplateProvider::class,
     ];
 
     /**
@@ -41,8 +46,8 @@ class Bootstrap {
      */
     public static function run(): void {
         self::include_require_files();
-        self::init_classes();
-        add_action( 'init', [ self::class, 'init' ] );
+	    self::init_classes();
+        add_action( 'init', [ self::class, 'init' ], 5 );
         add_action( 'rest_api_init', [ ApiManager::class, 'register' ] );
     }
 
@@ -54,6 +59,10 @@ class Bootstrap {
     public static function init(): void {
         self::register_providers();
         CustomEndpoint::register();
+        self::register_cpt_modules();
+		
+		$seeder = new V_4_0_29();
+		$seeder->run();
     }
 
     /**
@@ -85,7 +94,7 @@ class Bootstrap {
         }
 
         new \Eventin\Enqueue\Register();
-        
+
         // Instantiate Eventin AI module.
         \Etn\Core\Modules\Eventin_Ai\Eventin_AI::instance()->init();
 
@@ -99,15 +108,8 @@ class Bootstrap {
 
         Speaker_role::instance()->init();
 
-        // CPT Modules
-        \Etn\Core\Event\Hooks::instance()->init();
-        \Etn\Core\Recurring_Event\Hooks::instance()->init();
-        \Etn\Core\Schedule\Hooks::instance()->init();
-        \Etn\Core\Speaker\Hooks::instance()->init();
         \Etn\Core\Admin\Hooks::instance()->init();
-        \Etn\Core\Attendee\InfoUpdate::instance()->init();
-        new \Etn\Core\Attendee\Cpt();
-
+        
         // Dependency Controls
         new \Etn\Core\Event\DependencyControls();
     }
@@ -118,7 +120,6 @@ class Bootstrap {
      * @return  void
      */
     private static function include_require_files() {
-        include_once \Wpeventin::plugin_dir() . 'core/guten-block/inc/init.php';
         include_once \Wpeventin::plugin_dir() . 'core/event/template-functions.php';
         include_once \Wpeventin::plugin_dir() . 'core/woocommerce/etn-product-data-store-cpt.php';
         include_once \Wpeventin::plugin_dir() . '/core/woocommerce/etn-order-item-product.php';
@@ -129,5 +130,15 @@ class Bootstrap {
 
         require_once \Wpeventin::plugin_dir() . '/core/speaker/template-functions.php';
         require_once \Wpeventin::plugin_dir() . '/core/speaker/template-hooks.php';
+    }
+
+    private static function register_cpt_modules(){
+        // CPT Modules
+        \Etn\Core\Event\Hooks::instance()->init();
+        \Etn\Core\Recurring_Event\Hooks::instance()->init();
+        \Etn\Core\Schedule\Hooks::instance()->init();
+        \Etn\Core\Speaker\Hooks::instance()->init();
+        \Etn\Core\Attendee\InfoUpdate::instance()->init();
+        new \Etn\Core\Attendee\Cpt();
     }
 }

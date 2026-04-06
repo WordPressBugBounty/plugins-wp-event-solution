@@ -1,5 +1,8 @@
 <?php
+
 namespace Eventin\Blocks;
+
+defined( 'ABSPATH' ) || exit;
 
 use Eventin\Abstracts\Provider;
 
@@ -13,6 +16,8 @@ class BlockProvider extends Provider {
      * @var array
      */
     protected $services = [
-        BlockTypesController::class
+        BlockTypesController::class,
+        BlockService::class,
+        BlockLegacySupportHooks::class
     ];
 }

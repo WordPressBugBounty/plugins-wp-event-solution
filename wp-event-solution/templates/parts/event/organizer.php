@@ -1,4 +1,4 @@
 <div class="etn-block-components organizer">
-    Organizer events 
+	<?php echo esc_html__( 'Organizer events', 'eventin' ); ?>
 </div>';
    

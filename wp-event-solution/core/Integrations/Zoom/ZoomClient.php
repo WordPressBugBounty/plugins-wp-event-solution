@@ -1,10 +1,13 @@
 <?php
+
 /**
  * Zoom Integration
  *
  * @package Eventin/Zoom
  */
 namespace Eventin\Integrations\Zoom;
+
+defined( 'ABSPATH' ) || exit;
 
 /**
  * Zoom Client class
@@ -33,7 +36,7 @@ class ZoomClient {
      */
     public function __construct( $token = '' ) {
         if ( ! $token ) {
-            throw new \Exception( __( 'You must provide access token', 'eventin' ) );
+            throw new \Exception( esc_html__( 'You must provide access token', 'eventin' ) );
         }
 
         $this->token = $token;
@@ -51,7 +54,7 @@ class ZoomClient {
             'topic'                  => $args['title'],
             'type'                   => 2, // Scheduled meeting
             'start_time'             => $args['start_time'], // Meeting start time in UTC
-            'duration'               => 60, // Meeting duration in minutes
+            'duration'               => $args['duration'], // Meeting duration in minutes
             'timezone'               => $args['timezone'], // Timezone for the meeting
             'agenda'                 => '',
             'waiting_room'           => true,

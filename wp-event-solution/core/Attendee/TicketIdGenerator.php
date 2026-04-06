@@ -1,10 +1,13 @@
 <?php
+
 /**
  * Uniqueue generator
  * 
  * @package Eventin
  */
 namespace Eventin\Attendee\Attendee;
+
+defined( 'ABSPATH' ) || exit;
 
 /**
  * Uniqueue ticket generator

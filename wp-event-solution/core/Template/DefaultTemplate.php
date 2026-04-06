@@ -1,10 +1,13 @@
 <?php
+
 /**
  * Default templates class
  * 
  * @package Eventin
  */
 namespace Eventin\Template;
+
+defined( 'ABSPATH' ) || exit;
 
 use Wpeventin;
 
@@ -127,7 +130,12 @@ class DefaultTemplate {
      * @return  string
      */
     public static function get_content( $template_name ) {
-        $file = Wpeventin::core_dir() . '/Template/DefaultContents/' . $template_name . '.php';
+        $base_dir = realpath( Wpeventin::core_dir() . '/Template/DefaultContents' );
+        $file     = realpath( $base_dir . '/' . $template_name . '.php' );
+
+        if ( false === $file || strpos( $file, $base_dir . DIRECTORY_SEPARATOR ) !== 0 ) {
+            return null;
+        }
 
         if ( file_exists( $file ) ) {
             return file_get_contents( $file );

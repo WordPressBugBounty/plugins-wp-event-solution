@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Event Category Api Class
  *
@@ -6,6 +7,10 @@
  */
 namespace Eventin\EventCategory\Api;
 
+defined( 'ABSPATH' ) || exit;
+
+use Eventin\Event\CategoryExporter;
+use Eventin\Event\CategoryImporter;
 use WP_Error;
 use WP_REST_Controller;
 use WP_REST_Server;
@@ -91,6 +96,32 @@ class EventCategoryController extends WP_REST_Controller {
                 ),
             ),
         );
+
+        // Export route
+        register_rest_route(
+            $this->namespace,
+            '/' . $this->rest_base . '/export',
+            array(
+                array(
+                    'methods'             => WP_REST_Server::CREATABLE,
+                    'callback'            => array( $this, 'export_items' ),
+                    'permission_callback' => array( $this, 'export_permissions_check' ),
+                ),
+            ),
+        );
+
+        // Import route
+        register_rest_route(
+            $this->namespace,
+            '/' . $this->rest_base . '/import',
+            array(
+                array(
+                    'methods'             => WP_REST_Server::CREATABLE,
+                    'callback'            => array( $this, 'import_items' ),
+                    'permission_callback' => array( $this, 'import_permissions_check' ),
+                ),
+            ),
+        );
     }
 
     /**
@@ -110,35 +141,67 @@ class EventCategoryController extends WP_REST_Controller {
      * @return WP_Error|WP_REST_Response
      */
     public function get_items( $request ) {
-    $prepared_args = array(
-        'taxonomy'   => $this->taxonomy,
-        'hide_empty' => false,
-    );
+        $per_page = ! empty( $request['per_page'] ) ? intval( $request['per_page'] ) : 20;
+        $paged    = ! empty( $request['paged'] ) ? intval( $request['paged'] ) : 1;
+        $offset   = ( $paged - 1 ) * $per_page;
 
-    $query_result = get_terms( $prepared_args );
+        $prepared_args = array(
+            'taxonomy'   => $this->taxonomy,
+            'hide_empty' => false,
+            'number'     => $per_page,
+            'offset'     => $offset,
+        );
 
-    $response = array();
-
-    foreach ( $query_result as $term ) {
-        $item = $this->prepare_item_for_response( $term->term_id, $request );
-
-        // Get the parent term name if the parent term exists
-        if ( $term->parent ) {
-            $parent_term = get_term( $term->parent, $this->taxonomy );
-            if ( ! is_wp_error( $parent_term ) ) {
-                $item['parent_name'] = $parent_term->name;
-            } else {
-                $item['parent_name'] = null; // or some default value
-            }
-        } else {
-            $item['parent_name'] = null; // or some default value
+        // Filter by parent category
+        if ( isset( $request['parent'] ) && $request['parent'] !== '' ) {
+            $prepared_args['parent'] = absint( $request['parent'] );
         }
 
-        $response[] = $item;
-    }
+        // Filter by search string
+        if ( ! empty( $request['search'] ) ) {
+            $prepared_args['search'] = sanitize_text_field( $request['search'] );
+        }
 
-    return rest_ensure_response( $response );
-}
+        $query_result = get_terms( $prepared_args );
+
+        // Get total count for pagination
+        $count_args = $prepared_args;
+        unset( $count_args['number'], $count_args['offset'] );
+        $count_args['fields'] = 'count';
+        $total_items = (int) get_terms( $count_args );
+
+        $items = array();
+
+        if ( ! is_wp_error( $query_result ) ) {
+            foreach ( $query_result as $term ) {
+                $item = $this->prepare_item_for_response( $term->term_id, $request );
+
+                // Get the parent term name if the parent term exists
+                if ( $term->parent ) {
+                    $parent_term = get_term( $term->parent, $this->taxonomy );
+                    if ( ! is_wp_error( $parent_term ) ) {
+                        $item['parent_name'] = $parent_term->name;
+                    } else {
+                        $item['parent_name'] = null;
+                    }
+                } else {
+                    $item['parent_name'] = null;
+                }
+
+                $items[] = $item;
+            }
+        }
+
+        $total_pages = $per_page > 0 ? (int) ceil( $total_items / $per_page ) : 0;
+
+        $data = [
+            'total_items' => $total_items,
+            'items'       => $items,
+        ];
+
+        $response = rest_ensure_response( $data );
+        return $response;
+    }
 
     /**
      * Get one item from the collection.
@@ -172,7 +235,9 @@ class EventCategoryController extends WP_REST_Controller {
         }
 
         $category = wp_insert_term( $prepared_data['name'], $this->taxonomy, $prepared_data );
-
+        if ( ! empty( $prepared_data['color'] ) ) {
+            update_term_meta( $category['term_id'], 'color', sanitize_hex_color( $prepared_data['color'] ) );
+        }
         if ( is_wp_error( $category ) ) {
             return $category;
         }
@@ -211,7 +276,9 @@ class EventCategoryController extends WP_REST_Controller {
         }
 
         $category = wp_update_term( $request['id'], $this->taxonomy, $prepared_data );
-
+        if ( ! empty( $prepared_data['color'] ) ) {
+            update_term_meta( $category['term_id'], 'color', sanitize_hex_color( $prepared_data['color'] ) );
+        }
         if ( is_wp_error( $category ) ) {
             return $category;
         }
@@ -358,7 +425,8 @@ class EventCategoryController extends WP_REST_Controller {
             'link'        => get_term_link( $item ),
             'name'        => $item->name,
             'slug'        => $item->slug,
-            'parent'      => $item->parent
+            'parent'      => $item->parent,
+            'color'       => get_term_meta( $item->term_id, 'color', true ),
         ];
 
         return $category_data;
@@ -400,7 +468,80 @@ class EventCategoryController extends WP_REST_Controller {
         if ( ! empty( $input_data['parent'] ) ) {
             $prepared_data['parent'] = $input_data['parent'];
         }
+        if ( ! empty( $input_data['color'] ) ) {
+            $prepared_data['color'] = sanitize_hex_color( $input_data['color'] );
+        }
 
         return $prepared_data;
+    }
+
+    /**
+     * Export categories
+     *
+     * @param WP_REST_Request $request Full data about the request.
+     * @return WP_Error|void
+     */
+    public function export_items( $request ) {
+        $format = ! empty( $request['format'] ) ? sanitize_text_field( $request['format'] ) : '';
+        $ids    = ! empty( $request['ids'] ) ? $request['ids'] : '';
+
+        if ( ! $format ) {
+            return new WP_Error( 'format_error', __( 'Invalid data format', 'eventin' ), [ 'status' => 400 ] );
+        }
+
+        if ( ! $ids ) {
+            $ids = CategoryExporter::get_ids();
+        }
+
+        $exporter = new CategoryExporter();
+        $exporter->export( $ids, $format );
+    }
+
+    /**
+     * Check permissions for export categories
+     *
+     * @param WP_REST_Request $request Full data about the request.
+     * @return bool
+     */
+    public function export_permissions_check( $request ) {
+        return current_user_can( 'etn_manage_event' );
+    }
+
+    /**
+     * Import categories
+     *
+     * @param WP_REST_Request $request Full data about the request.
+     * @return WP_Error|WP_REST_Response
+     */
+    public function import_items( $request ) {
+        $data = $request->get_file_params();
+        $file = ! empty( $data['category_import'] ) ? $data['category_import'] : '';
+
+        if ( ! $file ) {
+            return new WP_Error( 'empty_file', __( 'You must provide a valid file.', 'eventin' ), [ 'status' => 409 ] );
+        }
+
+        $importer = new CategoryImporter();
+        $result   = $importer->import( $file );
+
+        if ( is_wp_error( $result ) ) {
+            return $result;
+        }
+
+        $response = [
+            'message' => __( 'Successfully imported categories', 'eventin' ),
+        ];
+
+        return rest_ensure_response( $response );
+    }
+
+    /**
+     * Check permissions for import categories
+     *
+     * @param WP_REST_Request $request Full data about the request.
+     * @return bool
+     */
+    public function import_permissions_check( $request ) {
+        return current_user_can( 'etn_manage_event' );
     }
 }

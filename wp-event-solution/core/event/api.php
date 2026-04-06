@@ -47,7 +47,7 @@ class Api extends \Etn\Base\Api_Handler {
 				}
 
 				if ( in_array( $key, $serialized_meta ) ) {
-					$event_meta[$key] = maybe_unserialize( $event_meta[$key] );
+					$event_meta[$key] = etn_safe_decode( $event_meta[$key] );
 				}
 
 				
@@ -104,7 +104,7 @@ class Api extends \Etn\Base\Api_Handler {
 
 			$event_type			   = get_post_meta( $event_id, 'event_type', true );
 
-			$address 			   = 'offline' === $event_type && isset( $location['address'] ) ? $location['address'] : '';
+			$address 			   = ('offline' === $event_type || 'hybrid' === $event_type) && isset( $location['address'] ) ? $location['address'] : '';
 
 			$content['etn_category']              = $categories = array_keys( Helper::get_event_category( $event_id ) );
 			$content['etn_tags']                  = $tags       = array_keys( Helper::get_event_tag( $event_id ) );
@@ -195,16 +195,14 @@ class Api extends \Etn\Base\Api_Handler {
 		$request     = $this->request;
 		$settings    = etn_get_option();
 
-		if ( ! is_admin() && ! current_user_can( 'manage_options' ) ) {
-			if ( ! wp_verify_nonce( $this->request->get_header( 'X-WP-Nonce' ), 'wp_rest' ) ) {
-				$messages[] = esc_html__( 'Nonce is not valid! Please try again.', 'eventin' );
-			} else {
-				if ( ! empty( $settings ) ) {
-					$content['settings'] = $settings;
-				}
-			}
+		// Require proper capability - permission callback handles this but double-check
+		if ( ! current_user_can( 'manage_options' ) ) {
+			$messages[] = esc_html__( 'You haven\'t authorization permission to view settings.', 'eventin' );
 		} else {
-			$messages[] = esc_html__( 'You haven\'t authorization permission to update settings.', 'eventin' );
+			if ( ! empty( $settings ) ) {
+				$status_code         = 1;
+				$content['settings'] = $settings;
+			}
 		}
 
 		$sample_date      = strtotime( date( 'd' ) . " " . date( 'M' ) . " " . date( 'Y' ) );
@@ -235,27 +233,29 @@ class Api extends \Etn\Base\Api_Handler {
 		$messages    = $content    = [];
 		$request     = json_decode( $this->request->get_body(), true );
 
-		if ( ! is_admin() && ! current_user_can( 'manage_options' ) ) {
-
-			if ( ! wp_verify_nonce( $this->request->get_header( 'X-WP-Nonce' ), 'wp_rest' ) ) {
-				$messages[] = esc_html__( 'Nonce is not valid! Please try again.', 'eventin' );
-			} else {
-				if ( isset( $request ) && ! empty( $request ) ) {
-					$status_code                           = 1;
-					$all_settings                          = get_option( 'etn_event_options', [] );
-					$settings                              = $request;
-					$all_settings['events_per_page']       = isset( $settings['events_per_page'] ) ? absint( $settings['events_per_page'] ) : 10;
-					$all_settings['date_format']           = isset( $settings['date_format'] ) ? $settings['date_format'] : "";
-					$all_settings['time_format']           = isset( $settings['time_format'] ) ? $settings['time_format'] : "";
-					$all_settings['etn_primary_color']     = isset( $settings['etn_primary_color'] ) ? $settings['etn_primary_color'] : "";
-					$all_settings['etn_secondary_color']   = isset( $settings['etn_secondary_color'] ) ? $settings['etn_secondary_color'] : "";
-					$all_settings['attendee_registration'] = isset( $settings['attendee_registration'] ) ? $settings['attendee_registration'] : "";
-					$all_settings['sell_tickets']          = isset( $settings['sell_tickets'] ) ? $settings['sell_tickets'] : "";
-					update_option( 'etn_event_options', $all_settings );
-				}
-			}
-		} else {
+		// Require proper capability - permission callback handles this but double-check
+		if ( ! current_user_can( 'manage_options' ) ) {
 			$messages[] = esc_html__( 'You haven\'t authorization permission to update settings.', 'eventin' );
+		} else {
+			if ( isset( $request ) && ! empty( $request ) ) {
+				$status_code  = 1;
+				$all_settings = get_option( 'etn_event_options', [] );
+				$settings     = $request;
+
+				// Sanitize all inputs to prevent XSS and other attacks
+				$all_settings['events_per_page']       = isset( $settings['events_per_page'] ) ? absint( $settings['events_per_page'] ) : 10;
+				$all_settings['date_format']           = isset( $settings['date_format'] ) ? sanitize_text_field( $settings['date_format'] ) : "";
+				$all_settings['time_format']           = isset( $settings['time_format'] ) ? sanitize_text_field( $settings['time_format'] ) : "";
+
+				// CRITICAL: Sanitize color fields to prevent XSS
+				$all_settings['etn_primary_color']     = isset( $settings['etn_primary_color'] ) ? sanitize_hex_color( $settings['etn_primary_color'] ) : "";
+				$all_settings['etn_secondary_color']   = isset( $settings['etn_secondary_color'] ) ? sanitize_hex_color( $settings['etn_secondary_color'] ) : "";
+
+				$all_settings['attendee_registration'] = isset( $settings['attendee_registration'] ) ? sanitize_text_field( $settings['attendee_registration'] ) : "";
+				$all_settings['sell_tickets']          = isset( $settings['sell_tickets'] ) ? sanitize_text_field( $settings['sell_tickets'] ) : "";
+
+				update_option( 'etn_event_options', $all_settings );
+			}
 		}
 
 		return [
@@ -377,7 +377,7 @@ class Api extends \Etn\Base\Api_Handler {
 		$location              = 'new_location' === $location_type ? $selected_etn_location : $location;
 		$event_type			   = get_post_meta( $event->ID, 'event_type', true );
 
-		$address 			   = 'offline' === $event_type && isset( $location['address'] ) ? $location['address'] : '';
+		$address 			   = ( 'offline' === $event_type || 'hybrid' === $event_type ) && isset( $location['address'] ) ? $location['address'] : '';
 
 		$event_banner 		  = get_post_meta( $event->ID, 'event_banner', true );
 
@@ -468,7 +468,10 @@ class Api extends \Etn\Base\Api_Handler {
 		$request            = $this->request;
 		$event_id           = ! empty( $request['id'] ) ? intval( $request['id'] ) : null;
 		$ticket_details     = get_post_meta( $event_id, 'etn_ticket_variations', true );
-		$seat_plan          = get_post_meta( $event_id, 'seat_plan', true );
+		$is_admin			= isset( $request['is_admin'] ) && filter_var( $request['is_admin'], FILTER_VALIDATE_BOOLEAN );
+
+		$seat_plan          = $this->get_seat_plan_details($event_id,$is_admin);
+		
 		$seat_plan_settings = get_post_meta( $event_id, 'seat_plan_settings', true );
 		$ticket_availability= get_post_meta( $event_id, 'etn_ticket_availability', true );
 		$etn_booked_seats   = get_post_meta( $event_id, '_etn_seat_unique_id', true );
@@ -476,6 +479,9 @@ class Api extends \Etn\Base\Api_Handler {
 
 		if ( !empty($etn_booked_seats) ) {
 			$etn_booked_seats = explode(",",$etn_booked_seats);
+		}
+		else{
+			$etn_booked_seats = [];
 		}
 		
 		$ticket_quantity    = 100;
@@ -510,6 +516,12 @@ class Api extends \Etn\Base\Api_Handler {
 			}
 		}
 
+		$pending_seats = get_post_meta( $event_id, 'pending_seats', true );
+
+		if ( ! empty( $pending_seats ) && is_array( $pending_seats ) ) {
+			$etn_booked_seats = array_merge( $etn_booked_seats, $pending_seats );
+		}
+
 		$data = [
 			'success'     => 1,
 			'status_code' => 200,
@@ -529,6 +541,55 @@ class Api extends \Etn\Base\Api_Handler {
 		return rest_ensure_response( $data );
 	}
 
+	public function get_seat_plan_details($id,$is_admin){
+        // Get the ticket variations and seat plan
+        $ticket_variations = get_post_meta($id, 'etn_ticket_variations', true);
+        $seat_plan = get_post_meta($id, 'seat_plan', true);
+
+        // Get current datetime
+        $current_datetime = current_time('Y-m-d H:i:s');
+
+		$filtered_seat_plan = [];
+
+		if(!empty($seat_plan)){
+			// Filter out expired seats
+			$filtered_seat_plan = array_filter($seat_plan, function($seat) use ($ticket_variations, $current_datetime,$is_admin) {
+				// Find the matching ticket variation
+				foreach ($ticket_variations as $variation) {
+					if (!empty($seat['ticketType']) && !empty($variation['etn_ticket_name']) && $variation['etn_ticket_name'] === $seat['ticketType']) {
+						// Check if the ticket variation is expired (considering both date and time)
+						$end_date = $variation['end_date'];
+						$end_time = $variation['end_time'];
+						$variation_status = $variation['etn_enable_ticket'];
+						
+						// Skip if date is invalid
+						if (!$end_date || $end_date === 'Invalid Date') {
+							return true; // Include if date is invalid
+						}
+						
+						// Convert end time to 24-hour format for easier comparison
+						$end_time_24 = date('H:i', strtotime($end_time));
+						
+						// Create datetime object for the end of the ticket variation
+						$end_datetime = $end_date . ' ' . $end_time_24;
+						
+						// If end datetime is in the past, exclude this seat
+						if (($end_datetime < $current_datetime || $variation_status == false) && !$is_admin) {
+							return false; // Exclude this seat
+						}
+						break; // Found the matching variation, break the loop
+					}
+				}
+				return true; // Include this seat
+			});
+
+			// Reindex the array if needed
+			$filtered_seat_plan = array_values($filtered_seat_plan);
+		}
+
+        return $filtered_seat_plan;
+    }
+
 	/**
 	 * save seat mapping data for an event
 	*
@@ -545,6 +606,9 @@ class Api extends \Etn\Base\Api_Handler {
 		$event_id           = ! empty( $request['event_id'] ) ? intval( $request['event_id'] ) : 0;
 		$seat_plan          = ! empty( $request['seat_plan'] ) ?  $request['seat_plan']  : [];
 		$seat_plan_settings = ! empty( $request['seat_plan_settings'] ) ? $request['seat_plan_settings']  : [];
+
+		$is_seat_plan_already_exist = get_post_meta( $event_id, 'seat_plan', true );
+
 		if ( ! empty( $seat_plan ) ) {
 			$chair_id = 1;
 			foreach ($seat_plan as $key => &$seat) {
@@ -554,8 +618,12 @@ class Api extends \Etn\Base\Api_Handler {
 						$chair_id++;
 					}
 				}
-				
-				$seat['id'] = $key;
+				if ( !empty( $is_seat_plan_already_exist ) ) {
+					$seat['id'] = $key;
+				}
+				else {
+					$seat['id'] = uniqid();
+				}
 			}
 		}
 
@@ -563,6 +631,7 @@ class Api extends \Etn\Base\Api_Handler {
 			$status_code = 1;
 			update_post_meta( $event_id, 'seat_plan', $seat_plan );
 			update_post_meta( $event_id, 'seat_plan_settings', $seat_plan_settings );
+			update_post_meta( $event_id, 'enable_seatmap', true );
 			$messages = [esc_html__( 'Event Seat Mapping has been saved successfully', 'eventin' )];
 		}else{
 			$messages = [esc_html__( 'Event ID not found', 'eventin' )];
@@ -582,29 +651,31 @@ class Api extends \Etn\Base\Api_Handler {
 	* @return array
 	*/
 	public function post_subscribe_email() {
+		
 		$status_code = 0;
 		$messages    = $content    = [];
 		$request     = json_decode( $this->request->get_body(), true );
-
-		if ( ! is_admin() && ! current_user_can( 'manage_options' ) ) {		
-
-			if ( ! empty( $request[ 'subscriber_email' ] ) ) {
+		
+		// check if email is valid
+		$isValidEmail = $this->verify_email_status($request[ 'subscriber_email' ]);
+		
+		if ( ! is_admin() && ! current_user_can( 'manage_options' ) ) {
+			if ( ! empty( $request[ 'subscriber_email' ] )  && $isValidEmail === true ) {
 				$status_code = 1;
-
+				
 				$body = [
 					'email' => $request[ 'subscriber_email' ]
 				];
-
+				
 				$url_fluent = 'https://themewinter.com/?fluentcrm=1&route=contact&hash=4358b0a5-2c38-447e-bdf2-8d4b0a3a464f';
-
+				
 				wp_remote_post( $url_fluent, [ 'body' => $body ] );
-
 			}
-
+			
 		} else {
 			$messages[] = esc_html__( 'You haven\'t authorization permission to update settings.', 'eventin' );
 		}
-
+		
 		return [
 			'status_code' => $status_code,
 			'messages'    => $messages,
@@ -629,6 +700,29 @@ class Api extends \Etn\Base\Api_Handler {
 		} else {
 			return 'simple';
 		}
+	}
+	
+	
+	public function verify_email_status(string $email = "")
+	{
+		$api_key = '700tpaQtc06FcqN93Ljkoibz6oo76KWk'; // Replace with your actual API key
+		$url = 'https://emailverifier.reoon.com/api/v1/verify';
+		
+		$response = wp_remote_get(add_query_arg([
+			'email' => $email,
+			'key'   => $api_key,
+			'mode'  => 'quick',
+		], $url));
+		
+		if (is_wp_error($response)) {
+			return 'error';
+		}
+		
+		$body = wp_remote_retrieve_body($response);
+		$data = json_decode($body, true);
+		
+		
+		return isset($data['status']) && $data['status'] === "valid";
 	}
 
 }

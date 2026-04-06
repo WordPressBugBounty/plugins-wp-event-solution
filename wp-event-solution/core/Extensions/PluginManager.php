@@ -67,7 +67,12 @@ class PluginManager {
 
         $skin      = new \Automatic_Upgrader_Skin();
         $upgrader  = new \Plugin_Upgrader($skin);
-        $result    = $upgrader->install('https://downloads.wordpress.org/plugin/' . $slug . '.latest-stable.zip');
+
+        if($slug === 'eventin-addon-for-fluentcart') {
+            $result    = $upgrader->install('https://themewinter.com/wp-content/uploads/2026/03/eventin-addon-for-fluentcart.zip');
+        } else {
+            $result    = $upgrader->install('https://downloads.wordpress.org/plugin/' . $slug . '.latest-stable.zip');
+        }
 
         return $result ? true : false;
     }

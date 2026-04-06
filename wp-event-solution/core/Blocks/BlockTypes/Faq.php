@@ -1,5 +1,8 @@
 <?php
+
 namespace Eventin\Blocks\BlockTypes;
+
+defined( 'ABSPATH' ) || exit;
 /**
  * Faq block Class.
  */

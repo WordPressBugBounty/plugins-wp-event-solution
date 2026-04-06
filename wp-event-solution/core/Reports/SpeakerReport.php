@@ -1,5 +1,8 @@
 <?php
+
 namespace Eventin\Reports;
+
+defined( 'ABSPATH' ) || exit;
 
 use Eventin\Input;
 

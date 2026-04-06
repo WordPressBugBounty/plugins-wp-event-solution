@@ -68,16 +68,17 @@ class Etn_Event_Meta_Info extends Widget_Base {
             ]
         );
         
-
-        $this->add_control(
-            "event_id",
-            [
-                "label"     => esc_html__("Select Event", "eventin"),
-                "type"      => Controls_Manager::SELECT2,
-                "multiple"  => false,
-                "options"   => Helper::get_events(),
-            ]
-        );
+        if(!is_event_template_builder()) {
+            $this->add_control(
+                "event_id",
+                [
+                    "label"     => esc_html__("Select Event", "eventin"),
+                    "type"      => Controls_Manager::SELECT2,
+                    "multiple"  => false,
+                    "options"   => Helper::get_events(),
+                ]
+            );
+        }
 
         $this->end_controls_section();
 
@@ -105,7 +106,12 @@ class Etn_Event_Meta_Info extends Widget_Base {
 
     protected function render() {
         $settings           = $this->get_settings();
-        $single_event_id        = !empty( $settings['event_id'] ) ? $settings['event_id'] : 0;;
+        $single_event_id        = !empty( $settings['event_id'] ) ? $settings['event_id'] : get_the_ID();
+
+        if(is_event_template_builder()) {
+
+            $single_event_id = get_first_published_event();
+        }
 
         echo do_shortcode("[etn_event_meta_info event_id='$single_event_id']");
     }

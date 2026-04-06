@@ -1,10 +1,13 @@
 <?php
+
 /**
  * Updater interface
  *
  * @package Eventin\Upgrades
  */
 namespace Eventin\Upgrade\Upgraders;
+
+defined( 'ABSPATH' ) || exit;
 
 interface UpdateInterface {
     /**

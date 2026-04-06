@@ -1,10 +1,13 @@
 <?php
+
 /**
  * Event Importer Class
  *
  * @package Eventin
  */
 namespace Eventin\Event;
+
+defined( 'ABSPATH' ) || exit;
 
 use Eventin\Importer\PostImporterInterface;
 use Eventin\Importer\ReaderFactory;
@@ -37,6 +40,10 @@ class EventImporter implements PostImporterInterface {
         $this->file  = $file;
         $file_reader = ReaderFactory::get_reader( $file );
 
+        if ( is_wp_error( $file_reader ) ) {
+            return $file_reader;
+        }
+
         $this->data = $file_reader->read_file();
         $this->create_event();
     }
@@ -56,7 +63,7 @@ class EventImporter implements PostImporterInterface {
             $args = [
                 'post_status'                       => ! empty( $row['status'] ) ? $row['status'] : 'publish',
                 'post_title'                        => ! empty( $row['title'] ) ? sanitize_text_field( $row['title'] ) : '',
-                'post_content'  => ! empty( $row['description'] ) ? $row['description'] : '',
+                'post_content'  => ! empty( $row['description'] ) ? wp_kses_post( $row['description'] ) : '',
                 'etn_start_date'                    => ! empty( $row['start_date'] ) ? sanitize_text_field( $row['start_date'] ) : '',
                 'etn_end_date'  => ! empty( $row['end_date'] ) ? sanitize_text_field( $row['end_date'] ) : '',
                 'etn_start_time'                    => ! empty( $row['start_time'] ) ? sanitize_text_field( $row['start_time'] ) : '',
@@ -86,21 +93,21 @@ class EventImporter implements PostImporterInterface {
             ];
 
             $location              = ! empty( $row['location'] ) ? sanitize_text_field( $row['location'] ) : '';
-            $ticket_variations     = ! empty( $row['ticket_variations'] ) ? $row['ticket_variations'] : '';
-            $event_socials         = ! empty( $row['event_socials'] ) ? $row['event_socials'] : '';
-            $event_schedule        = ! empty( $row['schedules'] ) ? $row['schedules'] : '';
-            $event_faq             = ! empty( $row['faq'] ) ? $row['faq'] : '';
-            $attendee_extra_fields = ! empty( $row['extra_fields'] ) ? $row['extra_fields'] : '';
+            $ticket_variations     = ! empty( $row['ticket_variations'] ) ? etn_sanitize_array_input( $row['ticket_variations'] ) : '';
+            $event_socials         = ! empty( $row['event_socials'] ) ? etn_sanitize_array_input( $row['event_socials'] ) : '';
+            $event_schedule        = ! empty( $row['schedules'] ) ? etn_sanitize_array_input( $row['schedules'] ) : '';
+            $event_faq             = ! empty( $row['faq'] ) ? etn_sanitize_array_input( $row['faq'] ) : '';
+            $attendee_extra_fields = ! empty( $row['extra_fields'] ) ? etn_sanitize_array_input( $row['extra_fields'] ) : '';
 
-            $speaker                = ! empty( $row['speaker'] ) ? $row['speaker'] : '';
-            $speaker_group          = ! empty( $row['speaker_groups'] ) ? $row['speaker_groups'] : '';
-            $organizer              = ! empty( $row['organizer'] ) ? $row['organizer'] : '';
-            $organizer_group        = ! empty( $row['organizer_group'] ) ? $row['organizer_group'] : '';
-            $rsvp                   = ! empty( $row['rsvp'] ) ? $row['rsvp'] : '';
-            $categories             = ! empty( $row['categories'] ) ? $row['categories'] : '';
-            $tags                   = ! empty( $row['tags'] ) ? $row['tags'] : '';
+            $speaker                = ! empty( $row['speaker'] ) ? etn_sanitize_array_input( $row['speaker'] ) : '';
+            $speaker_group          = ! empty( $row['speaker_groups'] ) ? etn_sanitize_array_input( $row['speaker_groups'] ) : '';
+            $organizer              = ! empty( $row['organizer'] ) ? etn_sanitize_array_input( $row['organizer'] ) : '';
+            $organizer_group        = ! empty( $row['organizer_group'] ) ? etn_sanitize_array_input( $row['organizer_group'] ) : '';
+            $rsvp                   = ! empty( $row['rsvp'] ) ? etn_sanitize_array_input( $row['rsvp'] ) : '';
+            $categories             = ! empty( $row['categories'] ) ? etn_sanitize_array_input( $row['categories'] ) : '';
+            $tags                   = ! empty( $row['tags'] ) ? etn_sanitize_array_input( $row['tags'] ) : '';
 
-            
+
             $args['etn_event_location']    = $location;
             $args['etn_ticket_variations'] = $ticket_variations;
             $args['etn_event_socials']     = $event_socials;
@@ -123,7 +130,7 @@ class EventImporter implements PostImporterInterface {
 
                 $event_type = ! empty( $row['event_type'] ) ? sanitize_text_field( $row['event_type'] ) : '';
 
-                if ( 'offline' === $event_type ) {
+                if ( 'offline' === $event_type || 'hybrid' === $event_type ) {
                     list($key, $value) = explode( ':', $location );
 
                     $new_location = [];

@@ -12,77 +12,58 @@ class Event_single_post {
         add_filter('template_include', [$this, 'event_archive_template'], 99);
     }
 
-    // eventin archive page template redirection
     public function event_archive_template($template) {
-        if ( ! is_post_type_archive('etn') ) {
-            return $template;
+        if (is_post_type_archive('etn')) {
+            $default_file = \Wpeventin::plugin_dir() . 'core/event/views/event-archive-page.php';
+            if (file_exists($default_file)) {
+                 return $default_file;
+            } 
         }
+        return $template;
+    }
 
-        // redirect to elementor pro archive page if any archive template is assigned
-        if ($this->is_elementor_pro_archive_page('etn_archive')) {
-            echo \Elementor\Plugin::$instance->frontend->get_builder_content_for_display($template);
-            return $template;
-        }else{
-            $enable_event_template_builder = etn_get_option( 'enable_event_template_builder' );
+    public function event_single_page($template) {
+        global $post, $wp_query;
+    
+        // Check if we are on a singular page for the post type 'etn'
+        if ($post && $post->post_type === 'etn' && is_singular('etn')) {
+            // Define the default file path
+            $default_file = \Wpeventin::plugin_dir() . 'core/event/views/event-single-page.php';
+
+            $build_with_elementor = false;
+    
+            // Check if Elementor is active and the current post is built with Elementor
+            if (class_exists('\Elementor\Plugin') && isset(\Elementor\Plugin::$instance)) {
+                $elementor_instance = \Elementor\Plugin::$instance;
             
-            if ( $enable_event_template_builder ) {
-                $template = \Wpeventin::plugin_dir() . 'core/event/views/block-archive-template.php';
-            } else {
-                $template = \Wpeventin::plugin_dir() . 'core/event/views/event-archive-page.php';
-            }
-        }
-
-
-        return $template;
-    }
-
-    // Event single page template redirection
-    public function event_single_page( $template ) {
-        global $post;
-
-        if ( ! $post ) {
-            return $template;
-        }
-
-        if ( $post->post_type !== 'etn' || ! is_singular( 'etn' ) ) {
-            return $template;
-        }
-
-        $enable_event_template_builder = etn_get_option( 'enable_event_template_builder' );
-
-        if ( $enable_event_template_builder ) {
-            $template = \Wpeventin::plugin_dir() . 'core/event/views/block-single-template.php';
-        } else {
-            $template = \Wpeventin::plugin_dir() . 'core/event/views/event-single-page.php';
-        }
-
-        return $template;
-    }
-
-    // check if the archive page is build with Elementor theme builder - archive template
-    public function is_elementor_pro_archive_page($post_type) {
-        if (class_exists('ElementorPro\Modules\ThemeBuilder\Module')) {
-            $theme_builder = \ElementorPro\Modules\ThemeBuilder\Module::instance();
-            $documents = $theme_builder->get_conditions_manager()->get_documents_for_location('archive');
-
-            if (!empty($documents)) {
-                foreach ($documents as $document) {
-                    $template_id = $document->get_main_id();
-                    $template_document = \ElementorPro\Plugin::elementor()->documents->get( $template_id );
-                    $template_conditions = $theme_builder->get_conditions_manager()->get_document_conditions( $template_document );
-
-                    if (!empty($template_conditions) && is_array($template_conditions)) {
-                        foreach ($template_conditions as $rule) {
-                            if ( isset($rule['sub_name']) && $rule['name'] === 'archive' && $rule['sub_name'] === $post_type ) {
-                                return true; // Found an archive template specific to 'etn'
-                            }
-                        }
+                if (isset($elementor_instance->documents)) {
+                    $document = $elementor_instance->documents->get($post->ID);
+            
+                    if ($document && method_exists($document, 'is_built_with_elementor')) {
+                        $build_with_elementor = $document->is_built_with_elementor();
                     }
                 }
             }
-        }
+            
+            // Get the template slug
+            $template_slug = get_page_template_slug($post->ID);
 
-        return false; // No matching archive template found for 'etn'
+            // If the template slug is empty and the default file exists, set the template slug to 'default'
+            if(($template_slug == '') && file_exists($default_file)) {
+                $template_slug = 'default';
+                $build_with_elementor = false;
+                return $default_file;
+            }
+    
+            // If the file exists and the post is not built with Elementor, return the default file
+            if (file_exists($default_file) && !$build_with_elementor) {
+                return $default_file;
+            }
+        }
+    
+        // Return the original template if conditions are not met
+        return $template;
     }
+    
 
 }

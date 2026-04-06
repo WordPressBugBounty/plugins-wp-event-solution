@@ -1,5 +1,8 @@
 <?php
+
 namespace Eventin\Integrations\Webhook;
+
+defined( 'ABSPATH' ) || exit;
 
 use Eventin\Interfaces\HookableInterface;
 

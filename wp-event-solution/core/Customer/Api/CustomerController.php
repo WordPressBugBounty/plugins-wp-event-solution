@@ -1,10 +1,13 @@
 <?php
+
 /**
  * Customer Api Class
  *
  * @package Eventin\Customer
  */
 namespace Eventin\Customer\Api;
+
+defined( 'ABSPATH' ) || exit;
 
 use Eventin\Customer\CustomerModel;
 use Eventin\Input;
@@ -100,7 +103,7 @@ class CustomerController extends WP_REST_Controller {
      * @return WP_Error|boolean
      */
     public function get_item_permissions_check( $request ) {
-        return true;
+        return current_user_can( 'etn_manage_event' ) && wp_verify_nonce( $request->get_header( 'X-Wp-Nonce' ), 'wp_rest' );
     }
 
     /**

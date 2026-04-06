@@ -1,8 +1,11 @@
 <?php
+
 /**
  * Custoer Role Class
  */
 namespace Eventin\Admin\Role;
+
+defined( 'ABSPATH' ) || exit;
 
 /**
  * Customer role class

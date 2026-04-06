@@ -1,8 +1,11 @@
 <?php
+
 /**
  * Custom URL for meeting platform
  */
 namespace Eventin\Integrations;
+
+defined( 'ABSPATH' ) || exit;
 
 use Eventin\Interfaces\MeetingPlatformInterface;
 

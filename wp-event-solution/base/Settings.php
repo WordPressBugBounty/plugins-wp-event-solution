@@ -45,8 +45,10 @@ class Settings {
     public static function update( $options = [] ) {
         $settings = self::get();
 
+        $options = map_deep( $options, 'sanitize_text_field' );
+
         foreach ( $options as $name => $value ) {
-            $settings[$name] = $options[$name];
+            $settings[$name] = $value;
         }
 
         return update_option( self::$option_name, $settings );

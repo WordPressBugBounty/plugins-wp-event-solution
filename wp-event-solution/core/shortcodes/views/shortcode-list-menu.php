@@ -1,5 +1,7 @@
 <?php
 
+defined( 'ABSPATH' ) || exit;
+
     use Etn\Utils\Helper;
 ?>
 <div class="wrap etn-settings-dashboard etn-settings-shortcode">

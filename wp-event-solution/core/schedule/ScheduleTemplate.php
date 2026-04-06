@@ -1,5 +1,8 @@
 <?php
+
 namespace Eventin\Schedule;
+
+defined( 'ABSPATH' ) || exit;
 
 use Eventin\Interfaces\HookableInterface;
 

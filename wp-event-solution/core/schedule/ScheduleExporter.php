@@ -1,10 +1,13 @@
 <?php
+
 /**
  * Schedule Exporter Class
  *
  * @package Eventin
  */
 namespace Eventin\Schedule;
+
+defined( 'ABSPATH' ) || exit;
 
 use Eventin\Exporter\ExporterFactory;
 use Eventin\Exporter\PostExporterInterface;

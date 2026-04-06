@@ -6,6 +6,8 @@
  */
 namespace Eventin\Base;
 
+defined( 'ABSPATH' ) || exit;
+
 use Etn\Base\Role;
 use Etn\Traits\Singleton;
 
@@ -21,8 +23,10 @@ class Speaker_role extends Role {
      * @return void
      */
     public function init() {
-        $this->register_role();
-        $this->add_cap();
+        // $this->register_role();
+        // $this->add_cap();
+        add_action('init', [ $this, 'register_role']);
+        add_action('init', [ $this, 'add_cap']);
     }
 
     /**

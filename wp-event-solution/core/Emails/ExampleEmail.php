@@ -1,5 +1,8 @@
 <?php
+
 namespace Eventin\Emails;
+
+defined( 'ABSPATH' ) || exit;
 
 use Eventin\Mails\Content;
 use Eventin\Mails\Mailable;

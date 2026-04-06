@@ -30,6 +30,7 @@ $event_end_time      = $event->etn_end_time;
 $event_end_date_time = strtotime( $event_end_date . ' ' . $event_end_time );
 
 ?>
+<?php Helper::etn_template_include(); ?>
 <div class="etn-widget etn-recurring-widget <?php echo esc_attr($active_class); ?>"
     <?php echo ($i < 3) ? 'style="display:block"' : 'style="display:none"'; ?>>
     <div class="etn-row">
@@ -131,7 +132,7 @@ $event_end_date_time = strtotime( $event_end_date . ' ' . $event_end_time );
 							if($disable_purchase_form != 'yes'){
 						
 								$show_form_button = apply_filters( "etn_form_submit_visibility", true, $single_event_id );
-								if ( $event_left_ticket <= 0 ) {
+								if ( $event_left_ticket <= 0 && $event_left_ticket != -1 ) {
 									?>
                             <h4><?php echo esc_html__( 'All Tickets Sold!!', "eventin" ); ?></h4>
                             <?php

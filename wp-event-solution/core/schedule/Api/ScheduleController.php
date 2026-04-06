@@ -1,10 +1,13 @@
 <?php
+
 /**
  * Schedule Api Class
  *
  * @package Eventin\Schedule
  */
 namespace Eventin\Schedule\Api;
+
+defined( 'ABSPATH' ) || exit;
 
 use Eventin\Schedule\ScheduleExporter;
 use Eventin\Schedule\ScheduleImporter;
@@ -106,6 +109,10 @@ class ScheduleController extends WP_REST_Controller {
             ),
         );
 
+
+
+        
+
         register_rest_route( $this->namespace, $this->rest_base . '/export', [
             [
                 'methods'             => WP_REST_Server::CREATABLE,
@@ -146,7 +153,28 @@ class ScheduleController extends WP_REST_Controller {
         $type     = ! empty( $request['type'] ) ? sanitize_text_field( $request['type'] ) : '';
         $search   = ! empty( $request['search'] ) ? sanitize_text_field( $request['search'] ) : '';
         $year     = ! empty( $request['year'] ) ? intval( $request['year'] ) : 0;
+        $event_id = ! empty( $request['event_id'] ) ? intval( $request['event_id'] ) : 0;
 
+        $selected_schedule_ids = etn_safe_decode(
+            get_post_meta( $event_id, 'etn_event_schedule', true )
+        );
+
+        if ( empty( $selected_schedule_ids ) || ! is_array( $selected_schedule_ids ) ) {
+            $selected_schedule_ids = [];
+        }
+
+        if(!empty($event_id) && empty($selected_schedule_ids)){
+            $data = [
+                'total_items' => 0,
+                'items'       => []
+            ];
+
+            $response = rest_ensure_response( $data );
+
+            $response->header( 'X-WP-Total', 0 );
+
+            return $response;
+        }
 
         $args = [
             'post_type'      => 'etn-schedule',
@@ -154,7 +182,8 @@ class ScheduleController extends WP_REST_Controller {
             'posts_per_page' => $per_page,
             'paged'          => $paged,
             'meta_query'     => $this->get_search_content( $search ),
-            'date_query'     => $this->get_year( $year )
+            'date_query'     => $this->get_year( $year ),
+            'post__in'       => $selected_schedule_ids,
         ];
 
         if ( ! current_user_can( 'manage_options' ) ) {
@@ -215,10 +244,11 @@ class ScheduleController extends WP_REST_Controller {
         if ( is_wp_error( $data ) ) {
             return $data;
         }
-
+		
         $schedule = new Schedule_Model();
         $created  = $schedule->create( $data );
-
+		
+		
         if ( ! $created ) {
             return new WP_Error( 'schedule_create_error', __( 'Can not create schedule', 'eventin' ), ['status' => 409] );
         }
@@ -407,12 +437,21 @@ class ScheduleController extends WP_REST_Controller {
     public function prepare_item_for_response( $item, $request ) {
         $id = $item->id;
 
+        $schedule_slot = etn_safe_decode( get_post_meta( $id, 'etn_schedule_topics', true ) );
+
+        if ( is_array( $schedule_slot ) ) {
+            foreach ( $schedule_slot as $key => &$slot ) {
+                $slot['id'] = $key;
+            }
+        }
+
         $schedule_data = [
             'id'            => $id,
             'program_title' => get_post_meta( $id, 'etn_schedule_title', true ),
             'date'          => get_post_meta( $id, 'etn_schedule_date', true ),
             'day_name'      => get_post_meta( $id, 'etn_schedule_day', true ),
-            'schedule_slot' => get_post_meta( $id, 'etn_schedule_topics', true ),
+            'hide_date_on_event_page' => get_post_meta( $id, 'hide_date_on_event_page', true ),
+            'schedule_slot' => $schedule_slot,
         ];
 
         return $schedule_data;
@@ -445,12 +484,16 @@ class ScheduleController extends WP_REST_Controller {
         }
 
         if ( ! empty( $input_data['schedule_slot'] ) ) {
-            $prepared_data['etn_schedule_topics'] = $input_data['schedule_slot'];
+            $prepared_data['etn_schedule_topics'] = etn_sanitize_array_input( $input_data['schedule_slot'] );
         }
+        else {
+            $prepared_data['etn_schedule_topics'] = [];
+        }
+
+        $prepared_data['hide_date_on_event_page'] = $input_data['hide_date_on_event_page']??false;
         
         $prepared_data['post_status'] = ! empty( $input_data['post_status'] ) ? $input_data['post_status'] : 'publish' ;
         
-
         return $prepared_data;
     }
 
@@ -519,7 +562,7 @@ class ScheduleController extends WP_REST_Controller {
      * @return  void
      */
     public function export_items_permissions_check( $request ) {
-        return true;
+        return current_user_can( 'etn_manage_schedule' );
     }
 
     /**
@@ -536,7 +579,11 @@ class ScheduleController extends WP_REST_Controller {
         }
 
         $importer = new ScheduleImporter();
-        $importer->import( $file );
+        $result   = $importer->import( $file );
+
+        if ( is_wp_error( $result ) ) {
+            return $result;
+        }
 
         $response = [
             'message' => __( 'Successfully imported schedule', 'eventin' ),
@@ -553,6 +600,6 @@ class ScheduleController extends WP_REST_Controller {
      * @return bool 
      */
     public function import_items_permissions_check( $request ) {
-        return true;
+        return current_user_can( 'etn_manage_schedule' );
     }
 }

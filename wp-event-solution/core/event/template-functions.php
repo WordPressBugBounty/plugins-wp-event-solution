@@ -157,14 +157,14 @@ if ( ! function_exists( 'etn_after_single_event_content_faq' ) ) {
 			$single_event_id  = ! empty( $single_event_id ) ? $single_event_id : get_the_ID();
 			$event_options    = get_option( "etn_event_options" );
 			$default_faq_view = "";
-			$faq_view         = apply_filters( "etn_faq_view", $default_faq_view, $single_event_id );
+			$faq_view         = 'event/event-faq.php';
 
 			if ( is_file( get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . $faq_view ) && file_exists( get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . $faq_view ) ) {
 				include get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . $faq_view;
 			} elseif ( is_file( get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . $faq_view ) && file_exists( get_template_directory() . \Wpeventin::theme_templates_dir() . $faq_view ) ) {
 				include get_template_directory() . \Wpeventin::theme_templates_dir() . $faq_view;
-			} elseif ( method_exists(\Wpeventin_Pro::class, 'templates_dir') && is_file( \Wpeventin_Pro::templates_dir() . $faq_view ) && file_exists( \Wpeventin_Pro::templates_dir() . $faq_view ) ) {
-				include \Wpeventin_Pro::templates_dir() . $faq_view;
+			} elseif ( method_exists(\Wpeventin::class, 'templates_dir') && is_file( \Wpeventin::templates_dir() . $faq_view ) && file_exists( \Wpeventin::templates_dir() . $faq_view ) ) {
+				include \Wpeventin::templates_dir() . $faq_view;
 			}
 
 		}
@@ -214,7 +214,7 @@ if ( ! function_exists( 'etn_after_single_event_meta_ticket_form' ) ) {
 	function etn_after_single_event_meta_ticket_form( $single_event_id ) {
 		$single_event_id = ! empty( $single_event_id ) ? $single_event_id : get_the_ID();
 		$disable_purchase_form = get_post_meta( $single_event_id, 'etn_disable_purchase_form', true );
-	
+		
 		$rsv_settings = get_post_meta( get_the_ID(), 'rsvp_settings', true );
 		$recurring_enabled = get_post_meta( get_the_ID(), 'recurring_enabled', true );
 	
@@ -227,12 +227,12 @@ if ( ! function_exists( 'etn_after_single_event_meta_ticket_form' ) ) {
 	
 		// Whether to show ticket selector and sell tickets, are controlled in frontend now.
 		?>
-<div class="etn-single-event-ticket-wrap">
-    <?php if ($recurring_enabled !== 'yes') { 
-				Helper::eventin_ticket_widget( $single_event_id );
-			} ?>
-</div>
-<?php
+			<div class="etn-single-event-ticket-wrap">
+				<?php if ($recurring_enabled !== 'yes') { 
+							Helper::eventin_ticket_widget( $single_event_id, "", "", "style-1" );
+						} ?>
+			</div>
+		 <?php
 	}
 } 
 
@@ -361,7 +361,7 @@ if ( ! function_exists( 'etn_after_recurring_event_form_content' ) ) {
 	 */
 	function etn_after_recurring_event_form_content( $single_event_id ) {
 		?>
-    <div>
+    <div class="etn-recurring-event-wrapper">
         <button id="seeMore" type="button">
             <?php echo esc_html__( 'Show More Event', 'eventin' ); ?>
             <i class="etn-icon etn-plus"></i>
@@ -440,10 +440,10 @@ if ( ! function_exists( 'etn_single_event_template_select' ) ) {
 					$single_template_path = \Wpeventin::templates_dir() . "event-one.php";
 					break;
 				case ETN_EVENT_TEMPLATE_TWO_ID:
-					$single_template_path = \Wpeventin_Pro::templates_dir() . "event-two.php";
+					$single_template_path = class_exists('Wpeventin_Pro') ? \Wpeventin_Pro::templates_dir() . "event-two.php" : \Wpeventin::templates_dir() . "event-one.php";
 					break;
 				case ETN_EVENT_TEMPLATE_THREE_ID:
-					$single_template_path = \Wpeventin_Pro::templates_dir() . "event-three.php";
+					$single_template_path = class_exists('Wpeventin_Pro') ? \Wpeventin_Pro::templates_dir() . "event-three.php" : \Wpeventin::templates_dir() . "event-one.php";
 					break;
 				default:
 					$single_template_path = \Etn\Utils\Helper::prepare_event_template_path( $default_template_name, $template_name );
@@ -733,8 +733,8 @@ if ( ! function_exists( "eventin_rich_result_support" ) ) {
 		$ticket_variation = [];
 		foreach ( $ticket_variations as $variation ) {
 
-			$event_total_ticket = absint( $variation["etn_avaiilable_tickets"] );
-			$event_sold_ticket  = absint( $variation["etn_sold_tickets"] );
+			$event_total_ticket = isset( $variation['etn_available_tickets'] ) ? absint( $variation['etn_available_tickets'] ) : 0;
+			$event_sold_ticket  = isset( $variation["etn_sold_tickets"] ) ? absint( $variation["etn_sold_tickets"] ) : 0;
 			$event_left_ticket  = $event_total_ticket - $event_sold_ticket;
 			$stock_status       = $event_left_ticket <= 0 ? "SoldOut" : "InStock";
  			$new_variation = [
@@ -772,6 +772,6 @@ if ( ! function_exists( "eventin_rich_result_support" ) ) {
 		];
 
 		// Convert schema array into ld+json file and add into the DOM
-		echo '<script type="application/ld+json">' . wp_unslash( json_encode( $event_data ) ) . '</script>';
+		echo '<script type="application/ld+json">' . wp_json_encode( $event_data ) . '</script>';
 	}
 }

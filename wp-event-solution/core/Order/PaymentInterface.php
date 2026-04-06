@@ -1,8 +1,11 @@
 <?php
+
 /**
  * Payment method interface
  */
 namespace Eventin\Order;
+
+defined( 'ABSPATH' ) || exit;
 
 interface PaymentInterface {
     /**

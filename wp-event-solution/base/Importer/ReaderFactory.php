@@ -13,17 +13,21 @@ class ReaderFactory {
      * @return Reader_Interface
      */
     public static function get_reader( $file ) {
-        $file_name  = ! empty( $file['tmp_name'] ) ? $file['tmp_name'] : '';
-        $file_type  = ! empty( $file['type'] ) ? $file['type'] : '';
+        $file_name = ! empty( $file['tmp_name'] ) ? $file['tmp_name'] : '';
 
+        $finfo     = new \finfo( FILEINFO_MIME_TYPE );
+        $real_mime = $finfo->file( $file_name );
+        $allowed   = [ 'text/plain', 'text/csv', 'application/json' ];
 
-        switch( $file_type ) {
+        if ( ! in_array( $real_mime, $allowed, true ) ) {
+            return new \WP_Error( 'invalid_file_type', esc_html__( 'Please upload a csv or json file', 'eventin' ), [ 'status' => 422 ] );
+        }
+
+        switch( $real_mime ) {
             case 'application/json':
                 return new JSONReader( $file_name );
-            case 'text/csv':
-                return new CSVReader( $file_name );
             default:
-                throw new \Exception( __( 'You must provide a valid file type', 'eventin' ) );
+                return new CSVReader( $file_name );
         }
     }
 }

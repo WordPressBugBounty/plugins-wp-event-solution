@@ -18,14 +18,34 @@ class InfoUpdate {
     public function attendee_info_update_process() {
         if ( isset( $_GET['etn_action'] ) && sanitize_text_field( $_GET['etn_action'] ) === 'edit_information' ) {
 
-            $settings        = Helper::get_settings();
-            $include_phone   = !empty( $settings["reg_require_phone"] ) ? true : false;
-            $include_email   = !empty( $settings["reg_require_email"] ) ? true : false;
-			
-            // render template
-            if( file_exists( \Wpeventin::templates_dir() . "attendee/info-update.php" ) ){
-                include_once \Wpeventin::templates_dir() . "attendee/info-update.php";
+            $get_arr     = filter_input_array( INPUT_GET, FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+            $attendee_id = ! empty( $get_arr['attendee_id'] ) ? intval( $get_arr['attendee_id'] ) : 0;
+            $token       = ! empty( $get_arr['etn_info_edit_token'] ) ? $get_arr['etn_info_edit_token'] : '';
+
+            if ( ! $attendee_id || ! $token || ! Helper::verify_attendee_edit_token( $attendee_id, $token ) ) {
+                Helper::show_attendee_pdf_invalid_data_page();
+                exit;
             }
+
+            // Inject context before the module-purchase script executes.
+            // Must run at wp_enqueue_scripts (priority 10) so the handle is
+            // already registered (registration happens at priority 5).
+            add_action( 'wp_enqueue_scripts', function() use ( $attendee_id, $token ) {
+                wp_add_inline_script(
+                    'etn-module-purchase',
+                    sprintf(
+                        'window._eventin_edit_attendee = %s; window.location.hash = "#/edit-attendee";',
+                        wp_json_encode( [ 'attendee_id' => $attendee_id, 'token' => $token ] )
+                    ),
+                    'before'
+                );
+            }, 10 );
+
+            // Render the React shell (enqueues etn-module-purchase and outputs #eventin-checkout div).
+            if ( file_exists( \Wpeventin::templates_dir() . 'checkout-template.php' ) ) {
+                include_once \Wpeventin::templates_dir() . 'checkout-template.php';
+            }
+            exit;
         }
         return;
     }

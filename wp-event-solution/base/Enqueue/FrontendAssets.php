@@ -48,7 +48,7 @@ class FrontendAssets implements AssetsInterface {
                 'in_footer' => true,
             ],
             'eventin-block-js' => [
-                'src'       => \Wpeventin::plugin_url( 'build/js/index-gutten-block.js' ),
+                'src'       => \Wpeventin::plugin_url( 'build/js/gutenberg-blocks.js' ),
                 'deps'      => [ 'jquery' ],
                 'in_footer' => false,
             ],
@@ -69,9 +69,6 @@ class FrontendAssets implements AssetsInterface {
      */
     public static function get_styles() {
         $styles = [
-            'etn-app-index'     => [
-                'src' => \Wpeventin::plugin_url( 'build/css/index-calendar.css' ),
-            ],
             'etn-ticket-markup' => [
                 'src' => \Wpeventin::plugin_url( 'assets/css/ticket-markup.css' ),
             ],
@@ -80,7 +77,7 @@ class FrontendAssets implements AssetsInterface {
             ],
             'etn-icon' => [
                 'src' => \Wpeventin::plugin_url( 'assets/css/etn-icon.css' )
-            ]
+            ],
         ];
         
         return apply_filters( 'etn_frontend_register_styles', $styles );

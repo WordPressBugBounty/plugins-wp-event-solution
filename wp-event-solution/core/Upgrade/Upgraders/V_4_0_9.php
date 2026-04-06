@@ -1,10 +1,13 @@
 <?php
+
 /**
  * Updater for version 4.0.10
  *
  * @package Eventin\Upgrade
  */
 namespace Eventin\Upgrade\Upgraders;
+
+defined( 'ABSPATH' ) || exit;
 
 use Etn\Core\Attendee\Attendee_Model;
 use Eventin\Order\OrderModel;
@@ -64,7 +67,7 @@ class V_4_0_9 implements UpdateInterface {
                     'payment_method'    => $payment_method,
                     'status'            => $status,
                     'user_id'           => $report->user_id,
-                    'tickets'           => $this->prepare_tickets(maybe_unserialize($report->ticket_variations) ),
+                    'tickets'           => $this->prepare_tickets(etn_safe_decode($report->ticket_variations) ),
                     'total_price'       => $report->event_amount,
                 ];
 

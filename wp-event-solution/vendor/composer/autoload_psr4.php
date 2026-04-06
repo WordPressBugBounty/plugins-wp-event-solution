@@ -6,5 +6,7 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
+    'UninstallerForm\\' => array($vendorDir . '/themewinter/uninstaller_form/src'),
     'Eventin\\' => array($baseDir . '/base', $baseDir . '/core'),
+    'Ens\\' => array($vendorDir . '/themewinter/email-notification-sdk/src'),
 );

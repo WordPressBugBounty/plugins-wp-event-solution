@@ -24,5 +24,11 @@ class Base {
     public function init() {
         // call custom post type
         Hooks::instance()->Init();
+        
+        $is_enable_payment_timer = etn_get_option( 'ticket_purchase_timer_enable', 'off' );
+
+        if ( $is_enable_payment_timer == 'on' ) {
+            new \Eventin\Woocommerce\Payment_Timer();
+        }
     }
 }

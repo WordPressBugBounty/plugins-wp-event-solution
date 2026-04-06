@@ -1,4 +1,4 @@
 <div class="etn-block-components">
-    <h2>Related Events Dynamic Content</h2>
+    <h2><?php echo esc_html__( 'Related Events Dynamic Content', 'eventin' ); ?></h2>
 </div>
 

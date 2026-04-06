@@ -147,7 +147,7 @@ class Etn_Event_Calendar extends Widget_Base {
                         'label_on' => esc_html__( 'Yes', 'eventin' ),
                         'label_off' => esc_html__( 'No', 'eventin' ),
                         'return_value' => 'yes',
-                        'default' => 'no',
+                        'default' => 'yes',
 					]
 				);
         $this->end_controls_section();

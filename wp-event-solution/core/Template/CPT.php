@@ -1,5 +1,8 @@
 <?php
+
 namespace Eventin\Template;
+
+defined( 'ABSPATH' ) || exit;
 
 /**
  * Template custom post type
@@ -48,7 +51,7 @@ class CPT {
             'menu_icon'           => 'dashicons-layout', // Icon for the post type.
             'capability_type'     => 'post', // Default capabilities (can be customized).
             'publicly_queryable'  => true,
-            'show_ui'             => false,
+            'show_ui'             => true,  // Show in Gutendberg editor in admin panel
             'show_in_menu'        => false,
             'menu_position'       => 20, // Position in admin menu.
         ];

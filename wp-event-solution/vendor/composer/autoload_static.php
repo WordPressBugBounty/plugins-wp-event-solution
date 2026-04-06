@@ -4,20 +4,37 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInita681316d01b1247f43d87e0547b28e33
+class ComposerStaticInit51060d1ef7b9244f23975c06b5e403b1
 {
+    public static $files = array (
+        '65bd208c04f25e98cf12b5c37b014f1e' => __DIR__ . '/..' . '/themewinter/email-notification-sdk/src/Utils/global-helpers.php',
+    );
+
     public static $prefixLengthsPsr4 = array (
+        'U' => 
+        array (
+            'UninstallerForm\\' => 16,
+        ),
         'E' => 
         array (
             'Eventin\\' => 8,
+            'Ens\\' => 4,
         ),
     );
 
     public static $prefixDirsPsr4 = array (
+        'UninstallerForm\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/themewinter/uninstaller_form/src',
+        ),
         'Eventin\\' => 
         array (
             0 => __DIR__ . '/../..' . '/base',
             1 => __DIR__ . '/../..' . '/core',
+        ),
+        'Ens\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/themewinter/email-notification-sdk/src',
         ),
     );
 
@@ -34,6 +51,17 @@ class ComposerStaticInita681316d01b1247f43d87e0547b28e33
         'Elementor\\Etn_Speakers' => __DIR__ . '/../..' . '/widgets/speakers/speakers.php',
         'Elementor\\Etn_Upcoming_Event_Tab' => __DIR__ . '/../..' . '/widgets/upcoming-event-tab/upcoming-event-tab.php',
         'Elementor\\Etn_Zoom' => __DIR__ . '/../..' . '/widgets/zoom/zoom.php',
+        'Ens\\Assets\\Enqueue' => __DIR__ . '/..' . '/themewinter/email-notification-sdk/src/Assets/Enqueue.php',
+        'Ens\\Base\\ForwardCalls' => __DIR__ . '/..' . '/themewinter/email-notification-sdk/src/Base/ForwardCalls.php',
+        'Ens\\Base\\PostModel' => __DIR__ . '/..' . '/themewinter/email-notification-sdk/src/Base/PostModel.php',
+        'Ens\\Core\\SDK' => __DIR__ . '/..' . '/themewinter/email-notification-sdk/src/Core/SDK.php',
+        'Ens\\Email\\EmailSender' => __DIR__ . '/..' . '/themewinter/email-notification-sdk/src/Email/EmailSender.php',
+        'Ens\\Flow\\Flow' => __DIR__ . '/..' . '/themewinter/email-notification-sdk/src/Flow/Flow.php',
+        'Ens\\Flow\\FlowAPI' => __DIR__ . '/..' . '/themewinter/email-notification-sdk/src/Flow/FlowAPI.php',
+        'Ens\\Flow\\FlowCPT' => __DIR__ . '/..' . '/themewinter/email-notification-sdk/src/Flow/FlowCPT.php',
+        'Ens\\Flow\\FlowManager' => __DIR__ . '/..' . '/themewinter/email-notification-sdk/src/Flow/FlowManager.php',
+        'Ens\\Hook\\ActionListener' => __DIR__ . '/..' . '/themewinter/email-notification-sdk/src/Hook/ActionListener.php',
+        'Ens\\Utils\\Helpers' => __DIR__ . '/..' . '/themewinter/email-notification-sdk/src/Utils/Helpers.php',
         'Etn\\Base\\Api_Handler' => __DIR__ . '/../..' . '/base/api-handler.php',
         'Etn\\Base\\Cpt' => __DIR__ . '/../..' . '/base/cpt.php',
         'Etn\\Base\\Post_Model' => __DIR__ . '/../..' . '/base/post-model.php',
@@ -41,7 +69,7 @@ class ComposerStaticInita681316d01b1247f43d87e0547b28e33
         'Etn\\Base\\Taxonomy' => __DIR__ . '/../..' . '/base/taxonomy.php',
         'Etn\\Core\\Addons\\Helper' => __DIR__ . '/../..' . '/core/Extensions/helper.php',
         'Etn\\Core\\Addons\\Plugin_Status' => __DIR__ . '/../..' . '/core/Extensions/plugin-status.php',
-        'Etn\\Core\\Admin\\Hooks' => __DIR__ . '/../..' . '/core/Admin/Hooks.php',
+        'Etn\\Core\\Admin\\Hooks' => __DIR__ . '/../..' . '/core/Admin/hooks.php',
         'Etn\\Core\\Attendee\\Attendee_Model' => __DIR__ . '/../..' . '/core/Attendee/attendee-model.php',
         'Etn\\Core\\Attendee\\Cpt' => __DIR__ . '/../..' . '/core/Attendee/cpt.php',
         'Etn\\Core\\Attendee\\InfoUpdate' => __DIR__ . '/../..' . '/core/Attendee/info-update.php',
@@ -53,6 +81,7 @@ class ComposerStaticInita681316d01b1247f43d87e0547b28e33
         'Etn\\Core\\Event\\Event_Model' => __DIR__ . '/../..' . '/core/event/event-model.php',
         'Etn\\Core\\Event\\Helper' => __DIR__ . '/../..' . '/core/event/helper.php',
         'Etn\\Core\\Event\\Hooks' => __DIR__ . '/../..' . '/core/event/hooks.php',
+        'Etn\\Core\\Event\\Pages\\Event_single_post' => __DIR__ . '/../..' . '/core/event/pages/event-single-post.php',
         'Etn\\Core\\Event\\Tags' => __DIR__ . '/../..' . '/core/event/tags.php',
         'Etn\\Core\\Modules\\Eventin_Ai\\Admin\\Admin' => __DIR__ . '/../..' . '/core/modules/eventin-ai/admin/admin.php',
         'Etn\\Core\\Modules\\Eventin_Ai\\Eventin_AI' => __DIR__ . '/../..' . '/core/modules/eventin-ai/eventin-ai.php',
@@ -73,6 +102,7 @@ class ComposerStaticInita681316d01b1247f43d87e0547b28e33
         'Etn\\Core\\Woocommerce\\Base' => __DIR__ . '/../..' . '/core/woocommerce/base.php',
         'Etn\\Core\\Woocommerce\\Hooks' => __DIR__ . '/../..' . '/core/woocommerce/hooks.php',
         'Etn\\Templates\\Event\\Parts\\EventDetailsParts' => __DIR__ . '/../..' . '/templates/event/parts/event-details-parts.php',
+        'Etn\\Templates\\Event\\Parts\\EventDetailsPartsPro' => __DIR__ . '/../..' . '/templates/event/parts/event-details-parts-pro.php',
         'Etn\\Traits\\Singleton' => __DIR__ . '/../..' . '/traits/singleton.php',
         'Etn\\Utils\\Font\\Unifont\\TTFontFile' => __DIR__ . '/../..' . '/utils/font/unifont/ttfonts.php',
         'Etn\\Utils\\Helper' => __DIR__ . '/../..' . '/utils/helper.php',
@@ -101,17 +131,57 @@ class ComposerStaticInita681316d01b1247f43d87e0547b28e33
         'Eventin\\Attendee\\AttendeeProvider' => __DIR__ . '/../..' . '/core/Attendee/AttendeeProvider.php',
         'Eventin\\Attendee\\Attendee\\TicketIdGenerator' => __DIR__ . '/../..' . '/core/Attendee/TicketIdGenerator.php',
         'Eventin\\Attendee\\Hooks' => __DIR__ . '/../..' . '/core/Attendee/Hooks.php',
+        'Eventin\\Attendee\\RsvpExporter' => __DIR__ . '/../..' . '/core/Attendee/RsvpExporter.php',
+        'Eventin\\Attendee\\RsvpImporter' => __DIR__ . '/../..' . '/core/Attendee/RsvpImporter.php',
         'Eventin\\Attendee\\TicketTemplate' => __DIR__ . '/../..' . '/core/Attendee/TicketTemplate.php',
         'Eventin\\Base\\Speaker_role' => __DIR__ . '/../..' . '/core/speaker/speaker-role.php',
+        'Eventin\\Blocks\\BlockLegacySupportHooks' => __DIR__ . '/../..' . '/core/Blocks/BlockLegacySupportHooks.php',
         'Eventin\\Blocks\\BlockProvider' => __DIR__ . '/../..' . '/core/Blocks/BlockProvider.php',
+        'Eventin\\Blocks\\BlockService' => __DIR__ . '/../..' . '/core/Blocks/BlockService.php',
         'Eventin\\Blocks\\BlockTypesController' => __DIR__ . '/../..' . '/core/Blocks/BlockTypesController.php',
         'Eventin\\Blocks\\BlockTypes\\AbstractBlock' => __DIR__ . '/../..' . '/core/Blocks/BlockTypes/AbstractBlock.php',
+        'Eventin\\Blocks\\BlockTypes\\AttendeeInfo' => __DIR__ . '/../..' . '/core/Blocks/BlockTypes/AttendeeInfo.php',
+        'Eventin\\Blocks\\BlockTypes\\BuyTicket' => __DIR__ . '/../..' . '/core/Blocks/BlockTypes/BuyTicket.php',
+        'Eventin\\Blocks\\BlockTypes\\Container' => __DIR__ . '/../..' . '/core/Blocks/BlockTypes/Container.php',
+        'Eventin\\Blocks\\BlockTypes\\CustomButton' => __DIR__ . '/../..' . '/core/Blocks/BlockTypes/CustomButton.php',
+        'Eventin\\Blocks\\BlockTypes\\CustomImage' => __DIR__ . '/../..' . '/core/Blocks/BlockTypes/CustomImage.php',
+        'Eventin\\Blocks\\BlockTypes\\DiamondSeparator' => __DIR__ . '/../..' . '/core/Blocks/BlockTypes/DiamondSeparator.php',
+        'Eventin\\Blocks\\BlockTypes\\EventAddToCalender' => __DIR__ . '/../..' . '/core/Blocks/BlockTypes/EventAddToCalender.php',
+        'Eventin\\Blocks\\BlockTypes\\EventAttendee' => __DIR__ . '/../..' . '/core/Blocks/BlockTypes/EventAttendee.php',
+        'Eventin\\Blocks\\BlockTypes\\EventBanner' => __DIR__ . '/../..' . '/core/Blocks/BlockTypes/EventBanner.php',
+        'Eventin\\Blocks\\BlockTypes\\EventCalendar' => __DIR__ . '/../..' . '/core/Blocks/BlockTypes/EventCalendar.php',
+        'Eventin\\Blocks\\BlockTypes\\EventCategory' => __DIR__ . '/../..' . '/core/Blocks/BlockTypes/EventCategory.php',
+        'Eventin\\Blocks\\BlockTypes\\EventCountDownTimer' => __DIR__ . '/../..' . '/core/Blocks/BlockTypes/EventCountDownTimer.php',
+        'Eventin\\Blocks\\BlockTypes\\EventDateTime' => __DIR__ . '/../..' . '/core/Blocks/BlockTypes/EventDateTime.php',
+        'Eventin\\Blocks\\BlockTypes\\EventDescription' => __DIR__ . '/../..' . '/core/Blocks/BlockTypes/EventDescription.php',
+        'Eventin\\Blocks\\BlockTypes\\EventFaq' => __DIR__ . '/../..' . '/core/Blocks/BlockTypes/EventFaq.php',
         'Eventin\\Blocks\\BlockTypes\\EventImage' => __DIR__ . '/../..' . '/core/Blocks/BlockTypes/EventImage.php',
+        'Eventin\\Blocks\\BlockTypes\\EventInfo' => __DIR__ . '/../..' . '/core/Blocks/BlockTypes/EventInfo.php',
+        'Eventin\\Blocks\\BlockTypes\\EventList' => __DIR__ . '/../..' . '/core/Blocks/BlockTypes/EventList.php',
+        'Eventin\\Blocks\\BlockTypes\\EventLogo' => __DIR__ . '/../..' . '/core/Blocks/BlockTypes/EventLogo.php',
+        'Eventin\\Blocks\\BlockTypes\\EventOrganizer' => __DIR__ . '/../..' . '/core/Blocks/BlockTypes/EventOrganizer.php',
+        'Eventin\\Blocks\\BlockTypes\\EventRSVP' => __DIR__ . '/../..' . '/core/Blocks/BlockTypes/EventRSVP.php',
+        'Eventin\\Blocks\\BlockTypes\\EventSchedule' => __DIR__ . '/../..' . '/core/Blocks/BlockTypes/EventSchedule.php',
+        'Eventin\\Blocks\\BlockTypes\\EventSocial' => __DIR__ . '/../..' . '/core/Blocks/BlockTypes/EventSocial.php',
+        'Eventin\\Blocks\\BlockTypes\\EventSpeaker' => __DIR__ . '/../..' . '/core/Blocks/BlockTypes/EventSpeaker.php',
+        'Eventin\\Blocks\\BlockTypes\\EventTag' => __DIR__ . '/../..' . '/core/Blocks/BlockTypes/EventTag.php',
+        'Eventin\\Blocks\\BlockTypes\\EventTitle' => __DIR__ . '/../..' . '/core/Blocks/BlockTypes/EventTitle.php',
+        'Eventin\\Blocks\\BlockTypes\\EventVenue' => __DIR__ . '/../..' . '/core/Blocks/BlockTypes/EventVenue.php',
         'Eventin\\Blocks\\BlockTypes\\Faq' => __DIR__ . '/../..' . '/core/Blocks/BlockTypes/Faq.php',
         'Eventin\\Blocks\\BlockTypes\\Organizer' => __DIR__ . '/../..' . '/core/Blocks/BlockTypes/Organizer.php',
+        'Eventin\\Blocks\\BlockTypes\\QRCodeBlock' => __DIR__ . '/../..' . '/core/Blocks/BlockTypes/QRCodeBlock.php',
+        'Eventin\\Blocks\\BlockTypes\\RecurringEvent' => __DIR__ . '/../..' . '/core/Blocks/BlockTypes/RecurringEvent.php',
         'Eventin\\Blocks\\BlockTypes\\RelatedEvents' => __DIR__ . '/../..' . '/core/Blocks/BlockTypes/RelatedEvents.php',
+        'Eventin\\Blocks\\BlockTypes\\RelatedEventsEnhanced' => __DIR__ . '/../..' . '/core/Blocks/BlockTypes/RelatedEventsEnhanced.php',
+        'Eventin\\Blocks\\BlockTypes\\ScheduleTab' => __DIR__ . '/../..' . '/core/Blocks/BlockTypes/ScheduleTab.php',
         'Eventin\\Blocks\\BlockTypes\\Speaker' => __DIR__ . '/../..' . '/core/Blocks/BlockTypes/Speaker.php',
+        'Eventin\\Blocks\\BlockTypes\\SpeakerList' => __DIR__ . '/../..' . '/core/Blocks/BlockTypes/SpeakerList.php',
         'Eventin\\Blocks\\BlockTypes\\Tags' => __DIR__ . '/../..' . '/core/Blocks/BlockTypes/Tags.php',
+        'Eventin\\Blocks\\BlockTypes\\TemplateContainer' => __DIR__ . '/../..' . '/core/Blocks/BlockTypes/TemplateContainer.php',
+        'Eventin\\Blocks\\BlockTypes\\TemplateHeading' => __DIR__ . '/../..' . '/core/Blocks/BlockTypes/TemplateHeading.php',
+        'Eventin\\Blocks\\BlockTypes\\Ticket' => __DIR__ . '/../..' . '/core/Blocks/BlockTypes/Ticket.php',
+        'Eventin\\Blocks\\BlockTypes\\TicketInfo' => __DIR__ . '/../..' . '/core/Blocks/BlockTypes/TicketInfo.php',
+        'Eventin\\Blocks\\BlockTypes\\ZoomMeeting' => __DIR__ . '/../..' . '/core/Blocks/BlockTypes/ZoomMeeting.php',
         'Eventin\\Bootstrap' => __DIR__ . '/../..' . '/base/Bootstrap.php',
         'Eventin\\Container\\Container' => __DIR__ . '/../..' . '/base/Container/Container.php',
         'Eventin\\Container\\ContainerExceptionInterface' => __DIR__ . '/../..' . '/base/Container/ContainerExceptionInterface.php',
@@ -130,6 +200,8 @@ class ComposerStaticInita681316d01b1247f43d87e0547b28e33
         'Eventin\\Emails\\AttendeeEventReminderEmail' => __DIR__ . '/../..' . '/core/Emails/AttendeeEventReminderEmail.php',
         'Eventin\\Emails\\AttendeeOrderEmail' => __DIR__ . '/../..' . '/core/Emails/AttendeeOrderEmail.php',
         'Eventin\\Emails\\AttendeeRsvpEmail' => __DIR__ . '/../..' . '/core/Emails/AttendeeRsvpEmail.php',
+        'Eventin\\Emails\\EmailHookProvider' => __DIR__ . '/../..' . '/core/Emails/EmailHookProvider.php',
+        'Eventin\\Emails\\EnsHooks' => __DIR__ . '/../..' . '/core/Emails/EnsHooks.php',
         'Eventin\\Emails\\ExampleEmail' => __DIR__ . '/../..' . '/core/Emails/ExampleEmail.php',
         'Eventin\\Enqueue\\Admin' => __DIR__ . '/../..' . '/base/Enqueue/admin.php',
         'Eventin\\Enqueue\\AdminAssets' => __DIR__ . '/../..' . '/base/Enqueue/AdminAssets.php',
@@ -141,9 +213,13 @@ class ComposerStaticInita681316d01b1247f43d87e0547b28e33
         'Eventin\\Event\\Api\\EventController' => __DIR__ . '/../..' . '/core/event/Api/EventController.php',
         'Eventin\\Event\\Api\\EventTagController' => __DIR__ . '/../..' . '/core/event/Api/EventTagController.php',
         'Eventin\\Event\\Api\\TransactionController' => __DIR__ . '/../..' . '/core/event/Api/TransactionController.php',
+        'Eventin\\Event\\CategoryExporter' => __DIR__ . '/../..' . '/core/event/CategoryExporter.php',
+        'Eventin\\Event\\CategoryImporter' => __DIR__ . '/../..' . '/core/event/CategoryImporter.php',
         'Eventin\\Event\\EventExporter' => __DIR__ . '/../..' . '/core/event/EventExporter.php',
         'Eventin\\Event\\EventImporter' => __DIR__ . '/../..' . '/core/event/EventImporter.php',
         'Eventin\\Event\\EventProvider' => __DIR__ . '/../..' . '/core/event/EventProvider.php',
+        'Eventin\\Event\\EventTagExporter' => __DIR__ . '/../..' . '/core/event/EventTagExporter.php',
+        'Eventin\\Event\\EventTagImporter' => __DIR__ . '/../..' . '/core/event/EventTagImporter.php',
         'Eventin\\Event\\EventTemplate' => __DIR__ . '/../..' . '/core/event/EventTemplate.php',
         'Eventin\\Event\\MeetingPlatforms\\MeetingPlatform' => __DIR__ . '/../..' . '/core/event/MeetingPlatforms/MeetingPlatform.php',
         'Eventin\\Eventin' => __DIR__ . '/../..' . '/base/Eventin.php',
@@ -156,6 +232,7 @@ class ComposerStaticInita681316d01b1247f43d87e0547b28e33
         'Eventin\\Extensions\\Api\\ExtensionController' => __DIR__ . '/../..' . '/core/Extensions/Api/ExtensionController.php',
         'Eventin\\Extensions\\Extension' => __DIR__ . '/../..' . '/core/Extensions/Extension.php',
         'Eventin\\Extensions\\ExtensionIcon' => __DIR__ . '/../..' . '/core/Extensions/ExtensionIcon.php',
+        'Eventin\\Extensions\\ImportAutomation' => __DIR__ . '/../..' . '/core/Extensions/ImportAutomation.php',
         'Eventin\\Extensions\\PluginManager' => __DIR__ . '/../..' . '/core/Extensions/PluginManager.php',
         'Eventin\\Importer\\CSVReader' => __DIR__ . '/../..' . '/base/Importer/CSVReader.php',
         'Eventin\\Importer\\JSONReader' => __DIR__ . '/../..' . '/base/Importer/JSONReader.php',
@@ -167,6 +244,7 @@ class ComposerStaticInita681316d01b1247f43d87e0547b28e33
         'Eventin\\Installer' => __DIR__ . '/../..' . '/base/Installer.php',
         'Eventin\\Integrations\\CustomUrl' => __DIR__ . '/../..' . '/core/Integrations/CustomUrl.php',
         'Eventin\\Integrations\\Integration' => __DIR__ . '/../..' . '/core/Integrations/Integration.php',
+        'Eventin\\Integrations\\LocalPayment\\LocalPayment' => __DIR__ . '/../..' . '/core/Integrations/LocalPayment/LocalPayment.php',
         'Eventin\\Integrations\\WC\\WCPayment' => __DIR__ . '/../..' . '/core/Integrations/WC/WCPayment.php',
         'Eventin\\Integrations\\Webhook\\FluentCRM' => __DIR__ . '/../..' . '/core/Integrations/Webhook/FluentCRM.php',
         'Eventin\\Integrations\\Webhook\\WebhookIntegration' => __DIR__ . '/../..' . '/core/Integrations/Webhook/WebhookIntegration.php',
@@ -209,41 +287,63 @@ class ComposerStaticInita681316d01b1247f43d87e0547b28e33
         'Eventin\\Schedule\\ScheduleTemplate' => __DIR__ . '/../..' . '/core/schedule/ScheduleTemplate.php',
         'Eventin\\Settings' => __DIR__ . '/../..' . '/base/Settings.php',
         'Eventin\\Settings\\Api\\SettingsController' => __DIR__ . '/../..' . '/core/settings/Api/SettingsController.php',
+        'Eventin\\SetupNotification\\Api\\SetupNotification' => __DIR__ . '/../..' . '/core/SetupNotification/Api/SetupNotification.php',
         'Eventin\\Speaker\\Api\\SpeakerCategoryController' => __DIR__ . '/../..' . '/core/speaker/Api/SpeakerCategoryController.php',
         'Eventin\\Speaker\\Api\\SpeakerController' => __DIR__ . '/../..' . '/core/speaker/Api/SpeakerController.php',
         'Eventin\\Speaker\\SpeakerExporter' => __DIR__ . '/../..' . '/core/speaker/SpeakerExporter.php',
         'Eventin\\Speaker\\SpeakerImporter' => __DIR__ . '/../..' . '/core/speaker/SpeakerImporter.php',
         'Eventin\\Speaker\\SpeakerProvider' => __DIR__ . '/../..' . '/core/speaker/SpeakerProvider.php',
         'Eventin\\Speaker\\SpeakerTemplate' => __DIR__ . '/../..' . '/core/speaker/SpeakerTemplate.php',
+        'Eventin\\Template\\Api\\TemplateBuilderController' => __DIR__ . '/../..' . '/core/Template/Api/TemplateBuilderController.php',
         'Eventin\\Template\\Api\\TemplateController' => __DIR__ . '/../..' . '/core/Template/Api/TemplateController.php',
         'Eventin\\Template\\CPT' => __DIR__ . '/../..' . '/core/Template/CPT.php',
         'Eventin\\Template\\DefaultTemplate' => __DIR__ . '/../..' . '/core/Template/DefaultTemplate.php',
+        'Eventin\\Template\\EtnHomepageHooks' => __DIR__ . '/../..' . '/core/Template/EtnHomePageHooks.php',
+        'Eventin\\Template\\StaticTemplate' => __DIR__ . '/../..' . '/core/Template/StaticTemplate.php',
+        'Eventin\\Template\\TemplateBlockAssets' => __DIR__ . '/../..' . '/core/Template/TemplateBlockAssets.php',
+        'Eventin\\Template\\TemplateLimitHooks' => __DIR__ . '/../..' . '/core/Template/TemplateLimitHooks.php',
+        'Eventin\\Template\\TemplateLoader' => __DIR__ . '/../..' . '/core/Template/TemplateLoader.php',
         'Eventin\\Template\\TemplateModel' => __DIR__ . '/../..' . '/core/Template/TemplateModel.php',
+        'Eventin\\Template\\TemplateProvider' => __DIR__ . '/../..' . '/core/Template/TemplateProvider.php',
         'Eventin\\Traits\\Singleton' => __DIR__ . '/../..' . '/base/Traits/Singleton.php',
         'Eventin\\Upgrade\\Upgrade' => __DIR__ . '/../..' . '/core/Upgrade/Upgrade.php',
         'Eventin\\Upgrade\\Upgraders\\UpdateInterface' => __DIR__ . '/../..' . '/core/Upgrade/Upgraders/UpdateInterface.php',
         'Eventin\\Upgrade\\Upgraders\\V_3_3_57' => __DIR__ . '/../..' . '/core/Upgrade/Upgraders/V_3_3_57.php',
         'Eventin\\Upgrade\\Upgraders\\V_4_0_0' => __DIR__ . '/../..' . '/core/Upgrade/Upgraders/V_4_0_0.php',
         'Eventin\\Upgrade\\Upgraders\\V_4_0_2' => __DIR__ . '/../..' . '/core/Upgrade/Upgraders/V_4_0_2.php',
+        'Eventin\\Upgrade\\Upgraders\\V_4_0_29' => __DIR__ . '/../..' . '/core/Upgrade/Upgraders/V_4_0_29.php',
+        'Eventin\\Upgrade\\Upgraders\\V_4_0_33' => __DIR__ . '/../..' . '/core/Upgrade/Upgraders/V_4_0_33.php',
         'Eventin\\Upgrade\\Upgraders\\V_4_0_4' => __DIR__ . '/../..' . '/core/Upgrade/Upgraders/V_4_0_4.php',
+        'Eventin\\Upgrade\\Upgraders\\V_4_0_50' => __DIR__ . '/../..' . '/core/Upgrade/Upgraders/V_4_0_50.php',
         'Eventin\\Upgrade\\Upgraders\\V_4_0_6' => __DIR__ . '/../..' . '/core/Upgrade/Upgraders/V_4_0_6.php',
         'Eventin\\Upgrade\\Upgraders\\V_4_0_7' => __DIR__ . '/../..' . '/core/Upgrade/Upgraders/V_4_0_7.php',
         'Eventin\\Upgrade\\Upgraders\\V_4_0_8' => __DIR__ . '/../..' . '/core/Upgrade/Upgraders/V_4_0_8.php',
         'Eventin\\Upgrade\\Upgraders\\V_4_0_9' => __DIR__ . '/../..' . '/core/Upgrade/Upgraders/V_4_0_9.php',
+        'Eventin\\Upgrade\\Upgraders\\V_4_1_2' => __DIR__ . '/../..' . '/core/Upgrade/Upgraders/V_4_1_2.php',
+        'Eventin\\Utils\\Banner\\Banner' => __DIR__ . '/../..' . '/utils/banner/banner.php',
+        'Eventin\\Utils\\Notice\\Notice' => __DIR__ . '/../..' . '/utils/notice/Notice.php',
+        'Eventin\\Utils\\Rating\\Rating' => __DIR__ . '/../..' . '/utils/rating/Rating.php',
+        'Eventin\\Utils\\Stories\\Stories' => __DIR__ . '/../..' . '/utils/stories/Stories.php',
+        'Eventin\\Utils\\UtilityPackages' => __DIR__ . '/../..' . '/utils/UtilityPackages.php',
         'Eventin\\Validation\\RuleMap' => __DIR__ . '/../..' . '/base/Validation/RuleMap.php',
         'Eventin\\Validation\\Rules\\RequiredRule' => __DIR__ . '/../..' . '/base/Validation/Rules/RequiredRule.php',
         'Eventin\\Validation\\Rules\\Rule' => __DIR__ . '/../..' . '/base/Validation/Rules/Rule.php',
         'Eventin\\Validation\\Validator' => __DIR__ . '/../..' . '/base/Validation/Validator.php',
-        'Wpmet\\Libs\\Banner' => __DIR__ . '/../..' . '/utils/banner/banner.php',
+        'Eventin\\Woocommerce\\Payment_Timer' => __DIR__ . '/../..' . '/core/woocommerce/payment-timer.php',
+        'UninstallerForm\\Api\\FeedbackController' => __DIR__ . '/..' . '/themewinter/uninstaller_form/src/Api/FeedbackController.php',
+        'UninstallerForm\\HookRegistrar' => __DIR__ . '/..' . '/themewinter/uninstaller_form/src/HookRegistrar.php',
+        'UninstallerForm\\Support\\GoogleSheetClient' => __DIR__ . '/..' . '/themewinter/uninstaller_form/src/Support/GoogleSheetClient.php',
+        'UninstallerForm\\Support\\Localizer' => __DIR__ . '/..' . '/themewinter/uninstaller_form/src/Support/Localizer.php',
+        'UninstallerForm\\UninstallerForm' => __DIR__ . '/..' . '/themewinter/uninstaller_form/src/UninstallerForm.php',
         'Wpmet\\Libs\\Pro_Awareness' => __DIR__ . '/../..' . '/utils/pro-awareness/pro-awareness.php',
     );
 
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInita681316d01b1247f43d87e0547b28e33::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInita681316d01b1247f43d87e0547b28e33::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInita681316d01b1247f43d87e0547b28e33::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit51060d1ef7b9244f23975c06b5e403b1::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit51060d1ef7b9244f23975c06b5e403b1::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit51060d1ef7b9244f23975c06b5e403b1::$classMap;
 
         }, null, ClassLoader::class);
     }

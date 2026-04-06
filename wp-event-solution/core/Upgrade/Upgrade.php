@@ -1,5 +1,8 @@
 <?php
+
 namespace Eventin\Upgrade;
+
+defined( 'ABSPATH' ) || exit;
 
 use Eventin\Eventin;
 use Eventin\Upgrade\Upgraders\UpdateInterface;
@@ -10,6 +13,10 @@ use Eventin\Upgrade\Upgraders\V_4_0_6;
 use Eventin\Upgrade\Upgraders\V_4_0_7;
 use Eventin\Upgrade\Upgraders\V_4_0_8;
 use Eventin\Upgrade\Upgraders\V_4_0_9;
+use Eventin\Upgrade\Upgraders\V_4_0_29;
+use Eventin\Upgrade\Upgraders\V_4_0_33;
+use Eventin\Upgrade\Upgraders\V_4_0_50;
+use Eventin\Upgrade\Upgraders\V_4_1_2;
 use Wpeventin;
 
 /**
@@ -31,6 +38,9 @@ class Upgrade {
         '4.0.7' => V_4_0_7::class,
         '4.0.8' => V_4_0_8::class,
         '4.0.9' => V_4_0_9::class,
+        '4.0.33' => V_4_0_33::class,
+        '4.0.50' => V_4_0_50::class,
+        '4.1.2'  => V_4_1_2::class,
     ];
 
     /**
@@ -67,7 +77,7 @@ class Upgrade {
                 continue;
             }
 
-            if ( version_compare( $version, $current_version, '<=' ) ) {
+            if ( version_compare( $version, $current_version, '<' ) ) {
                 continue;
             }
 

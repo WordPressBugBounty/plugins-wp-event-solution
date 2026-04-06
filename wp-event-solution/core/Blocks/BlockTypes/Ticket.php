@@ -1,9 +1,12 @@
 <?php
+
 namespace Eventin\Blocks\BlockTypes;
+
+defined( 'ABSPATH' ) || exit;
 /**
  * RelatedEvents Class.
  */
-class RelatedEvents extends AbstractBlock {
+class Ticket extends AbstractBlock {
     /**
      * Block name.
      *

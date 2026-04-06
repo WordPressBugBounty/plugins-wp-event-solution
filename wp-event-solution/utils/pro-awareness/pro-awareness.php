@@ -14,7 +14,6 @@ if(!class_exists('\Wpmet\Libs\Pro_Awareness')) :
 		private $text_domain;
 		private $plugin_file;
 		private $parent_menu_slug;
-		private $menu_slug = '_get_help';
 		private $default_grid_link  = 'https://themewinter.com/support/';
 		private $default_grid_title = 'Documentation';
 		private $default_grid_thumbnail = '';
@@ -114,14 +113,6 @@ if(!class_exists('\Wpmet\Libs\Pro_Awareness')) :
 			return $this;
 		}
 
-
-		public function set_menu_slug($slug) {
-
-			$this->menu_slug = $slug;
-
-			return $this;
-		}
-
 		public function set_plugin_file($plugin_file) {
 
 			$this->plugin_file = $plugin_file;
@@ -137,7 +128,7 @@ if(!class_exists('\Wpmet\Libs\Pro_Awareness')) :
 
 			$this->pro_link_conf[] = [
 				'url'        => $url,
-				'anchor'     => empty($conf['anchor']) ? '<span style="color: #FCB214;" class="pro_aware pro">Go Pro</span>' : $conf['anchor'],
+				'anchor'     => empty($conf['anchor']) ? '<span style="color: #FCB214;" class="pro_aware pro">Upgrade to Pro</span>' : $conf['anchor'],
 				'permission' => empty($conf['permission']) ? 'manage_options' : $conf['permission'],
 			];
 
@@ -179,14 +170,6 @@ if(!class_exists('\Wpmet\Libs\Pro_Awareness')) :
 
 					add_submenu_page($this->parent_menu_slug, $conf['anchor'], $conf['anchor'], $conf['permission'], $conf['url'], '');
 				}
-			}
-		}
-
-		protected function prepare_grid_links() {
-
-			if(!empty($this->grids)) {
-
-				add_submenu_page($this->parent_menu_slug, $this->parent_menu_text, $this->parent_menu_text, 'manage_options', $this->text_domain . $this->menu_slug, [$this, 'generate_grids']);
 			}
 		}
 
@@ -675,7 +658,6 @@ if(!class_exists('\Wpmet\Libs\Pro_Awareness')) :
 			add_filter('plugin_row_meta', [$this, 'insert_plugin_row_meta'], 10, 2);
 
 			if(!empty($this->parent_menu_slug)) {
-				$this->prepare_grid_links();
 				$this->prepare_pro_links();
 			}
 		}

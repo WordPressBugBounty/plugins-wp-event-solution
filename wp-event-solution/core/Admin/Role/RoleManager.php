@@ -1,5 +1,8 @@
 <?php
+
 namespace Eventin\Admin\Role;
+
+defined( 'ABSPATH' ) || exit;
 use Eventin\Interfaces\HookableInterface;
 
 /**

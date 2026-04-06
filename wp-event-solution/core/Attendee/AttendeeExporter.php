@@ -1,10 +1,13 @@
 <?php
+
 /**
  * Attendee Exporter Class
  *
  * @package Eventin
  */
 namespace Eventin\Attendee;
+
+defined( 'ABSPATH' ) || exit;
 
 use Eventin\Exporter\ExporterFactory;
 use Eventin\Exporter\PostExporterInterface;
@@ -106,10 +109,21 @@ class AttendeeExporter implements PostExporterInterface {
         }
 
         if ( $extra_fields ) {
-            foreach ( $extra_fields as $value ) {
-                $key                        = \Etn_Pro\Utils\Helper::generate_name_from_label( "etn_attendee_extra_field_", $value['label'] );
-                $this->extra_fields[$key]   = $value['label'];
-                $extra_field_value          = get_post_meta( $attendee_id, $key, true );
+            foreach ( $extra_fields as $index=>$value ) {
+                // Build slug matching the frontend key convention:
+                // trim → lowercase → strip non-word/non-space → replace spaces with _.
+                // rtrim removes a trailing _ that PHP regex leaves for labels ending in
+                // special chars (e.g. "before?" → "before_" → rtrim → "before").
+                $field_id          = ! empty( $value['id'] ) ? $value['id'] : ( $index + 1 );
+                $slug              = rtrim( \Etn_Pro\Utils\Helper::get_name_structure_from_label( $value['label'] ), '_' );
+                $key               = 'etn_attendee_extra_field_' . $slug . '_' . $field_id;
+                $this->extra_fields[$key] = $value['label'];
+                $extra_field_value = get_post_meta( $attendee_id, $key, true );
+                // Backward-compat: legacy entries stored without the _{id} suffix.
+                if ( '' === $extra_field_value || false === $extra_field_value ) {
+                    $legacy_key        = 'etn_attendee_extra_field_' . $slug;
+                    $extra_field_value = get_post_meta( $attendee_id, $legacy_key, true );
+                }
                 switch($value['field_type']){
                     case 'radio':
                         $data[$key] = $extra_field_value;
@@ -131,7 +145,7 @@ class AttendeeExporter implements PostExporterInterface {
                     break;
 
                     default:
-                        $data[$key] = get_post_meta( $attendee_id, $key, true );
+                        $data[$key] = $extra_field_value;
                 }
             }
         }

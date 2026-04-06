@@ -1,10 +1,13 @@
 <?php
+
 /**
  * Template Model class
  * 
  * @package Eventin
  */
 namespace Eventin\Template;
+
+defined( 'ABSPATH' ) || exit;
 
 use Etn\Base\Post_Model;
 use Etn\Core\Attendee\Attendee_Model;
@@ -33,6 +36,10 @@ class TemplateModel extends Post_Model {
         'is_pro'        => '',
         'thumbnail'     => '',
         'template_css'  => '',
+        'template_builder' => '',
+        'preview_event_id' => '',
+        'width'        => '',
+        'height'       => '',
     ];
 
     /**
@@ -59,6 +66,14 @@ class TemplateModel extends Post_Model {
         }
 
         return $post->post_title;
+    }
+
+    public function get_width() {
+        return $this->width;
+    }
+
+    public function get_height() {
+        return $this->height;
     }
 
     /**
@@ -110,6 +125,15 @@ class TemplateModel extends Post_Model {
     }
 
     /**
+     * Get the template builder used to make this template
+     * 
+     * @return string The id of the template builder. Can be 'elementor', 'gutenberg'
+     */
+    public function get_template_builder() {
+        return $this->template_builder;
+    }
+
+    /**
      * Get placeholders
      *
      * @return  array
@@ -121,33 +145,79 @@ class TemplateModel extends Post_Model {
         $date_format = get_option( 'date_format' );
 		$time_format = get_option( 'time_format' );
 
-		$start_date   = date( $date_format, strtotime( $event->etn_start_date ) );
-		$end_date     = date( $date_format, strtotime( $event->etn_end_date ) );
+		$wp_timezone = wp_timezone();
 
 		$start_date_time = $event->etn_start_date . ' ' . $event->etn_start_time;
+		$end_date_time   = $event->etn_end_date . ' ' . $event->etn_end_time;
 
-		$end_date_time = $event->etn_end_date . ' ' . $event->etn_end_time;
+		$start_dt = new \DateTime( $start_date_time, $wp_timezone );
+		$end_dt   = new \DateTime( $end_date_time, $wp_timezone );
 
-		$start_time	  = date( $time_format, strtotime( $start_date_time ) );
-		$end_time	  = date( $time_format, strtotime( $end_date_time ) );
+		$start_date = wp_date( $date_format, $start_dt->getTimestamp() );
+		$end_date   = wp_date( $date_format, $end_dt->getTimestamp() );
+		$start_time = wp_date( $time_format, $start_dt->getTimestamp() );
+		$end_time   = wp_date( $time_format, $end_dt->getTimestamp() );
 
         return [
-            '{{event_title}}'       => $event->get_title(),
-            '{{event_location}}'    => $event->get_address(),
-            '{{event_start_date}}'  => $start_date,
-            '{{event_end_date}}'    => $end_date,
-            '{{event_start_time}}'  => $start_time,
-            '{{event_end_time}}'    => $end_time,
-            '{{event_timezone}}'    => $event->event_timezone,
-            '{{ticket_price}}'      => $attendee->etn_ticket_price,
-            '{{ticket_type}}'       => $attendee->ticket_name,
-            '{{payment_status}}'    => $attendee->etn_status,
-            '{{ticket_id}}'         => $attendee->etn_unique_ticket_id,
-            '{{attendee_name}}'     => $attendee->etn_name,
-            '{{attendee_email}}'    => $attendee->etn_email,
-            '{{attendee_phone}}'    => $attendee->etn_phone,
-            '{{extra_fields}}'      => $attendee->get_extra_fields_content(),
+            '{{event_title}}'       => esc_html( $event->get_title() ),
+            '{{event_location}}'    => esc_html( $event->get_address() ),
+            '{{event_start_date}}'  => esc_html( $start_date ),
+            '{{event_end_date}}'    => esc_html( $end_date ),
+            '{{event_start_time}}'  => esc_html( $start_time ),
+            '{{event_end_time}}'    => esc_html( $end_time ),
+            '{{event_timezone}}'    => esc_html( $event->event_timezone ),
+            '{{ticket_price}}'      => esc_html( $attendee->etn_ticket_price ),
+            '{{ticket_type}}'       => esc_html( $attendee->ticket_name ),
+            '{{attendee_seat}}'     => esc_html( $attendee->attendee_seat ),
+            '{{payment_status}}'    => esc_html( $attendee->etn_status ),
+            '{{ticket_id}}'         => esc_html( $attendee->etn_unique_ticket_id ),
+            '{{attendee_name}}'     => esc_html( $attendee->etn_name ),
+            '{{attendee_email}}'    => esc_html( $attendee->etn_email ),
+            '{{attendee_phone}}'    => esc_html( $attendee->etn_phone ),
+            '{{extra_fields}}'      => wp_kses_post( $attendee->get_extra_fields_content() ),
             // '{{qr_code}}',
+        ];
+    }
+
+    /**
+     * Get event placeholders for event pages (without attendee data)
+     *
+     * @since 1.0.0
+     * @param   int  $event_id  Event post ID
+     *
+     * @return  array
+     */
+    public function get_event_placeholders( $event_id ) {
+        if ( ! $event_id ) {
+            return [];
+        }
+
+        $event = new Event_Model( $event_id );
+
+        $date_format = get_option( 'date_format' );
+		$time_format = get_option( 'time_format' );
+
+		$wp_timezone = wp_timezone();
+
+		$start_date_time = $event->etn_start_date . ' ' . $event->etn_start_time;
+		$end_date_time   = $event->etn_end_date . ' ' . $event->etn_end_time;
+
+		$start_dt = new \DateTime( $start_date_time, $wp_timezone );
+		$end_dt   = new \DateTime( $end_date_time, $wp_timezone );
+
+		$start_date = wp_date( $date_format, $start_dt->getTimestamp() );
+		$end_date   = wp_date( $date_format, $end_dt->getTimestamp() );
+		$start_time = wp_date( $time_format, $start_dt->getTimestamp() );
+		$end_time   = wp_date( $time_format, $end_dt->getTimestamp() );
+
+        return [
+            '{{event_title}}'       => esc_html( $event->get_title() ),
+            '{{event_location}}'    => esc_html( $event->get_address() ),
+            '{{event_start_date}}'  => esc_html( $start_date ),
+            '{{event_end_date}}'    => esc_html( $end_date ),
+            '{{event_start_time}}'  => esc_html( $start_time ),
+            '{{event_end_time}}'    => esc_html( $end_time ),
+            '{{event_timezone}}'    => esc_html( $event->event_timezone ),
         ];
     }
 
@@ -165,11 +235,72 @@ class TemplateModel extends Post_Model {
     }
 
     /**
+     * Get fully rendered content, handling both Elementor and Gutenberg.
+     *
+     * @return string
+     */
+    private function get_rendered_content() {
+        if ( did_action( 'elementor/loaded' ) ) {
+            $document = \Elementor\Plugin::$instance->documents->get( $this->id );
+
+            if ( $document && $document->is_built_with_elementor() ) {
+                $content = \Elementor\Plugin::$instance->frontend->get_builder_content_for_display( $this->id, true );
+                return $this->add_proxy_image( $content );
+            }
+        }
+
+        return $this->get_html_content();
+    }
+
+    /**
+     * Returns the event id used for previewing the template
+     * 
+     * @return int|string returns event id or emptry string
+     */
+    public function get_preview_event_id() {
+        $event_id = $this->preview_event_id;
+        if ( ! isset( $event_id ) ) {
+            $event_id = $this->get_available_event_id();
+        }
+        
+        $post = get_post( $event_id );
+        
+        if ( $post && 'etn' === $post->post_type ) {
+            return $post->ID;
+        }
+ 
+        return '';
+    }
+    /**
+     * Retrieves the first availble ( event with status publish) events id
+     * 
+     * @return int $event_id
+     */
+    private function get_available_event_id() {
+        $args = array(
+            'post_type'      => 'etn',
+            'post_status'    => 'publish',
+            'posts_per_page' => 1,
+            'fields'         => 'ids',
+            'orderby'        => 'ID',
+            'order'          => 'ASC',
+        );
+    
+        $query = new \WP_Query( $args );
+    
+        if ( $query->have_posts() ) {
+            return (int) $query->posts[0];
+        }
+    
+        return 0;
+    }
+
+    /**
      * Render html with actual value
      *
-     * @param   array  $data  
+     * @param   array  $data
      *
-     * @return  
+     * @return
      */
     public function get_rendable_content( $attendee_id ) {
         if ( ! $attendee_id ) {
@@ -178,7 +309,25 @@ class TemplateModel extends Post_Model {
 
         $placeholder = $this->get_place_holder( $attendee_id );
 
-        return strtr( $this->get_html_content(), $placeholder );
+        return strtr( $this->get_rendered_content(), $placeholder );
+    }
+
+    /**
+     * Render html with actual event values (without attendee data)
+     *
+     * @since 1.0.0
+     * @param   int  $event_id  Event post ID
+     *
+     * @return  string|null
+     */
+    public function get_rendable_event_content( $event_id ) {
+        if ( ! $event_id ) {
+            return null;
+        }
+
+        $placeholder = $this->get_event_placeholders( $event_id );
+
+        return strtr( $this->get_rendered_content(), $placeholder );
     }
 
     /**
@@ -204,19 +353,38 @@ class TemplateModel extends Post_Model {
     /**
      * Render block content
      *
-     * @param   string  $template_name
+     * @since 1.0.0
+     * @param   string  $template_name  Template name for default templates
+     * @param   int     $event_id       Event ID for placeholder replacement
      *
-     * @return  void 
+     * @return  void
      */
-    public function render_content( $template_name = '' ) {
-        if ( ! $template_name ) {
-            echo $this->get_html_content();
-        } else {
+    public function render_content( $template_name = '', $event_id = 0 ) {
+        if ( ! empty( $template_name ) ) {
             $template = DefaultTemplate::get_template( $template_name );
 
-            echo $template['content'];
+            if ( ! empty( $template['content'] ) ) {
+                $content = $template['content'];
+
+                // Replace placeholders if event ID is provided
+                if ( $event_id ) {
+                    $placeholder = $this->get_event_placeholders( $event_id );
+                    $content = strtr( $content, $placeholder );
+                }
+
+                echo $content; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Full HTML template; placeholders are escaped in get_place_holder()
+            }
+
+            return;
+        }
+
+        if ( $event_id ) {
+            echo $this->get_rendable_event_content( $event_id ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Full HTML template; placeholders are escaped in get_event_placeholders()
+        } else {
+            echo $this->get_rendered_content(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Full HTML template rendered via Elementor or WP blocks
         }
     }
+
 
     /**
      * Render demo content
@@ -226,7 +394,7 @@ class TemplateModel extends Post_Model {
     public function get_demo_content() {
         $placeholder = $this->get_demo_placeholder();
 
-        return strtr( $this->get_html_content(), $placeholder );
+        return strtr( $this->get_rendered_content(), $placeholder );
     }
 
     /**
@@ -249,8 +417,9 @@ class TemplateModel extends Post_Model {
             '{{ticket_price}}'      => 500,
             '{{ticket_type}}'       => 'VIP',
             '{{payment_status}}'    => 'success',
-            '{{ticket_id}}'         => 'sdjlkadf',
+            '{{ticket_id}}'         => '#nr5s1v40d4',
             '{{attendee_name}}'     => 'John Doe',
+            '{{attendee_seat}}'     => 'Vip-01',
             '{{attendee_email}}'    => 'john@gmail.com',
             '{{attendee_phone}}'    => '995571089087',
             // '{{qr_code}}',

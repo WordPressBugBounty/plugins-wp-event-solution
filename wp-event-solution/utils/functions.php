@@ -3,6 +3,61 @@
 use Eventin\Settings;
 use Eventin\Validation\Validator;
 use Etn\Core\Event\Event_Model;
+use Etn\Utils\Helper;
+use SureCart\Support\Currency;
+
+if ( ! function_exists( 'etn_safe_decode' ) ) {
+    /**
+     * Safely unserialize data, preventing PHP Object Injection.
+     *
+     * Uses allowed_classes => false to block instantiation of
+     * PHP objects during unserialization.
+     *
+     * @since 4.1.4
+     * @param mixed $data The data to unserialize.
+     * @return mixed The unserialized data (no objects), or the original data if not serialized.
+     */
+    function etn_safe_decode( $data ) {
+        if ( ! is_string( $data ) ) {
+            return $data;
+        }
+
+        if ( ! is_serialized( $data ) ) {
+            return $data;
+        }
+
+        return @unserialize( $data, [ 'allowed_classes' => false ] );
+    }
+}
+
+if ( ! function_exists( 'etn_sanitize_array_input' ) ) {
+    /**
+     * Sanitize input to prevent PHP Object Injection.
+     *
+     * This function rejects serialized strings that could contain malicious PHP objects.
+     * Arrays and non-serialized strings are passed through for further processing.
+     *
+     * @since 4.1.2
+     * @param mixed $input The input to sanitize.
+     * @return array|string Returns array if input is array, string if input is non-serialized string, empty array otherwise.
+     */
+    function etn_sanitize_array_input( $input ) {
+        // If it's already an array, return it
+        if ( is_array( $input ) ) {
+            return $input;
+        }
+        // If it's a serialized string, reject it to prevent PHP Object Injection
+        if ( is_string( $input ) && is_serialized( $input ) ) {
+            return [];
+        }
+        // Return non-serialized strings as-is (safe for further processing like CSV parsing)
+        if ( is_string( $input ) ) {
+            return $input;
+        }
+        // Return empty array for other non-array input types
+        return [];
+    }
+}
 
 if ( ! function_exists( 'etn_array_csv_column' ) ) {
     /**
@@ -216,7 +271,7 @@ if ( ! function_exists( 'etn_parse_block_content' ) ) {
     /**
      * Parses dynamic blocks out of `post_content` and re-renders them.
      *
-     * @param   string  $content 
+     * @param   string  $content
      *
      * @return  string
      */
@@ -284,7 +339,7 @@ if ( ! function_exists( 'etn_update_option' ) ) {
         return Settings::update( [
             $key => $value,
         ] );
-    }  
+    }
 }
 
 if ( ! function_exists( 'etn_is_ticket_sale_end' ) ) {
@@ -319,7 +374,7 @@ if ( ! function_exists( 'etn_is_ticket_sale_start' ) ) {
      * @param   string  $start_date_time  Event ticket sale start date and time
      * @param   string  $timezone         Event timezone
      *
-     * @return  bool 
+     * @return  bool
      */
     function etn_is_ticket_sale_start( $start_date_time, $timezone = 'Asia/Dhaka' ) {
         // Create a DateTime object for the start date and time in the given timezone
@@ -331,7 +386,7 @@ if ( ! function_exists( 'etn_is_ticket_sale_start' ) ) {
         // Compare the dates
         if ( $current_datte < $event_date ) {
             return false;
-        } 
+        }
 
         return true;
     }
@@ -469,13 +524,58 @@ if ( ! function_exists( 'etn_get_timezone' ) ) {
     }
 }
 
+if ( ! function_exists( 'etn_get_wp_timezones' ) ) {
+    /**
+     * Get valid wp timezone
+     *
+     * @return  string
+     */
+    function etn_get_wp_timezones() {
+        $timezones = [];
+
+        // Generate UTC offsets
+        $offset_range = range( -12, 14 );
+        foreach ( $offset_range as $offset ) {
+            // Whole hour
+            $hours   = ( $offset > 0 ) ? '+' . $offset : (string) $offset;
+
+            if ( $offset != 0 ) {
+                $timezones[] = 'UTC' . $hours;
+            }
+            else{
+                $timezones[] = 'UTC' . '+'.$hours;
+            }
+
+            // Half-hour offsets
+            if ( $offset != 0 ) {
+                $timezones[] = 'UTC' . $hours . ':30';
+            }
+
+            if ( $offset == 0 ) {
+                $timezones[] = 'UTC' . '+'.$hours . ':30';
+                $timezones[] = 'UTC' . '-'.$hours . ':30';
+            }
+
+            // Special quarter-hour offsets
+            if ( in_array( $offset, [ 5, 8, 12, 13 ] ) ) {
+                $timezones[] = 'UTC+' . $offset . ':45';
+            }
+        }
+
+        // Now add all region identifiers
+        $timezones = array_merge( $timezones, DateTimeZone::listIdentifiers() );
+
+        return $timezones;
+    }
+}
+
 if ( ! function_exists( 'etn_prepare_address' ) ) {
     /**
      * Prepare event address from event location
-     * 
-     * This function is written for temporary solution. We have a nested location issue @since 4.0.0. To resolve this we impletent a temporary function. We have to remove this function when v4.0 is completely statble from location issue. Before remove this function make sure remove from all of the place where we used this. 
      *
-     * @param   array  $location  
+     * This function is written for temporary solution. We have a nested location issue @since 4.0.0. To resolve this we impletent a temporary function. We have to remove this function when v4.0 is completely statble from location issue. Before remove this function make sure remove from all of the place where we used this.
+     *
+     * @param   array  $location
      *
      * @return  string
      */
@@ -537,6 +637,7 @@ if ( ! function_exists( 'etn_get_default_email_settings' )  ) {
                 'subject' => sprintf( __( 'Event Ticket', 'eventin' ) ),
                 'body'    => __( 'You have purchased ticket(s). Attendee ticket details are as follows.', 'eventin' ),
                 'send_to_admin' => true,
+                'send_email_to_attendees' => true
             ],
             'certificate_email' => [
                 'from'    => get_option( 'admin_email' ),
@@ -797,7 +898,20 @@ if ( ! function_exists( 'etn_currency' ) ) {
      */
     function etn_currency() {
         $payment_method = etn_get_option( 'payment_method' );
+
         $is_enabled_wc = 'woocommerce' === $payment_method;
+
+        $is_enabled_sc = etn_get_option('surecart_status');
+
+        $is_enabled_fc = etn_get_option('fluentcart_status');
+
+        if ( $is_enabled_sc && class_exists(SureCart::class) ) {
+            return \SureCart::account()->currency;
+        }
+
+        if ( $is_enabled_fc && defined('FLUENTCART_VERSION') ) {
+            return (new \FluentCart\Api\StoreSettings())->getCurrency();
+        }
 
         if ( function_exists('WC') &&  $is_enabled_wc ) {
             return get_woocommerce_currency();
@@ -817,6 +931,18 @@ if ( ! function_exists( 'etn_currency_symbol' ) ) {
      */
     function etn_currency_symbol() {
         $currency = etn_currency();
+
+        $is_enabled_sc = etn_get_option('surecart_status');
+
+        $is_enabled_fc = etn_get_option('fluentcart_status');
+
+        if ( $is_enabled_sc && class_exists(SureCart::class) ) {
+            return  html_entity_decode( Currency::getCurrencySymbol( \SureCart::account()->currency ) );
+        }
+
+        if ( $is_enabled_fc && defined('FLUENTCART_VERSION') ) {
+            return (new \FluentCart\Api\StoreSettings())->getCurrencySymbol();
+        }
 
         return etn_get_currency_symbol( $currency );
     }
@@ -1127,22 +1253,367 @@ if ( ! function_exists( 'etn_validate_event_tickets' ) ) {
      *
      * @return  bool | WP_Error
      */
-    function etn_validate_event_tickets( $event_id, $order_tickets ) {
+    function etn_validate_event_tickets( $event_id, $order_tickets,$is_for_update = false ) {
         $event         = new Event_Model( $event_id );
+        $sold_tickets    = (array)Helper::etn_get_sold_tickets_by_event( $event_id );
 
         foreach( $order_tickets as $ticket ) {
             $event_ticket = $event->get_ticket( $ticket['ticket_slug'] );
 
-            $available = $event_ticket['etn_avaiilable_tickets'];
-            $sold      = $event_ticket['etn_sold_tickets'];
+            $available = $event_ticket['etn_avaiilable_tickets']??0;
+            $sold      = $sold_tickets[$ticket['ticket_slug']]??0;
+            $pending   = $event_ticket['pending']??0;
 
-            $ticket_left = $available - $sold;
+			// check if `etn_avaiilable_tickets` exists. if not means unlimited ticket
+			if ( !isset($available) || !is_numeric($available) ) {
+				return true;
+			}
+            if($is_for_update){
+                $ticket_left = intval($available) - intval($sold) - intval($pending) + intval($ticket['ticket_quantity']);
+            }else{
+                $ticket_left = intval($available) - intval($sold) - intval($pending);
+            }
 
-            if ( $ticket['ticket_quantity'] > $ticket_left ) {
+            $available = $event_ticket['etn_avaiilable_tickets']??0;
+            if ($available > 0 && $ticket['ticket_quantity'] > $ticket_left ) {
                 return new WP_Error( 'ticket_limit', __( 'The ticket limit has been exceeded', 'eventin' ), ['status' => 422] );
             }
         }
         
         return true;
+    }
+}
+
+if ( ! function_exists( 'etn_validate_seat_ids' ) ) {
+    /**
+     * Validate seat ids
+     *
+     * @param   array  $seat_ids  Seat ids
+     *
+     * @return  bool | WP_Error
+     */
+    function etn_validate_seat_ids( $event_id, $seat_ids ) {
+        $booked_seats = etn_safe_decode( get_post_meta( $event_id, '_etn_seat_unique_id', true ));
+        $already_booked_seats = $booked_seats ? explode(',', $booked_seats) : [];
+        $pending_seats = etn_safe_decode( get_post_meta( $event_id, 'pending_seats', true ));
+        if ( empty( $pending_seats ) ) {
+            $pending_seats = [];
+        }
+        $is_enable_payment_timer = etn_get_option( 'ticket_purchase_timer_enable', 'off' );
+
+        foreach ( $seat_ids as $seat_id ) {
+            // need to handle the corner in rush condition 
+            // if ( !in_array( $seat_id, $pending_seats ) &&  $is_enable_payment_timer == 'on') {
+            //     return new WP_Error( 'seat_limit', __( 'The requested seat is already booked, please select another seat', 'eventin' ), ['status' => 422] );
+            // }
+            if ( in_array( $seat_id, $already_booked_seats ) ) {
+                return new WP_Error( 'seat_limit', __( 'The requested seat is already booked', 'eventin' ), ['status' => 422] );
+            }
+        }
+
+        return true;
+    }
+}
+
+if ( ! function_exists('etn_humanize_number') ) {
+
+	function etn_humanize_number( $number ) {
+		if (!is_numeric($number)) {
+			return $number;
+		}
+		
+		$number = (int)$number;
+		
+		if ($number >= 1000000000) {
+			return round($number / 1000000000, 1) . 'b';
+		}
+		
+		if ($number >= 1000000) {
+			return round($number / 1000000, 1) . 'm';
+		}
+		
+		if ($number >= 1000) {
+			return round($number / 1000, 1) . 'k';
+		}
+		
+		return $number;
+	}
+}
+
+
+
+if ( ! function_exists('is_event_template_builder') ) {
+
+	function is_event_template_builder() {
+		$current_post_id = get_the_ID();
+
+        $post_type = get_post_type($current_post_id);
+
+        if ( $post_type != 'etn-template' ) {
+            return false;
+        }
+
+        return $current_post_id;
+	}
+}
+
+if ( ! function_exists('get_first_published_event') ) {
+
+	function get_first_published_event() {
+		$query = new WP_Query( [
+            'post_type'      => 'etn',
+            'post_status'    => 'publish',
+            'posts_per_page' => 1,
+            'orderby'        => 'date',
+            'order'          => 'ASC'
+        ] );
+        
+        $first_post_id = $query->have_posts() ? $query->posts[0]->ID : 0;
+
+        return $first_post_id;       
+	}
+}
+
+if ( ! function_exists( 'etn_get_selected_template_builder' ) ) {
+    /**
+     * Get name of the selected template builder
+     * If selected template builder is deactive or null (not selected) then return emptry string
+     */
+    function etn_get_selected_template_builder() {
+        $selected_template_builder = etn_get_option( 'selected_template_builder' ) ?? '';
+
+        if ( $selected_template_builder == 'elementor' ) {
+            if ( class_exists( '\Elementor\Plugin' ) ) {
+                return 'elementor';
+            }
+
+            return '';
+        }
+
+        return $selected_template_builder;
+    }
+}
+
+if ( ! function_exists('etn_get_static_event_templates') ) {
+    /**
+     * Returns list of static event templates
+     * 
+     * @return array containing data form the templates.
+     */
+    function etn_get_static_event_templates() {
+        return [
+            [
+                'id'                    => 'event-one',
+                'name'                  => __( 'Event Template One', 'eventin' ),
+                'status'                => 'publish',
+                'type'                  => 'event',
+                'orientation'           => 'portrait',
+                'thumbnail'             => '/images/landing_template_1.webp',
+                'content'               => '',
+                'is_clone'              => false,
+                'is_pro'                => false,
+                'template_css'          => '',
+                'edit_link'             => '',
+                'preview_link'          => 'https://product.themewinter.com/eventin/event/event-details-1/',
+                'preview_event_id'      => null,
+                'template_builder'      => 'gutenberg',
+                'edit_with_elementor'   => false,
+                'isStatic'              => true,
+            ],
+            [
+                'id'                    => 'event-two',
+                'name'                  => __( 'Event Template Two', 'eventin' ),
+                'status'                => 'publish',
+                'type'                  => 'event',
+                'orientation'           => 'portrait',
+                'thumbnail'             => '/images/landing_template_2.webp',
+                'content'               => '',
+                'is_clone'              => false,
+                'is_pro'                => true,
+                'template_css'          => '',
+                'edit_link'             => '',
+                'preview_link'          => 'https://product.themewinter.com/eventin/event/event-details-2/',
+                'preview_event_id'      => null,
+                'template_builder'      => 'gutenberg',
+                'edit_with_elementor'   => false,
+                'isStatic'              => true,
+            ],
+            [
+                'id'                    => 'event-three',
+                'name'                  => __( 'Event Template Three', 'eventin' ),
+                'status'                => 'publish',
+                'type'                  => 'event',
+                'orientation'           => 'portrait',
+                'thumbnail'             => '/images/landing_template_3.webp',
+                'content'               => '',
+                'is_clone'              => false,
+                'is_pro'                => true,
+                'template_css'          => '',
+                'edit_link'             => '',
+                'preview_link'          => 'https://product.themewinter.com/eventin/event/event-details-3/',
+                'preview_event_id'      => null,
+                'template_builder'      => 'gutenberg',
+                'edit_with_elementor'   => false,
+                'isStatic'              => true,
+            ],
+        ];
+    }
+}
+
+if ( ! function_exists('etn_get_static_ticket_templates') ) {
+    /**
+     * Returns data for static ticket templates
+     * 
+     * @return array
+     */
+    function etn_get_static_ticket_templates() {
+        return [
+            [
+                'id'                    => 'style-1',
+                'name'                  => __( 'Template One', 'eventin' ),
+                'status'                => 'publish',
+                'type'                  => 'ticket',
+                'orientation'           => 'landscape',
+                'thumbnail'             => '/images/ticket_template_1.webp',
+                'content'               => '',
+                'is_clone'              => false,
+                'is_pro'                => false,
+                'template_css'          => '',
+                'edit_link'             => '',
+                'preview_link'          => 'https://product.themewinter.com/eventin/ticket-template-one/',
+                'preview_event_id'      => null,
+                'template_builder'      => 'gutenberg',
+                'edit_with_elementor'   => false,
+                'isStatic'              => true,
+            ],
+            [
+                'id'                    => 'style-2',
+                'name'                  => __( 'Template Two', 'eventin' ),
+                'status'                => 'publish',
+                'type'                  => 'ticket',
+                'orientation'           => 'landscape',
+                'thumbnail'             => '/images/ticket_template_2.webp',
+                'content'               => '',
+                'is_clone'              => false,
+                'is_pro'                => true,
+                'template_css'          => '',
+                'edit_link'             => '',
+                'preview_link'          => 'https://product.themewinter.com/eventin/ticket-template-two/',
+                'preview_event_id'      => null,
+                'template_builder'      => 'gutenberg',
+                'edit_with_elementor'   => false,
+                'isStatic'              => true,
+            ],
+        ];
+    }
+}
+
+if ( ! function_exists('etn_get_static_speaker_templates') ) {
+    /**
+     * Returns data for static speaker templates
+     * 
+     * @return array
+     */
+    function etn_get_static_speaker_templates() {
+        return [
+            [
+                'id'                    => 'speaker-one',
+                'name'                  => __( 'Template One', 'eventin' ),
+                'status'                => 'publish',
+                'type'                  => 'speaker',
+                'orientation'           => 'portrait',
+                'thumbnail'             => '/images/speaker_template_1.webp',
+                'content'               => '',
+                'is_clone'              => false,
+                'is_pro'                => false,
+                'template_css'          => '',
+                'edit_link'             => '',
+                'preview_link'          => 'https://product.themewinter.com/eventin/admin/james/',
+                'preview_event_id'      => null,
+                'template_builder'      => 'gutenberg',
+                'edit_with_elementor'   => false,
+                'isStatic'              => true,
+            ],
+            [
+                'id'                    => 'speaker-two-lite',
+                'name'                  => __( 'Template Two', 'eventin' ),
+                'status'                => 'publish',
+                'type'                  => 'speaker',
+                'orientation'           => 'portrait',
+                'thumbnail'             => '/images/speaker_template_2.webp',
+                'content'               => '',
+                'is_clone'              => false,
+                'is_pro'                => false,
+                'template_css'          => '',
+                'edit_link'             => '',
+                'preview_link'          => 'https://product.themewinter.com/eventin/admin/henri/',
+                'preview_event_id'      => null,
+                'template_builder'      => 'gutenberg',
+                'edit_with_elementor'   => false,
+                'isStatic'              => true,
+            ],
+            [
+                'id'                    => 'speaker-two',
+                'name'                  => __( 'Template Three', 'eventin' ),
+                'status'                => 'publish',
+                'type'                  => 'speaker',
+                'orientation'           => 'portrait',
+                'thumbnail'             => '/images/speaker_template_3.webp',
+                'content'               => '',
+                'is_clone'              => false,
+                'is_pro'                => true,
+                'template_css'          => '',
+                'edit_link'             => '',
+                'preview_link'          => 'https://product.themewinter.com/eventin/admin/jim/',
+                'preview_event_id'      => null,
+                'template_builder'      => 'gutenberg',
+                'edit_with_elementor'   => false,
+                'isStatic'              => true,
+            ],
+            [
+                'id'                    => 'speaker-three',
+                'name'                  => __( 'Template Four', 'eventin' ),
+                'status'                => 'publish',
+                'type'                  => 'speaker',
+                'orientation'           => 'portrait',
+                'thumbnail'             => '/images/speaker_template_4.webp',
+                'content'               => '',
+                'is_clone'              => false,
+                'is_pro'                => true,
+                'template_css'          => '',
+                'edit_link'             => '',
+                'preview_link'          => 'https://product.themewinter.com/eventin/admin/laura-bryant/',
+                'preview_event_id'      => null,
+                'template_builder'      => 'gutenberg',
+                'edit_with_elementor'   => false,
+                'isStatic'              => true,
+            ],
+        ];
+    }
+}
+
+if ( ! function_exists('etn_get_static_templates_by_type') ) {
+    /**
+     * Returns list of static templates by type or all templates if no type specified
+     *
+     * @param string $type Template type ('event', 'ticket', 'speaker') or empty for all
+     * @return array containing data from the templates
+     */
+    function etn_get_static_templates_by_type( $type = '' ) {
+        $static_templates = [];
+
+        if ( empty( $type ) || $type === 'event' ) {
+            $static_templates = array_merge( $static_templates, etn_get_static_event_templates() );
+        }
+
+        if ( empty( $type ) || $type === 'ticket' ) {
+            $static_templates = array_merge( $static_templates, etn_get_static_ticket_templates() );
+        }
+
+        if ( empty( $type ) || $type === 'speaker' ) {
+            $static_templates = array_merge( $static_templates, etn_get_static_speaker_templates() );
+        }
+
+        return $static_templates;
     }
 }

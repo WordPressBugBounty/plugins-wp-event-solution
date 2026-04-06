@@ -16,7 +16,9 @@ use Eventin\Settings\Api\SettingsController;
 use Eventin\Speaker\Api\SpeakerCategoryController;
 use Eventin\Speaker\Api\SpeakerController;
 use Eventin\Extensions\Api\ExtensionController;
+use Eventin\SetupNotification\Api\SetupNotification;
 use Eventin\Template\Api\TemplateController;
+use Eventin\Template\Api\TemplateBuilderController;
 use WP_REST_Controller;
 
 /**
@@ -44,7 +46,9 @@ class ApiManager {
         CustomerController::class,
         ExtensionController::class,
         ReportController::class,
-        TemplateController::class
+        TemplateController::class,
+        SetupNotification::class,
+        TemplateBuilderController::class,
     ];
 
     /**

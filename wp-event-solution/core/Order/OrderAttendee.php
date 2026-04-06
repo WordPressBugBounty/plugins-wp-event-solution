@@ -1,5 +1,8 @@
 <?php
+
 namespace Eventin\Order;
+
+defined( 'ABSPATH' ) || exit;
 
 use Etn\Core\Attendee\Attendee_Model;
 use Eventin\Interfaces\HookableInterface;
@@ -13,7 +16,9 @@ class OrderAttendee implements HookableInterface {
      */ 
     public function register_hooks(): void {
         add_action( 'eventin_order_completed', [ $this, 'update_attendee_payment_status' ] );    
-        add_action( 'eventin_order_refund', [ $this, 'update_attendee_status_after_refund' ] );    
+        add_action( 'eventin_order_refund', [ $this, 'update_attendee_status_after_refund' ] );
+
+        add_action( 'eventin_order_deleted', [ $this, 'delete_attendee_after_order_deleted' ] );
     }
 
     /**
@@ -64,6 +69,24 @@ class OrderAttendee implements HookableInterface {
                 $attendee->update([
                     'etn_status' => 'failed'
                 ]);
+            }
+        }
+    }
+
+    /**
+     * Delete attendee after order deleted
+     *
+     * @param   OrderModel  $order
+     *
+     * @return  void
+     */
+    public function delete_attendee_after_order_deleted( OrderModel $order ) {
+        $attendess = $order->get_attendees();
+
+        if ( $attendess ) {
+            foreach( $attendess as $attendee ) {
+                $attendee = new Attendee_Model( $attendee['id'] );
+                $attendee->delete();
             }
         }
     }

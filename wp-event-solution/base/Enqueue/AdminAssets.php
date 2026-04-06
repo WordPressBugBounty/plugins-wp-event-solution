@@ -49,6 +49,11 @@ class AdminAssets implements AssetsInterface {
                 'deps'      => ['wp-format-library','etn-html-2-canvas'],
                 'in_footer' => true,
             ],
+            'etn-fedback-modal-js' => [
+                'src'       => \Wpeventin::plugin_url( 'build/js/feedback-modal.js' ),
+                'deps'      => ['jquery'],
+                'in_footer' => true,
+            ],
         ];
         // Conditionally add 'etn-packages' to 'etn-dashboard' dependencies
          if (class_exists('Wpeventin_Pro')) {
@@ -76,12 +81,11 @@ class AdminAssets implements AssetsInterface {
             'etn-ai'    => [
                 'src' => \Wpeventin::plugin_url( 'build/css/index-ai-style.css' ),
             ],
-            'etn-dashboard'    => [
-                'src' => \Wpeventin::plugin_url( 'build/css/dashboard.css' ),
-                'deps' => ['wp-edit-blocks','wp-block-editor']
-            ],
             'etn-event-manager-admin'    => [
                 'src' => \Wpeventin::plugin_url( 'build/css/event-manager-admin.css' ),
+            ],
+            'etn-feedback-modal-styles'    => [
+                'src' => \Wpeventin::plugin_url( 'build/css/feedback-modal-styles.css' ),
             ],
         ];
 

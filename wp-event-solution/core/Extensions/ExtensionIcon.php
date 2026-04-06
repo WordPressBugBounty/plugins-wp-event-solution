@@ -1,10 +1,13 @@
 <?php
+
 /**
  * Extentions class
  * 
  * @package Eventin
  */
 namespace Eventin\Extensions;
+
+defined( 'ABSPATH' ) || exit;
 
 use Wpeventin;
 

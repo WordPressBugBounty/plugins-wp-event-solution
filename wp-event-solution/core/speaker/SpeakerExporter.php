@@ -1,10 +1,13 @@
 <?php
+
 /**
  * Speaker Exporter Class
  *
  * @package Eventin
  */
 namespace Eventin\Speaker;
+
+defined( 'ABSPATH' ) || exit;
 
 use Eventin\Exporter\ExporterFactory;
 use Eventin\Exporter\PostExporterInterface;
@@ -35,6 +38,16 @@ class SpeakerExporter implements PostExporterInterface {
      * @var string
      */
     private $format;
+
+    /**
+     * Set the export file name
+     *
+     * @param   string  $file_name
+     * @return  void
+     */
+    public function set_file_name( $file_name ) {
+        $this->file_name = $file_name;
+    }
 
     /**
      * Export attendee data

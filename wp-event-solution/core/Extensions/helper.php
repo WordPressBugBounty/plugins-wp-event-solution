@@ -28,13 +28,13 @@ class Helper {
 			$enable_module = ! empty( $addons_options['certificate_builder'] ) && $addons_options['certificate_builder'] == "on" ? true : false;
 			break;
 		case 'rsvp':
-			$enable_module = ( empty( $addons_options['rsvp'] ) || $addons_options['rsvp'] == "on") ? true : false;
+			$enable_module = ( !empty( $addons_options['rsvp'] ) && $addons_options['rsvp'] == "on") ? true : false;
 			break;
 		case 'seat_map':
 			$enable_module = ( class_exists('TimeticsPro') && ! empty( $addons_options['seat_map'] )  &&  $addons_options['seat_map'] == "on") ? true : false;
 			break;
 		case 'google_meet':
-			$enable_module = ( empty( $addons_options['google_meet'] ) || $addons_options['google_meet'] == "on") ? true : false;
+			$enable_module = ( !empty( $addons_options['google_meet'] ) && $addons_options['google_meet'] == "on") ? true : false;
 			break;
 		case 'facebook_events':
 			$enable_module = ( ( class_exists( 'Wpeventin_Pro' ) &&  class_exists( 'EtnFBAddon' ) ) && ( ! empty( $addons_options['facebook_events'] ) && $addons_options['facebook_events'] == "on" ) ) ? true : false;

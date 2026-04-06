@@ -1,10 +1,13 @@
 <?php
+
 /**
  * Updater for version 4.0.0
  *
  * @package Eventin\Upgrade
  */
 namespace Eventin\Upgrade\Upgraders;
+
+defined( 'ABSPATH' ) || exit;
 
 use Etn\Core\Event\Event_Model;
 

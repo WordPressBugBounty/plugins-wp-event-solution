@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Manage online meeting platform
  *
@@ -6,6 +7,8 @@
  */
 
 namespace Eventin\Event\MeetingPlatforms;
+
+defined( 'ABSPATH' ) || exit;
 
 use Eventin\Integrations\CustomUrl;
 use Eventin\Integrations\Zoom\Zoom;
@@ -46,7 +49,7 @@ class MeetingPlatform {
         $platforms = self::get_platforms();
 
         if ( ! isset( $platforms[$platform] ) ) {
-            throw new Exception( __( 'Unsupported platform ' . $platform, 'eventin' ) );
+            throw new Exception( esc_html__( 'Unsupported platform ' . $platform, 'eventin' ) );
         }
 
         return $platforms[$platform];

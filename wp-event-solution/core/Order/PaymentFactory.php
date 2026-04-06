@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Payment Factory Class
  * 
@@ -6,7 +7,10 @@
  */
 namespace Eventin\Order;
 
+defined( 'ABSPATH' ) || exit;
+
 use Eventin\Integrations\WC\WCPayment;
+use Eventin\Integrations\LocalPayment\LocalPayment;
 use Exception;
 /**
  * PaymentFactory
@@ -27,7 +31,7 @@ class PaymentFactory {
             return new $methods[$payment_methods];
         }
 
-        throw new Exception( __( 'Unknown payment method.', 'eventin' ) );
+        throw new Exception( esc_html__( 'Unknown payment method.', 'eventin' ) );
     }
 
     /**
@@ -37,7 +41,9 @@ class PaymentFactory {
      */
     private static function get_payment_methods() {
         $methods = [
-            'wc' => WCPayment::class,
+            'wc'            => WCPayment::class,
+            'local_payment' => LocalPayment::class,
+            // 'sure_cart' => SureCartPaymentMethod::class
         ];
 
         return apply_filters( 'eventin_payment_methods', $methods );
