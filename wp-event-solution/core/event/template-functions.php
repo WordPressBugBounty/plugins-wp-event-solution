@@ -261,7 +261,7 @@ if ( ! function_exists( 'etn_after_single_event_meta_recurring_event_ticket_form
 
 				foreach ( $has_child_events as $single_child ) {
 					$end_date        = date_i18n( "Y-m-d", strtotime( get_post_meta( $single_child->ID, 'etn_end_date', true ) ) );
-					$current_date    = date( "Y-m-d" );
+					$current_date    = gmdate( "Y-m-d" );
 					$settings        = etn_get_option();
 					$hide_reccurance = ! empty( $settings['hide_past_recurring_event_from_details'] ) ? $settings['hide_past_recurring_event_from_details'] : '';
 

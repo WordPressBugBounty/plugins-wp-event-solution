@@ -1,7 +1,7 @@
 <?php
 
 $etn_show_event = true;
-if( isset(  $_POST['ticket_purchase_next_step'] )  && ( $_POST['ticket_purchase_next_step'] !== "two" || $_POST['ticket_purchase_next_step'] !== "three" )){
+if( isset( $_POST['ticket_purchase_next_step'] ) && in_array( sanitize_text_field( wp_unslash( $_POST['ticket_purchase_next_step'] ) ), [ 'two', 'three' ], true ) ){ // phpcs:ignore WordPress.Security.NonceVerification.Missing -- display flag only; nonce is verified in the ticket purchase handler that processes the full form submission.
 	$etn_show_event = false;
 }
 ?>

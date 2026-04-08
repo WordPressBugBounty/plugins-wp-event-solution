@@ -4,28 +4,34 @@ use \Etn\Utils\Helper as Helper;
 
 $post_perpage = 3;
 
-//$data = Helper::post_data_query( 'etn-schedule' , $post_perpage, $order, null , null ,  $etn_schedule_id );
-$data = Helper::post_data_query('etn-schedule', null, null, null, null, (array) $etn_schedule_id);
-date_default_timezone_set('UTC');
+$data = Helper::post_data_query('etn-schedule', $post_perpage, $order, null, null, (array) $etn_schedule_id, null, null, 'meta_value', 'etn_schedule_date');
+date_default_timezone_set('UTC'); // phpcs:ignore WordPress.DateTime.RestrictedFunctions.timezone_change_date_default_timezone_set -- intentional UTC context for schedule sorting.
+
+$time_format = Helper::get_option("time_format");
+$time_format = !empty($time_format) ? $time_format : '12';
+$etn_sched_time_format = ($time_format == '24') ? "H:i" : get_option('time_format');
 
 if (is_array($data) && !empty($data)) {
-    $schedule_data = $data[0];
-    $schedule_meta = get_post_meta($schedule_data->ID);
-    $schedule_date = strtotime($schedule_meta['etn_schedule_date'][0]);
-    $schedule_date = date_i18n(get_option("date_format"), $schedule_date);
-    $schedule_topics_raw = etn_safe_decode($schedule_meta['etn_schedule_topics'][0] ?? '');
-    $schedule_topics = is_array($schedule_topics_raw) ? $schedule_topics_raw : [];
-
-    $time_format = Helper::get_option("time_format");
-    $time_format = !empty($time_format) ? $time_format : '12';
-    $etn_sched_time_format = ($time_format == '24') ? "H:i" : get_option('time_format');
-?>
+    ?>
     <div class="schedule-list-wrapper">
         <div class="container">
-            <!-- row end-->
+            <?php foreach ($data as $schedule_data) : ?>
             <div class="row">
                 <div class="col-lg-12">
+                    <h4 class="schedule-list-title"><?php echo esc_html(get_the_title($schedule_data->ID)); ?></h4>
                     <div class="">
+                        <?php
+                        $schedule_meta = get_post_meta($schedule_data->ID);
+                        $schedule_date = strtotime($schedule_meta['etn_schedule_date'][0] ?? '');
+                        $schedule_date = $schedule_date ? date_i18n(get_option("date_format"), $schedule_date) : '';
+                        $schedule_topics_raw = etn_safe_decode($schedule_meta['etn_schedule_topics'][0] ?? '');
+                        $schedule_topics = is_array($schedule_topics_raw) ? $schedule_topics_raw : [];
+                        ?>
+                        <div class="schedule-list-date">
+                            <?php if (!empty($schedule_date)) : ?>
+                                <span class="etn-schedule-date-label"><?php echo esc_html($schedule_date); ?></span>
+                            <?php endif; ?>
+                        </div>
                         <?php
                         if (is_array($schedule_topics) && !empty($schedule_topics)) {
                             foreach ($schedule_topics as $topic) {
@@ -52,7 +58,7 @@ if (is_array($data) && !empty($data)) {
                                             <h3 class="schedule-slot-title">
                                                 <?php echo esc_html($etn_schedule_topic); ?>
                                             </h3>
-                                            <p class="schedule-slot-details"><?php echo Helper::render($etn_schedule_objective); ?></p>
+                                            <p class="schedule-slot-details"><?php echo Helper::render($etn_schedule_objective); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Helper::render() outputs trusted admin-entered HTML content. ?></p>
                                             <div class="multi-speaker">
                                                 <?php
                                                 $speaker_avatar = apply_filters("etn/speakers/avatar", \Wpeventin::assets_url() . "images/avatar.jpg");
@@ -80,12 +86,9 @@ if (is_array($data) && !empty($data)) {
                                                     }
                                                 }
                                                 ?>
-
                                             </div>
                                         </div>
-                                        <!--Info content end -->
                                     </div>
-                                    <!-- Slot info end -->
                                 </div>
                         <?php
                             }
@@ -94,11 +97,12 @@ if (is_array($data) && !empty($data)) {
                     </div>
                 </div>
             </div>
+            <?php endforeach; ?>
         </div>
-        <!-- container end-->
     </div>
-    <!-- schedule tab end -->
-<?php } else { ?>
+    <?php
+} else {
+    ?>
     <p class="etn-not-found-post"><?php echo esc_html__('No Schedule Found', 'eventin'); ?></p>
-<?php
+    <?php
 }

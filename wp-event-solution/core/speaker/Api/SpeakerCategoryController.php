@@ -117,7 +117,7 @@ class SpeakerCategoryController extends WP_REST_Controller {
         if ( ! current_user_can( 'manage_options' ) ) {
             $author_id = get_current_user_id();
             
-            $prepared_args['meta_query'] = array(
+            $prepared_args['meta_query'] = array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
                 array(
                     'key'     => 'author', 
                     'value'   => $author_id,
@@ -309,7 +309,8 @@ class SpeakerCategoryController extends WP_REST_Controller {
             );
         }
 
-        $message = sprintf( __( '%d terms are deleted of %d', 'eventin' ), $count, count( $ids ) );
+        // translators: %1$d is the number of terms deleted, %2$d is the total number of terms selected.
+        $message = sprintf( __( '%1$d terms are deleted of %2$d', 'eventin' ), $count, count( $ids ) );
 
         return rest_ensure_response( $message );
     }
@@ -424,7 +425,7 @@ class SpeakerCategoryController extends WP_REST_Controller {
     public function get_matching_user_ids_by_category( $category_id ) {
         // Fetch all users with the meta key 'etn_speaker_group' or 'etn_speaker_speaker_group'
         $users = get_users(array(
-            'meta_query' => array(
+            'meta_query' => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
                 'relation' => 'OR',
                 array(
                     'key'     => 'etn_speaker_group',

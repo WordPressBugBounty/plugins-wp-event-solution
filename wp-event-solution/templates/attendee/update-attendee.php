@@ -14,6 +14,11 @@ wp_head();
 
 if ( !empty($post_arr["etn_attendee_id"]) && !empty($post_arr["etn_name"]) ){
 
+    // Verify nonce before any state-changing operations.
+    if ( empty( $post_arr['attendee_personal_data'] ) || ! wp_verify_nonce( $post_arr['attendee_personal_data'], 'attendee_details_nonce' ) ) {
+        wp_die( esc_html__( 'Security check failed.', 'eventin' ), 403 );
+    }
+
     $attendee_id         = is_numeric( $post_arr["etn_attendee_id"] ) ? $post_arr["etn_attendee_id"] : 0;
     $attendee_name       = !empty( $post_arr["etn_name"] ) ? $post_arr["etn_name"] : "";
     $attendee_email      = !empty( $post_arr["etn_email"] ) ? $post_arr["etn_email"] : "";

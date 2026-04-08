@@ -37,7 +37,7 @@ if(class_exists('WooCommerce') && 'woocommerce' === $sells_engine) {
 			value="<?php echo esc_html( $event_title ); ?>"/>
         <input name="specific_lang"
 			type="hidden"
-			value="<?php echo isset( $_GET['lang'] ) ? esc_attr( sanitize_text_field( wp_unslash( $_GET['lang'] ) ) ) : ''; ?>"/>
+			value="<?php echo isset( $_GET['lang'] ) ? esc_html( sanitize_text_field( wp_unslash( $_GET['lang'] ) ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- lang param for WPML/Polylang multilingual ticket forms; output escaped via esc_html(). ?>"/>
 		<input name="event_id" type="hidden" value="<?php echo intval( $single_event_id ); ?>"/>
 		<?php
 		apply_filters( 'etn_pro/stripe/stripe_field', null );
@@ -143,7 +143,7 @@ if(class_exists('WooCommerce') && 'woocommerce' === $sells_engine) {
 							<h5 class="ticket-header">
 
 								<?php
-								esc_html_e( $value['etn_ticket_name'], 'eventin' );
+								echo esc_html( $value['etn_ticket_name'] );
 
 								if ( ! isset( $event_options["etn_hide_seats_from_details"] ) ) {
 									if ( ! etn_is_ticket_sale_start( $start_date_time, $time_zone ) ) {
@@ -190,11 +190,20 @@ if(class_exists('WooCommerce') && 'woocommerce' === $sells_engine) {
 											data-etn_max_ticket="<?php echo absint( $etn_max_ticket ); ?>"
 											data-etn_current_stock="<?php echo absint( $etn_current_stock ); ?>"
 											data-stock_out="<?php echo esc_attr__( "All ticket has has been sold", "eventin" ) ?>"
-											data-cart_ticket_limit="<?php echo esc_attr__( "You have already added 5 tickets. You can't purchase more than $etn_max_ticket tickets", "eventin" ) ?>"
-											data-stock_limit="<?php echo esc_attr__( "Stock limit $etn_current_stock. You can purchase within $etn_current_stock.", "eventin" ) ?>"
+											data-cart_ticket_limit="<?php
+									// translators: %d is the maximum ticket quantity allowed per purchase.
+									echo sprintf( esc_attr__( "You have already added 5 tickets. You can't purchase more than %d tickets", "eventin" ), absint( $etn_max_ticket ) );
+								?>"
+											data-stock_limit="<?php
+									// translators: %1$d is the stock limit quantity.
+									echo sprintf( esc_attr__( 'Stock limit %1$d. You can purchase within %1$d.', 'eventin' ), absint( $etn_current_stock ) );
+								?>"
 											data-qty_message="<?php echo esc_attr__( "Total ticket quantity should be atleast ", "eventin" ) . absint( $etn_min_ticket ) . esc_attr__( " and can not be higher than ", "eventin" ) . absint( $etn_max_ticket ); ?>"
 											data-etn_cart_limit="<?php echo absint( $etn_cart_limit ); ?>"
-											data-etn_cart_limit_message="<?php echo esc_attr__( "You have already added $etn_cart_limit, Which is greater than maximum quantity $etn_max_ticket . You can add maximum $etn_max_ticket tickets. ", "eventin" ); ?>"/>
+											data-etn_cart_limit_message="<?php
+									// translators: %1$d is the current cart quantity, %2$d is the maximum ticket quantity.
+									echo sprintf( esc_attr__( 'You have already added %1$d, Which is greater than maximum quantity %2$d. You can add maximum %2$d tickets.', 'eventin' ), absint( $etn_cart_limit ), absint( $etn_max_ticket ) );
+								?>"/>
 									<button type="button" class="qt-btn qt-add" data-multi="1"
 											data-key="<?php echo intval( $key ) ?>">+
 									</button>

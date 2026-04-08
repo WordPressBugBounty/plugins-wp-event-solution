@@ -564,7 +564,7 @@ class tFPDF {
                 $s = '<?php' . "\n";
                 $s .= '$name=\'' . $name . "';\n";
                 $s .= '$type=\'' . $type . "';\n";
-                $s .= '$desc=' . var_export( $desc, true ) . ";\n";
+                $s .= '$desc=' . var_export( $desc, true ) . ";\n"; // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_var_export -- Third-party PDF font parser; var_export() serialises font metric data to a PHP cache file (not error output).
                 $s .= '$up=' . $up . ";\n";
                 $s .= '$ut=' . $ut . ";\n";
                 $s .= '$ttffile=\'' . $ttffile . "';\n";
@@ -572,14 +572,14 @@ class tFPDF {
                 $s .= '$fontkey=\'' . $fontkey . "';\n";
                 $s .= "?>";
 
-                if ( is_writable( dirname( $this->fontpath . 'unifont/' . 'x' ) ) ) {
-                    $fh = fopen( $unifilename . '.mtx.php', "w" );
-                    fwrite( $fh, $s, strlen( $s ) );
-                    fclose( $fh );
-                    $fh = fopen( $unifilename . '.cw.dat', "wb" );
-                    fwrite( $fh, $cw, strlen( $cw ) );
-                    fclose( $fh );
-                    @unlink( $unifilename . '.cw127.php' );
+                if ( is_writable( dirname( $this->fontpath . 'unifont/' . 'x' ) ) ) { // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_is_writable -- PDF font cache write, WP_Filesystem cannot be used in this context.
+                    $fh = fopen( $unifilename . '.mtx.php', "w" ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen
+                    fwrite( $fh, $s, strlen( $s ) ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fwrite
+                    fclose( $fh ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose
+                    $fh = fopen( $unifilename . '.cw.dat', "wb" ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen
+                    fwrite( $fh, $cw, strlen( $cw ) ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fwrite
+                    fclose( $fh ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose
+                    wp_delete_file( $unifilename . '.cw127.php' );
                 }
 
                 unset( $ttf );
@@ -1406,7 +1406,7 @@ class tFPDF {
                 header( 'Pragma: public' );
             }
 
-            echo Helper::render( $this->buffer );
+            echo Helper::render( $this->buffer ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Raw PDF binary data; HTML escaping would corrupt the output.
             break;
         case 'D':
             // Download file
@@ -1415,7 +1415,7 @@ class tFPDF {
             header( 'Content-Disposition: attachment; ' . $this->_httpencode( 'filename', $name, $isUTF8 ) );
             header( 'Cache-Control: private, max-age=0, must-revalidate' );
             header( 'Pragma: public' );
-            echo Helper::render( $this->buffer );
+            echo Helper::render( $this->buffer ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Helper::render() is a passthrough; raw PDF binary data.
             break;
         case 'F':
 
@@ -1605,7 +1605,7 @@ class tFPDF {
             $value = utf8_encode( $value );
         }
 
-        if ( strpos( $_SERVER['HTTP_USER_AGENT'], 'MSIE' ) !== false ) {
+        if ( isset( $_SERVER['HTTP_USER_AGENT'] ) && strpos( $_SERVER['HTTP_USER_AGENT'], 'MSIE' ) !== false ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- Third-party PDF library; HTTP_USER_AGENT used only for MSIE browser detection, never output or stored.
             return $param . '="' . rawurlencode( $value ) . '"';
         } else {
             return $param . "*=UTF-8''" . rawurlencode( $value );
@@ -1699,14 +1699,14 @@ class tFPDF {
 
     protected function _parsepng( $file ) {
         // Extract info from a PNG file
-        $f = fopen( $file, 'rb' );
+        $f = fopen( $file, 'rb' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen -- binary image file read for PDF generation.
 
         if ( !$f ) {
             $this->Error( 'Can\'t open image file: ' . $file );
         }
 
         $info = $this->_parsepngstream( $f, $file );
-        fclose( $f );
+        fclose( $f ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- binary image file read for PDF generation.
         return $info;
     }
 
@@ -1866,7 +1866,7 @@ class tFPDF {
         $res = '';
 
         while ( $n > 0 && !feof( $f ) ) {
-            $s = fread( $f, $n );
+            $s = fread( $f, $n ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fread -- binary stream read for PDF image parsing.
 
             if ( $s === false ) {
                 $this->Error( 'Error while reading stream' );
@@ -1910,15 +1910,15 @@ class tFPDF {
         imagepng( $im );
         $data = ob_get_clean();
         imagedestroy( $im );
-        $f = fopen( 'php://temp', 'rb+' );
+        $f = fopen( 'php://temp', 'rb+' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen -- php://temp in-memory stream, WP_Filesystem cannot handle this.
         if ( !$f ) {
             $this->Error( 'Unable to create memory stream' );
         }
 
-        fwrite( $f, $data );
+        fwrite( $f, $data ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fwrite
         rewind( $f );
         $info = $this->_parsepngstream( $f, $file );
-        fclose( $f );
+        fclose( $f ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose
         return $info;
     }
 
@@ -2381,18 +2381,18 @@ class tFPDF {
 // for each character
         for ( $cid = $startcid; $cid < $cwlen; $cid++ ) {
             if ( $cid == 128 && ( !file_exists( $font['unifilename'] . '.cw127.php' ) ) ) {
-                if ( is_writable( dirname( $this->fontpath . 'unifont/x' ) ) ) {
-                    $fh    = fopen( $font['unifilename'] . '.cw127.php', "wb" );
+                if ( is_writable( dirname( $this->fontpath . 'unifont/x' ) ) ) { // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_is_writable
+                    $fh    = fopen( $font['unifilename'] . '.cw127.php', "wb" ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen
                     $cw127 = '<?php' . "\n";
                     $cw127 .= '$rangeid=' . $rangeid . ";\n";
                     $cw127 .= '$prevcid=' . $prevcid . ";\n";
                     $cw127 .= '$prevwidth=' . $prevwidth . ";\n";
                     if ( $interval ) {$cw127 .= '$interval=true' . ";\n";} else { $cw127 .= '$interval=false' . ";\n";}
 
-                    $cw127 .= '$range=' . var_export( $range, true ) . ";\n";
+                    $cw127 .= '$range=' . var_export( $range, true ) . ";\n"; // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_var_export -- Third-party PDF font parser; var_export() serialises Unicode range data to a PHP cache file (not error output).
                     $cw127 .= "?>";
-                    fwrite( $fh, $cw127, strlen( $cw127 ) );
-                    fclose( $fh );
+                    fwrite( $fh, $cw127, strlen( $cw127 ) ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fwrite
+                    fclose( $fh ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose
                 }
 
             }
@@ -2639,7 +2639,7 @@ class tFPDF {
 
     protected function _putinfo() {
         $this->metadata['Producer']     = 'tFPDF ' . tFPDF_VERSION;
-        $this->metadata['CreationDate'] = 'D:' . @date( 'YmdHis' );
+        $this->metadata['CreationDate'] = 'D:' . @gmdate( 'YmdHis' );
 
         foreach ( $this->metadata as $key => $value ) {
             $this->_put( '/' . $key . ' ' . $this->_textstring( $value ) );

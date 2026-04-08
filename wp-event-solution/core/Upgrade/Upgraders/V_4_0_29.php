@@ -141,7 +141,7 @@
 					'etn_event_calendar_text_color' => '#382626',
 					'etn_event_calendar_bg' => '#301c1c',
 					'etn_registration_deadline' => '',
-					'attende_page_link' => 'http://localhost/wordpress/wp-admin/admin.php?page=eventin#/events/create/145/additional-page',
+					'attende_page_link' => '',
 					'etn_zoom_id' => '',
 					'etn_event_location_type' => '',
 					'etn_event_location' => [
@@ -184,7 +184,7 @@
 					'seat_plan' => '',
 					'ticket_template' => 'style-1',
 					'certificate_template' => '',
-					'external_link' => 'http://localhost/wordpress/wp-admin/admin.php?page=eventin#/events/create/145/additional-page',
+					'external_link' => '',
 					'event_banner' => $attachment["image_url"],
 					'event_layout' => 'event-one',
 					'post_status' => 'draft',
@@ -405,7 +405,7 @@
 				}
 			}
 			
-			$prepared_data['date'] = !empty($input_data['date']) ? $input_data['date'] : date("Y-m-d H:i:s");
+			$prepared_data['date'] = !empty($input_data['date']) ? $input_data['date'] : gmdate("Y-m-d H:i:s");
 			
 			// Create the speaker
 			$created = $speaker_model->create($prepared_data);
@@ -450,7 +450,7 @@
 				}
 			}
 			
-			$prepared_data['date'] = !empty($input_data['date']) ? $input_data['date'] : date("Y-m-d H:i:s");
+			$prepared_data['date'] = !empty($input_data['date']) ? $input_data['date'] : gmdate("Y-m-d H:i:s");
 			
 			// Create the speaker
 			$created = $speaker_model->create($prepared_data);

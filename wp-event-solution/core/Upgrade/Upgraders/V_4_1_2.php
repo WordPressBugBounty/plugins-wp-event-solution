@@ -26,7 +26,7 @@ class V_4_1_2 implements UpdateInterface {
         global $wpdb;
 
         // Start transaction
-        $wpdb->query( 'START TRANSACTION' );
+        $wpdb->query( 'START TRANSACTION' ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Transaction control; caching is inapplicable to DDL/TCL statements.
 
         try {
             $table_created = $this->create_ticket_sales_summary_table();
@@ -42,14 +42,14 @@ class V_4_1_2 implements UpdateInterface {
             }
 
             // Commit transaction if everything succeeded
-            $wpdb->query( 'COMMIT' );
+            $wpdb->query( 'COMMIT' ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Transaction control; caching is inapplicable.
         } catch ( \Exception $e ) {
             // Rollback inserts
-            $wpdb->query( 'ROLLBACK' );
+            $wpdb->query( 'ROLLBACK' ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Transaction control; caching is inapplicable.
 
             // DROP the table since DDL (CREATE TABLE) can't be rolled back in MySQL
             $table_name = $wpdb->prefix . 'etn_ticket_sales_summary';
-            $wpdb->query( "DROP TABLE IF EXISTS {$table_name}" );
+            $wpdb->query( "DROP TABLE IF EXISTS {$table_name}" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Rollback DDL; $table_name is constructed from $wpdb->prefix (internal).
         }
     }
 
@@ -65,7 +65,7 @@ class V_4_1_2 implements UpdateInterface {
         $charset_collate = $wpdb->get_charset_collate();
 
         // Check if table already exists
-        if ( $wpdb->get_var( "SHOW TABLES LIKE '{$table_name}'" ) === $table_name ) {
+        if ( $wpdb->get_var( "SHOW TABLES LIKE '{$table_name}'" ) === $table_name ) { // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- SHOW TABLES requires literal table name; $table_name built from $wpdb->prefix.
             return true; // Table already exists, consider it success
         }
 
@@ -84,7 +84,7 @@ class V_4_1_2 implements UpdateInterface {
         dbDelta( $sql );
 
         // Verify table was created successfully
-        if ( $wpdb->get_var( "SHOW TABLES LIKE '{$table_name}'" ) !== $table_name ) {
+        if ( $wpdb->get_var( "SHOW TABLES LIKE '{$table_name}'" ) !== $table_name ) { // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- SHOW TABLES cannot be parameterised; $table_name built from $wpdb->prefix.
             return false;
         }
 
@@ -102,12 +102,12 @@ class V_4_1_2 implements UpdateInterface {
         $table_name = $wpdb->prefix . 'etn_ticket_sales_summary';
 
         // Check if table exists
-        if ( $wpdb->get_var( "SHOW TABLES LIKE '{$table_name}'" ) !== $table_name ) {
+        if ( $wpdb->get_var( "SHOW TABLES LIKE '{$table_name}'" ) !== $table_name ) { // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- SHOW TABLES cannot be parameterised; $table_name built from $wpdb->prefix.
             return false;
         }
 
         // Check if table already has data (avoid duplicate migration)
-        $count = $wpdb->get_var( "SELECT COUNT(*) FROM {$table_name}" );
+        $count = $wpdb->get_var( "SELECT COUNT(*) FROM {$table_name}" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- One-time migration guard; $table_name built from $wpdb->prefix.
         if ( $count > 0 ) {
             return true; // Already populated, consider it success
         }
@@ -140,7 +140,7 @@ class V_4_1_2 implements UpdateInterface {
                     continue;
                 }
 
-                $result = $wpdb->insert(
+                $result = $wpdb->insert( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- One-time migration insert; $wpdb->insert() escapes values internally.
                     $table_name,
                     [
                         'event_id'     => $event_id,

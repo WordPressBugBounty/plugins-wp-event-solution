@@ -89,7 +89,7 @@ class V_4_0_9 implements UpdateInterface {
         global $wpdb;
 
         $table   = $wpdb->prefix . 'etn_events';
-        $reports = $wpdb->get_results("SELECT * FROM {$table}");
+        $reports = $wpdb->get_results("SELECT * FROM {$table}"); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- One-time migration read; no user input; $table built from $wpdb->prefix.
 
         return $reports;
     }
@@ -133,7 +133,7 @@ class V_4_0_9 implements UpdateInterface {
             'post_status'   => 'any',
             'post_per_page' => -1,
             'fields'        => 'ids',
-            'meta_query' => array(
+            'meta_query' => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
                 array(
                     'key'       => 'etn_attendee_order_id',
                     'value'     => $old_order_id,

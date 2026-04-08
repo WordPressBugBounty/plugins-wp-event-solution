@@ -181,10 +181,13 @@ class ScheduleController extends WP_REST_Controller {
             'post_status'    => 'any',
             'posts_per_page' => $per_page,
             'paged'          => $paged,
-            'meta_query'     => $this->get_search_content( $search ),
+            'meta_query'     => $this->get_search_content( $search ), // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
             'date_query'     => $this->get_year( $year ),
-            'post__in'       => $selected_schedule_ids,
         ];
+
+        if ( ! empty( $event_id ) && ! empty( $selected_schedule_ids ) ) {
+            $args['post__in'] = $selected_schedule_ids;
+        }
 
         if ( ! current_user_can( 'manage_options' ) ) {
             $args['author'] = get_current_user_id(); 
@@ -381,7 +384,8 @@ class ScheduleController extends WP_REST_Controller {
             );
         }
 
-        $message = sprintf( __( '%d Schedule are deleted of %d', 'eventin' ), $count, count( $ids ) );
+        // translators: %1$d is the number of schedules deleted, %2$d is the total number of schedules selected.
+        $message = sprintf( __( '%1$d Schedule are deleted of %2$d', 'eventin' ), $count, count( $ids ) );
 
         return rest_ensure_response( $message );
     }
@@ -445,6 +449,21 @@ class ScheduleController extends WP_REST_Controller {
             }
         }
 
+        $parent_events = get_posts( [
+            'post_type'      => 'etn',
+            'posts_per_page' => 1,
+            'fields'         => 'ids',
+            'meta_query'     => [
+                [
+                    'key'     => 'etn_event_schedule',
+                    'value'   => '"' . $id . '"',
+                    'compare' => 'LIKE',
+                ],
+            ],
+        ] );
+
+        $event_name = ! empty( $parent_events ) ? get_the_title( $parent_events[0] ) : '';
+
         $schedule_data = [
             'id'            => $id,
             'program_title' => get_post_meta( $id, 'etn_schedule_title', true ),
@@ -452,6 +471,7 @@ class ScheduleController extends WP_REST_Controller {
             'day_name'      => get_post_meta( $id, 'etn_schedule_day', true ),
             'hide_date_on_event_page' => get_post_meta( $id, 'hide_date_on_event_page', true ),
             'schedule_slot' => $schedule_slot,
+            'event_name'    => $event_name,
         ];
 
         return $schedule_data;

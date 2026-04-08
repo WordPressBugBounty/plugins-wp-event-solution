@@ -54,8 +54,8 @@ class Add_Calendar {
             'in_loc' => $location,
         ), 'https://calendar.yahoo.com/' );
 
-        $outlook_start = ! empty( $start_date ) ? date( 'Y-m-d', strtotime( $start_date ) ) . 'T' . date( 'H:i:s', strtotime( $etn_start_time ) ) : '';
-        $outlook_end   = ! empty( $end_date )   ? date( 'Y-m-d', strtotime( $end_date ) )   . 'T' . date( 'H:i:s', strtotime( $etn_end_time ) )   : '';
+        $outlook_start = ! empty( $start_date ) ? gmdate( 'Y-m-d', strtotime( $start_date ) ) . 'T' . gmdate( 'H:i:s', strtotime( $etn_start_time ) ) : ''; // phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
+        $outlook_end   = ! empty( $end_date )   ? gmdate( 'Y-m-d', strtotime( $end_date ) )   . 'T' . gmdate( 'H:i:s', strtotime( $etn_end_time ) )   : ''; // phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
         $outlook_url   = add_query_arg( array(
             'rru'     => 'addevent',
             'enddt'   => $outlook_end,

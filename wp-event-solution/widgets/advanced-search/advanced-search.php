@@ -426,6 +426,7 @@ class Etn_Advanced_Search extends Widget_Base {
             <p class="etn_search_bottom_area_text">
                 <?php
                     echo sprintf(
+                        // translators: %1$s is the number of upcoming and expired events.
                         esc_html__( 'Discover %1$s, Upcoming and Expire Events', 'eventin' ),
                         count($this->get_total_posts())
                     );

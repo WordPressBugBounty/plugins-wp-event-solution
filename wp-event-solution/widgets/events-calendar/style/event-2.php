@@ -42,7 +42,7 @@ $data           = Helper::post_data_query('etn', $event_count, $order, $event_ca
 											<?php endif; ?>
 											
 											<div class="etn-event-category">
-												<?php echo  Helper::kses($category); ?>
+												<?php echo  Helper::kses($category); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Helper::kses() wraps wp_kses() with an allowed tags list. ?>
 											</div>
 										</div>
 										<!-- thumbnail start-->

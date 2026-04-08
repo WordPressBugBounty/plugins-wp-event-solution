@@ -34,6 +34,7 @@ class TemplateModel extends Post_Model {
         'orientation'   => '',
         'is_clone'      => '',
         'is_pro'        => '',
+        'is_custom'     => '',
         'thumbnail'     => '',
         'template_css'  => '',
         'template_builder' => '',
@@ -158,25 +159,33 @@ class TemplateModel extends Post_Model {
 		$start_time = wp_date( $time_format, $start_dt->getTimestamp() );
 		$end_time   = wp_date( $time_format, $end_dt->getTimestamp() );
 
-        return [
-            '{{event_title}}'       => esc_html( $event->get_title() ),
-            '{{event_location}}'    => esc_html( $event->get_address() ),
-            '{{event_start_date}}'  => esc_html( $start_date ),
-            '{{event_end_date}}'    => esc_html( $end_date ),
-            '{{event_start_time}}'  => esc_html( $start_time ),
-            '{{event_end_time}}'    => esc_html( $end_time ),
-            '{{event_timezone}}'    => esc_html( $event->event_timezone ),
-            '{{ticket_price}}'      => esc_html( $attendee->etn_ticket_price ),
-            '{{ticket_type}}'       => esc_html( $attendee->ticket_name ),
-            '{{attendee_seat}}'     => esc_html( $attendee->attendee_seat ),
-            '{{payment_status}}'    => esc_html( $attendee->etn_status ),
-            '{{ticket_id}}'         => esc_html( $attendee->etn_unique_ticket_id ),
-            '{{attendee_name}}'     => esc_html( $attendee->etn_name ),
-            '{{attendee_email}}'    => esc_html( $attendee->etn_email ),
-            '{{attendee_phone}}'    => esc_html( $attendee->etn_phone ),
-            '{{extra_fields}}'      => wp_kses_post( $attendee->get_extra_fields_content() ),
+        $placeholders = [
+            '{{event_title}}'         => esc_html( $event->get_title() ),
+            '{{event_location}}'      => esc_html( $event->get_address() ),
+            '{{event_start_date}}'    => esc_html( $start_date ),
+            '{{event_end_date}}'      => esc_html( $end_date ),
+            '{{event_start_time}}'    => esc_html( $start_time ),
+            '{{event_end_time}}'      => esc_html( $end_time ),
+            '{{event_timezone}}'      => esc_html( $event->event_timezone ),
+            '{{ticket_price}}'        => esc_html( $attendee->etn_ticket_price ),
+            '{{ticket_type}}'         => esc_html( $attendee->ticket_name ),
+            '{{attendee_seat}}'       => esc_html( $attendee->attendee_seat ),
+            '{{payment_status}}'      => esc_html( $attendee->etn_status ),
+            '{{ticket_id}}'           => esc_html( $attendee->etn_unique_ticket_id ),
+            '{{attendee_name}}'       => esc_html( $attendee->etn_name ),
+            '{{attendee_email}}'      => esc_html( $attendee->etn_email ),
+            '{{attendee_phone}}'      => esc_html( $attendee->etn_phone ),
+            '{{extra_fields}}'        => wp_kses_post( $attendee->get_extra_fields_content() ),
+            '{{extra_fields_inline}}' => esc_html( $attendee->get_extra_fields_inline() ),
             // '{{qr_code}}',
         ];
+
+        // Dynamic per-field tokens: {{extra_field_KEY}}
+        foreach ( $attendee->get_extra_fields() as $key => $value ) {
+            $placeholders[ '{{extra_field_' . $key . '}}' ] = esc_html( is_array( $value ) ? implode( ', ', $value ) : $value );
+        }
+
+        return $placeholders;
     }
 
     /**
@@ -309,7 +318,12 @@ class TemplateModel extends Post_Model {
 
         $placeholder = $this->get_place_holder( $attendee_id );
 
-        return strtr( $this->get_rendered_content(), $placeholder );
+        $content = strtr( $this->get_rendered_content(), $placeholder );
+
+        // Remove any extra_field tokens that had no matching attendee data.
+        $content = preg_replace( '/\{\{extra_field_[^}]+\}\}/', '', $content );
+
+        return $content;
     }
 
     /**
@@ -347,7 +361,12 @@ class TemplateModel extends Post_Model {
 
         $template = DefaultTemplate::get_template( $template_name );
 
-        return strtr( $template['content'], $placeholder );
+        $content = strtr( $template['content'], $placeholder );
+
+        // Remove any extra_field tokens that had no matching attendee data.
+        $content = preg_replace( '/\{\{extra_field_[^}]+\}\}/', '', $content );
+
+        return $content;
     }
 
     /**
@@ -393,8 +412,20 @@ class TemplateModel extends Post_Model {
      */
     public function get_demo_content() {
         $placeholder = $this->get_demo_placeholder();
+        $content     = strtr( $this->get_rendered_content(), $placeholder );
 
-        return strtr( $this->get_rendered_content(), $placeholder );
+        // Dynamically replace any remaining {{extra_field_KEY}} tokens with a
+        // human-readable demo label derived from the key (e.g. "gender_1" → "Gender").
+        $content = preg_replace_callback(
+            '/\{\{extra_field_([^}]+)\}\}/',
+            function ( $matches ) {
+                $label = ucwords( str_replace( '_', ' ', preg_replace( '/_\d+$/', '', $matches[1] ) ) );
+                return $label;
+            },
+            $content
+        );
+
+        return $content;
     }
 
     /**
@@ -409,10 +440,10 @@ class TemplateModel extends Post_Model {
         return [
             '{{event_title}}'       => 'Event Title',
             '{{event_location}}'    => 'Springfield, IL 62701, United States',
-            '{{event_start_date}}'  => date( $date_format ),
-            '{{event_end_date}}'    => date( $date_format ),
-            '{{event_start_time}}'  => date( $time_format ),
-            '{{event_end_time}}'    => date( $time_format ),
+            '{{event_start_date}}'  => gmdate( $date_format ),
+            '{{event_end_date}}'    => gmdate( $date_format ),
+            '{{event_start_time}}'  => gmdate( $time_format ),
+            '{{event_end_time}}'    => gmdate( $time_format ),
             '{{event_timezone}}'    => 'America/New_York',
             '{{ticket_price}}'      => 500,
             '{{ticket_type}}'       => 'VIP',
@@ -422,6 +453,9 @@ class TemplateModel extends Post_Model {
             '{{attendee_seat}}'     => 'Vip-01',
             '{{attendee_email}}'    => 'john@gmail.com',
             '{{attendee_phone}}'    => '995571089087',
+            '{{extra_fields}}'        => '<strong>Company:</strong> Acme Corp<br><strong>Job Title:</strong> Developer<br><strong>Phone:</strong> +1 555 1234',
+            '{{extra_fields_inline}}' => 'Company: Acme Corp, Job Title: Developer',
+            '{{extra_field_etn_phone}}' => '995571089087',
             // '{{qr_code}}',
         ];
     }

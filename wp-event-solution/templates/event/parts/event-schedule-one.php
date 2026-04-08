@@ -80,7 +80,7 @@
                                                         if (! empty($etn_schedule_start_time) || ! empty($etn_schedule_end_time)) {
                                                         ?>
 		        <span class='etn-schedule-time'>
-		            <?php echo esc_html($etn_schedule_start_time) . $dash_sign . esc_html($etn_schedule_end_time); ?>
+		            <?php echo esc_html($etn_schedule_start_time) . esc_html($dash_sign) . esc_html($etn_schedule_end_time); ?>
 		        </span>
 
 		        <?php

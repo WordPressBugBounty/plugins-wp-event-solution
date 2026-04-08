@@ -58,6 +58,14 @@ class TemplateController extends WP_REST_Controller {
             ],
         ]);
 
+        register_rest_route( $this->namespace, $this->rest_base.'/delete_static_item', [
+            [
+                'methods'             => WP_REST_Server::DELETABLE,
+                'callback'            => [$this, 'delete_static_item'],
+                'permission_callback' => [$this, 'delete_item_permissions_check'],
+            ],
+        ]);
+
         register_rest_route(  $this->namespace,
         '/' . $this->rest_base . '/(?P<id>[\d]+)', [
             [
@@ -180,6 +188,7 @@ class TemplateController extends WP_REST_Controller {
         $type     = ! empty( $request['type'] ) ? sanitize_text_field( $request['type'] ) : '';
         $search_keyword = ! empty( $request['search'] ) ? sanitize_text_field( $request['search'] ) : '';
         $is_remote = isset( $request['is_remote'] ) && filter_var( $request['is_remote'], FILTER_VALIDATE_BOOLEAN );
+        $is_for_edit = isset( $request['is_for_edit'] ) && filter_var( $request['is_for_edit'], FILTER_VALIDATE_BOOLEAN );
      
         $args = [
             'post_type'      => 'etn-template',
@@ -219,18 +228,31 @@ class TemplateController extends WP_REST_Controller {
         }
 
         if ( ! empty( $meta_query ) ) {
-            $args['meta_query'] = $meta_query;   
+            $args['meta_query'] = $meta_query; // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query   
         }
 
         $post_query   = new \WP_Query();
         $query_result = $post_query->query( $args );
         $total_posts  = $post_query->found_posts;
         $templates    = [];
-    
+        $static_templates_data = etn_get_static_templates_by_type( $type );
+
         // Add static templates through prepare_item_for_response
-        if( ! $is_remote ) {
-            $static_templates_data = etn_get_static_templates_by_type( $type );
+        if( $is_remote || $is_for_edit ) {
             foreach ( $static_templates_data as $static_data ) {
+                $key = 'eventin_template_' . $static_data['id'];
+                $is_template_in_list = etn_get_option( $key );
+                $static_template = new StaticTemplate( $static_data );
+                $static_template->is_added = $is_template_in_list ? true : false;
+                $templates[] = $this->prepare_item_for_response( $static_template, $request );
+            }
+        }
+
+        foreach($static_templates_data as $static_data) {
+            $key = 'eventin_template_' . $static_data['id'];
+            $is_template_in_list = etn_get_option($key);
+
+            if($is_template_in_list) {
                 $static_template = new StaticTemplate( $static_data );
                 $templates[] = $this->prepare_item_for_response( $static_template, $request );
             }
@@ -281,10 +303,12 @@ class TemplateController extends WP_REST_Controller {
             'template_builder' => ! empty( $item->get_template_builder() ) ? $item->get_template_builder() : ( $is_static ? '' : $this->get_legacy_template_models_template_builder( $item ) ),
             'edit_with_elementor' => $is_static ? false : $this->check_post_edit_with_elementor( $item->id ),
             'is_default'    => $this->is_default_template( $item , $is_static),
+            'is_custom'     => $is_static ? false : (bool) get_post_meta( $post_id, 'is_custom', true ),
         ];
 
         if ( $is_static ) {
             $response['isStatic'] = true;
+            $response['isAdded'] = isset( $item->is_added ) ? $item->is_added : false;
         }
 
         return $response;
@@ -410,6 +434,18 @@ class TemplateController extends WP_REST_Controller {
     public function create_item( $request ) {
         $this->validate_create_item_request( $request );
         $data = $this->prepare_item_for_database( $request );
+
+        $input_data = json_decode( $request->get_body(), true ) ?? [];
+        $input = new Input( $input_data );
+
+        if(!empty($input->get('id')) && !empty($input->get('is_static'))){
+            etn_update_option( 'eventin_template_' . $input->get('id'), true );
+
+            return rest_ensure_response( [
+                'success' => true,
+                'message' => __( 'Template added to list successfully', 'eventin' ),
+            ] );
+        }
 
         if ( is_wp_error( $data ) ) {
             return $data;
@@ -696,12 +732,32 @@ class TemplateController extends WP_REST_Controller {
             'thumbnail'     => $input->get('thumbnail'),
             'template_css'  => $input->get('template_css'),
             'is_pro'        => false,
-            'template_css'  => $input->get('template_css'),
+            'is_custom'     => (bool) $input->get('isCustom'),
             'template_builder' => $input->get('template_builder') ?? etn_get_selected_template_builder(),
             'preview_event_id' => $input->get('preview_event_id'),
         ];
 
         return $template_data;
+    }
+
+    /**
+     * Delete static item
+     *
+     * @param   WP_Rest_Request  $request
+     *
+     * @return  WP_Rest_Response | WP_Error
+     */
+    public function delete_static_item( $request ) {
+        $id = ! empty( $request['id'] ) ?  sanitize_text_field( $request['id'] ) : '';
+        $is_in_list = etn_get_option('eventin_template_' . $id);
+        if($is_in_list){
+            etn_update_option( 'eventin_template_' . $id, false );
+        }
+        
+        return rest_ensure_response( [
+            'success' => true,
+            'message' => __( 'Template deleted successfully', 'eventin' ),
+        ] );
     }
 
     /**
@@ -786,7 +842,8 @@ class TemplateController extends WP_REST_Controller {
             );
         }
 
-        $message = sprintf( __( '%d templates are deleted of %d', 'eventin' ), $count, count( $ids ) );
+        // translators: %1$d is the number of templates deleted, %2$d is the total number of templates selected.
+        $message = sprintf( __( '%1$d templates are deleted of %2$d', 'eventin' ), $count, count( $ids ) );
 
         return rest_ensure_response( $message );
     }
@@ -905,7 +962,7 @@ class TemplateController extends WP_REST_Controller {
 
         $update_result = etn_update_option( $option_key, $data['template_id'] );
 
-        if ( false === $update_result && etn_get_option( $option_key ) !== $data['template_id'] ) {
+        if ( false === $update_result && etn_get_option( $option_key ) != $data['template_id'] ) {
             return new WP_Error(
                 'update_failed',
                 __( 'Failed to set default template. Please try again.', 'eventin' ),
@@ -949,7 +1006,8 @@ class TemplateController extends WP_REST_Controller {
 
         return [
             'message' => sprintf(
-                __( 'Template assignment completed. %d events updated, %d failed.', 'eventin' ),
+                // translators: %1$d is the number of events updated, %2$d is the number of failed updates.
+                __( 'Template assignment completed. %1$d events updated, %2$d failed.', 'eventin' ),
                 count( $updated_events ),
                 count( $failed_events )
             ),
@@ -1001,7 +1059,7 @@ class TemplateController extends WP_REST_Controller {
             'post_type'      => 'etn',
             'posts_per_page' => -1,
             'post_status'    => 'any',
-            'meta_query'     => [
+            'meta_query'     => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
                 [
                     'key'     => $meta_key,
                     'value'   => $template_id,
@@ -1229,7 +1287,7 @@ class TemplateController extends WP_REST_Controller {
             'post_status'    => 'any',
             'posts_per_page' => -1,
             'fields'         => 'ids',
-            'meta_query'     => [
+            'meta_query'     => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
                 [
                     'key'     => 'event_layout',
                     'value'   => $template_id,

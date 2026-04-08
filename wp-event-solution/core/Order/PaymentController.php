@@ -60,7 +60,14 @@ defined( 'ABSPATH' ) || exit;
 		}
 		
 		/**
-		 * Create payment persmission check
+		 * Create payment permission check.
+		 *
+		 * Intentionally nonce-only: payment is initiated by unauthenticated guests as
+		 * part of the guest ticket purchase flow. The order already exists at this point
+		 * (created via create_item); this endpoint only drives that order through the
+		 * payment gateway. The nonce (injected into the page via localized_data_obj.nonce)
+		 * provides CSRF protection without requiring a WordPress account. No order data
+		 * belonging to other users is readable through this endpoint.
 		 *
 		 * @param WP_REST_Request $request
 		 *
@@ -289,7 +296,7 @@ defined( 'ABSPATH' ) || exit;
 				'post_status' => 'any',
 				'posts_per_page' => -1,
 				'fields' => 'ids',
-				'meta_query' => [
+				'meta_query' => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
 					[
 						'key' => 'eventin_order_id',
 						'value' => $eventin_order_id,
@@ -344,7 +351,7 @@ defined( 'ABSPATH' ) || exit;
 				'post_type' => 'etn-order',
 				'post_status' => 'draft',
 				'posts_per_page' => -1,
-				'meta_query' => [
+				'meta_query' => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
 					[
 						'key' => 'payment_id',
 						'value' => $payment_id,

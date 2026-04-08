@@ -331,7 +331,7 @@ class EventController extends WP_REST_Controller {
 
         // Category filter (taxonomy query).
         if ( ! empty( $category ) ) {
-            $args['tax_query'] = [
+            $args['tax_query'] = [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
                 [
                     'taxonomy' => 'etn_category',
                     'field'    => 'term_id',
@@ -375,9 +375,9 @@ class EventController extends WP_REST_Controller {
             $args['s'] = $search_keyword;
         }
     
-        $current_datetime = date( 'Y-m-d H:i:s' );
-        $tomorrow = date( 'Y-m-d H:i:s', strtotime( '+1 day' ) );
-        $yesterday = date( 'Y-m-d H:i:s', strtotime( '-1 day' ) );
+        $current_datetime = gmdate( 'Y-m-d H:i:s' );
+        $tomorrow = gmdate( 'Y-m-d H:i:s', strtotime( '+1 day' ) );
+        $yesterday = gmdate( 'Y-m-d H:i:s', strtotime( '-1 day' ) );
     
         if ( 'draft' === $status ) {
             $args['post_status'] = 'draft';
@@ -420,7 +420,7 @@ class EventController extends WP_REST_Controller {
         }
     
         if ( ! empty( $meta_query ) ) {
-            $args['meta_query'] = $meta_query;   
+            $args['meta_query'] = $meta_query; // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query   
         }
 
         if ( $meta_query || $search_keyword || $status || $category || $organizer || $speaker || $parent !== null ) {
@@ -588,7 +588,8 @@ class EventController extends WP_REST_Controller {
             $meeting_platform = MeetingPlatform::get_platform( $platform_name );
 
             if ( ! $meeting_platform->is_connected() ) {
-                return new WP_Error( 'not_connected', __( $platform_name . ' is not connected', 'eventin' ), ['status' => 400] );
+                // translators: %s is the platform name (e.g. Zoom, Google Meet).
+                return new WP_Error( 'not_connected', sprintf( __( '%s is not connected', 'eventin' ), $platform_name ), ['status' => 400] );
             }
         }
 
@@ -848,7 +849,8 @@ class EventController extends WP_REST_Controller {
             );
         }
 
-        $message = sprintf( __( '%d events are deleted of %d', 'eventin' ), $count, count( $ids ) );
+        // translators: %1$d is the number of events deleted, %2$d is the total number of events selected.
+        $message = sprintf( __( '%1$d events are deleted of %2$d', 'eventin' ), $count, count( $ids ) );
 
         delete_transient( $this->event_cache_key );
 
@@ -944,10 +946,12 @@ class EventController extends WP_REST_Controller {
 
         if($page_on_front == $event_id){
             $updated = update_option( 'page_on_front', 0 );
+            // translators: %s is the event title.
             $message = sprintf(__('Event "%s" has been unset from the homepage.', 'eventin'), get_the_title( $event_id ) );
         }
         else{
             $updated = update_option( 'page_on_front', $event_id );
+            // translators: %s is the event title.
             $message = sprintf(__('Event "%s" has been set as the homepage.', 'eventin'), get_the_title( $event_id ) );
         }
         
@@ -1226,7 +1230,7 @@ class EventController extends WP_REST_Controller {
 
         // Query users with speaker group meta                                                                                      
         $user_query = new WP_User_Query([
-            'meta_query' => [
+            'meta_query' => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
                 'relation' => 'OR',
                 [
                     'key'     => 'etn_speaker_group',
@@ -1327,7 +1331,8 @@ class EventController extends WP_REST_Controller {
             $meeting_platform = MeetingPlatform::get_platform( $platform_name );
 
             if ( ! $meeting_platform->is_connected() ) {
-                return new WP_Error( 'not_connected', __( $platform_name . ' is not connected', 'eventin' ), ['status' => 400] );
+                // translators: %s is the platform name (e.g. Zoom, Google Meet).
+                return new WP_Error( 'not_connected', sprintf( __( '%s is not connected', 'eventin' ), $platform_name ), ['status' => 400] );
             }
 
             $args = [
@@ -1381,7 +1386,7 @@ class EventController extends WP_REST_Controller {
             $args = array(
                 'fields'     => 'ID',
                 'number'     => -1,
-                'meta_query' => array(
+                'meta_query' => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
                     'relation' => 'AND',
                     array(
                         'key'     => 'etn_speaker_group',
@@ -1425,7 +1430,7 @@ class EventController extends WP_REST_Controller {
             $args = array(
                 'fields'     => 'ID',
                 'number'     => -1,
-                'meta_query' => array(
+                'meta_query' => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
                     'relation' => 'AND',
                     array(
                         'key'     => 'etn_speaker_group',

@@ -8,63 +8,71 @@ defined( 'ABSPATH' ) || exit;
     use Wpeventin;
 
     /**
-     * Event Organizer Gutenberg block
-     */
+ * Event Organizer Gutenberg block
+ */
     class EventOrganizer extends AbstractBlock
     {
-        /**
-         * Block name.
-         *
-         * @var string
-         */
-        protected $block_name = 'event-organizer';
+    /**
+     * Block name.
+     *
+     * @var string
+     */
+    protected $block_name = 'event-organizer';
 
-        /**
-         * Include and render the block
-         *
-         * @param   array  $attributes  Block attributes. Default empty array
-         * @param   string  $content     Block content. Default empty string
-         * @param   WP_Block  $block       Block instance
-         *
-         * @return  string Rendered block type output
-         */
-        protected function render($attributes, $content, $block)
-        {
-            $container_class = ! empty($attributes['containerClassName']) ? $attributes['containerClassName'] : '';
-            $styles          = ! empty($attributes['styles']) ? $attributes['styles'] : [];
-            $style_variant   = ! empty($attributes['styleVariant']) ? sanitize_key($attributes['styleVariant']) : 'style-1';
+    /**
+     * Include and render the block
+     *
+     * @param   array  $attributes  Block attributes. Default empty array
+     * @param   string  $content     Block content. Default empty string
+     * @param   WP_Block  $block       Block instance
+     *
+     * @return  string Rendered block type output
+     */
+    protected function render($attributes, $content, $block)
+    {
+        $container_class = ! empty($attributes['containerClassName']) ? $attributes['containerClassName'] : '';
+        $styles          = ! empty($attributes['styles']) ? $attributes['styles'] : [];
+        $style_variant   = ! empty($attributes['styleVariant']) ? sanitize_key($attributes['styleVariant']) : 'style-1';
 
-            $allowed_variants = ['style-1', 'style-2'];
-            if (! in_array($style_variant, $allowed_variants, true)) {
-                $style_variant = 'style-1';
-            }
+        $allowed_variants = ['style-1', 'style-2', 'style-3'];
+        if (! in_array($style_variant, $allowed_variants, true)) {
+            $style_variant = 'style-1';
+        }
 
-            if ($this->is_editor()) {
-                $event_id = ! empty($attributes['eventId']) ? intval($attributes['eventId']) : 0;
+        if ($this->is_editor()) {
+            $event_id = ! empty($attributes['eventId']) ? intval($attributes['eventId']) : 0;
 
-                if ($event_id == 0) {
-                    $template = new \Eventin\Template\TemplateModel(get_the_ID());
-                    $event_id = $template->get_preview_event_id();
-                }
-            } else if ('etn-template' == get_post_type(get_the_ID())) {
+            if ($event_id == 0) {
                 $template = new \Eventin\Template\TemplateModel(get_the_ID());
                 $event_id = $template->get_preview_event_id();
-            } else {
-                $event_id = get_the_ID();
             }
+        } else if ('etn-template' == get_post_type(get_the_ID())) {
+            $template = new \Eventin\Template\TemplateModel(get_the_ID());
+            $event_id = $template->get_preview_event_id();
+        } else {
+            $event_id = get_the_ID();
+        }
 
-            $event = new Event_Model($event_id);
+        $event = new Event_Model($event_id);
 
-            $event_organizers = $event->get_organizers();
+        $event_organizers = $event->get_organizers();
 
-            ob_start();
+        ob_start();
         ?>
         <?php
             // Generate CSS with !important to override SCSS
                     $frontend_css = $this->generate_frontend_css($styles, $container_class);
-                    if (! empty($frontend_css)) {
+                    if (! empty($frontend_css) && ! empty($container_class)) {
+                        // Fix wrapper selector: container-class is on the same element as .etn-event-organizers
+                        // Change ".container-class .etn-event-organizers" to ".container-class.etn-event-organizers"
+                        $frontend_css = preg_replace(
+                            '/\.' . preg_quote($container_class, '/') . '\s+\.etn-event-organizers(\.etn-organizer-style-\d+)?/',
+                            '.' . $container_class . '.etn-event-organizers$1',
+                            $frontend_css
+                        );
+
                         // Add !important to common properties that need to override SCSS
-                        $important_properties = ['width', 'height', 'font-size', 'color', 'font-weight', 'line-height', 'letter-spacing', 'margin', 'padding', 'text-align', 'font-family', 'border-width', 'border-color', 'border-style', 'border-radius', 'z-index', 'box-shadow', 'left', 'right', 'top', 'bottom', 'position'];
+                        $important_properties = ['width', 'height', 'font-size', 'color', 'background-color', 'font-weight', 'line-height', 'letter-spacing', 'margin', 'padding', 'text-align', 'font-family', 'border-width', 'border-color', 'border-style', 'border-radius', 'z-index', 'box-shadow', 'left', 'right', 'top', 'bottom', 'position'];
                         foreach ($important_properties as $prop) {
                             $frontend_css = preg_replace(
                                 "/({$prop})\s*:\s*([^;!]+?)(?!\s*!important)\s*;/im",
@@ -72,7 +80,7 @@ defined( 'ABSPATH' ) || exit;
                                 $frontend_css
                             );
                         }
-                        echo '<style>' . $frontend_css . '</style>';
+                        echo '<style>' . $frontend_css . '</style>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- CSS generated from block editor attributes; HTML escaping would break styles.
                     }
                 ?>
         <?php
@@ -83,4 +91,4 @@ defined( 'ABSPATH' ) || exit;
         <?php
             return ob_get_clean();
                 }
-            }
+        }

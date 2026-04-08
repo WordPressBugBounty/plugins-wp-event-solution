@@ -285,6 +285,7 @@ abstract class AbstractBlock {
         }
 
         $safe_css = preg_replace( '/<script\b[^>]*>(.*?)<\/script>/is', '', $css );
+        $safe_css = str_replace( '</style>', '', $safe_css ); // Prevent breaking out of <style> context via CSS injection.
         return $safe_css;
     }
 

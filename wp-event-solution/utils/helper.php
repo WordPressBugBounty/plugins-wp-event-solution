@@ -331,7 +331,6 @@
          */
         public static function user_data_query($count = '-1', $order = 'DESC', $term_arr = null, $orderby = 'ID', $paged = 1)
         {
-
             $user_data = [];
 
             // Ensure $term_arr is a string before using explode
@@ -340,6 +339,7 @@
             }
 
             $term_arrr = explode(',', $term_arr);
+            $term_arrr = array_filter($term_arrr);
 
             if (! empty($term_arrr)) {
                 foreach ($term_arrr as $group_id) {
@@ -349,7 +349,7 @@
                         'order'      => $order,
                         'orderby'    => $orderby,
                         'paged'      => $paged,
-                        'meta_query' => [
+                        'meta_query' => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
                             'relation' => 'AND',
                             [
                                 'key'     => 'etn_speaker_group',
@@ -364,7 +364,22 @@
                         $user_data = array_merge($user_data, get_users($args));
                     }
                 }
+            } else {
+                // No category filter - get all speakers
+                $args = [
+                    'number'   => $count,
+                    'role__in' => ['etn-speaker', 'etn-organizer'],
+                    'order'    => $order,
+                    'orderby'  => $orderby,
+                    'paged'    => $paged,
+                ];
+
+                if (is_array(get_users($args))) {
+                    $user_data = get_users($args);
+                }
             }
+
+            
 
             // Remove duplicates
             $unique_users = array_unique($user_data, SORT_REGULAR);
@@ -389,7 +404,7 @@
                 'post_type'        => $post_type,
                 'post_status'      => 'publish',
                 'suppress_filters' => false,
-                'tax_query'        => [
+                'tax_query'        => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
                     'relation' => 'AND',
                 ],
                 'paged'            => $paged,
@@ -405,7 +420,7 @@
                     $args['orderby'] = $orderby;
                 } else {
                     if (in_array($orderby, ['etn_start_date', 'etn_end_date'])) {
-                        $args['meta_query'] = isset($args['meta_query']) ? $args['meta_query'] : ['relation' => 'AND'];
+                        $args['meta_query'] = isset($args['meta_query']) ? $args['meta_query'] : ['relation' => 'AND']; // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
 
                         // Add meta_query entries without overriding existing ones
                         $args['meta_query'][] = [
@@ -418,14 +433,14 @@
                         ];
 
                         // Register both for ordering
-                        $args['meta_key'] = $orderby;
+                        $args['meta_key'] = $orderby; // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
                         $args['orderby']  = [
-                            'meta_value'     => $order, // ordering by $orderby (etn_start_date or etn_end_date)
-                            'etn_start_time' => $order, // secondary order by time
+                            'meta_value'     => $order, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+                            'etn_start_time' => $order, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
                         ];
 
                         // Support for named keys — use a named static callback so it can be removed after get_posts()
-                        $etn_orderby_filter = static function ($orderby_statement, $query) use (&$etn_orderby_filter) {
+                        $etn_orderby_filter = static function ($orderby_statement, $query) use (&$etn_orderby_filter) { // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
                             global $wpdb;
                             if ($query->get('orderby') && is_array($query->get('orderby'))) {
                                 return "
@@ -437,7 +452,7 @@
                         };
                         add_filter('posts_orderby', $etn_orderby_filter, 10, 2);
                     } else {
-                        $args['meta_key'] = $orderby;
+                        $args['meta_key'] = $orderby; // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
                         $args['orderby']  = $orderby_meta;
                     }
                 }
@@ -446,7 +461,7 @@
             }
 
             if ($post_not_in != null) {
-                $args['post__not_in'] = $post_not_in;
+                $args['post__not_in'] = $post_not_in; // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post__not_in
             }
 
             if ($count != null) {
@@ -486,10 +501,10 @@
 
                 if ($filter_with_status == 'upcoming') {
 
-                    $args['meta_query'] = [
+                    $args['meta_query'] = [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
                         [
                             'key'     => 'etn_start_date',
-                            'value'   => date('Y-m-d'),
+                            'value'   => gmdate('Y-m-d'),
                             'compare' => '>=',
                             'type'    => 'DATE',
                         ],
@@ -498,20 +513,20 @@
 
                 if ($filter_with_status == 'expire') {
 
-                    $args['meta_query'] = [
+                    $args['meta_query'] = [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
                         'relation' => 'AND',
                         [
                             'relation' => 'OR',
                             [
                                 'key'     => 'etn_end_date',
-                                'value'   => date('Y-m-d'),
+                                'value'   => gmdate('Y-m-d'),
                                 'compare' => '<',
                                 'type'    => 'DATE',
 
                             ],
                             [
                                 'key'     => 'etn_end_date',
-                                'value'   => date('Y-m-d'),
+                                'value'   => gmdate('Y-m-d'),
                                 'compare' => '=',
                                 'type'    => 'DATE',
                             ],
@@ -523,7 +538,7 @@
                         ],
                         [
                             'key'     => 'etn_start_date',
-                            'value'   => date('Y-m-d'),
+                            'value'   => gmdate('Y-m-d'),
                             'compare' => '<',
                             'type'    => 'DATE',
                         ],
@@ -531,17 +546,17 @@
                 }
 
                 if ('ongoing' === $filter_with_status) {
-                    $args['meta_query'] = [
+                    $args['meta_query'] = [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
                         'relation' => 'AND',
                         [
                             'key'     => 'etn_start_date',
-                            'value'   => date('Y-m-d H:i:s'),
+                            'value'   => gmdate('Y-m-d H:i:s'),
                             'compare' => '<=',
                             'type'    => 'DATETIME',
                         ],
                         [
                             'key'     => 'etn_end_date',
-                            'value'   => date('Y-m-d H:i:s'),
+                            'value'   => gmdate('Y-m-d H:i:s'),
                             'compare' => '>=',
                             'type'    => 'DATETIME',
                         ],
@@ -652,7 +667,7 @@
             $args = [
                 'post_type'      => $post_type,
                 'posts_per_page' => $limit,
-                'meta_query'     => [
+                'meta_query'     => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
                     [
                         'key'     => $key,
                         'value'   => $value,
@@ -691,7 +706,7 @@
          */
         public static function sanitize(string $data)
         {
-            return strip_tags(
+            return wp_strip_all_tags(
                 sanitize_text_field(
                     wp_unslash(
                         filter_input(INPUT_POST, $data)
@@ -882,10 +897,10 @@
                     }
 
                     if ($upcoming) {
-                        $args['meta_query'] = [
+                        $args['meta_query'] = [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
                             [
                                 'key'     => 'etn_end_date',
-                                'value'   => date('Y-m-d'),
+                                'value'   => gmdate('Y-m-d'),
                                 'compare' => '>=',
                                 'type'    => 'DATE',
                             ],
@@ -1143,8 +1158,8 @@
             $etn_left_tickets   = $etn_avaiilable_tickets - $etn_sold_tickets;
             $event_options      = get_option("etn_event_options");
             $event_time_format  = empty($event_options["time_format"]) ? '12' : $event_options["time_format"];
-            $event_start_time   = empty($etn_start_time) ? '' : (($event_time_format == "24") ? date('H:i', $etn_start_time) : date('g:i a', $etn_start_time));
-            $event_end_time     = empty($etn_end_time) ? '' : (($event_time_format == "24") ? date('H:i', $etn_end_time) : date('g:i a', $etn_end_time));
+            $event_start_time   = empty($etn_start_time) ? '' : (($event_time_format == "24") ? gmdate('H:i', $etn_start_time) : gmdate('g:i a', $etn_start_time));
+            $event_end_time     = empty($etn_end_time) ? '' : (($event_time_format == "24") ? gmdate('H:i', $etn_end_time) : gmdate('g:i a', $etn_end_time));
             $event_start_date   = self::etn_date($etn_start_date);
             $event_end_date     = self::etn_date($etn_end_date);
             $etn_deadline       = get_post_meta($single_event_id, 'etn_registration_deadline', true);
@@ -1242,7 +1257,7 @@
         public static function remove_attendee_data()
         {
             global $wpdb;
-            $query = $wpdb->query(
+            $query = $wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
                 "UPDATE $wpdb->posts posts
             INNER JOIN $wpdb->postmeta postmeta
             ON posts.ID = postmeta.post_id
@@ -1289,7 +1304,7 @@
 
             $table_etn_events = ETN_EVENT_PURCHASE_HISTORY_TABLE;
             $dir              = in_array( $report_sorting, [ 'ASC', 'DESC' ], true ) ? $report_sorting : 'DESC';
-            $data             = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$table_etn_events} WHERE post_id = %d ORDER BY event_id {$dir}", intval( $current_post_id ) ) );
+            $data             = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$table_etn_events} WHERE post_id = %d ORDER BY event_id {$dir}", intval( $current_post_id ) ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
             if (is_array($data) && count($data) > 0) {
                 $total_sale_price = 0;
@@ -1298,7 +1313,7 @@
 
                 foreach ($data as &$single_sale) {
                     $total_sale_price += $single_sale->event_amount;
-                    $single_sale_meta = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$trans_history_meta_table} WHERE event_id = %d AND meta_key = '_etn_order_qty'", $single_sale->event_id ) );
+                    $single_sale_meta = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$trans_history_meta_table} WHERE event_id = %d AND meta_key = '_etn_order_qty'", $single_sale->event_id ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
                     $single_sale->{'single_sale_meta'}
 
                     = $single_sale_meta[0]->meta_value;
@@ -1366,7 +1381,7 @@
         public static function get_attendee_by_token($key, $value)
         {
             global $wpdb;
-            $query_result = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$wpdb->prefix}postmeta WHERE meta_key = %s AND meta_value = %s", $key, $value ) );
+            $query_result = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$wpdb->prefix}postmeta WHERE meta_key = %s AND meta_value = %s", $key, $value ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 
             return $query_result;
         }
@@ -1376,7 +1391,7 @@
          */
         public static function sort_schedule_items($post_id, $etn_rep_key)
         {
-            $new_order = sanitize_text_field( wp_unslash( $_POST['etn_schedule_sorting'] ) );
+            $new_order = sanitize_text_field( wp_unslash( $_POST['etn_schedule_sorting'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.InputNotValidated
             $order     = json_decode($new_order, true);
             $order     = array_values($order);
 
@@ -1459,8 +1474,7 @@
             $all_attendee = [];
             global $wpdb;
             $table_name = $wpdb->prefix . "postmeta";
-            $sql        = $wpdb->prepare( "SELECT post_id FROM {$table_name} WHERE meta_key='etn_attendee_order_id' AND meta_value=%d", absint( $order_id ) );
-            $results    = $wpdb->get_results($sql);
+            $results    = $wpdb->get_results( $wpdb->prepare( "SELECT post_id FROM {$table_name} WHERE meta_key='etn_attendee_order_id' AND meta_value=%d", absint( $order_id ) ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
             if (is_array($results) && ! empty($results)) {
 
@@ -1480,8 +1494,7 @@
             $all_attendee = [];
             global $wpdb;
             $table_name = $wpdb->prefix . "postmeta";
-            $sql        = $wpdb->prepare( "SELECT post_id FROM {$table_name} WHERE meta_key='eventin_order_id' AND meta_value=%d", absint( $order_id ) );
-            $results    = $wpdb->get_results($sql);
+            $results    = $wpdb->get_results( $wpdb->prepare( "SELECT post_id FROM {$table_name} WHERE meta_key='eventin_order_id' AND meta_value=%d", absint( $order_id ) ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
             if (is_array($results) && ! empty($results)) {
 
@@ -1572,20 +1585,20 @@
             {
                 $etn_event_location = "";
 
-                if (isset($_GET['etn_event_location'])) {
-                    $etn_event_location = sanitize_text_field( wp_unslash( $_GET['etn_event_location'] ) );
+                if (isset($_GET['etn_event_location'])) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+                    $etn_event_location = sanitize_text_field( wp_unslash( $_GET['etn_event_location'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
                 }
 
                 $event_cat = "";
 
-                if (isset($_GET['etn_categorys'])) {
-                    $event_cat = sanitize_text_field( wp_unslash( $_GET['etn_categorys'] ) );
+                if (isset($_GET['etn_categorys'])) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+                    $event_cat = sanitize_text_field( wp_unslash( $_GET['etn_categorys'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
                 }
 
                 $keyword = "";
 
-                if (isset($_GET['s'])) {
-                    $keyword = sanitize_text_field( wp_unslash( $_GET['s'] ) );
+                if (isset($_GET['s'])) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+                    $keyword = sanitize_text_field( wp_unslash( $_GET['s'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
                 }
 
                 $data_query_args = [
@@ -1596,7 +1609,7 @@
                 ];
 
                 if (! empty($event_cat)) {
-                    $data_query_args['tax_query'] = [
+                    $data_query_args['tax_query'] = [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
                         [
                             'taxonomy'         => 'etn_category',
                             'terms'            => [$event_cat],
@@ -1611,7 +1624,7 @@
 
                     $term_details = get_term_by('slug', $etn_event_location, 'etn_location');
                     if (! empty($term_details)) {
-                        $data_query_args['tax_query'] = [
+                        $data_query_args['tax_query'] = [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
                             [
                                 'taxonomy' => 'etn_location',
                                 'terms'    => [$term_details->term_id],
@@ -1619,7 +1632,7 @@
                             ],
                         ];
                     } else {
-                        $data_query_args['meta_query'] = [
+                        $data_query_args['meta_query'] = [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
                             [
                                 'key'     => 'etn_event_location',
                                 'value'   => $etn_event_location,
@@ -1637,10 +1650,10 @@
             // get event location
             public static function get_event_location()
             {
-                $location_args = [
+                $location_args = [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
                     'post_type'   => ['etn'],
                     'numberposts' => -1,
-                    'meta_query'  => [
+                    'meta_query'  => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
                         [
                             'key'     => 'etn_event_location',
                             'compare' => 'EXISTS',
@@ -1712,7 +1725,7 @@
 						type="search"
 						name="s"
 						value="<?php echo get_search_query() ?>"
-						placeholder="<?php echo esc_html__($etn_event_input_filed_title, 'eventin') ?>"
+						placeholder="<?php echo esc_html($etn_event_input_filed_title) ?>"
 						class="form-control">
 				</div>
 				<!-- // Search input filed -->
@@ -1731,7 +1744,7 @@
 						</span>
 					</div>
 					<select name="etn_event_location" class="etn_event_select2 etn_event_select">
-						<option value><?php echo esc_html__($etn_event_location_filed_title, 'eventin') ?></option>
+						<option value><?php echo esc_html($etn_event_location_filed_title) ?></option>
 						<?php
                             if (is_array($location_data) && ! empty($location_data)) {
                                         $modify_array_data = array_shift($location_data);
@@ -1739,8 +1752,8 @@
                                         foreach ($location_data as $key => $value) {
                                             $select_value = "";
 
-                                            if (isset($_GET['etn_event_location'])) {
-                                                $select_value = sanitize_text_field( wp_unslash( $_GET['etn_event_location'] ) );
+                                            if (isset($_GET['etn_event_location'])) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+                                                $select_value = sanitize_text_field( wp_unslash( $_GET['etn_event_location'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
                                             }
 
                                         ?>
@@ -1775,14 +1788,14 @@
 						</span>
 					</div>
 					<select name="etn_categorys" class="etn_event_select2 etn_event_select">
-						<option value><?php echo esc_html__($etn_event_category_filed_title, 'eventin') ?></option>
+						<option value><?php echo esc_html($etn_event_category_filed_title) ?></option>
 						<?php
 
                                     if (! empty($category_data) && is_array($category_data)) {
                                         $select_cat_value = '';
 
-                                        if (isset($_GET['etn_categorys'])) {
-                                            $select_cat_value = sanitize_text_field( wp_unslash( $_GET['etn_categorys'] ) );
+                                        if (isset($_GET['etn_categorys'])) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+                                            $select_cat_value = sanitize_text_field( wp_unslash( $_GET['etn_categorys'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
                                         }
 
                                         foreach ($category_data as $key => $value) {
@@ -1830,7 +1843,7 @@
 					<button
 						type="submit"
 						class="etn-btn etn-btn-primary">
-						<?php echo esc_html__($etn_event_button_title, 'eventin') ?>
+						<?php echo esc_html($etn_event_button_title) ?>
 					</button>
 				</div>
 			</div>
@@ -1847,51 +1860,51 @@
                  */
                 public static function event_etn_search_filter($query)
                 {
-                    if ((isset($_GET['post_type']) && $_GET['post_type'] === "etn") && $query->is_search && ! is_admin()) {
+                    if ((isset($_GET['post_type']) && $_GET['post_type'] === "etn") && $query->is_search && ! is_admin()) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 
-                        $prev_date = date('Y-m-d', strtotime(date('Y-m-d') . ' -1 day'));
-                        $next_date = date('Y-m-d', strtotime(date('Y-m-d') . ' +1 day'));
+                        $prev_date = gmdate('Y-m-d', strtotime('-1 day'));
+                        $next_date = gmdate('Y-m-d', strtotime('+1 day'));
 
-                        $week_date = date('Y-m-d', strtotime(date('Y-m-d') . ' +7 day'));
+                        $week_date = gmdate('Y-m-d', strtotime('+7 day'));
 
                         $week_start = strtotime("last monday");
-                        $week_start = date('w', $week_start) == date('w') ? $week_start + 7 * 86400 : $week_start;
-                        $weekend    = date('Y-m-d', strtotime(date("Y-m-d", $week_start) . " +6 days"));
+                        $week_start = gmdate('w', $week_start) == gmdate('w') ? $week_start + 7 * 86400 : $week_start;
+                        $weekend    = gmdate('Y-m-d', strtotime(gmdate("Y-m-d", $week_start) . " +6 days"));
 
-                        $month_start_date = date('Y-m-d', strtotime(date('Y-m')));
-                        $month_end_date   = date('Y-m-d', strtotime(date("Y-m-t", strtotime($month_start_date))));
+                        $month_start_date = gmdate('Y-m-d', strtotime(gmdate('Y-m')));
+                        $month_end_date   = gmdate('Y-m-d', strtotime(gmdate("Y-m-t", strtotime($month_start_date))));
 
                         $event_sorting       = ! empty(etn_get_option('archive_event_sorting')) ? etn_get_option('archive_event_sorting') : "";
                         $event_sorting_order = ! empty(etn_get_option('archive_event_sorting_order')) ? etn_get_option('archive_event_sorting_order') : "";
 
                         $etn_event_location = "";
 
-                        if (isset($_GET['etn_event_location'])) {
-                            $etn_event_location = sanitize_text_field( wp_unslash( $_GET['etn_event_location'] ) );
+                        if (isset($_GET['etn_event_location'])) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+                            $etn_event_location = sanitize_text_field( wp_unslash( $_GET['etn_event_location'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
                         }
 
                         $etn_event_date_range = "";
 
-                        if (isset($_GET['etn_event_date_range'])) {
-                            $etn_event_date_range = sanitize_text_field( wp_unslash( $_GET['etn_event_date_range'] ) );
+                        if (isset($_GET['etn_event_date_range'])) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+                            $etn_event_date_range = sanitize_text_field( wp_unslash( $_GET['etn_event_date_range'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
                         }
 
                         $event_cat = "";
 
-                        if (isset($_GET['etn_categorys'])) {
-                            $event_cat = sanitize_text_field( wp_unslash( $_GET['etn_categorys'] ) );
+                        if (isset($_GET['etn_categorys'])) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+                            $event_cat = sanitize_text_field( wp_unslash( $_GET['etn_categorys'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
                         }
 
                         $etn_event_will_happen = "";
 
-                        if (isset($_GET['etn_event_will_happen'])) {
-                            $etn_event_will_happen = sanitize_text_field( wp_unslash( $_GET['etn_event_will_happen'] ) );
+                        if (isset($_GET['etn_event_will_happen'])) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+                            $etn_event_will_happen = sanitize_text_field( wp_unslash( $_GET['etn_event_will_happen'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
                         }
 
                         $keyword = "";
 
-                        if (isset($_GET['s'])) {
-                            $keyword = sanitize_text_field( wp_unslash( $_GET['s'] ) );
+                        if (isset($_GET['s'])) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+                            $keyword = sanitize_text_field( wp_unslash( $_GET['s'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
                         }
 
                         $meta_location_query = [];
@@ -1914,12 +1927,12 @@
                                     'relation' => 'AND',
                                     [
                                         'key'     => 'etn_end_date',
-                                        'value'   => date('Y-m-d'),
+                                        'value'   => gmdate('Y-m-d'),
                                         'compare' => '>=',
                                     ],
                                     [
                                         'key'     => 'etn_start_date',
-                                        'value'   => date('Y-m-d'),
+                                        'value'   => gmdate('Y-m-d'),
                                         'compare' => '<=',
                                     ],
                                 ];
@@ -1938,7 +1951,7 @@
                                     ],
                                 ];
                             } elseif ($etn_event_date_range === "yesterday") {
-                                $yesterday       = date('Y-m-d', strtotime('-1 day'));
+                                $yesterday       = gmdate('Y-m-d', strtotime('-1 day'));
                                 $meta_date_query = [
                                     'relation' => 'AND',
                                     [
@@ -2005,7 +2018,7 @@
                                         'relation' => 'OR',
                                         [
                                             'key'     => 'etn_start_date',
-                                            'value'   => date('Y-m-d'),
+                                            'value'   => gmdate('Y-m-d'),
                                             'compare' => '>=',
                                             'type'    => 'DATE',
                                         ],
@@ -2019,7 +2032,7 @@
                                         'relation' => 'OR',
                                         [
                                             'key'     => 'etn_end_date',
-                                            'value'   => date('Y-m-d'),
+                                            'value'   => gmdate('Y-m-d'),
                                             'compare' => '>',
                                             'type'    => 'DATE',
                                         ],
@@ -2035,7 +2048,7 @@
                                     'relation' => 'AND',
                                     [
                                         'key'     => 'etn_end_date',
-                                        'value'   => date('Y-m-d'),
+                                        'value'   => gmdate('Y-m-d'),
                                         'compare' => '<',
                                         'type'    => 'DATE',
                                     ],
@@ -2043,7 +2056,7 @@
                                         'relation' => 'OR',
                                         [
                                             'key'     => 'etn_start_date',
-                                            'value'   => date('Y-m-d'),
+                                            'value'   => gmdate('Y-m-d'),
                                             'compare' => '<=',
                                             'type'    => 'DATE',
                                         ],
@@ -2063,7 +2076,7 @@
                                     'relation' => 'OR',
                                     [
                                         'key'     => 'etn_start_date',
-                                        'value'   => date('Y-m-d'),
+                                        'value'   => gmdate('Y-m-d'),
                                         'compare' => '>=',
                                         'type'    => 'DATE',
                                     ],
@@ -2077,7 +2090,7 @@
                                     'relation' => 'OR',
                                     [
                                         'key'     => 'etn_end_date',
-                                        'value'   => date('Y-m-d'),
+                                        'value'   => gmdate('Y-m-d'),
                                         'compare' => '>',
                                         'type'    => 'DATE',
                                     ],
@@ -2093,7 +2106,7 @@
                                 'relation' => 'AND',
                                 [
                                     'key'     => 'etn_end_date',
-                                    'value'   => date('Y-m-d'),
+                                    'value'   => gmdate('Y-m-d'),
                                     'compare' => '<',
                                     'type'    => 'DATE',
                                 ],
@@ -2101,7 +2114,7 @@
                                     'relation' => 'OR',
                                     [
                                         'key'     => 'etn_start_date',
-                                        'value'   => date('Y-m-d'),
+                                        'value'   => gmdate('Y-m-d'),
                                         'compare' => '<=',
                                         'type'    => 'DATE',
                                     ],
@@ -2178,17 +2191,17 @@
                 public static function etn_event_ajax_get_data()
                 {
                     $post_arr  = filter_input_array(INPUT_POST, FILTER_SANITIZE_SPECIAL_CHARS);
-                    $prev_date = date('Y-m-d', strtotime(date('Y-m-d') . ' -1 day'));
-                    $next_date = date('Y-m-d', strtotime(date('Y-m-d') . ' +1 day'));
+                    $prev_date = gmdate('Y-m-d', strtotime('-1 day'));
+                    $next_date = gmdate('Y-m-d', strtotime('+1 day'));
 
-                    $week_date = date('Y-m-d', strtotime(date('Y-m-d') . ' +7 day'));
+                    $week_date = gmdate('Y-m-d', strtotime('+7 day'));
 
                     $week_start = strtotime("last monday");
-                    $week_start = date('w', $week_start) == date('w') ? $week_start + 7 * 86400 : $week_start;
-                    $weekend    = date('Y-m-d', strtotime(date("Y-m-d", $week_start) . " +6 days"));
+                    $week_start = gmdate('w', $week_start) == gmdate('w') ? $week_start + 7 * 86400 : $week_start;
+                    $weekend    = gmdate('Y-m-d', strtotime(gmdate("Y-m-d", $week_start) . " +6 days"));
 
-                    $month_start_date = date('Y-m-d', strtotime(date('Y-m')));
-                    $month_end_date   = date('Y-m-d', strtotime(date("Y-m-t", strtotime($month_start_date))));
+                    $month_start_date = gmdate('Y-m-d', strtotime(gmdate('Y-m')));
+                    $month_end_date   = gmdate('Y-m-d', strtotime(gmdate("Y-m-t", strtotime($month_start_date))));
 
                     $keyword = "";
 
@@ -2228,7 +2241,7 @@
 
                         if (isset($post_arr['type'])) {
                             $id                           = $post_arr['id'];
-                            $query_string['post__not_in'] = explode(',', $id);
+                            $query_string['post__not_in'] = explode(',', $id); // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post__not_in
                         }
 
                         if (! empty($keyword)) {
@@ -2236,7 +2249,7 @@
                         }
 
                         if (! empty($event_cat)) {
-                            $query_string['tax_query'] = [
+                            $query_string['tax_query'] = [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
                                 [
                                     'taxonomy' => 'etn_category',
                                     'terms'    => [$event_cat],
@@ -2275,17 +2288,17 @@
                                     'relation' => 'AND',
                                     [
                                         'key'     => 'etn_end_date',
-                                        'value'   => date('Y-m-d'),
+                                        'value'   => gmdate('Y-m-d'),
                                         'compare' => '>=',
                                     ],
                                     [
                                         'key'     => 'etn_start_date',
-                                        'value'   => date('Y-m-d'),
+                                        'value'   => gmdate('Y-m-d'),
                                         'compare' => '<=',
                                     ],
                                 ];
                             } elseif ($etn_event_date_range === "tomorrow") {
-                                $tomorrow                     = date('Y-m-d', strtotime('+1 day'));
+                                $tomorrow                     = gmdate('Y-m-d', strtotime('+1 day'));
                                 $meta_event_date_query_string = [
                                     'relation' => 'AND',
                                     [
@@ -2300,7 +2313,7 @@
                                     ],
                                 ];
                             } elseif ($etn_event_date_range === "yesterday") {
-                                $yesterday                    = date('Y-m-d', strtotime('-1 day'));
+                                $yesterday                    = gmdate('Y-m-d', strtotime('-1 day'));
                                 $meta_event_date_query_string = [
                                     'relation' => 'AND',
                                     [
@@ -2367,7 +2380,7 @@
                                         'relation' => 'OR',
                                         [
                                             'key'     => 'etn_start_date',
-                                            'value'   => date('Y-m-d'),
+                                            'value'   => gmdate('Y-m-d'),
                                             'compare' => '>=',
                                             'type'    => 'DATE',
                                         ],
@@ -2381,7 +2394,7 @@
                                         'relation' => 'OR',
                                         [
                                             'key'     => 'etn_end_date',
-                                            'value'   => date('Y-m-d'),
+                                            'value'   => gmdate('Y-m-d'),
                                             'compare' => '>',
                                             'type'    => 'DATE',
                                         ],
@@ -2397,7 +2410,7 @@
                                     'relation' => 'AND',
                                     [
                                         'key'     => 'etn_end_date',
-                                        'value'   => date('Y-m-d'),
+                                        'value'   => gmdate('Y-m-d'),
                                         'compare' => '<',
                                         'type'    => 'DATE',
                                     ],
@@ -2405,7 +2418,7 @@
                                         'relation' => 'OR',
                                         [
                                             'key'     => 'etn_start_date',
-                                            'value'   => date('Y-m-d'),
+                                            'value'   => gmdate('Y-m-d'),
                                             'compare' => '<=',
                                             'type'    => 'DATE',
                                         ],
@@ -2419,7 +2432,7 @@
                             }
                         }
 
-                        $query_string['meta_query'] = [
+                        $query_string['meta_query'] = [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
                             'relation' => 'AND',
                             [
                                 $meta_location_query_string,
@@ -2503,6 +2516,7 @@
 
 					</div>
 					<!-- etn event item end-->
+                                </div>
 				<?php
                     }
                                 } else {
@@ -2586,7 +2600,7 @@
                 ?>
 		<select data-cat="<?php echo esc_attr($shortcode_cat); ?>"
 			class="etn-shortcode-select etn-setting-input"			                                               <?php echo esc_attr($multiple_val); ?>>
-			<?php echo Helper::render($default_select); ?>
+			<?php echo Helper::render($default_select); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 			<?php foreach ($cats as $item): ?>
 				<?php echo '<option value="' . esc_attr($item->term_id) . '">' . (esc_html($item->name)) . '</option>'; ?>
 			<?php endforeach; ?>
@@ -2646,7 +2660,7 @@
                         $meta_query = [
                             [
                                 'key'     => 'etn_start_date',
-                                'value'   => date('Y-m-d'),
+                                'value'   => gmdate('Y-m-d'),
                                 'compare' => '>=',
                                 'type'    => 'DATE',
                             ],
@@ -2658,14 +2672,14 @@
                             'relation' => 'OR',
                             [
                                 'key'     => 'etn_end_date',
-                                'value'   => date('Y-m-d'),
+                                'value'   => gmdate('Y-m-d'),
                                 'compare' => '<',
                                 'type'    => 'DATE',
 
                             ],
                             [
                                 'key'     => 'etn_end_date',
-                                'value'   => date('Y-m-d'),
+                                'value'   => gmdate('Y-m-d'),
                                 'compare' => '=',
                                 'type'    => 'DATE',
                             ],
@@ -2809,7 +2823,7 @@
                     'post_type'   => 'etn-attendee',
                     'post_status' => 'publish',
                 ];
-                $args['meta_query'] = [
+                $args['meta_query'] = [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
                     'relation' => "AND",
                     [
                         'key'     => 'etn_attendee_order_id',
@@ -2943,8 +2957,7 @@
                     global $wpdb;
 
                     if (is_array($pdf_data) && ! empty($pdf_data['update_key'])) {
-                        $prepare_guery           = $wpdb->prepare("SELECT post_id FROM $wpdb->postmeta where meta_key ='etn_status_update_token' and meta_value = '%s' ", $pdf_data['update_key']);
-                        $current_event_attendees = $wpdb->get_col($prepare_guery);
+                        $current_event_attendees = $wpdb->get_col( $wpdb->prepare( "SELECT post_id FROM $wpdb->postmeta where meta_key ='etn_status_update_token' and meta_value = %s ", $pdf_data['update_key'] ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
                         $event_name              = $pdf_data['event_name'];
 
                         if ($gateway == 'woocommerce') {
@@ -3027,6 +3040,7 @@
 
                     // Get email message
                     $purchase_email         = etn_get_email_settings('purchase_email');
+                    // translators: %s: Event name
                     $purchase_email_message = ! empty($purchase_email['body']) ? $purchase_email['body'] : esc_html__("You have purchased ticket(s) for %s. Attendee ticket details are as follows.", "eventin");
 
 		$purchase_email_message = strtr( $purchase_email_message, $placeholder );
@@ -3165,7 +3179,7 @@
                     public static function the_slug_exists($post_name)
                     {
                         global $wpdb;
-                        if ($wpdb->get_row($wpdb->prepare("SELECT post_name FROM {$wpdb->posts} WHERE post_name = %s", $post_name), 'ARRAY_A')) {
+                        if ($wpdb->get_row($wpdb->prepare("SELECT post_name FROM {$wpdb->posts} WHERE post_name = %s", $post_name), 'ARRAY_A')) { // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
                             return true;
                         } else {
                             return false;
@@ -3178,7 +3192,7 @@
                     public static function get_order_posts()
                     {
                         global $wpdb;
-                        $order_posts = $wpdb->get_results("SELECT * FROM $wpdb->posts WHERE post_type = 'shop_order' ORDER BY id DESC", ARRAY_A);
+                        $order_posts = $wpdb->get_results("SELECT * FROM $wpdb->posts WHERE post_type = 'shop_order' ORDER BY id DESC", ARRAY_A); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 
                         return $order_posts;
                     }
@@ -3479,10 +3493,10 @@
                             'post_status'      => 'publish',
                             'fields'           => 'ids',
                             'suppress_filters' => false,
-                            'meta_key'         => 'etn_start_date', // Specify the meta key to order by
-                            'orderby'          => 'meta_value',     // Order by the meta value
+                            'meta_key'         => 'etn_start_date', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+                            'orderby'          => 'meta_value',     // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value // Order by the meta value
                             'order'            => 'ASC',            // Ascending order
-                            'meta_query'       => [
+                            'meta_query'       => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
                                 'relation' => 'OR', // Allow for either condition to match
                                 [
                                     'key'     => 'etn_end_date',
@@ -3499,11 +3513,16 @@
                             ],
                         ];
 
-                        if (! is_array($selected_cats) || empty($selected_cats)) {
-                            // If selected categories are not an array or empty, show all posts by default
+                        if (empty($selected_cats)) {
+                            // No category filter — show all posts by default
                             $selected_categories = [];
+                        } elseif (is_array($selected_cats)) {
+                            $selected_categories = array_map('intval', $selected_cats);
                         } else {
-                            $selected_categories = explode(',', $selected_cats);
+                            // String of comma-separated IDs sent from the calendar shortcode URL param
+                            $selected_categories = array_values(
+                                array_filter(array_map('intval', explode(',', $selected_cats)))
+                            );
                         }
 
                         // if (empty($selected_categories)) {
@@ -3518,7 +3537,7 @@
                         // }
 
                         if (! empty($selected_categories)) {
-                            $args['tax_query'] = [
+                            $args['tax_query'] = [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
                                 [
                                     'taxonomy' => 'etn_category',
                                     'field'    => 'term_id',
@@ -3599,12 +3618,12 @@
                             $date_options = Helper::get_date_formats();
 
                             $etn_start_date   = get_post_meta($event_id, 'etn_start_date', true);
-                            $event_start_date = ! empty($date_format) ? date($date_options[$date_format], strtotime($etn_start_date)) : date(get_option("date_format"), strtotime($etn_start_date));
+                            $event_start_date = ! empty($date_format) ? gmdate($date_options[$date_format], strtotime($etn_start_date)) : gmdate(get_option("date_format"), strtotime($etn_start_date));
 
                             $event_options     = get_option("etn_event_options");
                             $event_time_format = get_option('time_format');
-                            $start_time        = empty($etn_start_time) ? '' : (($event_time_format == "24") ? date('H:i', $etn_start_time) : date('g:i a', $etn_start_time));
-                            $end_time          = empty($etn_end_time) ? '' : (($event_time_format == "24") ? date('H:i', $etn_end_time) : date('g:i a', $etn_end_time));
+                            $start_time        = empty($etn_start_time) ? '' : (($event_time_format == "24") ? gmdate('H:i', $etn_start_time) : gmdate('g:i a', $etn_start_time));
+                            $end_time          = empty($etn_end_time) ? '' : (($event_time_format == "24") ? gmdate('H:i', $etn_end_time) : gmdate('g:i a', $etn_end_time));
 
                             if ($start_date < $end_date) {
                                 $start_date = $start_date;
@@ -3625,7 +3644,7 @@
                                 $event->start = $start_date;
                             }
 
-                            $endDatePlusOne = date('Y-m-d', strtotime($end_date . ' +1 day'));
+                            $endDatePlusOne = gmdate('Y-m-d', strtotime($end_date . ' +1 day'));
 
                             if ($endDate) {
                                 $event->end = $end_date;
@@ -3860,18 +3879,18 @@
 
                                             $event_timezone = get_post_meta($single_event_id, "event_timezone", true);
                                             if (str_contains($event_timezone, 'UTC+') || str_contains($event_timezone, 'UTC-')) {
-                                                $time_cal = self::time_calculation($event_timezone);
-
-                                                $dt     = date_i18n("Y-m-d H:i:s", strtotime("$event_expire_date_time"));
-                                                $now_dt = date_i18n("Y-m-d H:i:s", $time_cal);
+                                                $time_cal   = self::time_calculation($event_timezone);
+                                                $dt         = date_i18n("Y-m-d H:i:s", strtotime("$event_expire_date_time"));
+                                                $now_dt     = date_i18n("Y-m-d H:i:s", $time_cal);
+                                                $dt_int     = strtotime($dt);
+                                                $now_dt_int = strtotime($now_dt);
                                             } else {
-                                                date_default_timezone_set($event_timezone);
-                                                $dt     = date_i18n("Y-m-d H:i:s", strtotime("$event_expire_date_time $event_timezone"));
-                                                $now_dt = date_i18n("Y-m-d H:i:s");
+                                                $tz         = new \DateTimeZone($event_timezone);
+                                                $dt_obj     = new \DateTime($event_expire_date_time, $tz);
+                                                $now_obj    = new \DateTime('now', $tz);
+                                                $dt_int     = $dt_obj->getTimestamp();
+                                                $now_dt_int = $now_obj->getTimestamp();
                                             }
-
-                                            $dt_int     = strtotime($dt);
-                                            $now_dt_int = strtotime($now_dt);
 
                                             if ($now_dt_int > $dt_int) {
                                                 $reg_deadline_expired = true;
@@ -3930,7 +3949,7 @@
                     {
                         $time_string   = strtotime($datetime);
                         $date          = date_i18n('Ymd', $time_string);
-                        $time          = date('Hi', $time_string);
+                        $time          = gmdate('Hi', $time_string);
                         $calendar_date = $date . "T" . $time . "00";
 
                         return $calendar_date;
@@ -4089,7 +4108,6 @@
                         $etn_date = '';
 
                         if ('' !== $get_date) {
-                            date_default_timezone_set('UTC');
                             $new_date = str_replace('/', '-', $get_date);
 
                             $etn_date = date_i18n(get_option("date_format"), strtotime($new_date));
@@ -4107,7 +4125,6 @@
                         if ('' !== $get_date) {
                             $date_format  = Helper::get_option("date_format");
                             $date_options = Helper::get_date_formats();
-                            date_default_timezone_set('UTC');
                             $new_date = str_replace('/', '-', $get_date);
                             $etn_date = ! empty($date_format) ? date_i18n($date_options[$date_format] . ' ' . get_option('time_format'), strtotime($new_date)) : date_i18n(get_option("date_format") . ' ' . get_option('time_format'), strtotime($new_date));
                         }
@@ -4158,13 +4175,12 @@
                         }
 
                         global $wpdb;
-                        $query = "SELECT * FROM {$wpdb->prefix}postmeta WHERE meta_key='etn_event_id' AND meta_value=%d";
                         if ($posts_per_page !== -1) {
-                            $start = ($paged - 1) * $posts_per_page;
-                            $total = $posts_per_page;
-                            $query .= " LIMIT {$start},{$total}";
+                            $start           = ($paged - 1) * $posts_per_page;
+                            $event_attendees = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$wpdb->prefix}postmeta WHERE meta_key='etn_event_id' AND meta_value=%d LIMIT %d,%d", $event_id, $start, $posts_per_page ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+                        } else {
+                            $event_attendees = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$wpdb->prefix}postmeta WHERE meta_key='etn_event_id' AND meta_value=%d", $event_id ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
                         }
-                        $event_attendees = $wpdb->get_results($wpdb->prepare($query, $event_id));
 
                         foreach ($event_attendees as $key => $attendee) {
                             if (('etn-attendee' !== get_post_type($attendee->post_id))
@@ -4231,7 +4247,7 @@
                     $orders_statuses = "'wc-completed', 'wc-processing', 'wc-on-hold'";
 
                     # Get All defined statuses Orders IDs for a defined product ID (or variation ID)
-                    return $wpdb->get_col(
+                    return $wpdb->get_col( /* phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared */
                         "SELECT DISTINCT woi.order_id
                 FROM {$wpdb->prefix}woocommerce_order_itemmeta as woim,
                     {$wpdb->prefix}woocommerce_order_items as woi,
@@ -4374,8 +4390,7 @@
         public static function get_event_location_value($value)
         {
             global $wpdb;
-            $sql      = $wpdb->prepare("SELECT post_id FROM $wpdb->postmeta WHERE meta_key = %s AND meta_value LIKE %s", 'etn_event_location', '%address\";s:%');
-            $post_ids = $wpdb->get_col($sql);
+            $post_ids = $wpdb->get_col( $wpdb->prepare( "SELECT post_id FROM $wpdb->postmeta WHERE meta_key = %s AND meta_value LIKE %s", 'etn_event_location', '%address\";s:%' ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 
             foreach ($post_ids as $post_id) {
                 $meta_value       = get_post_meta($post_id, 'etn_event_location', true);
@@ -4417,7 +4432,7 @@
 
         $sold_counts = [];
 
-        $rows = $wpdb->get_col(
+        $rows = $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
             $wpdb->prepare(
                 "SELECT pm_tickets.meta_value
                 FROM {$wpdb->posts} p

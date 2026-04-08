@@ -35,7 +35,7 @@ class Integration implements HookableInterface {
      */
     public function authenticate() {
         $query_var = get_query_var( 'eventin-integration', false );
-        $code      = isset( $_GET['code'] ) ? sanitize_text_field( $_GET['code'] ) : '';
+        $code      = isset( $_GET['code'] ) ? sanitize_text_field( wp_unslash( $_GET['code'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- OAuth2 callback endpoint; authorization code is passed by the OAuth provider and exchanged server-side.
 
         $endpoints = [
             'zoom-auth'   => 'zoom',

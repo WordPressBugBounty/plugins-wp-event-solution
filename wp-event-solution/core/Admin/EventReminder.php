@@ -131,7 +131,7 @@ class EventReminder implements HookableInterface {
             'post_status'    => 'any',
             'posts_per_page' => -1,
 
-            'meta_query'     => [
+            'meta_query'     => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
                 [
                     'key'     => 'etn_event_id',
                     'value'   => $event_id,

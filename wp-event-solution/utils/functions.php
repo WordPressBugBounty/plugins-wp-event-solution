@@ -642,7 +642,8 @@ if ( ! function_exists( 'etn_get_default_email_settings' )  ) {
             'certificate_email' => [
                 'from'    => get_option( 'admin_email' ),
                 'subject' => sprintf( __( 'Event Certificate', 'eventin' ) ),
-                'body'    => sprintf( __( '<p>Congratulations for successfully attending/completing the event \'%1$s\'. Your certificate is ready! Click on the link provided below to get the PDF certificate. </p>', 'eventin' ), '<span>{%event_title%}</span>' ),
+                // translators: %1$s is the event title
+                'body'    => sprintf( __( '<p>Congratulations for successfully attending/completing the event \'%1$s\'. Your certificate is ready! Click on the link provided below to get the PDF certificate. </p>', 'eventin' ), '<span>{%event_title%}</span>' ), // phpcs:ignore WordPress.WP.I18n.NoHtmlWrappedStrings
                 'send_to_admin' => true,
             ],
             'rsv_email' => [
@@ -1163,7 +1164,7 @@ if ( ! function_exists( 'etn_upload_image_from_url' ) ) {
         }
     
         // Get the file name from the URL
-        $file_name = basename( parse_url( $image_url, PHP_URL_PATH ) );
+        $file_name = basename( wp_parse_url( $image_url, PHP_URL_PATH ) );
     
         // Download the image
         $image_data = wp_remote_get( $image_url, [
@@ -1207,12 +1208,12 @@ if ( ! function_exists( 'etn_upload_image_from_url' ) ) {
     
         // Check for errors
         if ( is_wp_error( $attachment_id ) ) {
-            @unlink($file_path); // Delete the temporary file if upload fails
+            wp_delete_file($file_path); // Delete the temporary file if upload fails
             return $attachment_id;
         }
     
         // Delete the temporary file after successful upload
-        @unlink($file_path);
+        wp_delete_file($file_path);
     
         return $attachment_id; // Return the attachment ID
     }
@@ -1408,7 +1409,7 @@ if ( ! function_exists('etn_get_static_event_templates') ) {
                 'status'                => 'publish',
                 'type'                  => 'event',
                 'orientation'           => 'portrait',
-                'thumbnail'             => '/images/landing_template_1.webp',
+                'thumbnail'             => \Wpeventin::plugin_url() . 'assets/images/landing_template_1.webp',
                 'content'               => '',
                 'is_clone'              => false,
                 'is_pro'                => false,
@@ -1426,7 +1427,7 @@ if ( ! function_exists('etn_get_static_event_templates') ) {
                 'status'                => 'publish',
                 'type'                  => 'event',
                 'orientation'           => 'portrait',
-                'thumbnail'             => '/images/landing_template_2.webp',
+                'thumbnail'             => \Wpeventin::plugin_url() . 'assets/images/landing_template_2.webp',
                 'content'               => '',
                 'is_clone'              => false,
                 'is_pro'                => true,
@@ -1444,7 +1445,7 @@ if ( ! function_exists('etn_get_static_event_templates') ) {
                 'status'                => 'publish',
                 'type'                  => 'event',
                 'orientation'           => 'portrait',
-                'thumbnail'             => '/images/landing_template_3.webp',
+                'thumbnail'             => \Wpeventin::plugin_url() . 'assets/images/landing_template_3.webp',
                 'content'               => '',
                 'is_clone'              => false,
                 'is_pro'                => true,
@@ -1474,7 +1475,7 @@ if ( ! function_exists('etn_get_static_ticket_templates') ) {
                 'status'                => 'publish',
                 'type'                  => 'ticket',
                 'orientation'           => 'landscape',
-                'thumbnail'             => '/images/ticket_template_1.webp',
+                'thumbnail'             => \Wpeventin::plugin_url() . 'assets/images/ticket_template_1.webp',
                 'content'               => '',
                 'is_clone'              => false,
                 'is_pro'                => false,
@@ -1492,7 +1493,7 @@ if ( ! function_exists('etn_get_static_ticket_templates') ) {
                 'status'                => 'publish',
                 'type'                  => 'ticket',
                 'orientation'           => 'landscape',
-                'thumbnail'             => '/images/ticket_template_2.webp',
+                'thumbnail'             => \Wpeventin::plugin_url() . 'assets/images/ticket_template_2.webp',
                 'content'               => '',
                 'is_clone'              => false,
                 'is_pro'                => true,
@@ -1522,7 +1523,7 @@ if ( ! function_exists('etn_get_static_speaker_templates') ) {
                 'status'                => 'publish',
                 'type'                  => 'speaker',
                 'orientation'           => 'portrait',
-                'thumbnail'             => '/images/speaker_template_1.webp',
+                'thumbnail'             => \Wpeventin::plugin_url() . 'assets/images/speaker_template_1.webp',
                 'content'               => '',
                 'is_clone'              => false,
                 'is_pro'                => false,
@@ -1540,7 +1541,7 @@ if ( ! function_exists('etn_get_static_speaker_templates') ) {
                 'status'                => 'publish',
                 'type'                  => 'speaker',
                 'orientation'           => 'portrait',
-                'thumbnail'             => '/images/speaker_template_2.webp',
+                'thumbnail'             => \Wpeventin::plugin_url() . 'assets/images/speaker_template_2.webp',
                 'content'               => '',
                 'is_clone'              => false,
                 'is_pro'                => false,
@@ -1558,7 +1559,7 @@ if ( ! function_exists('etn_get_static_speaker_templates') ) {
                 'status'                => 'publish',
                 'type'                  => 'speaker',
                 'orientation'           => 'portrait',
-                'thumbnail'             => '/images/speaker_template_3.webp',
+                'thumbnail'             => \Wpeventin::plugin_url() . 'assets/images/speaker_template_3.webp',
                 'content'               => '',
                 'is_clone'              => false,
                 'is_pro'                => true,
@@ -1576,7 +1577,7 @@ if ( ! function_exists('etn_get_static_speaker_templates') ) {
                 'status'                => 'publish',
                 'type'                  => 'speaker',
                 'orientation'           => 'portrait',
-                'thumbnail'             => '/images/speaker_template_4.webp',
+                'thumbnail'             => \Wpeventin::plugin_url() . 'assets/images/speaker_template_4.webp',
                 'content'               => '',
                 'is_clone'              => false,
                 'is_pro'                => true,

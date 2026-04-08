@@ -65,6 +65,7 @@ function override_woo_add_to_cart_msg( $message, $products ) {
     $product_id = array_keys( $products )[0];
 
     if ( get_post_type( $product_id ) == 'etn' && !empty( wp_get_post_parent_id( $product_id ) ) ) {
+        // translators: %s is the product/event title.
         $message = sprintf( esc_html__( '"%s" has been added to your cart.', 'eventin' ), get_the_title( $product_id ) ); 
     }
 

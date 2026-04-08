@@ -1,10 +1,10 @@
 ===Eventin – Event Calendar, Event Registration, Tickets & Booking (AI Powered)===
 Contributors: arraytics, ehsanriyadh
 Tags: event calendar, event registration, event tickets, event booking, event management, event manager, event tickets, event scheduling, booking system, RSVP, event listing
-Requires at least: 5.2
+Requires at least: 6.2
 Tested up to: 6.9
-Stable tag: 4.1.8
-Requires PHP: 7.0
+Stable tag: 4.1.9
+Requires PHP: 7.4
 License: GPLv2 or later
 License URI: [https://www.gnu.org/licenses/gpl-2.0.html](https://www.gnu.org/licenses/gpl-2.0.html)
 
@@ -16,7 +16,7 @@ Events calendar plugin for WordPress to manage events, bookings, registrations, 
 
 Whether you’re hosting a one-day workshop or a multi-day conference, Eventin handles event registration, RSVP, attendee management, and ticket sales via WooCommerce, Stripe, and PayPal, along with automated confirmation emails.
 
-The free version includes [**Zoom integration at no extra cost[**, so attendees receive meeting links automatically after registration. With Google Meet support, Google Calendar sync, iCal, Outlook, and email automation, Eventin delivers a complete event management solution - free to start.
+The free version includes **Zoom integration at no extra cost**, so attendees receive meeting links automatically after registration. With Google Meet support, Google Calendar sync, iCal, Outlook, and email automation, Eventin delivers a complete event management solution - free to start.
 
 [youtube https://www.youtube.com/watch?v=u5VgZqF9it0&t=2s]
 
@@ -126,7 +126,7 @@ Eventin's free version gives you a full event management experience with no hidd
 
 === Page Builder & Display ===
 
-* Elementor widgets (10+ event-specific widgets)
+* Elementor widgets (10+ event-specific widgets). Dedicated Elementor Addons coming soon.
 * Divi, Gutenberg, and Beaver Builder compatibility
 * Drag-and-drop template builder
 * Shortcodes for embedding events anywhere
@@ -311,6 +311,30 @@ No developer needed. Eventin is designed for non-technical users with a guided o
 Yes. Eventin is translation-ready and compatible with WPML and Loco Translate. It also fully supports right-to-left (RTL) languages including Arabic and Hebrew.
 
 == Changelog ==
+
+= 4.1.9 ( April 7, 2026 ) =
+
+New     : Builder – Added attendee extra fields block for enhanced template customization.
+New     : Integration – Added Aisentic addon support.
+New     : Builder – Added infinite scroll in template selection modal.
+New     : Settings – Added user guideline links.
+Tweak   : Builder – Improved empty state design with fully clickable actions.
+Tweak   : Builder – Enhanced create, edit, and delete workflows for templates.
+Tweak   : Builder – Improved template filtering by editor.
+Tweak   : Templates – Ensured static templates function correctly.
+Tweak   : Templates – Improved ticket and certificate template reliability.
+Tweak   : UI – Redesigned no-events (404) state.
+Tweak   : UI – Updated Pro badge styling.
+Tweak   : Localization – Improved date/time formatting for WordPress locale support.
+Tweak   : UI – Enhanced Event Template List page experience.
+Fix     : Shortcode – Resolved functionality issues.
+Fix     : Security – Patched reported vulnerability (Patchstack).
+Fix     : Import – Fixed event import issues.
+Fix     : Search – Restored state persistence for Advanced Search shortcode.
+Fix     : Data – Fixed speaker/organizer bio update and frontend display issues.
+Fix     : UI – Fixed last-item selection issue in dropdowns (speaker, organizer, tag, category, timezone).
+Fix     : Templates – Fixed date, time, and location display issues.
+Fix     : Builder – Resolved Template Editor issues affecting event selection and rendering.
 
 = 4.1.8 ( March 16, 2026 ) =
 

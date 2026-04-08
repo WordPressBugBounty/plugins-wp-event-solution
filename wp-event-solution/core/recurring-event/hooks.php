@@ -76,7 +76,7 @@ class Hooks {
 	 * @return void
 	 */
     public function all_recurrence() {
-        $id = isset( $_GET['id'] ) ? intval( $_GET['id'] ) : 0;
+        $id = isset( $_GET['id'] ) ? intval( $_GET['id'] ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- admin recurring events list; id cast to integer via intval().
 
         $columns = [
             'name'     => esc_html__( 'Name', 'eventin' ),
@@ -113,12 +113,12 @@ class Hooks {
      */
     public function detach_child_event() {
 
-        if ( is_admin() && isset( $_GET['action'] ) && 'detach' == sanitize_text_field( $_GET['action'] ) ) {
+        if ( is_admin() && isset( $_GET['action'] ) && 'detach' == sanitize_text_field( wp_unslash( $_GET['action'] ) ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- action value is compared to a literal string before nonce verification below.
 
-            if ( !wp_verify_nonce( $_REQUEST['_wpnonce'], 'detach_nonce' ) ) {
+            if ( ! isset( $_REQUEST['_wpnonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST['_wpnonce'] ) ), 'detach_nonce' ) ) {
                 return false;
             } else {
-                $child_event_id = absint( $_GET['post'] ); // child event id
+                $child_event_id = isset( $_GET['post'] ) ? absint( $_GET['post'] ) : 0; // child event id
 
                 $this->detach_this_child_event_from_parent( $child_event_id );
 
@@ -235,7 +235,7 @@ class Hooks {
 
                 foreach ( $matching_to_be_created as $key => $single_match_day ) {
                     $recurrence_start_date = gmdate( "Y-m-d", $single_match_day );
-                    $recurrence_end_date   = date( 'Y-m-d', strtotime( " + $recurrence_span day", strtotime( $recurrence_start_date ) ) );
+                    $recurrence_end_date   = gmdate( 'Y-m-d', strtotime( " + $recurrence_span day", strtotime( $recurrence_start_date ) ) );
                     $recurrence_event_slug = Helper::sanitize_recurring_event_slug( $parent_post_slug, $recurrence_start_date );
 
                     // copy taxonomies from parent event
@@ -331,7 +331,7 @@ class Hooks {
 				// generate new start-date and end-date according to updated span days
                 if ( !empty( get_post_meta( $recurrence_id, 'etn_start_date', true ) ) ) {
         $recurrence_start_date           = get_post_meta( $recurrence_id, 'etn_start_date', true );
-                    $recurrence_end_date             = date( 'Y-m-d', strtotime( " + $recurrence_span day", strtotime( $recurrence_start_date ) ) );
+                    $recurrence_end_date             = gmdate( 'Y-m-d', strtotime( " + $recurrence_span day", strtotime( $recurrence_start_date ) ) );
 
                     $args['etn_end_date'] = $recurrence_end_date;
                 }
@@ -604,10 +604,10 @@ class Hooks {
         $event_start_date = !empty( get_post_meta( $post_id, 'etn_start_date', true ) ) ? get_post_meta( $post_id, 'etn_start_date', true ) : '';
         $event_end_date   = !empty( get_post_meta( $post_id, 'etn_end_date', true ) ) ? get_post_meta( $post_id, 'etn_end_date', true ) : '';
 
-        $current_date = ( new \DateTime( date( 'Y-m-d H:i:s', strtotime( $event_start_date ) ) ) )->setTime( 0, 0, 0 );
+        $current_date = ( new \DateTime( gmdate( 'Y-m-d H:i:s', strtotime( $event_start_date ) ) ) )->setTime( 0, 0, 0 );
         $start_date   = $current_date->getTimestamp();
 
-        $final_date = ( new \DateTime( date( 'Y-m-d H:i:s', strtotime( $event_end_date ) ) ) )->setTime( 0, 0, 0 );
+        $final_date = ( new \DateTime( gmdate( 'Y-m-d H:i:s', strtotime( $event_end_date ) ) ) )->setTime( 0, 0, 0 );
         $end_date   = $final_date->getTimestamp();
 
         return [ 'start_date' => $start_date, 'end_date' => $end_date, 'etn_start_range' => $event_start_date ];
@@ -623,7 +623,7 @@ class Hooks {
      * @return void
      */
     public function monthly_advanced_recurrence_calculation( $freq, $monthly_advanced_interval, $monthly_advanced_week_no, $monthly_advanced_weekday_no, $event_start_date, $event_end_date, $event_start_range ) {
-        $current_date = ( new \DateTime( date( 'Y-m-d H:i:s', strtotime( $event_start_range ) ) ) )->setTime( 0, 0, 0 );
+        $current_date = ( new \DateTime( gmdate( 'Y-m-d H:i:s', strtotime( $event_start_range ) ) ) )->setTime( 0, 0, 0 );
         $current_date->modify( $current_date->format( 'Y-m-1 00:00:00' ) ); //Start date on first day of month
 
         $matching_days = [];
@@ -687,7 +687,7 @@ class Hooks {
      * @return void
      */
     public function monthly_recurrence_calculation( $monthly_date, $event_start_date, $event_end_date, $event_start_range ) {
-        $current_date = ( new \DateTime( date( 'Y-m-d H:i:s', strtotime( $event_start_range ) ) ) )->setTime( 0, 0, 0 );
+        $current_date = ( new \DateTime( gmdate( 'Y-m-d H:i:s', strtotime( $event_start_range ) ) ) )->setTime( 0, 0, 0 );
         $current_date->modify( $current_date->format( 'Y-m-' . $monthly_date . ' 00:00:00' ) ); //Start date on first day of month, done this way to avoid 'first day of' issues in PHP < 5.6
         $current_date->getTimestamp();
 
@@ -727,7 +727,7 @@ class Hooks {
     public function weekly_recurrence_calculation( $freq, $recurrence_weekly_day, $event_start_date, $event_end_date, $event_start_range ) {
 
         $weekdays     = $recurrence_weekly_day;
-        $current_date = ( new \DateTime( date( 'Y-m-d H:i:s', strtotime( $event_start_range ) ) ) )->setTime( 0, 0, 0 );
+        $current_date = ( new \DateTime( gmdate( 'Y-m-d H:i:s', strtotime( $event_start_range ) ) ) )->setTime( 0, 0, 0 );
         $start_date   = $event_start_date;
         $end_date     = $event_end_date;
 
@@ -777,8 +777,8 @@ class Hooks {
      * @return void
      */
     public function yearly_recurrence_calculation( $freq, $recurrence_yearly_month, $recurrence_yearly_date, $event_start_date, $event_end_date, $event_start_range ) {
-        $selected_recur_date = date( 'Y', strtotime( $event_start_range ) ) . '-' . $recurrence_yearly_month . '-' . $recurrence_yearly_date;
-        $current_date        = ( new \DateTime( date( 'Y-m-d H:i:s', strtotime( $selected_recur_date ) ) ) )->setTime( 0, 0, 0 );
+        $selected_recur_date = gmdate( 'Y', strtotime( $event_start_range ) ) . '-' . $recurrence_yearly_month . '-' . $recurrence_yearly_date;
+        $current_date        = ( new \DateTime( gmdate( 'Y-m-d H:i:s', strtotime( $selected_recur_date ) ) ) )->setTime( 0, 0, 0 );
         $matching_days       = [];
 
         while ( $current_date->getTimestamp() <= $event_end_date ) {
@@ -810,7 +810,7 @@ class Hooks {
     public function custom_recurrence_calculation( $recurrence_custom = [] ) {
         $matching_days       = [];
         foreach ( $recurrence_custom as $i => $date ) {
-            $current_date = ( new \DateTime( date( 'Y-m-d H:i:s', strtotime( $date ) ) ) )->setTime( 0, 0, 0 );
+            $current_date = ( new \DateTime( gmdate( 'Y-m-d H:i:s', strtotime( $date ) ) ) )->setTime( 0, 0, 0 );
             $matching_days[] = $current_date->getTimestamp();
         }
 	    

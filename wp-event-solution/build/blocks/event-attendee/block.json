@@ -9,6 +9,10 @@
     "blockId": {
       "type": "string"
     },
+    "styleVariant": {
+      "type": "string",
+      "default": "style-1"
+    },
     "containerClassName": {
       "type": "string"
     },

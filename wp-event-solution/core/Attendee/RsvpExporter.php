@@ -177,9 +177,9 @@ class RsvpExporter implements PostExporterInterface {
                         $data[$key] = $extra_field_value;
                     break;
 
-                    case 'date': 
+                    case 'date':
                         $date_format = get_option( 'date_format' );
-                        $date   = date( $date_format, strtotime( $extra_field_value ) );
+                        $date   = gmdate( $date_format, strtotime( $extra_field_value ) );
 
                         if ( ! $extra_field_value ) {
                             $date = '';

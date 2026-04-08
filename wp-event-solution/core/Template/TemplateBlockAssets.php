@@ -90,7 +90,7 @@ class TemplateBlockAssets implements HookableInterface
         $screen = get_current_screen();
 
         // Check if we're in Elementor editor
-        if (is_admin() && $screen && $screen->post_type === 'etn-template' && isset($_GET['action']) && $_GET['action'] === 'elementor') {
+        if (is_admin() && $screen && $screen->post_type === 'etn-template' && isset($_GET['action']) && $_GET['action'] === 'elementor') { // phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- action is compared to a hardcoded string 'elementor' only; no data stored.
             // Register the html2canvas script if not already registered
             if (! wp_script_is('etn-html-2-canvas', 'registered')) {
                 wp_register_script('etn-html-2-canvas', Wpeventin::plugin_url() . 'assets/lib/js/html2canvas.min.js', ['jquery'], Wpeventin::version(), false);

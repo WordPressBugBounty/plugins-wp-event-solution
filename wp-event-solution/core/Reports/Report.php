@@ -213,11 +213,11 @@ class Report {
         $monthly_ranges = [];
     
         if ( ! $start_date ) {
-            $start_date = date( 'Y-m-01', strtotime( '-11 months' ) ); // 12 months ago, starting from the first day of the month
+            $start_date = gmdate( 'Y-m-01', strtotime( '-11 months' ) ); // 12 months ago, starting from the first day of the month
         }
 
         if ( ! $end_date ) {
-            $end_date = date('Y-m-t'); // Last day of the current month
+            $end_date = gmdate('Y-m-t'); // Last day of the current month
         }
     
         $current_date = new \DateTime( $start_date );

@@ -58,7 +58,7 @@ class CSVExporter implements ExporterInterface {
 
         fputcsv( $output, $colunms );
 
-        fclose( $output );
+        fclose( $output ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- php://output stream, WP_Filesystem cannot handle output streams.
 
         return ob_get_clean();
     }
@@ -71,7 +71,7 @@ class CSVExporter implements ExporterInterface {
     protected function export_rows() {
         $data   = $this->data;
         ob_clean();
-        $buffer = fopen( 'php://output', 'w' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_fopen
+        $buffer = fopen( 'php://output', 'w' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen
         ob_start();
 
         array_walk( $data, array( $this, 'export_row' ), $buffer );
@@ -111,7 +111,7 @@ class CSVExporter implements ExporterInterface {
      * @return  void
      */
     protected function send_content( $content ) {
-        echo $content;
+        echo $content; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Raw CSV file output sent with text/csv headers; HTML escaping would corrupt the CSV.
     }
 
     /**

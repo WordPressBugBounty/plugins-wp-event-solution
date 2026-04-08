@@ -24,7 +24,7 @@
                     <p class="etn-faq-content-text">
                         <?php
                             if (has_blocks($faq["etn_faq_content"])) {
-                                        echo do_blocks($faq["etn_faq_content"]);
+                                        echo do_blocks($faq["etn_faq_content"]); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- do_blocks() is a trusted WP core function processing Gutenberg block content.
                                     } else {
                                         echo esc_html($faq["etn_faq_content"]);
                                     }

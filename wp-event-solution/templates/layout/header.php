@@ -43,6 +43,7 @@ if ( in_array( $screen_id, $allowed_screen_ids ) ) {
             </div>
 
             <?php
+            // phpcs:disable WordPress.Security.NonceVerification.Recommended -- admin header template; GET params used only to set active menu states; no data modified.
             if( isset($_GET['page']) ){
 
                 if( 'etn-event-settings' === $_GET['page'] ){
@@ -96,6 +97,7 @@ if ( in_array( $screen_id, $allowed_screen_ids ) ) {
                     </ul>
                 </div>
             <?php endif; ?>
+            <?php // phpcs:enable WordPress.Security.NonceVerification.Recommended ?>
         </div>
         <div class="etn-admin-notify-wrap"> 
                 <div class="etn-admin-btn-wrap">

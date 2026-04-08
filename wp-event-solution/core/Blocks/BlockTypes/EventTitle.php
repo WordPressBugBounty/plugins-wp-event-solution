@@ -51,7 +51,7 @@ class EventTitle extends AbstractBlock {
 
         ob_start();
         ?>
-        <?php echo $this->render_frontend_css( $styles, esc_attr( $container_class ) ); ?>
+        <?php echo $this->render_frontend_css( $styles, esc_attr( $container_class ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- CSS rendered by render_frontend_css(); script and style tags stripped by generate_frontend_css(). ?>
 
         <div class="<?php echo esc_attr( $container_class ); ?>">
             <div class="eventin-block-container">

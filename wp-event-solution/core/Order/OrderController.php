@@ -44,7 +44,7 @@ class OrderController extends WP_REST_Controller {
             [
                 'methods'             => WP_REST_Server::READABLE,
                 'callback'            => [$this, 'get_items'],
-                'permission_callback' => [$this, 'get_item_permissions_check'],
+                'permission_callback' => [$this, 'get_items_permissions_check'],
             ],
             [
                 'methods'             => WP_REST_Server::CREATABLE,
@@ -133,6 +133,10 @@ class OrderController extends WP_REST_Controller {
             [
                 'methods'             => WP_REST_Server::CREATABLE,
                 'callback'            => [$this, 'book_seats'],
+                // Intentionally nonce-only: guests must be able to temporarily hold seats
+                // before an account or order exists. The nonce (injected into the page via
+                // localized_data_obj.nonce) proves the request originates from a real page
+                // load. No PII is read — only transient seat-hold state is written.
                 'permission_callback' => function( $request ) {
                     return wp_verify_nonce( $request->get_header( 'X-WP-Nonce' ), 'wp_rest' );
                 },
@@ -146,8 +150,32 @@ class OrderController extends WP_REST_Controller {
      * @param WP_REST_Request $request Full data about the request.
      * @return WP_Error|boolean
      */
+    /**
+     * Check if a given request has access to list items (admin only).
+     *
+     * @param WP_REST_Request $request Full data about the request.
+     * @return WP_Error|boolean
+     */
+    public function get_items_permissions_check( $request ) {
+        return current_user_can( 'etn_manage_event' );
+    }
+
     public function get_item_permissions_check( $request ) {
-        return current_user_can( 'etn_manage_event' ) || wp_verify_nonce( $request->get_header( 'X-Wp-Nonce' ), 'wp_rest' );
+        if ( current_user_can( 'etn_manage_event' ) ) {
+            return true;
+        }
+
+        if ( wp_verify_nonce( $request->get_header( 'X-Wp-Nonce' ), 'wp_rest' ) ) {
+            $id    = intval( $request['id'] );
+            $token = sanitize_text_field( $request->get_param( 'order_token' ) );
+            $stored = get_post_meta( $id, '_order_access_token', true );
+
+            if ( $token && $stored && hash_equals( $stored, $token ) ) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -339,7 +367,7 @@ class OrderController extends WP_REST_Controller {
             return new WP_Error( 'order_create_error', $prepared_order->get_error_message(), ['status' => 400] );
         }
 
-        $prepared_order['date_time'] = date('Y-m-d h:i A', current_time('timestamp'));
+        $prepared_order['date_time'] = gmdate('Y-m-d h:i A', current_time('timestamp')); // phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
         // Create order.
         $order     = new OrderModel();
         $order->create( $prepared_order );
@@ -353,9 +381,13 @@ class OrderController extends WP_REST_Controller {
 
         // Make customer.
         $this->create_customer($order, $request);
-        
-        $response = $this->prepare_item_for_response( $order, $request ); 
-		
+
+        $access_token = bin2hex( random_bytes( 16 ) );
+        update_post_meta( $order->id, '_order_access_token', $access_token );
+
+        $response = $this->prepare_item_for_response( $order, $request );
+        $response['order_access_token'] = $access_token;
+
         do_action( 'eventin_after_order_create', $order, $attendees);
 
         if ( 'pending' == $order->status ) {
@@ -474,7 +506,14 @@ class OrderController extends WP_REST_Controller {
     }
 
     /**
-     * Checks if a given request has access to create a event.
+     * Checks if a given request has access to create an order.
+     *
+     * Intentionally nonce-only: ticket purchases are made by unauthenticated guests
+     * who have no WordPress account. Login must not be required to buy a ticket.
+     * The nonce (injected into the page via localized_data_obj.nonce) confirms the
+     * request originates from a real page load, providing CSRF protection without
+     * requiring authentication. This is a write-only operation — no existing order
+     * data is exposed.
      *
      * @since 4.0.0
      *
@@ -751,7 +790,8 @@ class OrderController extends WP_REST_Controller {
             );
         }
 
-        $message = sprintf( __( '%d orders are deleted of %d', 'eventin' ), $count, count( $ids ) );
+        // translators: %1$d is the number of orders deleted, %2$d is the total number of orders selected.
+        $message = sprintf( __( '%1$d orders are deleted of %2$d', 'eventin' ), $count, count( $ids ) );
 
         return rest_ensure_response( $message );
     }

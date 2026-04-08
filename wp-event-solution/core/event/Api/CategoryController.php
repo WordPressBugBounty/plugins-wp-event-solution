@@ -366,7 +366,8 @@ class EventCategoryController extends WP_REST_Controller {
             );
         }
 
-        $message = sprintf( __( '%d categories are deleted of %d', 'eventin' ), $count, count( $ids ) );
+        // translators: %1$d is the number of categories deleted, %2$d is the total number of categories selected.
+        $message = sprintf( __( '%1$d categories are deleted of %2$d', 'eventin' ), $count, count( $ids ) );
 
         return rest_ensure_response( $message );
     }

@@ -57,8 +57,8 @@ $i = 0;
 
 								if ($enable_pagination === 'yes') {
 									// Get the page number from URL parameter for this specific tab
-									if (isset($_GET[$pagination_param]) && is_numeric($_GET[$pagination_param])) {
-										$etn_paged = max(1, intval($_GET[$pagination_param]));
+									if (isset($_GET[$pagination_param]) && is_numeric($_GET[$pagination_param])) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- public event tab pagination param; value validated via is_numeric() and cast via intval().
+										$etn_paged = max(1, intval($_GET[$pagination_param])); // phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- cast to integer via intval().
 									}
 								}
 

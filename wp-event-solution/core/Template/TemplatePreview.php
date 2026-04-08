@@ -36,7 +36,7 @@ use Eventin\Template\TemplateModel;
         wp_enqueue_script('etn-qr-code-custom');
     }
 
-    $template_id = ! empty( $_GET['template_id'] ) ? intval( $_GET['template_id'] ) : 0;
+    $template_id = ! empty( $_GET['template_id'] ) ? intval( $_GET['template_id'] ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- admin template preview; template_id is cast to integer; capability check is performed by the calling hook.
 
     if ( ! $template_id ) {
         wp_head();

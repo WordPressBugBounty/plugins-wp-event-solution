@@ -19,7 +19,7 @@ if ( wp_is_block_theme() ) {
 
     // Check if password is required
     if ( post_password_required( $event_id ) ) {
-        echo get_the_password_form( $event_id );
+        echo get_the_password_form( $event_id ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- get_the_password_form() is a trusted WP core function.
     } else {
         $event = new Event_Model( $event_id );
 

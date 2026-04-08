@@ -18,7 +18,6 @@ class PluginManager {
      * @return bool True if installed, false otherwise.
      */
     public static function is_installed( $slug ) {
-        // Ensure the get_plugins function is available
         if ( ! function_exists( 'get_plugins' ) ) {
             require_once ABSPATH . 'wp-admin/includes/plugin.php';
         }
@@ -26,8 +25,8 @@ class PluginManager {
         $plugins = get_plugins();
 
         if ( is_array( $plugins ) ) {
-            foreach( $plugins as $plugin ) {
-                if ( $plugin['TextDomain'] === $slug ) {
+            foreach( $plugins as $plugin_path => $plugin ) {
+                if ( $plugin['TextDomain'] === $slug || dirname( $plugin_path ) === $slug ) {
                     return true;
                 }
             }
@@ -69,7 +68,15 @@ class PluginManager {
         $upgrader  = new \Plugin_Upgrader($skin);
 
         if($slug === 'eventin-addon-for-fluentcart') {
-            $result    = $upgrader->install('https://themewinter.com/wp-content/uploads/2026/03/eventin-addon-for-fluentcart.zip');
+            $result    = $upgrader->install('https://downloads.wordpress.org/plugin/eventin-addon-for-fluentcart.latest-stable.zip');
+        } elseif($slug === 'aisentic') {
+            $result    = $upgrader->install('https://github.com/themewinter/aisentic-public/releases/download/v1.0.0/aisentic-1.0.0.zip');
+        } else if($slug === 'eventin-addon-for-surecart') {
+            $result    = $upgrader->install('https://downloads.wordpress.org/plugin/eventin-addon-for-surecart.latest-stable.zip');
+        } else if($slug === 'surecart') {
+            $result    = $upgrader->install('https://downloads.wordpress.org/plugin/surecart.latest-stable.zip');
+        } else if($slug === 'fluent-cart') {
+            $result    = $upgrader->install('https://downloads.wordpress.org/plugin/fluent-cart.latest-stable.zip');
         } else {
             $result    = $upgrader->install('https://downloads.wordpress.org/plugin/' . $slug . '.latest-stable.zip');
         }
@@ -84,6 +91,7 @@ class PluginManager {
      * @return bool True if activated, false otherwise.
      */
     public static function activate_plugin( $slug ) {
+        
         if ( ! self::is_installed( $slug ) ) {
             return false; // Plugin not installed
         }
@@ -127,7 +135,7 @@ class PluginManager {
 
         if ( is_array( $plugins ) ) {
             foreach( $plugins as $plugin_path => $plugin ) {
-                if ( $plugin['TextDomain'] === $slug ) {
+                if ( $plugin['TextDomain'] === $slug || dirname( $plugin_path ) === $slug ) {
                     return $plugin_path;
                 }
             }

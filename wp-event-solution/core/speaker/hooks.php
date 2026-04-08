@@ -163,7 +163,7 @@ class Hooks {
     public function hide_speakers_from_users( $query_args ) {
         $args = [
             'role__in'    => ['etn-speaker', 'etn-organizer'],
-            'meta_query'  => [ 
+            'meta_query'  => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
                 [
                     'key'     => 'hide_user',
                     'value'   => '1', // Check if hide_user is true
@@ -174,10 +174,10 @@ class Hooks {
             'number'      => -1,   // Retrieve all matching users
         ];
 
-        $users = get_users( $args );
+        $users = get_users( $args ); // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_exclude
         $hidden_users = $users;
 
-        $query_args['exclude'] = $hidden_users;
+        $query_args['exclude'] = $hidden_users; // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_exclude
 
         return $query_args;
     }

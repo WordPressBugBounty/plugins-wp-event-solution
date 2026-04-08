@@ -137,7 +137,7 @@ class Etn_Zoom extends Widget_Base {
 				[
 						'label'       => esc_html__( 'Start date/time*', 'eventin' ),
 						'type'        => \Elementor\Controls_Manager::DATE_TIME,
-						'default'     => date( 'y-m-d H:i' ),
+						'default'     => gmdate( 'y-m-d H:i' ),
 						'description' => esc_html__( 'Select start date and time.(Required)', 'eventin' ),
 				]
 		);

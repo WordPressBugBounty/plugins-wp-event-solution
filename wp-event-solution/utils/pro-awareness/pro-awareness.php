@@ -269,8 +269,8 @@ if(!class_exists('\Wpmet\Libs\Pro_Awareness')) :
 												<?php echo esc_html__('How can I translate event content into my own language?', 'eventin'); ?>
 											</h3>
 											<div class="tw-accordion-cotent">
-												<p><?php echo  Helper::kses('If you want to translate in a single language then you can use the <a href="https://wordpress.org/plugins/loco-translate/" target="_blank">Loco Translate</a> plugin. For multi-language translation, you can use the <a href="https://wpml.org/" target="_blank">WPML</a> translator plugin. Simply install the plugin and activate it. After that, please complete the basic settings and you are good to go.', 'eventin'); ?></p>
-												<p><?php echo  Helper::kses('For “Loco Translate”, you can check this <a href="https://youtu.be/6qLkdl97PU0" target="_blank">video tutorial</a> and <a href="https://localise.biz/wordpress/plugin/beginners" target="_blank">documentation</a>. Also, for the WPML multi-language translation, here is the <a href="https://www.youtube.com/watch?v=O7zrroWtrpQ&list=PLs3PkRpIy7BwP5uGV7H2uX34E3MWgdAsH" target="_blank">video</a>  and <a href="https://wpml.org/documentation/" target="_blank">documentation</a>  link.', 'eventin'); ?></p>
+												<p><?php echo  Helper::kses('If you want to translate in a single language then you can use the <a href="https://wordpress.org/plugins/loco-translate/" target="_blank">Loco Translate</a> plugin. For multi-language translation, you can use the <a href="https://wpml.org/" target="_blank">WPML</a> translator plugin. Simply install the plugin and activate it. After that, please complete the basic settings and you are good to go.', 'eventin'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Helper::kses() wraps wp_kses() with an allowed tags list. ?></p>
+												<p><?php echo  Helper::kses('For “Loco Translate”, you can check this <a href="https://youtu.be/6qLkdl97PU0" target="_blank">video tutorial</a> and <a href="https://localise.biz/wordpress/plugin/beginners" target="_blank">documentation</a>. Also, for the WPML multi-language translation, here is the <a href="https://www.youtube.com/watch?v=O7zrroWtrpQ&list=PLs3PkRpIy7BwP5uGV7H2uX34E3MWgdAsH" target="_blank">video</a>  and <a href="https://wpml.org/documentation/" target="_blank">documentation</a>  link.', 'eventin'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Helper::kses() wraps wp_kses() with an allowed tags list. ?></p>
 											</div>
 										</div>
 									</div>
@@ -285,7 +285,7 @@ if(!class_exists('\Wpmet\Libs\Pro_Awareness')) :
 												<?php echo esc_html__('How to upgrade to Eventin PRO?', 'eventin'); ?>
 											</h3>
 											<div class="tw-accordion-cotent">
-												<p><?php echo  Helper::kses('If you buy the plugin from CodeCanyon then you do not need license key activation. Just use the Envato Marketplace plugin to get regular updates. If you buy the plugin from <a href="https://themewinter.com/eventin/" target="_blank">Themewinter website</a> then follow our <a href="https://support.themewinter.com/docs/plugins/plugin-docs/general-settings-eventin/license/" target="_blank">documentation here</a> for activating the PRO license.', 'eventin'); ?></p>
+												<p><?php echo  Helper::kses('If you buy the plugin from CodeCanyon then you do not need license key activation. Just use the Envato Marketplace plugin to get regular updates. If you buy the plugin from <a href="https://themewinter.com/eventin/" target="_blank">Themewinter website</a> then follow our <a href="https://support.themewinter.com/docs/plugins/plugin-docs/general-settings-eventin/license/" target="_blank">documentation here</a> for activating the PRO license.', 'eventin'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Helper::kses() wraps wp_kses() with an allowed tags list. ?></p>
 											</div>
 										</div>
 									</div>
@@ -351,6 +351,7 @@ if(!class_exists('\Wpmet\Libs\Pro_Awareness')) :
 		public static function enqueue_scripts() {
 			$tw_welcome_image = \Wpeventin::plugin_url() . 'utils/pro-awareness/assets/welcome_image.png';
 			$tw_setup_image = \Wpeventin::plugin_url() . 'utils/pro-awareness/assets/setup_wizard.png';
+			// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped -- Hardcoded admin-only CSS/JS block; no user input.
 			echo "
 			<script>
 
@@ -579,6 +580,7 @@ if(!class_exists('\Wpmet\Libs\Pro_Awareness')) :
             }
         </style>
 		";
+			// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
 		}
 
 		public function insert_plugin_links($links) {

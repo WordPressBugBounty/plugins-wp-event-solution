@@ -160,12 +160,13 @@ class EventDetailsPartsPro {
 												$active_class   = (($j == 0) ? 'tab-active' : ' ');
 												$etn_show_speaker_with_schedule = get_post_meta( $single_event_id, 'etn_select_speaker_schedule_type', true );
 												$etn_show_speaker_with_schedule = !empty( $etn_show_speaker_with_schedule) ? $etn_show_speaker_with_schedule : 'schedule_with_speaker';
+												$is_active = get_post_meta($single_schedule_id,'is_active',true);
 												?>
         <!-- start repeatable item -->
         <div class='etn-tab <?php echo esc_attr($active_class); ?>' data-id='tab<?php echo esc_attr($j); ?>'>
             <?php
 														$etn_tab_time_format = (!empty($event_options["time_format"]) && $event_options["time_format"] == '24') ? "H:i" : get_option( 'time_format' );
-														if( is_array( $schedule_topics ) && !empty( $schedule_topics ) ){
+														if( is_array( $schedule_topics ) && !empty( $schedule_topics )){
 																foreach($schedule_topics as $topic) {
 																		$etn_schedule_topic         = (isset($topic['etn_schedule_topic']) ? $topic['etn_schedule_topic'] : '');
 																		$etn_schedule_start_time    = !empty($topic['etn_shedule_start_time']) ? date_i18n($etn_tab_time_format, strtotime($topic['etn_shedule_start_time'])) : '';
@@ -174,16 +175,18 @@ class EventDetailsPartsPro {
 																		$etn_schedule_objective     = (isset($topic['etn_shedule_objective']) ? $topic['etn_shedule_objective'] : '');
 																		$etn_schedule_speaker       = (isset($topic['speakers']) ? (array) $topic['speakers'] : []);
 																		$dash_sign	                = ( !empty( $etn_schedule_start_time ) && !empty( $etn_schedule_end_time ) ) ? " - " : " ";
-				
+																		$is_active					= $topic['is_active'];
+
+																	 	if($is_active){
 																	?>
             <div class='etn-single-schedule-item etn-row'>
                 <div class='etn-schedule-info etn-col-sm-4'>
                     <?php
 																						
-																						if(!empty($etn_schedule_start_time) || !empty( $etn_schedule_end_time )){
+																						if((!empty($etn_schedule_start_time) || !empty( $etn_schedule_end_time )) && $is_active){
 																								?>
                     <span class='etn-schedule-time'>
-                        <?php echo esc_html($etn_schedule_start_time) . esc_html($dash_sign) . esc_html($etn_schedule_end_time); ?>
+                        <?php echo esc_html($etn_schedule_start_time) . esc_html($dash_sign) . esc_html($etn_schedule_end_time); ?>111
                     </span>
 
                     <?php
@@ -242,6 +245,7 @@ class EventDetailsPartsPro {
             </div>
             <?php 
 																}
+														}
 														} 
 														?>
         </div>

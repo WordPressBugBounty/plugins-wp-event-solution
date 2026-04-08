@@ -75,7 +75,7 @@ class Seatplan_Form {
 			return;
 		}
 
-		$errors = isset( $_GET['etn_errors'] ) ? $_GET['etn_errors'] : '';
+		$errors = isset( $_GET['etn_errors'] ) ? sanitize_text_field( wp_unslash( $_GET['etn_errors'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only display param for seat plan error messages; no data modified.
 		remove_query_arg( 'etn_errors', get_the_permalink(get_the_ID()) );
 		$seats = get_post_meta( get_the_ID(),'seat_plan', true );
 

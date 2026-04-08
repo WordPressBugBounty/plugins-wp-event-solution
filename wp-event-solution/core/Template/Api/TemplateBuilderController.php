@@ -205,7 +205,12 @@ class TemplateBuilderController extends WP_REST_Controller {
             if ( is_wp_error( $activate ) ) {
                 return new WP_Error(
                     'activation_failed',
-                    sprintf( __( 'Failed to activate %s: %s', 'eventin' ), $plugin_slug, $activate->get_error_message() ),
+                    sprintf(
+                        // translators: %1$s is the plugin slug, %2$s is the error message.
+                        __( 'Failed to activate %1$s: %2$s', 'eventin' ),
+                        $plugin_slug,
+                        $activate->get_error_message()
+                    ),
                     [ 'status' => 500 ]
                 );
             }
@@ -227,7 +232,12 @@ class TemplateBuilderController extends WP_REST_Controller {
         if ( is_wp_error( $api ) ) {
             return new WP_Error(
                 'plugin_info_failed',
-                sprintf( __( 'Could not get plugin information for %s: %s', 'eventin' ), $plugin_slug, $api->get_error_message() ),
+                sprintf(
+                    // translators: %1$s is the plugin slug, %2$s is the error message.
+                    __( 'Could not get plugin information for %1$s: %2$s', 'eventin' ),
+                    $plugin_slug,
+                    $api->get_error_message()
+                ),
                 [ 'status' => 500 ]
             );
         }
@@ -238,7 +248,12 @@ class TemplateBuilderController extends WP_REST_Controller {
         if ( is_wp_error( $install ) ) {
             return new WP_Error(
                 'installation_failed',
-                sprintf( __( 'Failed to install %s: %s', 'eventin' ), $plugin_slug, $install->get_error_message() ),
+                sprintf(
+                    // translators: %1$s is the plugin slug, %2$s is the error message.
+                    __( 'Failed to install %1$s: %2$s', 'eventin' ),
+                    $plugin_slug,
+                    $install->get_error_message()
+                ),
                 [ 'status' => 500 ]
             );
         }
@@ -247,7 +262,12 @@ class TemplateBuilderController extends WP_REST_Controller {
         if ( is_wp_error( $activate ) ) {
             return new WP_Error(
                 'activation_failed',
-                sprintf( __( 'Failed to activate %s: %s', 'eventin' ), $plugin_slug, $activate->get_error_message() ),
+                sprintf(
+                    // translators: %1$s is the plugin slug, %2$s is the error message.
+                    __( 'Failed to activate %1$s: %2$s', 'eventin' ),
+                    $plugin_slug,
+                    $activate->get_error_message()
+                ),
                 [ 'status' => 500 ]
             );
         }

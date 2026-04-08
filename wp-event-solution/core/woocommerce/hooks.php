@@ -247,7 +247,8 @@ class Hooks {
                                 if ( $ticket_variation['etn_ticket_slug'] === $variation_id) {
                                     // Check if the variant is active
                                     if ( isset( $ticket_variation['etn_enable_ticket'] ) && !$ticket_variation['etn_enable_ticket']) {
-                                        $error_message = sprintf( 
+                                        $error_message = sprintf(
+                                            // translators: %s is the ticket product name.
                                             __('The selected ticket variant for "%s" is no longer available. You have been redirected to the event page.', 'eventin'),
                                             $product->get_name()
                                         );
@@ -977,7 +978,7 @@ class Hooks {
             ];
 
             global $wpdb;
-            $wpdb->update( ETN_EVENT_PURCHASE_HISTORY_TABLE , [ 'event_amount' => $price ], $update_where );
+            $wpdb->update( ETN_EVENT_PURCHASE_HISTORY_TABLE , [ 'event_amount' => $price ], $update_where ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- $wpdb->update() with array API; write operation; caching not applicable.
         }
 
     }
@@ -1235,9 +1236,9 @@ class Hooks {
                 //update purchase history status
                 $status      = $order_status_array[$new_order_status];
                 $table_name  = ETN_EVENT_PURCHASE_HISTORY_TABLE;
-                $order_count = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$table_name} WHERE post_id = %d AND form_id = %d", $event_id, $order_id ) );
+                $order_count = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$table_name} WHERE post_id = %d AND form_id = %d", $event_id, $order_id ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
                 if ( $order_count > 0 ) {
-                    $wpdb->query( $wpdb->prepare( "UPDATE {$table_name} SET status = %s WHERE post_id = %d AND form_id = %d", $status, $event_id, $order_id ) );
+                    $wpdb->query( $wpdb->prepare( "UPDATE {$table_name} SET status = %s WHERE post_id = %d AND form_id = %d", $status, $event_id, $order_id ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
                 }
 
             }
@@ -1275,7 +1276,7 @@ class Hooks {
 
             $post_arr = filter_input_array( INPUT_POST, FILTER_SANITIZE_SPECIAL_CHARS );
 
-            $post_arr = wp_parse_args( $_SESSION['etn_cart_session'], $post_arr );
+            $post_arr = wp_parse_args( isset( $_SESSION['etn_cart_session'] ) ? $_SESSION['etn_cart_session'] : [], $post_arr ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated -- isset() guard added; session data was sanitised when written to the session.
 
             $check    = wp_verify_nonce( $post_arr['ticket_purchase_next_step_three'], 'ticket_purchase_next_step_three' );
 
@@ -1289,7 +1290,7 @@ class Hooks {
                 $seats = implode( ',', $selected_seats );
                 $seats = explode( ',', $seats );
                 
-                $payment_token  = md5( 'etn-payment-token' . $access_token . time() . rand( 1, 9999 ) );
+                $payment_token  = md5( 'etn-payment-token' . $access_token . time() . wp_rand( 1, 9999 ) );
                 $ticket_price   = get_post_meta( $event_id, "etn_ticket_price", true );
 
                 // Variation Data
@@ -1680,6 +1681,7 @@ class Hooks {
                     $deadline_expired =  \Etn\Core\Event\Helper::instance()->event_registration_deadline( array('single_event_id' => $event_id ) );
                     if ( $deadline_expired ) {
                         $event_name       = get_the_title( $event_id );
+                        // translators: %s is the event name.
                         $error_messages[] = sprintf( esc_html__( 'Event: "%s" has been expired', 'eventin' ), $event_name );
                     }
 
@@ -1974,7 +1976,26 @@ class Hooks {
                 $insert_ticket_variation=  serialize($etn_ticket_variations);
                 $insert_pledge_id       = $pledge_id;
                 $insert_payment_gateway = $etn_payment_method;
-                $inserted               = $wpdb->query( "INSERT INTO `". ETN_EVENT_PURCHASE_HISTORY_TABLE ."` (`post_id`, `form_id`, `invoice`, `event_amount`, `ticket_qty`, `ticket_variations`, `user_id`, `email`, `event_type`, `payment_type`, `pledge_id`, `payment_gateway`, `date_time`, `status`) VALUES ('$insert_post_id', '$insert_form_id', '$insert_invoice', '$insert_event_amount', '$insert_ticket_qty', '$insert_ticket_variation', '$insert_user_id', '$insert_email', '$insert_event_type', '$insert_payment_type', '$insert_pledge_id', '$insert_payment_gateway', '".date( "Y-m-d" )."', '$status')" );
+                $inserted               = $wpdb->insert( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+                    ETN_EVENT_PURCHASE_HISTORY_TABLE,
+                    [
+                        'post_id'           => intval( $insert_post_id ),
+                        'form_id'           => intval( $insert_form_id ),
+                        'invoice'           => $insert_invoice,
+                        'event_amount'      => $insert_event_amount,
+                        'ticket_qty'        => intval( $insert_ticket_qty ),
+                        'ticket_variations' => $insert_ticket_variation,
+                        'user_id'           => intval( $insert_user_id ),
+                        'email'             => $insert_email,
+                        'event_type'        => $insert_event_type,
+                        'payment_type'      => $insert_payment_type,
+                        'pledge_id'         => $insert_pledge_id,
+                        'payment_gateway'   => $insert_payment_gateway,
+                        'date_time'         => gmdate( 'Y-m-d' ),
+                        'status'            => $status,
+                    ],
+                    [ '%d', '%d', '%s', '%s', '%d', '%s', '%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s' ]
+                );
                 $id_insert              = $wpdb->insert_id;
                 
 				if ( $inserted ) {
@@ -1994,14 +2015,14 @@ class Hooks {
 					$metaKey['_etn_addition_fees_type']   = '';
 					$metaKey['_etn_country']              = get_post_meta( $order_id, '_billing_country', true );
 					$metaKey['_etn_currency']             = get_post_meta( $order_id, '_order_currency', true );
-					$metaKey['_etn_date_time']            = date( "Y-m-d H:i:s" );
+					$metaKey['_etn_date_time']            = gmdate( "Y-m-d H:i:s" );
 
 					foreach ( $metaKey as $k => $v ) {
 						$data               = [];
 						$data["event_id"]   = $id_insert;
-						$data["meta_key"]   = $k;
-						$data["meta_value"] = $v;
-						$wpdb->insert( ETN_EVENT_PURCHASE_HISTORY_META_TABLE, $data );
+					$data["meta_key"]   = $k; // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+					$data["meta_value"] = $v; // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+						$wpdb->insert( ETN_EVENT_PURCHASE_HISTORY_META_TABLE, $data ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- $wpdb->insert() with array API; write operation.
 					}
 				}
 
@@ -2156,7 +2177,7 @@ class Hooks {
             'post_type'      => 'etn-attendee',
             'post_status'    => ['publish','trash'],
             'posts_per_page' => -1,
-            'meta_query'     => [
+            'meta_query'     => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
                 'relation'  => 'AND',
                 [
                     'key'       => 'eventin_order_id',
@@ -2455,7 +2476,8 @@ class Hooks {
                         WC()->cart->remove_coupon( $coupon->get_code() );
                         wc_add_notice(
                             sprintf(
-                                __("'<strong>%s</strong>' Coupon usage limit has been reached for '<strong>%s</strong>'. ", 'eventin'),
+                                // translators: %1$s is the coupon code, %2$s is the product/event name.
+                                __("'<strong>%1\$s</strong>' Coupon usage limit has been reached for '<strong>%2\$s</strong>'. ", 'eventin'),
                                 $coupon->get_code(),
                                 $_product->get_name()
                             ),
@@ -2549,7 +2571,7 @@ class Hooks {
             'post_status' => 'publish',
             'posts_per_page' => -1,
             'fields'      => 'ids',
-            'meta_query'     => array(
+            'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
                 array(
                     'key'     => 'etn_unique_key', 
                     'value'   => $update_status_token, 
@@ -2587,6 +2609,7 @@ class Hooks {
         if (!isset($cart->removed_cart_contents[$cart_item_key])) {
             wc_clear_notices();
 
+            // translators: %s is the event title.
             $message = sprintf( esc_html__( 'Event: "%s" has been removed.', 'eventin' ), get_the_title($product_id) );
             wc_add_notice($message, 'success');
         }

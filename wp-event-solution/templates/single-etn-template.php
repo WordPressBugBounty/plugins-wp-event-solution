@@ -77,7 +77,7 @@ if ( $is_elementor_template ) {
     </style>
     <div class="etn-template-single-wrapper">
         <div class="etn-template-content">
-            <?php echo $template_html; ?>
+            <?php echo $template_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Trusted rendered block/Elementor HTML content. ?>
         </div>
     </div>
     <?php

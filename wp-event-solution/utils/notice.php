@@ -182,7 +182,7 @@ class Notice {
         ?>
 		<div id="<?php echo esc_attr( $notice['id'] ); ?>" class="<?php echo esc_attr( $notice['classes'] ); ?>" <?php echo esc_attr( $notice['data'] ); ?>>
 			<p>
-				<?php echo Helper::kses( $notice['message'] ); ?>
+				<?php echo Helper::kses( $notice['message'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Helper::kses() wraps wp_kses() with an allowed tags list. ?>
 			</p>
 			<?php if ( !empty( $notice['btn'] ) ): ?>
 				<p>

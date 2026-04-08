@@ -902,8 +902,8 @@ class Etn_Events extends Widget_Base {
         $etn_paged = 1;
         if ($enable_pagination === 'yes') {            
             // Get the page number from URL parameter
-            if (isset($_GET['etn_paged']) && is_numeric($_GET['etn_paged'])) {
-                $etn_paged = max(1, intval($_GET['etn_paged']));
+            if (isset($_GET['etn_paged']) && is_numeric($_GET['etn_paged'])) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- public event pagination param; validated via is_numeric() and cast via intval().
+                $etn_paged = max(1, intval($_GET['etn_paged'])); // phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- cast to integer via intval().
             }
         }
 

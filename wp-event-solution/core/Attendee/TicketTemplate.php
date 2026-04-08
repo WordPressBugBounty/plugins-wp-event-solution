@@ -63,7 +63,7 @@ class TicketTemplate implements HookableInterface {
 	 * Download PDF from email and admin dashboard
 	 */
 	public function generate_ticket_pdf() {
-		if ( isset( $_GET['etn_action'] ) && sanitize_text_field( $_GET['etn_action'] ) === 'download_ticket' ) {
+		if ( isset( $_GET['etn_action'] ) && sanitize_text_field( wp_unslash( $_GET['etn_action'] ) ) === 'download_ticket' ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- ticket PDF download link; etn_info_edit_token acts as a secret access token.
 
 			$get_arr = filter_input_array( INPUT_GET, FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 
@@ -143,14 +143,14 @@ class TicketTemplate implements HookableInterface {
 
 		$event = new Event_Model( $event_id );
 
-		$start_date   = date( $date_format, strtotime( $event->etn_start_date ) );
-		$end_date     = date( $date_format, strtotime( $event->etn_end_date ) );
+		$start_date   = gmdate( $date_format, strtotime( $event->etn_start_date ) );
+		$end_date     = gmdate( $date_format, strtotime( $event->etn_end_date ) );
 
 		$start_date_time = $event->etn_start_date . ' ' . $event->etn_start_time;
 		$end_date_time 	 = $event->etn_end_date . ' ' . $event->etn_end_time;
 
-		$start_time	  = date( $time_format, strtotime( $start_date_time ) );
-		$end_time	  = date( $time_format, strtotime( $end_date_time ) );
+		$start_time	  = gmdate( $time_format, strtotime( $start_date_time ) );
+		$end_time	  = gmdate( $time_format, strtotime( $end_date_time ) );
 
 
 		$date           = $start_date . $date_separator . $end_date;
@@ -179,7 +179,7 @@ class TicketTemplate implements HookableInterface {
 		if ( $post && $post->post_type === 'etn-template' ) {
 			include_once \Wpeventin::templates_dir() . "template-parts/attendee/ticket-markup-block.php";
 		} else {
-			if(class_exists('Wpeventin_Pro') && $ticket_style === 'style-2') {
+			if(class_exists('Wpeventin_Pro') && 'style-2' === $ticket_style) {
 				include_once \Wpeventin_Pro::templates_dir() . "attendee/ticket-markup-".esc_html($ticket_style).".php";
 			}else {
 				$ticket_style = $ticket_style == 'style-2'?'style-1':$ticket_style;

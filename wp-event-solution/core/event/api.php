@@ -205,13 +205,13 @@ class Api extends \Etn\Base\Api_Handler {
 			}
 		}
 
-		$sample_date      = strtotime( date( 'd' ) . " " . date( 'M' ) . " " . date( 'Y' ) );
+		$sample_date      = strtotime( gmdate( 'd' ) . " " . gmdate( 'M' ) . " " . gmdate( 'Y' ) );
 		$date_formats     = Helper::get_date_formats();
 		$get_date_formats = [];
 
 		if ( is_array( $date_formats ) ) {
 			foreach ( $date_formats as $key => $date_format ) {
-				array_push( $get_date_formats, date( $date_format, $sample_date ) );
+				array_push( $get_date_formats, gmdate( $date_format, $sample_date ) );
 			}
 		}
 
@@ -313,7 +313,7 @@ class Api extends \Etn\Base\Api_Handler {
 		];
 
 		if ( $group_id ) {
-			$args['meta_query'] = [
+			$args['meta_query'] = [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
 				[
 					'key'   => 'etn_bp_group_' . $group_id,
 					'value' => $group_id,
@@ -323,10 +323,10 @@ class Api extends \Etn\Base\Api_Handler {
 
 		// get latest events
 		if ( $type == "upcoming" ) {
-			$args['meta_query'] = [
+			$args['meta_query'] = [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
 				[
 					'key'     => 'etn_start_date',
-					'value'   => date( 'Y-m-d' ),
+					'value'   => gmdate( 'Y-m-d' ),
 					'compare' => '>=',
 					'type'    => 'DATE',
 				],
@@ -568,7 +568,7 @@ class Api extends \Etn\Base\Api_Handler {
 						}
 						
 						// Convert end time to 24-hour format for easier comparison
-						$end_time_24 = date('H:i', strtotime($end_time));
+						$end_time_24 = gmdate('H:i', strtotime($end_time));
 						
 						// Create datetime object for the end of the ticket variation
 						$end_datetime = $end_date . ' ' . $end_time_24;

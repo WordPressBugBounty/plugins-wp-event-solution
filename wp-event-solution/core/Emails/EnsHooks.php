@@ -100,7 +100,7 @@ class EnsHooks {
                 'post_status'       => 'any',
                 'posts_per_page'    => -1,
                 
-                'meta_query' => array(
+                'meta_query' => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
                     array(
                         'key'     => 'etn_event_id',
                         'value'   => $event_id,
@@ -138,7 +138,7 @@ class EnsHooks {
                 'post_status'       => 'any',
                 'posts_per_page'    => -1,
                 
-                'meta_query' => array(
+                'meta_query' => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
                     array(
                         'key'     => 'etn_event_id',
                         'value'   => $event_id,

@@ -33,7 +33,7 @@
                                 $title = ! empty($social['etn_social_title']) ? $social['etn_social_title'] : '';
                             ?>
                             <a href="<?php echo esc_url($url); ?>" target="_blank" title="<?php echo esc_attr($title); ?>" aria-label="<?php echo esc_attr($title); ?>">
-                                <i class="etn-icon                                                                                                                                                                                                                                           <?php echo esc_attr($icon); ?>"></i>
+                                <i class="etn-icon   <?php echo esc_attr($icon); ?>"></i>
                             </a>
                             <?php endforeach; ?>
                         </div>

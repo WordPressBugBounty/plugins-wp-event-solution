@@ -77,9 +77,6 @@ use Etn\Utils\Helper as helper;
             } else {
                 status_header( 404 );
 				include_once  ETN_PLUGIN_TEMPLATE_DIR . 'etn-404.php';
-                ?>
-                    <p><?php echo esc_html__('No Event found!', 'eventin'); ?></p>
-                <?php
             }
             wp_reset_postdata();     
         }else if( is_archive() ) {

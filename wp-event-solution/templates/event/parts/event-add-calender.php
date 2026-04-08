@@ -25,7 +25,9 @@
             $start_date_raw = $event_meta['etn_start_date'][0] ?? '';
             $end_date_raw   = $event_meta['etn_end_date'][0]   ?? $start_date_raw;
 
+            // phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date -- date() required for proper date parsing from stored event meta format.
             $outlook_event_start = ! empty( $start_date_raw ) ? date( 'Y-m-d', strtotime( $start_date_raw ) ) . 'T' . date( 'H:i:s', strtotime( $etn_start_time ) ) : '';
+            // phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date -- date() required for proper date parsing from stored event meta format.
             $outlook_event_end   = ! empty( $end_date_raw )   ? date( 'Y-m-d', strtotime( $end_date_raw ) )   . 'T' . date( 'H:i:s', strtotime( $etn_end_time ) )   : '';
 
             $title      = $event->post_title;

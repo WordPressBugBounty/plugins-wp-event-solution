@@ -22,7 +22,7 @@ class Hooks {
         add_action( 'woocommerce_account_purchased-events_endpoint', [ $this, 'purchased_events_content' ] );
 
         // woo thank you page contains key in url so don't show attendee info here. this is for user purchased events
-        if ( !isset( $_GET['key'] ) ) {
+        if ( !isset( $_GET['key'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only check for WooCommerce order key param; no data is modified.
             add_action( 'woocommerce_order_details_after_order_table', [ $this, 'after_order_table_show_attendee_information' ], 9, 1 );
         }
     }
@@ -133,7 +133,7 @@ class Hooks {
                     'post_type'      => 'etn-attendee',
                     'post_status'    => 'publish',
                     'posts_per_page' => -1,
-                    'meta_query'     => [
+                    'meta_query'     => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
                         'relation'  => 'OR',
                         [
                             'key'       => 'eventin_order_id',

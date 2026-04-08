@@ -43,7 +43,7 @@ class TicketIdGenerator {
         
         // Generate a random string of the desired length
         for ( $i = 0; $i < $length; $i++ ) {
-            $random_string .= $characters[ rand( 0, $characters_length - 1 ) ];
+            $random_string .= $characters[ wp_rand( 0, $characters_length - 1 ) ];
         }
 
         return $random_string;
@@ -62,7 +62,7 @@ class TicketIdGenerator {
             'post_status'    => 'any',
             'posts_per_page' => -1,
             'fields'         => 'ids',
-            'meta_query'     => [
+            'meta_query'     => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
                 [
                     'key'     => 'etn_unique_ticket_id',
                     'value'   => $ticket,

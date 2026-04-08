@@ -15,8 +15,15 @@ class ReaderFactory {
     public static function get_reader( $file ) {
         $file_name = ! empty( $file['tmp_name'] ) ? $file['tmp_name'] : '';
 
-        $finfo     = new \finfo( FILEINFO_MIME_TYPE );
-        $real_mime = $finfo->file( $file_name );
+        $finfo     = class_exists( 'finfo' ) ? new \finfo( FILEINFO_MIME_TYPE ) : null;
+        $real_mime = ( $finfo instanceof \finfo ) ? $finfo->file( $file_name ) : '';
+
+        if ( ! $real_mime ) {
+            $ext_map   = [ 'csv' => 'text/csv', 'json' => 'application/json' ];
+            $ext       = strtolower( pathinfo( $file['name'] ?? '', PATHINFO_EXTENSION ) );
+            $real_mime = $ext_map[ $ext ] ?? '';
+        }
+
         $allowed   = [ 'text/plain', 'text/csv', 'application/json' ];
 
         if ( ! in_array( $real_mime, $allowed, true ) ) {

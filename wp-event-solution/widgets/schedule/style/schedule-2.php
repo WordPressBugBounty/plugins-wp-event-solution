@@ -8,7 +8,7 @@ if ( did_action( 'eventin-pro/after_load'  ) ) {
 
 $data = Helper::post_data_query( 'etn-schedule' , $post_perpage, $order, null , null ,  $etn_schedule_ids ,
 null , null , "meta_value" , "etn_schedule_date"  );
-date_default_timezone_set('UTC');
+date_default_timezone_set('UTC'); // phpcs:ignore WordPress.DateTime.RestrictedFunctions.timezone_change_date_default_timezone_set -- intentional UTC context for schedule sorting.
 
 if ( is_array( $data ) && !empty( $data ) ) {
     
@@ -83,7 +83,7 @@ $i = -1;
                                 </div>
                                 <div class='etn-schedule-content'>
                                     <h4 class='etn-title'><?php echo esc_html($etn_schedule_topic); ?></h4>
-                                    <p><?php echo Helper::render($etn_schedule_objective); ?></p>
+                                    <p><?php echo Helper::render($etn_schedule_objective); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Helper::render() outputs trusted admin-entered HTML content. ?></p>
                                 </div>
                                 <?php if ( $show_speaker_section === 'yes' ) : ?>
                                 <div class='etn-schedule-right-content'>

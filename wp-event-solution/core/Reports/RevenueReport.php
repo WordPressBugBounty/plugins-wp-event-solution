@@ -85,7 +85,7 @@ class RevenueReport extends AbstractReport {
             $sql = $wpdb->prepare( $sql, $params );
         }
 
-        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
         return (float) $wpdb->get_var( $sql );
     }
 
@@ -111,7 +111,7 @@ class RevenueReport extends AbstractReport {
 
         $placeholders = implode( ',', array_fill( 0, count( $event_ids ), '%d' ) );
 
-        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
         $sql = $wpdb->prepare(
             "SELECT em.meta_value AS event_id, COALESCE(SUM({$revenue_expr}), 0) AS revenue
             FROM {$wpdb->posts} p
@@ -134,11 +134,11 @@ class RevenueReport extends AbstractReport {
             WHERE p.post_type = 'etn-order'
             AND p.post_status != 'trash'
             AND em.meta_value IN ({$placeholders})
-            GROUP BY em.meta_value",
+            GROUP BY em.meta_value", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
             $event_ids
         );
 
-        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
         $rows = $wpdb->get_results( $sql );
 
         $map = [];

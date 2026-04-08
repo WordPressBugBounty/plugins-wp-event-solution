@@ -34,7 +34,7 @@ defined( 'ABSPATH' ) || exit;
             $styles          = ! empty($attributes['styles']) ? $attributes['styles'] : [];
             $style_variant   = ! empty($attributes['styleVariant']) ? sanitize_key($attributes['styleVariant']) : 'style-1';
 
-            $allowed_variants = ['style-1', 'style-2', 'style-3', 'style-4'];
+            $allowed_variants = ['style-1', 'style-2', 'style-3', 'style-4', 'style-5'];
             if (! in_array($style_variant, $allowed_variants, true)) {
                 $style_variant = 'style-1';
             }
@@ -88,7 +88,7 @@ defined( 'ABSPATH' ) || exit;
                                 $frontend_css
                             );
                         }
-                        echo '<style>' . $frontend_css . '</style>';
+                        echo '<style>' . $frontend_css . '</style>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- CSS generated from block editor attributes; HTML escaping would break styles.
                     }
                 ?>
         <?php

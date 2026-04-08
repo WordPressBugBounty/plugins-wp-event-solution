@@ -134,7 +134,7 @@ class Admin {
         wp_localize_script( 'etn-onboard-index', 'localized_data_obj', $localize_data );
         wp_enqueue_style( 'etn-icon' );
         // Enque block editor style in events create and edit pages only
-        if ( isset( $_GET['page'] ) && $_GET['page'] === 'eventin' ) {
+        if ( isset( $_GET['page'] ) && $_GET['page'] === 'eventin' ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- admin script enqueue condition; page param compared to a literal string only.
             wp_enqueue_style( 'wp-block-editor' );
         }
     }

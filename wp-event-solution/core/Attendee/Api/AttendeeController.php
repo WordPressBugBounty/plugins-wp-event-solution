@@ -218,7 +218,7 @@ class AttendeeController extends WP_REST_Controller {
         if ( ! empty( $meta_query ) ) {
             $meta_query['relation'] = 'AND';
 
-            $args['meta_query'] = $meta_query; 
+            $args['meta_query'] = $meta_query; // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query 
         }
 
         if ( $search && ! is_numeric( $search ) ) {
@@ -278,7 +278,7 @@ class AttendeeController extends WP_REST_Controller {
                 ),
             );
 
-            $args['meta_query'] = $meta_query; 
+            $args['meta_query'] = $meta_query; // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query 
         }
 
         $attendees = [];
@@ -610,7 +610,8 @@ class AttendeeController extends WP_REST_Controller {
             );
         }
 
-        $message = sprintf( __( '%d Attendee are deleted of %d', 'eventin' ), $count, count( $ids ) );
+        // translators: %1$d is the number of attendees deleted, %2$d is the total number of attendees selected.
+        $message = sprintf( __( '%1$d Attendee are deleted of %2$d', 'eventin' ), $count, count( $ids ) );
 
         return rest_ensure_response( $message );
     }
@@ -829,7 +830,7 @@ class AttendeeController extends WP_REST_Controller {
             'customer_lname' => '',
             'customer_email' => ! empty( $data['etn_email'] ) ? $data['etn_email'] : '',
             'event_id'       => ! empty( $data['etn_event_id'] ) ? $data['etn_event_id'] : '',
-            'date_time'      => date('Y-m-d h:i A'),
+            'date_time'      => gmdate('Y-m-d h:i A'),
             'customer_id'    => $customer_id,
             'total_price'    => $total_price,
             'status'         => 'success' === $data['etn_status'] ? 'completed' : 'failed',

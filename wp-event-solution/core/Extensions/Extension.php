@@ -202,16 +202,45 @@ class Extension {
                 return false;
             }
 
+            $dependencies = ! empty( $extension['deps'] ) ? $extension['deps'] : [];
+
+            if ( is_array( $dependencies ) ) {
+                foreach ( $dependencies as $dependency ) {
+                    if ( ! PluginManager::is_installed( $dependency ) ) {
+                        $result = PluginManager::install_plugin( $dependency );
+                        if ( ! $result || is_wp_error( $result ) ) {
+                            return $result ?: false;
+                        }
+                    }
+
+                    if ( ! PluginManager::is_activated( $dependency ) ) {
+                        $result = PluginManager::activate_plugin( $dependency );
+                        if ( ! $result || is_wp_error( $result ) ) {
+                            return $result ?: false;
+                        }
+                    }
+                }
+            }
+
             if ( 'install' === $status && ! PluginManager::is_installed( $slug ) ) {
                 $result = PluginManager::install_plugin( $slug );
+                if ( ! $result || is_wp_error( $result ) ) {
+                    return $result ?: false;
+                }
             }
 
             if ( 'activate' === $status && ! PluginManager::is_activated( $slug ) ) {
                 $result = PluginManager::activate_plugin( $slug );
+                if ( ! $result || is_wp_error( $result ) ) {
+                    return $result ?: false;
+                }
             }
 
             if ( 'deactivate' === $status && PluginManager::is_activated( $slug ) ) {
                 $result = PluginManager::deactivate_plugin( $slug );
+                if ( ! $result || is_wp_error( $result ) ) {
+                    return $result ?: false;
+                }
             }
         }
 
@@ -394,6 +423,8 @@ class Extension {
                 'demo_link'     => 'https://product.themewinter.com/eventin/',
                 'settings_link' => '',
                 'doc_link'      => 'https://support.themewinter.com/docs/plugins/plugin-docs/integration/multivendor-event-marketplace/',
+                'badge_tags'    => ['Popular', 'Trending'],
+                'video_link'    => '',
             ],
             'buddyboss' => [
                 'name'          => 'buddyboss',
@@ -411,6 +442,7 @@ class Extension {
                 'demo_link'     => 'https://product.themewinter.com/eventin/',
                 'settings_link' => '',
                 'doc_link'      => 'https://support.themewinter.com/docs/plugins/plugin-docs/integration/buddyboss-integration/',
+                'badge_tags'    => ['Pro'],
             ],
             'certificate_builder' => [
                 'name'          => 'certificate_builder',
@@ -425,6 +457,7 @@ class Extension {
                 'demo_link'     => 'https://product.themewinter.com/eventin/',
                 'settings_link' => admin_url('admin.php?page=eventin#/settings/event-settings/attendees'),
                 'doc_link'      => 'https://support.themewinter.com/docs/plugins/plugin-docs/event/certificate-builder-for-attendee/',
+                'badge_tags'    => ['Pro'],
             ],
             'rsvp' => [
                 'name'          => 'rsvp',
@@ -439,6 +472,7 @@ class Extension {
                 'demo_link'     => 'https://product.themewinter.com/eventin/',
                 'settings_link' => admin_url('admin.php?page=eventin#/settings/email/purchase-email'),
                 'doc_link'      => 'https://support.themewinter.com/docs/plugins/plugin-docs/rsvp-settings/what-is-rsvp-event/',
+                'badge_tags'    => ['Popular'],
             ],
             'seat_map' => [
                 'name'          => 'seat_map',
@@ -456,6 +490,7 @@ class Extension {
                 'demo_link'     => 'https://product.themewinter.com/eventin/',
                 'settings_link' => '',
                 'doc_link'      => 'https://support.themewinter.com/docs/plugins/plugin-docs/visual-seat-map/visual-seat-plan/',
+                'badge_tags'    => ['Free'],
             ],
             'automation' => [
                 'name'          => 'automation',
@@ -470,6 +505,7 @@ class Extension {
                 'demo_link'     => 'https://themewinter.com/eventin/',
                 'settings_link' => '',
                 'doc_link'      => 'https://support.themewinter.com/docs/plugins/plugin-docs/email-settings/automation/',
+                'badge_tags'    => ['Free'],
             ],
             'eventin-divi-addon' => [
                 'name'          => 'eventin-divi-addon',
@@ -483,6 +519,7 @@ class Extension {
                 'demo_link'     => 'https://product.themewinter.com/eventin/',
                 'settings_link' => '',
                 'doc_link'      => 'https://support.themewinter.com/docs/plugins/plugin-docs/integration/divi-builder-integration/',
+                'badge_tags'    => ['Free'],
             ],
             'eventin-bricks-addon' => [
                 'name'          => 'eventin-bricks-addon',
@@ -499,6 +536,7 @@ class Extension {
                 'demo_link'     => 'https://support.themewinter.com/docs/plugins/plugin-docs/integration/bricks-builder-integration/',
                 'settings_link' => '',
                 'doc_link'      => 'https://support.themewinter.com/docs/plugins/plugin-docs/integration/bricks-builder-integration/',
+                'badge_tags'    => ['Pro'],
             ],
             'eventin-oxygen-addon' => [
                 'name'          => 'eventin-oxygen-addon',
@@ -515,6 +553,7 @@ class Extension {
                 'demo_link'     => 'https://support.themewinter.com/docs/plugins/plugin-docs/integration/oxygen-builder-integration-pro',
                 'settings_link' => '',
                 'doc_link'      => 'https://support.themewinter.com/docs/plugins/plugin-docs/integration/oxygen-builder-integration-pro',
+                'badge_tags'    => ['Pro'],
             ],
             'wpcafe' => [
                 'name'          => 'wpcafe',
@@ -531,6 +570,7 @@ class Extension {
                 'demo_link'     => 'https://product.themewinter.com/wpcafe',
                 'settings_link' => '',
                 'doc_link'      => 'https://support.themewinter.com/docs/plugins/docs/wp-cafe/',
+                'badge_tags'    => ['Free'],
             ],
             'timetics' => [
                 'name'          => 'timetics',
@@ -547,6 +587,7 @@ class Extension {
                 'demo_link'     => 'https://arraytics.com/timetics',
                 'settings_link' => '',
                 'doc_link'      => 'https://docs.arraytics.com/docs/timetics/getting-started/',
+                'badge_tags'    => ['Free'],
             ],
             'poptics' => [
                 'name'          => 'poptics',
@@ -563,6 +604,7 @@ class Extension {
                 'demo_link'     => 'https://demo.aethonic.com/popticsadmin/',
                 'settings_link' => '',
                 'doc_link'      => 'https://docs.aethonic.com/docs/getting-started/intro/',
+                'badge_tags'    => ['Free'],
             ],
             'booktics' => [
                 'name'          => 'booktics',
@@ -579,6 +621,7 @@ class Extension {
                 'demo_link'     => 'https://arraytics.com/booktics/#booktics-services',
                 'settings_link' => '',
                 'doc_link'      => 'https://docs.arraytics.com/docs/booktics/getting-started/',
+                'badge_tags'    => ['Free'],
             ],
             'zoom' => [
                 'name'          => 'zoom',
@@ -601,7 +644,8 @@ class Extension {
                     'zoom_client_id' => !empty(etn_get_option('zoom_client_id')) ? etn_get_option('zoom_client_id') : '',
                     'zoom_client_secret' => !empty(etn_get_option('zoom_client_secret')) ? etn_get_option('zoom_client_secret') : '',
                     'zoom_token' => !empty(etn_get_option('zoom_token')) ? etn_get_option('zoom_token') : ''
-                ]
+                ],
+                'badge_tags'    => ['Free'],
             ],
             'google_meet' => [
                 'name'          => 'google_meet',
@@ -616,6 +660,7 @@ class Extension {
                 'demo_link'     => 'https://product.themewinter.com/eventin/',
                 'settings_link' => admin_url('admin.php?page=eventin#/settings/integrations/google-meet'),
                 'doc_link'      => 'https://support.themewinter.com/docs/plugins/plugin-docs/integration/google-meet/',
+                'video_link'    => 'https://www.youtube.com/watch?v=7RCx6yIKULY&list=PLW54c-mt4ObDwu0GWjJIoH0aP1hQHyKj7&index=22',
                 'data'          => [
                     'google_meet_connected' => empty(etn_get_option('google_token')) ? 'no' : 'yes',
                     'google_meet_authorize_url' => !empty(etn_get_option('google_meet_authorize_url')) ? etn_get_option('google_meet_authorize_url') : '',
@@ -623,7 +668,8 @@ class Extension {
                     'etn_meet_api' => etn_get_option('etn_meet_api') ? 'yes' : 'no',
                     'google_meet_client_id' => !empty(etn_get_option('google_meet_client_id'))?etn_get_option('google_meet_client_id'):'',
                     'google_meet_client_secret_key' => !empty(etn_get_option('google_meet_client_secret_key'))?etn_get_option('google_meet_client_secret_key'):'',
-                ]
+                ],
+                'badge_tags'    => ['Pro'],
             ],
             'google_map' => [
                 'name'          => 'google_map',
@@ -641,7 +687,8 @@ class Extension {
                 'data'          => [
                     'etn_googlemap_api'  =>  etn_get_option('etn_googlemap_api') ? 'no' : 'yes',
                     'google_api_key' => !empty(etn_get_option('google_api_key')) ? etn_get_option('google_api_key') : ''
-                ]
+                ],
+                'badge_tags'    => ['Pro'],
             ],
             'eventin_ai' => [
                 'name'          => 'eventin_ai',
@@ -660,7 +707,8 @@ class Extension {
                     'eventin_ai' => etn_get_option('eventin_ai') ? etn_get_option('eventin_ai') : 'off',
                     'eventin_ai_auth_key' => !empty(etn_get_option('eventin_ai_auth_key')) ? etn_get_option('eventin_ai_auth_key') : '',
                     'etn_ai_api' => etn_get_option('etn_ai_api') ? etn_get_option('etn_ai_api') : 'off',
-                ]
+                ],
+                'badge_tags'    => ['Pro'],
             ],
         ];
 
@@ -678,6 +726,7 @@ class Extension {
             'settings_link' => '',
             'doc_link'      => 'https://support.themewinter.com/docs/plugins/plugin-docs/payment-type/how-to-configure-surecart-in-eventin',
             'notice'        => __('NB: Need to activate Surecart plugin', 'eventin'),
+            'badge_tags'    => ['Free', 'New'],
         ];
         $extensions['eventin-addon-for-fluentcart'] = [
             'name'          => 'eventin-addon-for-fluentcart',
@@ -693,6 +742,21 @@ class Extension {
             'settings_link' => '',
             'doc_link'      => 'https://support.themewinter.com/docs/plugins/plugin-docs/integration/how-to-integrate-fluentcart-with-eventin/',
             'notice'        => __('NB: Need to activate FluentCart plugin', 'eventin'),
+            'badge_tags'    => ['Free', 'New'],
+        ];
+        $extensions['aisentic'] = [
+            'name'          => 'aisentic',
+            'slug'          => 'aisentic',
+            'type'          => 'addon',
+            'status'        => 'on',
+            'is_pro'        => false,
+            'deps'          => ['aisentic'],
+            'title'         => __('Aisentic Addon for Eventin', 'eventin'),
+            'description'   => __('AI-powered assistant for Eventin to help manage events more efficiently.', 'eventin'),
+            'icon'          => ExtensionIcon::get('aisentic'),
+            'demo_link'     => 'https://product.themewinter.com/eventin/',
+            'settings_link' => '',
+            'doc_link'      => 'https://support.themewinter.com/docs/plugins/plugin-docs/gettings-started-aisentic/how-to-manage-eventin-events-using-aisentics-ai-chatbot/',
         ];
 
         return $extensions;

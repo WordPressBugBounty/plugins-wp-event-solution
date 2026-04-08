@@ -4,6 +4,7 @@ namespace Eventin\Blocks;
 
 defined( 'ABSPATH' ) || exit;
 
+use Eventin\Blocks\BlockTypes\AttendeeExtraFields;
 use Eventin\Blocks\BlockTypes\AttendeeInfo;
 use Eventin\Blocks\BlockTypes\BuyTicket;
 use Eventin\Blocks\BlockTypes\Container;
@@ -95,6 +96,7 @@ class BlockService implements HookableInterface
             TemplateHeading::class,
             DiamondSeparator::class,
             AttendeeInfo::class,
+            AttendeeExtraFields::class,
             EventInfo::class,
             TicketInfo::class,
             Container::class,

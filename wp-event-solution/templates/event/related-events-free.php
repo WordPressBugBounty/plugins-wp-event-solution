@@ -57,7 +57,7 @@ if ( is_array( $data ) && ! empty( $data ) ) {
 									<?php echo get_the_post_thumbnail( $value->ID, 'medium' ); ?>
                                 </a>
                                 <div class="etn-event-category">
-									<?php echo Helper::kses( $category ); ?>
+									<?php echo Helper::kses( $category ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Helper::kses() wraps wp_kses() with an allowed tags list. ?>
                                 </div>
                             </div>
 							<?php

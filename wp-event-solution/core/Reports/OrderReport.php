@@ -80,7 +80,7 @@ class OrderReport extends AbstractReport {
             'post_type'  => 'etn-order',
             'start_date' => $start_date,
             'end_date'   => $end_date,
-            'meta_query' => [
+            'meta_query' => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
                 'Relation' => 'AND',
                 [
                     'key'       => 'status',
@@ -89,6 +89,14 @@ class OrderReport extends AbstractReport {
                 ],
             ]
         ];
+
+        if ( ! empty( $event_id ) ) {
+            $args['meta_query'][] = [
+                'key'       => 'event_id',
+                'value'     => $event_id,
+                'compare'   => '=',
+            ];
+        }
 
         if ( ! empty( $event_id ) ) {
             $args['meta_query'][] = [
@@ -128,7 +136,7 @@ class OrderReport extends AbstractReport {
             'post_type'  => 'etn-order',
             'start_date' => $start_date,
             'end_date'   => $end_date,
-            'meta_query' => [
+            'meta_query' => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
                 'Relation' => 'AND',
                 [
                     'key'       => 'status',
@@ -169,7 +177,7 @@ class OrderReport extends AbstractReport {
             'post_type'  => 'etn-order',
             'start_date' => $start_date,
             'end_date'   => $end_date,
-            'meta_query' => [
+            'meta_query' => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
                 'Relation' => 'AND',
                 [
                     'key'       => 'status',
@@ -211,7 +219,7 @@ class OrderReport extends AbstractReport {
             'post_type'  => 'etn-order',
             'start_date' => $start_date,
             'end_date'   => $end_date,
-            'meta_query' => [
+            'meta_query' => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
                 [
                     'key'       => 'status',
                     'value'     => 'completed',
@@ -243,7 +251,7 @@ class OrderReport extends AbstractReport {
             'post_type'  => 'etn-order',
             'start_date' => $start_date,
             'end_date'   => $end_date,
-            'meta_query' => [
+            'meta_query' => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
                 [
                     'key'       => 'status',
                     'value'     => 'failed',
@@ -261,9 +269,9 @@ class OrderReport extends AbstractReport {
     /**
      * Get refunded orders by event
      *
-     * @param   array  $data  Date range and event id
+     * @param array $data
      *
-     * @return  array Order Ids
+     * @return array|\WP_Post[]
      */
     public static function get_refunded_orders_by_event( $data = [] ) {
         $input      = new Input( $data );
@@ -275,7 +283,7 @@ class OrderReport extends AbstractReport {
             'post_type'  => 'etn-order',
             'start_date' => $start_date,
             'end_date'   => $end_date,
-            'meta_query' => [
+            'meta_query' => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
                 [
                     'key'       => 'status',
                     'value'     => 'refunded',

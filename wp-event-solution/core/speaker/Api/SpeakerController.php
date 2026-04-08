@@ -206,7 +206,7 @@ class SpeakerController extends WP_REST_Controller {
             'role__in' => [ 'etn-speaker', 'etn-organizer' ],
             'number'        => $per_page,
             'offset'        => $offset,
-            'exclude'       => $exclude_ids,
+            'exclude'       => $exclude_ids, // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_exclude
         ];
         
         if ( ! empty( $user_ids ) ) {
@@ -214,7 +214,7 @@ class SpeakerController extends WP_REST_Controller {
         }
 
         if ( ! current_user_can( 'manage_options' ) ) {
-            $args['meta_query'] = [
+            $args['meta_query'] = [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
                 [
                     'key'   => 'author',
                     'value' => get_current_user_id(),
@@ -403,12 +403,12 @@ class SpeakerController extends WP_REST_Controller {
                 $user_id = $user->ID;
             }
 
-            $response = [
-                'id' => $user_id,
-                'message' => __( 'The email you provided is exist and assign speaker or organizer role', 'eventin' )
-            ];
+            $item = User_Model::instance()->get_data( $user_id );
 
-            return rest_ensure_response( $response );
+            $response = rest_ensure_response( $item );
+            $response->set_status( 201 );
+
+            return $response;
         }
 
         $speaker = new User_Model();
@@ -621,7 +621,8 @@ class SpeakerController extends WP_REST_Controller {
             );
         }
 
-        $message = sprintf( __( '%d speakers are deleted of %d', 'eventin' ), $count, count( $ids ) );
+        // translators: %1$d is the number of speakers deleted, %2$d is the total number of speakers selected.
+        $message = sprintf( __( '%1$d speakers are deleted of %2$d', 'eventin' ), $count, count( $ids ) );
 
         return rest_ensure_response( $message );
     }
@@ -693,7 +694,7 @@ class SpeakerController extends WP_REST_Controller {
         
             
         //non mandatory field
-        $prepared_data['date']                      =  $input_data['date'] ? $input_data['date'] : date("Y-m-d H:i:s");
+        $prepared_data['date']                      =  $input_data['date'] ? $input_data['date'] : gmdate("Y-m-d H:i:s");
         $prepared_data['etn_speaker_designation']   = ! empty( $input_data['designation'] ) ? sanitize_text_field( $input_data['designation'] ) : '';
         $prepared_data['etn_company_name']          = ! empty( $input_data['company_name'] ) ? sanitize_text_field( $input_data['company_name'] ) : '';
         $prepared_data['etn_speaker_url']           = ! empty( $input_data['company_url'] ) ? sanitize_url( $input_data['company_url'] ) : '';
@@ -714,8 +715,8 @@ class SpeakerController extends WP_REST_Controller {
     public static function get_etn_user_role( $category = null ) {
         $user_ids = [];
         
-        $users = get_users( array(
-            'meta_key' => 'etn_speaker_category',
+        $users = get_users( array( // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_exclude
+            'meta_key' => 'etn_speaker_category', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
             'meta_compare' => 'EXISTS'
         ));
 
@@ -761,7 +762,7 @@ class SpeakerController extends WP_REST_Controller {
     
         // Step 1: Get all users with either 'etn_speaker_group' or 'etn_speaker_speaker_group' meta key.
         $user_query = new WP_User_Query([
-            'meta_query' => [
+            'meta_query' => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
                 'relation' => 'OR',
                 [
                     'key'     => 'etn_speaker_group',
@@ -955,6 +956,20 @@ class SpeakerController extends WP_REST_Controller {
         }
 
         foreach ( $data as $key => $value ) {
+            if ( 'etn_speaker_category' === $key ) {
+                // Derive existing categories from saved meta and from current WP roles.
+                $existing = get_user_meta( $user->ID, 'etn_speaker_category', true );
+                $existing = is_array( $existing ) ? $existing : [];
+
+                $role_to_category = [ 'etn-organizer' => 'organizer', 'etn-speaker' => 'speaker' ];
+                foreach ( $user->roles as $role ) {
+                    if ( isset( $role_to_category[ $role ] ) ) {
+                        $existing[] = $role_to_category[ $role ];
+                    }
+                }
+
+                $value = array_values( array_unique( array_merge( $existing, (array) $value ) ) );
+            }
             update_user_meta( $user->ID, $key, $value );
         }
 

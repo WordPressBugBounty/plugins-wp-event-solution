@@ -45,6 +45,7 @@ $data = [
     'currency_position'           => etn_get_currency_position(),
     'elementor_supported'         => class_exists( '\Elementor\Plugin' ) && in_array( 'etn-template', $elementor_post_types ),
     'selected_template_builder'   => etn_get_selected_template_builder(),
+    'is_custom_template'          => (bool) get_post_meta( get_the_ID(), 'is_custom', true ),
     'is_dokan_enabled'            => ( \Etn\Core\Addons\Helper::instance()->check_active_module( 'dokan' ) ) ? true : false,
     'seat_map'                    => ( \Etn\Core\Addons\Helper::instance()->check_active_module( 'seat_map' ) ) ? true : false,
     'rsvp'                        => ( \Etn\Core\Addons\Helper::instance()->check_active_module( 'rsvp' ) ) ? true : false,

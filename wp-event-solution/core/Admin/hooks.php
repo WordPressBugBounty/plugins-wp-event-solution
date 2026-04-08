@@ -69,16 +69,6 @@ class Hooks {
 
         new \Etn\Core\Event\Api();
 
-        add_action( 'rest_api_init', function () {
-            register_rest_route( 'eventin/v1', '/nonce', [
-                'methods'             => \WP_REST_Server::READABLE,
-                'permission_callback' => '__return_true',
-                'callback'            => function () {
-                    nocache_headers();
-                    return rest_ensure_response( [ 'nonce' => wp_create_nonce( 'wp_rest' ) ] );
-                },
-            ] );
-        } );
 
         // Todo: Temporary added this function for version compatibility. Need to remove this after 4.0.21
         add_action( 'admin_notices', [ $this, 'eventin_pro_admin_notice' ] );
@@ -283,7 +273,7 @@ class Hooks {
             'post_status'   => 'any',
             'fields'        => 'ids',
             
-            'tax_query' => array(
+            'tax_query' => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
                 'relation' => 'AND',
                 [
                     'taxonomy' => 'etn_speaker_category',
@@ -310,7 +300,7 @@ class Hooks {
             'post_status'   => 'any',
             'fields'        => 'ids',
             
-            'tax_query' => array(
+            'tax_query' => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
                 'relation' => 'AND',
                 [
                     'taxonomy' => 'etn_speaker_category',
@@ -360,7 +350,7 @@ class Hooks {
         $term_id    = is_array( $term ) ? $term['term_id'] : '';
         $args       = array(
             'role__in' => array('etn-speaker', 'etn-organizer'),
-            'meta_key' => 'etn_speaker_group',
+            'meta_key' => 'etn_speaker_group', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
             'meta_compare' => 'NOT EXISTS'
         );
     
@@ -475,21 +465,21 @@ class Hooks {
      * @return  string
      */
     public function proxy_image() {
-        $action = isset( $_GET['action'] ) ? $_GET['action'] : '';
-	    
+        $action = isset( $_GET['action'] ) ? sanitize_text_field( wp_unslash( $_GET['action'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Proxy image endpoint; action param is a hardcoded string comparison, not persisted.
+
         if ( $action !== 'proxy_image' ) {
             return;
         }
 
         ob_start();
 
-        if ( $_SERVER['REQUEST_METHOD'] === 'OPTIONS' ) {
+        if ( isset( $_SERVER['REQUEST_METHOD'] ) && $_SERVER['REQUEST_METHOD'] === 'OPTIONS' ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- REQUEST_METHOD is a trusted server variable, only compared against a literal string.
             http_response_code(200);
             ob_end_flush();
             exit;
         }
 	    
-        $imageUrl = isset( $_GET['url'] ) ? $_GET['url'] : null;
+        $imageUrl = isset( $_GET['url'] ) ? esc_url_raw( wp_unslash( $_GET['url'] ) ) : null; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Proxy endpoint; URL is immediately validated by is_valid_image_url() below.
 	    
         // Validate and sanitize the URL
         if ( ! $this->is_valid_image_url( $imageUrl ) ) {
@@ -537,12 +527,12 @@ class Hooks {
                 header("Content-Type: $mimeType");
 
                 
-                $tempStream = fopen('php://temp', 'r+');
-                fwrite( $tempStream, $imageContent );
+                $tempStream = fopen('php://temp', 'r+'); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen -- php://temp stream, WP_Filesystem cannot handle in-memory streams.
+                fwrite( $tempStream, $imageContent ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fwrite
                 rewind( $tempStream );
 
                 fpassthru( $tempStream );
-                fclose( $tempStream );
+                fclose( $tempStream ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose
             } else {
                 http_response_code(404);
             }
@@ -600,8 +590,8 @@ class Hooks {
      * @return  void
      */
     public function render_template_preview() {
-        $action      = ! empty( $_GET['action'] ) ? $_GET['action'] : '';
-        $template_id = ! empty( $_GET['template_id'] ) ? intval( $_GET['template_id'] ) : 0;
+        $action      = ! empty( $_GET['action'] ) ? sanitize_text_field( wp_unslash( $_GET['action'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Template preview action; value is compared to a literal string only.
+        $template_id = ! empty( $_GET['template_id'] ) ? absint( $_GET['template_id'] ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Template preview; ID is cast to integer before use.
 
         if ( 'etn-preview-template' !== $action ) {
             return;
@@ -623,13 +613,13 @@ class Hooks {
      * @return void
      */
     public function render_ics_download() {
-        $action = ! empty( $_GET['etn_action'] ) ? sanitize_text_field( wp_unslash( $_GET['etn_action'] ) ) : '';
+        $action = ! empty( $_GET['etn_action'] ) ? sanitize_text_field( wp_unslash( $_GET['etn_action'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 
         if ( 'download_ics' !== $action ) {
             return;
         }
 
-        $event_id = ! empty( $_GET['event_id'] ) ? absint( $_GET['event_id'] ) : 0;
+        $event_id = ! empty( $_GET['event_id'] ) ? absint( $_GET['event_id'] ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
         $event    = $event_id ? get_post( $event_id ) : null;
 
         // Security: only serve published Eventin event posts.
@@ -850,7 +840,7 @@ class Hooks {
         }
 
         // Parse URL to get components
-        $parsedUrl = parse_url( $cleanUrl );
+        $parsedUrl = wp_parse_url( $cleanUrl );
         if ( ! $parsedUrl || ! isset( $parsedUrl['scheme'] ) || ! isset( $parsedUrl['host'] ) ) {
             return false;
         }

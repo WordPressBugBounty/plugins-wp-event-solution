@@ -84,7 +84,7 @@ use Eventin\Template\TemplateModel;
                             <p><?php esc_html_e( 'The template is not published', 'eventin' ); ?></p>
                             <?php
                         } else {
-                            echo $template_html;
+                            echo $template_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Trusted rendered block/Elementor HTML content.
                         }
                     ?>
                 </div>

@@ -777,7 +777,7 @@ class Etn_Speakers extends Widget_Base {
             add_filter('query_vars', [$this, 'register_query_vars']);
             
             // Get the page number from URL parameter
-            $speaker_paged = isset($_GET['speaker_paged']) ? absint($_GET['speaker_paged']) : 1;
+            $speaker_paged = isset($_GET['speaker_paged']) ? absint($_GET['speaker_paged']) : 1; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- public speaker pagination param; value cast to integer via absint().
             $speaker_paged = max(1, $speaker_paged);
             
             // Set the query var for WordPress

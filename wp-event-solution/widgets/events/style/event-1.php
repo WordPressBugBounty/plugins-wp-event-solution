@@ -53,7 +53,7 @@ null, null, $event_tag, $orderby_meta, $orderby, $filter_with_status, $post_pare
                 <?php endif; ?>
 
                 <div class="etn-event-category">
-                    <?php echo  Helper::kses($category); ?>
+                    <?php echo  Helper::kses($category); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Helper::kses() wraps wp_kses() with an allowed tags list. ?>
                 </div>
                 <?php Helper::event_recurring_status($value); ?>
             </div>
@@ -140,7 +140,7 @@ if ($enable_pagination === 'yes' && !empty($data)) {
     $pagination_param = isset($pagination_param) ? $pagination_param : 'etn_paged';
 
     // Get current page from URL parameter
-    $current_page = isset($_GET[$pagination_param]) ? absint($_GET[$pagination_param]) : 1;
+    $current_page = isset($_GET[$pagination_param]) ? absint($_GET[$pagination_param]) : 1; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- public event pagination; value cast to integer via absint().
     $current_page = max(1, $current_page);
 
     // Get total posts for pagination using WP_Query
@@ -148,8 +148,8 @@ if ($enable_pagination === 'yes' && !empty($data)) {
         'post_type' => 'etn',
         'post_status' => 'publish',
         'posts_per_page' => -1, // Get all posts to count
-        'meta_query' => [],
-        'tax_query' => [],
+        'meta_query' => [], // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+        'tax_query' => [], // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
         'post_parent' => $post_parent
     ];
 

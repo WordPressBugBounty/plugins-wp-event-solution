@@ -187,6 +187,7 @@
                 $price_with_currency = \Etn\Core\Event\Helper::instance()->currency_with_position( number_format($final_total,2), $order );
                 $tax_with_currency = \Etn\Core\Event\Helper::instance()->currency_with_position( number_format($tax_total,2), $order );
 
+                // translators: %s is the tax amount with currency symbol.
                 $tax_note    = sprintf( __( '(includes %s Tax)', 'eventin' ), esc_html( $tax_with_currency ) );
 
             } else {

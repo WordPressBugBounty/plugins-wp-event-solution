@@ -89,47 +89,47 @@ class Menu implements HookableInterface {
                 'position'   => 2,
             ],
             [
+                'title'      => __( 'Bookings', 'eventin' ),
+                'capability' => 'etn_manage_order',
+                'url'        => 'admin.php?page=' . $this->menu_slug . '#/bookings',
+                'position'   => 3,
+            ],
+            [
                 'title'      => __( 'Speaker & Organizer', 'eventin' ),
                 'capability' => 'etn_manage_organizer',
                 'url'        => 'admin.php?page=' . $this->menu_slug . '#/speakers',
-                'position'   => 3,
+                'position'   => 5,
             ],
             [
                 'title'      => __( 'Schedules', 'eventin' ),
                 'capability' => 'etn_manage_schedule',
                 'url'        => 'admin.php?page=' . $this->menu_slug . '#/schedules',
-                'position'   => 4,
-            ],
-            [
-                'title'      => __( 'Bookings', 'eventin' ),
-                'capability' => 'etn_manage_order',
-                'url'        => 'admin.php?page=' . $this->menu_slug . '#/bookings',
-                'position'   => 5,
-            ],
-            [
-                'title'      => __( 'Settings', 'eventin' ),
-                'capability' => 'etn_manage_setting',
-                'url'        => 'admin.php?page=' . $this->menu_slug . '#/settings',
-                'position'   => 7,
+                'position'   => 6,
             ],
             [
                 'title'      => __( 'Template Builder', 'eventin' ),
                 'capability' => 'etn_manage_template',
                 'url'        => 'admin.php?page=' . $this->menu_slug . '#/template-builder',
-                'position'   => 8,
+                'position'   => 7,
 			],
             [
-				'title'      => __( 'Shortcodes', 'eventin' ),
-				'capability' => 'etn_manage_shortcode',
-				'url'        => 'admin.php?page=' . $this->menu_slug . '#/shortcodes',
+                'title'      => __( 'Settings', 'eventin' ),
+                'capability' => 'etn_manage_setting',
+                'url'        => 'admin.php?page=' . $this->menu_slug . '#/settings',
                 'position'   => 9,
-			],
+            ],
             [
                 'title'      => __( 'Extensions', 'eventin' ),
                 'capability' => 'etn_manage_addons',
                 'url'        => 'admin.php?page=' . $this->menu_slug . '#/extensions',
                 'position'   => 10,
             ],
+            [
+				'title'      => __( 'Shortcodes', 'eventin' ),
+				'capability' => 'etn_manage_shortcode',
+				'url'        => 'admin.php?page=' . $this->menu_slug . '#/shortcodes',
+                'position'   => 11,
+			],
             [
                 'title'      => __( 'About Us', 'eventin' ),
                 'capability' => 'etn_manage_get_help',
@@ -145,7 +145,7 @@ class Menu implements HookableInterface {
 				'title'      => __( 'Attendees', 'eventin' ),
 				'capability' => 'etn_manage_attendee',
 				'url'        => 'admin.php?page=' . $this->menu_slug . '#/attendees',
-                'position'   => 6,
+                'position'   => 4,
             ];
         }
 
@@ -222,7 +222,7 @@ class Menu implements HookableInterface {
     public function render_menu_page() {
         ?>
             <div class="wrap">
-                <div id="eventin-dashboard" style="background-color: #fff; min-height: 100vh;"></div>
+                <div id="eventin-dashboard"></div>
             </div>
         <?php
     }
@@ -249,7 +249,7 @@ class Menu implements HookableInterface {
             'etn-speaker'
         ];
 
-        $post_type = isset( $_GET['post_type'] ) ? sanitize_text_field( $_GET['post_type'] ) : '';
+        $post_type = isset( $_GET['post_type'] ) ? sanitize_text_field( wp_unslash( $_GET['post_type'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- admin menu active-state helper; post_type used only for in_array() comparison.
 
         if ( $pagenow == 'post-new.php' && in_array( $post_type, $post_types ) ) {
             $parent_file  = 'eventin'; // Parent menu slug

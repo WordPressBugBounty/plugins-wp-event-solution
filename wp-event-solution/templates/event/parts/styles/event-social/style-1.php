@@ -4,7 +4,8 @@
             <h2 class="etn-social-title">
                 <?php echo esc_html__('Share:', 'eventin'); ?>
             </h2>
-            <?php if (is_array($event_socials) && ! empty($event_socials)): ?>
+
+             <?php if (is_array($event_socials)): ?>
                 <?php foreach ($event_socials as $social): ?>
                     <?php
                         $icon             = ! empty($social['icon']) ? $social['icon'] : '';
@@ -20,7 +21,7 @@
                         aria-label="<?php echo esc_attr($title); ?>"
                         class="etn-social-link"
                     >
-                        <i class="etn-icon                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 <?php echo esc_attr($icon); ?>"></i>
+                        <i class="etn-icon <?php echo esc_attr($icon); ?>"></i>
                     </a>
                 <?php endforeach; ?>
             <?php endif; ?>

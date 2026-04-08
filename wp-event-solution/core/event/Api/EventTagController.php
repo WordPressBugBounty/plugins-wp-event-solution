@@ -333,7 +333,8 @@ class EventTagController extends WP_REST_Controller {
             );
         }
 
-        $message = sprintf( __( '%d tags are deleted of %d', 'eventin' ), $count, count( $ids ) );
+        // translators: %1$d is the number of tags deleted, %2$d is the total number of tags selected.
+        $message = sprintf( __( '%1$d tags are deleted of %2$d', 'eventin' ), $count, count( $ids ) );
 
         return rest_ensure_response( $message );
     }

@@ -48,7 +48,7 @@ class CSVReader implements ReaderInterface {
         $file     = $this->file;
         $csv_data = [];
 
-        $handle  = fopen( $file, 'r' );
+        $handle  = fopen( $file, 'r' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen -- binary CSV file read, WP_Filesystem::get_contents() does not support line-by-line streaming.
         $headers = fgetcsv( $handle );
 
         if ( ! $headers ) {
@@ -70,7 +70,7 @@ class CSVReader implements ReaderInterface {
             }
         }
 
-        fclose( $handle );
+        fclose( $handle ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose
 
         return $csv_data;
     }

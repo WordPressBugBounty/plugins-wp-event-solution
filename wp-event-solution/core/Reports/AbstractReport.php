@@ -49,7 +49,7 @@ abstract class AbstractReport {
         }
 
         if ( $meta_query ) {
-            $args['meta_query'] = $meta_query;
+            $args['meta_query'] = $meta_query; // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
         }
 
         $posts = get_posts( $args );
@@ -87,7 +87,7 @@ abstract class AbstractReport {
         }
 
         if ( ! current_user_can( 'manage_options' ) ) {
-            $args['meta_query'] = [
+            $args['meta_query'] = [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
                 [
                     'key'   => 'author',
                     'value' => get_current_user_id(),

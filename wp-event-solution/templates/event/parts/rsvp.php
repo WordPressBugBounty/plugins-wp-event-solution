@@ -94,17 +94,17 @@
 											<div class="single-radio-option">
 												<input 
 													type="radio" 
-													id="<?php esc_attr_e( $key, 'eventin' )?>" 
+													id="<?php echo esc_attr( $key )?>" 
 													name="etn_rsvp_value" 
-													value="<?php esc_attr_e( $value, 'eventin' ); ?>"
+													value="<?php echo esc_attr( $value ); ?>"
 													<?php if($checked) {
 														?>
 														checked="checked"
 														<?php
 													} ?>
 												>
-												<label for="<?php esc_attr_e( $key, 'eventin' ); ?>">
-													<?php echo esc_html__($value, 'eventin'); ?>
+												<label for="<?php echo esc_attr( $key ); ?>">
+													<?php echo esc_html( $value ); ?>
 												</label>
 											</div>
 										<?php

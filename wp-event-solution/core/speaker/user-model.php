@@ -871,7 +871,7 @@ class User_Model {
         $args  = wp_parse_args( $args, $defaults );
 
         if ( ! current_user_can( 'manage_options' ) ) {
-            $args['meta_query'] = [
+            $args['meta_query'] = [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
                 [
                     'key'     => 'author',
                     'value'   => get_current_user_id(),
@@ -888,10 +888,18 @@ class User_Model {
     /**
      * Get organizer bio
      *
+     * Falls back to legacy `etn_speaker_summery` meta key for backward compatibility.
+     *
      * @return  string
      */
     public function get_organizer_bio() {
-        return get_user_meta( $this->id, 'organizer_bio', true ) ?: '';
+        $bio = get_user_meta( $this->id, 'organizer_bio', true );
+
+        if ( empty( $bio ) ) {
+            $bio = get_user_meta( $this->id, 'etn_speaker_summery', true );
+        }
+
+        return $bio ?: '';
     }
 
     /**

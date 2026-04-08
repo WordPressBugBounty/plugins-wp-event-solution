@@ -40,8 +40,8 @@ class Metaboxes {
 		$seat_plan_link = "#";
 		if ( class_exists('TimeticsPro') &&
 		 	get_post_type() == 'etn' &&
-		 	isset($_GET['action'])  &&
-			$_GET['action'] === 'edit' ) {
+		 	isset($_GET['action'])  && // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- admin metabox; action compared to literal string 'edit' only; no data stored.
+			$_GET['action'] === 'edit' ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- action compared to a literal string only.
 				$seat_plan_link = admin_url() ."?page=timetics#/seats/".get_the_ID()."/create?eventin=true";
 		}
 

@@ -36,7 +36,7 @@ $date_texts = [
 
 ?>
 
-<div class="count_down_block <?php echo esc_attr( $container_class ); ?>">
+<div class="etn_count_down_block <?php echo esc_attr( $container_class ); ?>">
     <div class="eventin-block-container">
         <?php if ( time() > $start_date_time && time() < $end_date_time ) :?>
         <p class="etn-countdown-expired"><?php esc_html_e( 'This event is going on', 'eventin' ); ?></p>

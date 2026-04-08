@@ -75,7 +75,7 @@ use Etn\Utils\Helper;
 
                                         <div class="etn-<?php echo esc_attr( $class_name_from_label ); ?>-field etn-group-field">
                                             <label for="etn_attendee_extra_field_<?php echo esc_attr( $index ); ?>">
-						                        <?php echo esc_html( $label_content ); echo Helper::kses( $required_span ); ?>
+						                        <?php echo esc_html( $label_content ); echo Helper::kses( $required_span ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Helper::kses() wraps wp_kses() with an allowed tags list. ?>
                                             </label>
 					                        <?php
 						                        if( $default_extra_field['field_type'] == 'radio' ){
@@ -123,7 +123,7 @@ use Etn\Utils\Helper;
                                                                                data-etn_required="<?php echo esc_attr( $etn_field_type );?>"
 													                        <?php echo esc_attr( $etn_field_type ); ?>
                                                                         />
-                                                                        <label for="<?php esc_attr_e( $id, 'eventin' );?>"><?php echo esc_html( html_entity_decode( $checkbox_val ) );?></label>
+                                                                        <label for="<?php echo esc_attr( $id );?>"><?php echo esc_html( html_entity_decode( $checkbox_val ) );?></label>
                                                                     </div>
 											                        <?php
 										                        }
@@ -182,7 +182,7 @@ use Etn\Utils\Helper;
 
                                         <div class="etn-<?php echo esc_attr( $class_name_from_label ); ?>-field etn-group-field">
                                             <label for="etn_attendee_extra_field_<?php echo esc_attr( $index ); ?>">
-                                                <?php echo esc_html( $label_content ); echo Helper::kses( $required_span ); ?>
+                                                <?php echo esc_html( $label_content ); echo Helper::kses( $required_span ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Helper::kses() wraps wp_kses() with an allowed tags list. ?>
                                             </label>
                                             <?php
                                                 if( $attendee_extra_field['field_type'] == 'radio' ){
@@ -230,7 +230,7 @@ use Etn\Utils\Helper;
                                                                                 data-etn_required="<?php echo esc_attr( $etn_field_type );?>"
                                                                                 <?php echo esc_attr( $etn_field_type ); ?>
                                                                             />
-                                                                            <label for="<?php esc_attr_e( $id, 'eventin' );?>"><?php echo esc_html( html_entity_decode( $checkbox_val ) );?></label>
+                                                                            <label for="<?php echo esc_attr( $id );?>"><?php echo esc_html( html_entity_decode( $checkbox_val ) );?></label>
                                                                         </div>
                                                                     <?php
                                                                 }

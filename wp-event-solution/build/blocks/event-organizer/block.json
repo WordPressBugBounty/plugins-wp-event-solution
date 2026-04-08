@@ -43,6 +43,14 @@
             "boxShadow": "none"
           },
           ".eventin-block-container:hover": {},
+          ".etn-event-organizers": {
+            "padding": "0px 0px 0px 0px",
+            "borderWidth": "0px 0px 0px 0px",
+            "borderColor": "transparent",
+            "borderStyle": "solid",
+            "borderRadius": "0px 0px 0px 0px",
+            "backgroundColor": "transparent"
+          },
           ".etn-organaizer-item .etn-organizer-name": {
             "fontSize": "16px",
             "fontWeight": "700",

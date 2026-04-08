@@ -123,8 +123,8 @@ class TransactionController extends WP_REST_Controller {
         $offset = ( $paged - 1 ) * $per_page;
 
         // Query to retrieve data from the custom table
-        $results = $wpdb->get_results(
-            $wpdb->prepare( "SELECT * FROM {$table_name} LIMIT %d OFFSET %d", $per_page, $offset ),
+        $results = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+            $wpdb->prepare( "SELECT * FROM {$table_name} LIMIT %d OFFSET %d", $per_page, $offset ), // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
             OBJECT
         );
 
@@ -148,10 +148,10 @@ class TransactionController extends WP_REST_Controller {
         global $wpdb;
 
         $table_name = $wpdb->prefix . 'etn_events';
-        $query      = $wpdb->prepare( "SELECT * FROM $table_name WHERE id = %d", $id );
+        $query      = $wpdb->prepare( "SELECT * FROM $table_name WHERE id = %d", $id ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $table_name is $wpdb->prefix . 'etn_events', not user input.
 
         // Get the result of the query
-        $item = $wpdb->get_row( $query, OBJECT );
+        $item = $wpdb->get_row( $query, OBJECT ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared -- $query was prepared by $wpdb->prepare() on the previous line.
 
         $item = $this->prepare_item_for_response( $item, $request );
 
@@ -179,7 +179,7 @@ class TransactionController extends WP_REST_Controller {
             return $prepared_event;
         }
 
-        $insert_result = $wpdb->insert( $table_name, $prepared_event );
+        $insert_result = $wpdb->insert( $table_name, $prepared_event ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- $wpdb->insert() with array API; REST API create endpoint.
 
         if ( $insert_result ) {
             return $this->get_item( ['id' => $wpdb->insert_id] );
@@ -228,7 +228,7 @@ class TransactionController extends WP_REST_Controller {
             return $prepared_event;
         }
 
-        $insert_result = $wpdb->update( $table_name, $prepared_event, ['id' => $id] );
+        $insert_result = $wpdb->update( $table_name, $prepared_event, ['id' => $id] ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- $wpdb->update() with array API; REST API update endpoint.
 
         if ( $insert_result ) {
             return $this->get_item( ['id' => $wpdb->insert_id] );

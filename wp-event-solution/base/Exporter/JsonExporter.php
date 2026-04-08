@@ -68,7 +68,7 @@ class JsonExporter implements ExporterInterface {
         $data = $this->data;
 
         $output = json_encode( $data, JSON_PRETTY_PRINT );
-        echo $output;
+        echo $output; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Raw JSON output sent with application/json headers; HTML escaping would corrupt the JSON.
         die();
     }
 }

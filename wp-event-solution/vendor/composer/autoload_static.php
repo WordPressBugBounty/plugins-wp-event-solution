@@ -140,6 +140,7 @@ class ComposerStaticInit51060d1ef7b9244f23975c06b5e403b1
         'Eventin\\Blocks\\BlockService' => __DIR__ . '/../..' . '/core/Blocks/BlockService.php',
         'Eventin\\Blocks\\BlockTypesController' => __DIR__ . '/../..' . '/core/Blocks/BlockTypesController.php',
         'Eventin\\Blocks\\BlockTypes\\AbstractBlock' => __DIR__ . '/../..' . '/core/Blocks/BlockTypes/AbstractBlock.php',
+        'Eventin\\Blocks\\BlockTypes\\AttendeeExtraFields' => __DIR__ . '/../..' . '/core/Blocks/BlockTypes/AttendeeExtraFields.php',
         'Eventin\\Blocks\\BlockTypes\\AttendeeInfo' => __DIR__ . '/../..' . '/core/Blocks/BlockTypes/AttendeeInfo.php',
         'Eventin\\Blocks\\BlockTypes\\BuyTicket' => __DIR__ . '/../..' . '/core/Blocks/BlockTypes/BuyTicket.php',
         'Eventin\\Blocks\\BlockTypes\\Container' => __DIR__ . '/../..' . '/core/Blocks/BlockTypes/Container.php',

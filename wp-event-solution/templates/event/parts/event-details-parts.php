@@ -45,7 +45,7 @@ class EventDetailsParts {
 						$output[]  = '<a href="' . $term_link . '">' . $term->name . '</a>';
 					}
 				}
-				echo Helper::kses( join( ' ', $output ) );
+				echo Helper::kses( join( ' ', $output ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Helper::kses() wraps wp_kses() with an allowed tags list.
 			}
 			?>
         </div>
@@ -167,7 +167,7 @@ class EventDetailsParts {
 									$output[]  = '<a  href="' . $term_link . '">' . $term->name . '</a>';
 								}
 							}
-							echo "<span>" . Helper::kses( join( ' ', $output ) ) . "</span>";
+							echo "<span>" . Helper::kses( join( ' ', $output ) ) . "</span>"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Helper::kses() wraps wp_kses(); span wrapper is hardcoded.
 						?>
 					</div>
 				<?php endif ;?>
@@ -224,8 +224,8 @@ class EventDetailsParts {
 
 		$end_date_time = $event->etn_end_date . ' ' . $event->etn_end_time;
 
-		$start_time	  = date( $time_format, strtotime( $start_date_time ) );
-		$end_time	  = date( $time_format, strtotime( $end_date_time ) );
+		$start_time	  = gmdate( $time_format, strtotime( $start_date_time ) );
+		$end_time	  = gmdate( $time_format, strtotime( $end_date_time ) );
 
 		if ( ! empty( $data['event_start_date'] ) || ! empty( $data['event_start_time'] ) || ! empty( $data['etn_event_location'] )) :
 			?>
@@ -233,7 +233,7 @@ class EventDetailsParts {
                 <ul>
 					<?php
 					// event date
-					if ( ! isset( $event_options["etn_hide_date_from_details"] ) && ! empty( $data['event_start_date'] ) ) {
+					if ( empty( $event_options["etn_hide_date_from_details"] ) && ! empty( $data['event_start_date'] ) ) {
 					
 						?>
                         <li>
@@ -252,7 +252,7 @@ class EventDetailsParts {
 					?>
 					<?php
 					// event time
-					if ( ! isset( $event_options["etn_hide_time_from_details"] ) && ( ! empty( $data['event_start_time'] ) || ! empty( $data['event_end_time'] ) ) ) {
+					if ( empty( $event_options["etn_hide_time_from_details"] ) && ( ! empty( $data['event_start_time'] ) || ! empty( $data['event_end_time'] ) ) ) {
 						$separate = ! empty( $data['event_end_time'] ) ? ' - ' : '';
 						?>
                         <li>
@@ -276,7 +276,7 @@ class EventDetailsParts {
 					$location = \Etn\Core\Event\Helper::instance()->display_event_location( $single_event_id );
 					$location = etn_prepare_address( $location );
 					$event_location_type = $data['etn_event_location_type'];
-					if ( ! isset( $event_options["etn_hide_location_from_details"] ) && ! empty( $location) ) {
+					if ( empty( $event_options["etn_hide_location_from_details"] ) && ! empty( $location) ) {
 						?>
                         <li>
                             <span><?php echo esc_html__( 'Venue : ', "eventin" ) ?></span>
@@ -354,7 +354,7 @@ class EventDetailsParts {
 							<p class="etn-acccordion-contents <?php echo esc_attr( $acc_class ); ?>">
 								<?php
 								if ( has_blocks( $faq['etn_faq_content'] ) ) {
-									echo do_blocks( $faq['etn_faq_content'] );
+									echo do_blocks( $faq['etn_faq_content'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- do_blocks() is a trusted WP core function processing Gutenberg block content.
 								} else {
 									echo esc_html( $faq['etn_faq_content'] );
 								}

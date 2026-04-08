@@ -454,8 +454,8 @@ class Event_Model extends Post_Model {
             'post_type'      => $this->post_type,
             'post_status'    => 'any',
             'posts_per_page' => $limit,
-            'post__not_in'   => [ $this->id ], // Exclude the current event
-            'tax_query'      => [
+            'post__not_in'   => [ $this->id ], // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post__not_in
+            'tax_query'      => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
                 [
                     'taxonomy' => 'etn_tags',
                     'field'    => 'term_id',

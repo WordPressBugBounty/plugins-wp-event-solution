@@ -107,6 +107,7 @@ return array(
     'Eventin\\Blocks\\BlockService' => $baseDir . '/core/Blocks/BlockService.php',
     'Eventin\\Blocks\\BlockTypesController' => $baseDir . '/core/Blocks/BlockTypesController.php',
     'Eventin\\Blocks\\BlockTypes\\AbstractBlock' => $baseDir . '/core/Blocks/BlockTypes/AbstractBlock.php',
+    'Eventin\\Blocks\\BlockTypes\\AttendeeExtraFields' => $baseDir . '/core/Blocks/BlockTypes/AttendeeExtraFields.php',
     'Eventin\\Blocks\\BlockTypes\\AttendeeInfo' => $baseDir . '/core/Blocks/BlockTypes/AttendeeInfo.php',
     'Eventin\\Blocks\\BlockTypes\\BuyTicket' => $baseDir . '/core/Blocks/BlockTypes/BuyTicket.php',
     'Eventin\\Blocks\\BlockTypes\\Container' => $baseDir . '/core/Blocks/BlockTypes/Container.php',

@@ -5,7 +5,7 @@ use \Etn\Utils\Helper;
 defined( 'ABSPATH' ) || exit;
 
 $etn_event_schedule     = get_post_meta( $single_event_id, 'etn_event_schedule', true);
-date_default_timezone_set('UTC');
+date_default_timezone_set('UTC'); // phpcs:ignore WordPress.DateTime.RestrictedFunctions.timezone_change_date_default_timezone_set -- intentional UTC context for schedule sorting.
 
 if ( is_array($etn_event_schedule) && !empty($etn_event_schedule) ) {
     $args = array(
@@ -75,6 +75,11 @@ if ( is_array($etn_event_schedule) && !empty($etn_event_schedule) ) {
             <?php
                         $etn_tab_time_format = ( isset( $event_options["time_format"] ) && $event_options["time_format"] == '24' ) ? "H:i" : get_option( 'time_format' );
                         if( is_array( $schedule_topics ) && !empty($schedule_topics) ){
+                            usort( $schedule_topics, function( $a, $b ) {
+                                $a_time = ! empty( $a['etn_shedule_start_time'] ) ? strtotime( $a['etn_shedule_start_time'] ) : 0;
+                                $b_time = ! empty( $b['etn_shedule_start_time'] ) ? strtotime( $b['etn_shedule_start_time'] ) : 0;
+                                return $a_time <=> $b_time;
+                            } );
                             foreach ($schedule_topics as $topic) :
                                 // Skip topic if is_active is set and equals 0
                                 if ( !isset($topic['is_active']) || $topic['is_active'] != 0 ) :
@@ -107,7 +112,7 @@ if ( is_array($etn_event_schedule) && !empty($etn_event_schedule) ) {
                 </div>
                 <div class='etn-schedule-content etn-col-sm-8'>
                     <h4 class='etn-title'><?php echo esc_html($etn_schedule_topic); ?></h4>
-                    <p><?php echo Helper::kses($etn_schedule_objective) ; ?></p>
+                    <p><?php echo Helper::kses($etn_schedule_objective) ; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Helper::kses() wraps wp_kses() with an allowed tags list. ?></p>
                     <?php 
                                             $etn_show_speaker_with_schedule = get_post_meta( $single_event_id, 'etn_select_speaker_schedule_type', true );
                                             $etn_show_speaker_with_schedule = !empty( $etn_show_speaker_with_schedule) ? $etn_show_speaker_with_schedule : 'schedule_with_speaker';

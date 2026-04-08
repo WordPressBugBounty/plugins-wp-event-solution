@@ -155,6 +155,12 @@ class ExtensionController extends WP_REST_Controller {
                 etn_update_option('fluentcart_status',false);
             }
         }
+        if ( $name == 'aisentic' ) {
+            etn_update_option('etn_aisentic_enabled',$status=='on'?true:false);
+            if($status=='off'){
+                etn_update_option('aisentic_status',false);
+            }
+        }
 
 
         $update = Extension::update( $name, $status );
@@ -177,11 +183,12 @@ class ExtensionController extends WP_REST_Controller {
 		
         
         if ( is_wp_error( $update ) ) {
-            return new WP_Error( 'update_error', strip_tags($update->get_error_message()), ['status' => 422] );
+            return new WP_Error( 'update_error', wp_strip_all_tags($update->get_error_message()), ['status' => 422] );
         }
 
         if ( ! $update ) {
-            return new WP_Error( 'update_error', __( 'Extension couldn\'t ' . $status, 'eventin' ), ['status' => 422] );
+            // translators: %s is the extension status action (e.g. activated, deactivated).
+            return new WP_Error( 'update_error', sprintf( __( "Extension couldn't %s", 'eventin' ), $status ), ['status' => 422] );
         }
 
         $response = [

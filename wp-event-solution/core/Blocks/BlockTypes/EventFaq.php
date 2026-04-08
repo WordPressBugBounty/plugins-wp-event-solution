@@ -64,7 +64,7 @@ class EventFaq extends AbstractBlock {
                         $frontend_css
                     );
                 }
-                echo '<style>' . $frontend_css . '</style>';
+                echo '<style>' . $frontend_css . '</style>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- CSS generated from block editor attributes; HTML escaping would break styles.
             }
         ?>
         <?php

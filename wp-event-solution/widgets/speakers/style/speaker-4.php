@@ -21,17 +21,17 @@ if ( !empty( $data ) ) {
                     </div>
                     <div class="etn-speaker-content">
                         <h3 class="etn-title etn-speaker-title">
-                            <a href="<?php echo Helper::get_author_page_url_by_id($value->data->ID); ?>">
+                            <a href="<?php echo esc_url( Helper::get_author_page_url_by_id($value->data->ID) ); ?>">
                                 <?php echo esc_html($value->data->display_name); ?>
                             </a>
                         </h3>
                         <?php if (!empty($settings['show_designation_style_4']) && $settings['show_designation_style_4'] === 'yes') : ?>
                         <p>
-                            <?php echo Helper::kses($etn_speaker_designation); ?>
+                            <?php echo Helper::kses($etn_speaker_designation); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Helper::kses() wraps wp_kses() with an allowed tags list. ?>
                         </p>
                         <?php endif; ?>
                         <p class="etn-email">
-                            <?php echo Helper::kses($email); ?>
+                            <?php echo Helper::kses($email); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Helper::kses() wraps wp_kses() with an allowed tags list. ?>
                         </p>
                     </div>
                 </div>

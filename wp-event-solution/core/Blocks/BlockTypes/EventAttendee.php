@@ -37,9 +37,15 @@ defined( 'ABSPATH' ) || exit;
          */
         protected function render($attributes, $content, $block)
         {
-            $container_class = ! empty($attributes['containerClassName']) ? $attributes['containerClassName'] : '';
-            $items_per_row   = ! empty($attributes['itemsPerRow']) ? intval($attributes['itemsPerRow']) : 3;
-            $styles          = ! empty($attributes['styles']) ? $attributes['styles'] : [];
+            $container_class  = ! empty($attributes['containerClassName']) ? $attributes['containerClassName'] : '';
+            $items_per_row    = ! empty($attributes['itemsPerRow']) ? intval($attributes['itemsPerRow']) : 3;
+            $styles           = ! empty($attributes['styles']) ? $attributes['styles'] : [];
+            $style_variant    = ! empty($attributes['styleVariant']) ? sanitize_key($attributes['styleVariant']) : 'style-1';
+            $allowed_variants = ['style-1', 'style-2'];
+
+            if (! in_array($style_variant, $allowed_variants, true)) {
+                $style_variant = 'style-1';
+            }
 
             if ($this->is_editor()) {
                 $event_id = ! empty($attributes['eventId']) ? intval($attributes['eventId']) : 0;
@@ -74,7 +80,7 @@ defined( 'ABSPATH' ) || exit;
                                 $frontend_css
                             );
                         }
-                        
+
                         // Ensure img always uses 100% width/height to fill container, overriding any saved styles
                         $avatar_img_selector = ".{$container_class} .etn-attendee-item .etn-attendee-avatar img";
                         $frontend_css .= "\n{$avatar_img_selector} {\n";
@@ -82,12 +88,14 @@ defined( 'ABSPATH' ) || exit;
                         $frontend_css .= "  height: 100% !important;\n";
                         $frontend_css .= "}\n";
                         
-                        echo '<style>' . $frontend_css . '</style>';
+                        echo '<style>' . $frontend_css . '</style>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- CSS generated from block editor attributes; HTML escaping would break styles.
                     }
                 ?>
         <?php
-            $items_per_row = $items_per_row; // Make available to template
-                    require_once Wpeventin::templates_dir() . 'event/parts/event-attendee.php';
+            $items_per_row  = $items_per_row; // Make available to template
+                    $style_variant  = $style_variant;
+                    $style_template = Wpeventin::templates_dir() . 'event/parts/styles/event-attendee/' . $style_variant . '.php';
+                    require $style_template;
                     return ob_get_clean();
                 }
         }

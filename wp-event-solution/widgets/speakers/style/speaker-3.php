@@ -23,10 +23,10 @@ if (!empty($data)) {
                     </div>
                     <div class="etn-speaker-content">
                         <h3 class="etn-title etn-speaker-title">
-                            <a href="<?php echo Helper::get_author_page_url_by_id($value->data->ID); ?>"> <?php echo esc_html($value->data->display_name); ?></a>
+                            <a href="<?php echo esc_url( Helper::get_author_page_url_by_id($value->data->ID) ); ?>"> <?php echo esc_html($value->data->display_name); ?></a>
                         </h3>
                         <p>
-                            <?php echo Helper::kses($etn_speaker_designation); ?>
+                            <?php echo Helper::kses($etn_speaker_designation); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Helper::kses() wraps wp_kses() with an allowed tags list. ?>
                         </p>
                         <div class="etn-speakers-social">
                             <?php

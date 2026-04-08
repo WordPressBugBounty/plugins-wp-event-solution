@@ -32,24 +32,23 @@
                 </div>
                 <div class="etn-speaker-social-wrapper">
                     <?php
-                        $linkedin_social = null;
-                        if ($speaker->get_speaker_socials()):
-                            foreach ($speaker->get_speaker_socials() as $social):
-                                $icon = ! empty($social['icon']) ? $social['icon'] : '';
-                                if (strpos($icon, 'linkedin') !== false):
-                                    $linkedin_social = $social;
+                        $first_social = null;
+                        if ($speaker->get_speaker_socials()) {
+                            foreach ($speaker->get_speaker_socials() as $social) {
+                                if (! empty($social['etn_social_url']) && ! empty($social['icon'])) {
+                                    $first_social = $social;
                                     break;
-                                endif;
-                            endforeach;
-                        endif;
+                                }
+                            }
+                        }
                     ?>
-                    <?php if ($linkedin_social): ?>
+                    <?php if ($first_social): ?>
                     <div class="etn-social">
-                        <a href="<?php echo esc_url($linkedin_social['etn_social_url']); ?>" target="_blank"
-                           class="etn-linkedin-icon"
-                           title="<?php echo esc_attr($linkedin_social['etn_social_title'] ?? 'LinkedIn'); ?>"
-                           aria-label="<?php echo esc_attr($linkedin_social['etn_social_title'] ?? 'LinkedIn'); ?>">
-                            <i class="etn-icon                                                                                                                                                                                                                                                                                                                                   <?php echo esc_attr($linkedin_social['icon']); ?>"></i>
+                        <a href="<?php echo esc_url($first_social['etn_social_url']); ?>" target="_blank"
+                           class="etn-social-icon"
+                           title="<?php echo esc_attr($first_social['etn_social_title'] ?? 'Social'); ?>"
+                           aria-label="<?php echo esc_attr($first_social['etn_social_title'] ?? 'Social'); ?>">
+                            <i class="etn-icon                                                                                                                                                                                         <?php echo esc_attr($first_social['icon']); ?>"></i>
                         </a>
                     </div>
                     <?php endif; ?>

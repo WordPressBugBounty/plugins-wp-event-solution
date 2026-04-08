@@ -139,14 +139,14 @@ class Helper {
 	 */
 	public function attendee_by_events( $query ) {
 		if ( ( is_admin()
-		       && ( isset( $_GET['post_type'] ) && $_GET['post_type'] == "etn-attendee" ) )
-		     && ( ! empty( $_GET['event_id'] ) )
+		       && ( isset( $_GET['post_type'] ) && $_GET['post_type'] == "etn-attendee" ) ) // phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- admin attendee filter; post_type compared to literal string only.
+		     && ( ! empty( $_GET['event_id'] ) ) // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only admin event_id filter.
 		     && $query->is_search ) {
 			$meta_query = [
 				'relation' => 'AND',
 				[
 					'key'     => 'etn_event_id',
-					'value'   => $_GET['event_id'],
+					'value'   => absint( $_GET['event_id'] ), // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- cast to integer via absint().
 					'compare' => '=',
 				],
 			];
@@ -194,7 +194,7 @@ class Helper {
 		$result           = true;
 		$event_start_date = get_post_meta( $event_id, 'etn_start_date', true );
 
-		if ( date( 'Y-m-d', strtotime( $event_start_date ) ) < date( 'Y-m-d' ) ) {
+		if ( gmdate( 'Y-m-d', strtotime( $event_start_date ) ) < gmdate( 'Y-m-d' ) ) {
 			$result = false;
 		}
 
@@ -211,8 +211,8 @@ class Helper {
 		if ( str_contains( $timezone, 'UTC+' ) || str_contains( $timezone, 'UTC-' ) ) {
 			$timezone_offset = str_replace('UTC', '', $timezone);
 		} else {
-			date_default_timezone_set( $timezone );
-			$timezone_offset = date( 'Z' ) / 3600;
+			date_default_timezone_set( $timezone ); // phpcs:ignore WordPress.DateTime.RestrictedFunctions.timezone_change_date_default_timezone_set -- intentional timezone context for offset calculation.
+			$timezone_offset = date( 'Z' ) / 3600; // phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date -- must use local date() after date_default_timezone_set() to get the correct offset.
 		}
 
 		return $timezone_offset;
@@ -357,8 +357,8 @@ class Helper {
 			$dt         = new DateTime($date_time);
 			$timestamp  = $dt->modify( $hours . ' hours')->format('Y-m-d h:i A');
 		} else {
-			date_default_timezone_set( $event_timezone );
-			$timestamp = date("Y-m-d h:i A",strtotime( $date_time ));
+			date_default_timezone_set( $event_timezone ); // phpcs:ignore WordPress.DateTime.RestrictedFunctions.timezone_change_date_default_timezone_set -- intentional timezone context for calendar display.
+			$timestamp = date("Y-m-d h:i A",strtotime( $date_time )); // phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date -- must use local date() after date_default_timezone_set() for correct timezone display.
 		}
 
 		return $timestamp;

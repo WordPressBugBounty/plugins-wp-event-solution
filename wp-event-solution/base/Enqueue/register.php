@@ -194,7 +194,7 @@ class Register {
         }
 
         // Parse the URL
-        $url_parts = parse_url( $url );
+        $url_parts = wp_parse_url( $url );
 
         // Check if the URL has a path component
         if ( ! isset( $url_parts['path'] ) ) {
@@ -204,7 +204,7 @@ class Register {
         $clean_path = str_replace( '.js', '.asset.php', $url_parts['path'] );
 
         // Get the file path from the URL path
-        $file_path = $_SERVER['DOCUMENT_ROOT'] . $clean_path;
+        $file_path = ( isset( $_SERVER['DOCUMENT_ROOT'] ) ? sanitize_text_field( wp_unslash( $_SERVER['DOCUMENT_ROOT'] ) ) : '' ) . $clean_path; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput -- DOCUMENT_ROOT is a trusted server variable used only to build a file path, not output or stored.
 
         // Check if the file exists
         if ( ! file_exists( $file_path ) ) {

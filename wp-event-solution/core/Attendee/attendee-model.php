@@ -78,7 +78,7 @@ class Attendee_Model extends Post_Model {
             'post_type'      => 'etn-attendee',
             'post_status'    => $post_status,
             'posts_per_page' => $limit,
-            'meta_query'     => [
+            'meta_query'     => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
                 [
                     'key'     => $key,
                     'value'   => $value,
@@ -155,7 +155,7 @@ class Attendee_Model extends Post_Model {
      * @return  string
      */
     public function get_extra_fields_content() {
-        $fields = '<ul class="etn-attendee-extra-data" style="list-style: none; padding-left: 0; margin-left: 0;">';
+        $fields = '<ul class="etn-attendee-extra-data" style="list-style: none; list-style-type: none; padding-left: 0; margin-left: 0;">';
         $extra_fields = $this->get_extra_fields();
 
         if ( $extra_fields ) {
@@ -169,6 +169,43 @@ class Attendee_Model extends Post_Model {
         $fields .= '</ul>';
         return $fields;
     }
+    /**
+     * Get a single extra field value by key
+     *
+     * @param   string  $field_key  The field key (without prefix)
+     *
+     * @return  string
+     */
+    public function get_single_extra_field( $field_key ) {
+        $extra_fields = $this->get_extra_fields();
+
+        if ( ! isset( $extra_fields[ $field_key ] ) ) {
+            return '';
+        }
+
+        $value = $extra_fields[ $field_key ];
+
+        return is_array( $value ) ? implode( ', ', $value ) : $value;
+    }
+
+    /**
+     * Get extra fields as a single comma-separated inline string
+     *
+     * @return  string
+     */
+    public function get_extra_fields_inline() {
+        $extra_fields = $this->get_extra_fields();
+        $parts        = [];
+
+        foreach ( $extra_fields as $key => $field ) {
+            $label   = ucwords( str_replace( '_', ' ', $key ) );
+            $value   = is_array( $field ) ? implode( ', ', $field ) : $field;
+            $parts[] = $label . ': ' . $value;
+        }
+
+        return implode( ', ', $parts );
+    }
+
     /**
      * Get attendde data
      *
@@ -200,8 +237,8 @@ class Attendee_Model extends Post_Model {
 			'post_type'      => 'etn-attendee',
 			'post_status'    => 'any',
 			'posts_per_page' => -1,
-			'meta_query'     => [
-				[
+		'meta_query'     => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+			[
 					'key'     => "eventin_order_id",
 					'value'   => $eventin_order_id,
 					'compare' => '=',

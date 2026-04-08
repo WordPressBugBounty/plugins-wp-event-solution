@@ -8,56 +8,56 @@ defined( 'ABSPATH' ) || exit;
     use Wpeventin;
 
     /**
-     * Event Venue Gutenberg block
-     */
+ * Event Venue Gutenberg block
+ */
     class EventSpeaker extends AbstractBlock
     {
-        /**
-         * Block name.
-         *
-         * @var string
-         */
-        protected $block_name = 'event-speaker';
+    /**
+     * Block name.
+     *
+     * @var string
+     */
+    protected $block_name = 'event-speaker';
 
-        /**
-         * Include and render the block
-         *
-         * @param   array  $attributes  Block attributes. Default empty array
-         * @param   string  $content     Block content. Default empty string
-         * @param   WP_Block  $block       Block instance
-         *
-         * @return  string Rendered block type output
-         */
-        protected function render($attributes, $content, $block)
-        {
-            $container_class = ! empty($attributes['containerClassName']) ? $attributes['containerClassName'] : '';
-            $styles          = ! empty($attributes['styles']) ? $attributes['styles'] : [];
-            $style_variant   = ! empty($attributes['styleVariant']) ? sanitize_key($attributes['styleVariant']) : 'style-1';
+    /**
+     * Include and render the block
+     *
+     * @param   array  $attributes  Block attributes. Default empty array
+     * @param   string  $content     Block content. Default empty string
+     * @param   WP_Block  $block       Block instance
+     *
+     * @return  string Rendered block type output
+     */
+    protected function render($attributes, $content, $block)
+    {
+        $container_class = ! empty($attributes['containerClassName']) ? $attributes['containerClassName'] : '';
+        $styles          = ! empty($attributes['styles']) ? $attributes['styles'] : [];
+        $style_variant   = ! empty($attributes['styleVariant']) ? sanitize_key($attributes['styleVariant']) : 'style-1';
 
-            $allowed_variants = ['style-1', 'style-2'];
-            if (! in_array($style_variant, $allowed_variants, true)) {
-                $style_variant = 'style-1';
-            }
+        $allowed_variants = ['style-1', 'style-2', 'style-3', 'style-4', 'style-5'];
+        if (! in_array($style_variant, $allowed_variants, true)) {
+            $style_variant = 'style-1';
+        }
 
-            if ($this->is_editor()) {
-                $event_id = ! empty($attributes['eventId']) ? intval($attributes['eventId']) : 0;
+        if ($this->is_editor()) {
+            $event_id = ! empty($attributes['eventId']) ? intval($attributes['eventId']) : 0;
 
-                if ($event_id == 0) {
-                    $template = new \Eventin\Template\TemplateModel(get_the_ID());
-                    $event_id = $template->get_preview_event_id();
-                }
-            } else if ('etn-template' == get_post_type(get_the_ID())) {
+            if ($event_id == 0) {
                 $template = new \Eventin\Template\TemplateModel(get_the_ID());
                 $event_id = $template->get_preview_event_id();
-            } else {
-                $event_id = get_the_ID();
             }
+        } else if ('etn-template' == get_post_type(get_the_ID())) {
+            $template = new \Eventin\Template\TemplateModel(get_the_ID());
+            $event_id = $template->get_preview_event_id();
+        } else {
+            $event_id = get_the_ID();
+        }
 
-            $event = new Event_Model($event_id);
+        $event = new Event_Model($event_id);
 
-            $event_speakers = $event->get_speakers();
+        $event_speakers = $event->get_speakers();
 
-            ob_start();
+        ob_start();
         ?>
         <?php
             // Generate CSS with !important to override SCSS
@@ -76,7 +76,7 @@ defined( 'ABSPATH' ) || exit;
                                 $frontend_css
                             );
                         }
-                        echo '<style>' . $frontend_css . '</style>';
+                        echo '<style>' . $frontend_css . '</style>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- CSS generated from block editor attributes; HTML escaping would break styles.
                     }
                 ?>
         <?php

@@ -33,9 +33,9 @@
                 </div>
             </div>
             <div class="etn-speaker-content">
-                <h3 class="etn-title etn-speaker-title"><a href="<?php echo Helper::get_author_page_url_by_id($speaker_id); ?>"> <?php echo esc_html($etn_speaker_name); ?></a> </h3>
+                <h3 class="etn-title etn-speaker-title"><a href="<?php echo esc_url( Helper::get_author_page_url_by_id($speaker_id) ); ?>"> <?php echo esc_html($etn_speaker_name); ?></a> </h3>
                 <p>
-                    <?php echo Helper::kses($etn_speaker_designation); ?>
+                    <?php echo Helper::kses($etn_speaker_designation); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Helper::kses() wraps wp_kses() with an allowed tags list. ?>
                 </p>
             </div>
         </div>

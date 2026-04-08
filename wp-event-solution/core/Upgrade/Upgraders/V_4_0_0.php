@@ -419,7 +419,7 @@ class V_4_0_0 implements UpdateInterface {
             'post_status'   => 'any',
             'fields'        => 'ids',
             
-            'tax_query' => array(
+            'tax_query' => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
                 'relation' => 'AND',
                 [
                     'taxonomy' => 'etn_speaker_category',
@@ -446,7 +446,7 @@ class V_4_0_0 implements UpdateInterface {
             'post_status'   => 'any',
             'fields'        => 'ids',
             
-            'tax_query' => array(
+            'tax_query' => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
                 'relation' => 'AND',
                 [
                     'taxonomy' => 'etn_speaker_category',

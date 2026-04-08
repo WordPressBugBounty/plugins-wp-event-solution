@@ -28,7 +28,7 @@
 <form method="post" class="etn-event-form-parent" data-etn_uid="<?php echo esc_html($unique_id); ?>">
     <?php  wp_nonce_field('ticket_purchase_next_step_two','ticket_purchase_next_step_two'); ?>
     <input name="event_name" type="hidden" value="<?php echo esc_html($event_title); ?>" />
-    <input name="specific_lang" type="hidden" value="<?php echo isset( $_GET['lang'] ) ? esc_attr( sanitize_text_field( wp_unslash( $_GET['lang'] ) ) ) : ''; ?>" />
+    <input name="specific_lang" type="hidden" value="<?php echo isset( $_GET['lang'] ) ? esc_html( sanitize_text_field( wp_unslash( $_GET['lang'] ) ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- lang param for WPML/Polylang multilingual ticket forms; passed through esc_html() for output. ?>" />
 
     <?php
     apply_filters( 'etn_pro/stripe/stripe_field', null );

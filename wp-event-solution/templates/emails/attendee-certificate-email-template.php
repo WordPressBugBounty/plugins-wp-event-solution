@@ -8,6 +8,7 @@
     "
 >
     <?php
+        // translators: %s is the event title wrapped in a span element.
         printf( esc_html__( 'Event Certificate for %s', 'eventin' ), '<span>' . esc_html( $event->get_title() ) . '</span>' );
     ?>
 </h1>
@@ -47,6 +48,7 @@
                 style="
                 display: flex;
                 align-items: flex-start;
+                justify-content: center;
                 gap: 8px;
                 margin-top: 20px;
                 "

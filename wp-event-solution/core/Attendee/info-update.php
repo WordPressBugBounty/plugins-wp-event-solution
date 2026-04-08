@@ -16,7 +16,7 @@ class InfoUpdate {
     }
 
     public function attendee_info_update_process() {
-        if ( isset( $_GET['etn_action'] ) && sanitize_text_field( $_GET['etn_action'] ) === 'edit_information' ) {
+        if ( isset( $_GET['etn_action'] ) && sanitize_text_field( wp_unslash( $_GET['etn_action'] ) ) === 'edit_information' ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- attendee info edit link; action value is compared to a literal string only.
 
             $get_arr     = filter_input_array( INPUT_GET, FILTER_SANITIZE_FULL_SPECIAL_CHARS );
             $attendee_id = ! empty( $get_arr['attendee_id'] ) ? intval( $get_arr['attendee_id'] ) : 0;
@@ -52,7 +52,7 @@ class InfoUpdate {
 
     public function update_attendee_details() {
 
-        if ( isset( $_POST["etn_attendee_details_update_action"] ) && $_POST["etn_attendee_details_update_action"] == "etn_attendee_details_update_action" ) {
+        if ( isset( $_POST["etn_attendee_details_update_action"] ) && $_POST["etn_attendee_details_update_action"] == "etn_attendee_details_update_action" ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing -- nonce field 'attendee_personal_data' is generated via wp_nonce_field('attendee_details_nonce') in the form template and verified via wp_verify_nonce() at the top of templates/attendee/update-attendee.php before any state-changing operations.
             $post_arr = filter_input_array( INPUT_POST, FILTER_SANITIZE_SPECIAL_CHARS );  
 
             // render template

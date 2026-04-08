@@ -32,7 +32,7 @@ Helper::etn_template_include();
 
         // Check if password is required
         if ( post_password_required() ) {
-            echo get_the_password_form();
+            echo get_the_password_form(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- get_the_password_form() is a trusted WP core function.
             continue;
         }
 

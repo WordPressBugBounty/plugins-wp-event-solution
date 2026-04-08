@@ -75,7 +75,7 @@ $event_end_date_time = strtotime( $event_end_date . ' ' . $event_end_time );
                     <div class="etn-title-wrap">
                         <div class="etn-time-meta">
                             <?php
-							if ( ! isset( $event_options["etn_hide_time_from_details"] ) ) {
+							if ( empty( $event_options["etn_hide_time_from_details"] ) ) {
 								$separate = ( ! empty( $data['event_end_time'] ) ) ? ' - ' : '';
 								?>
                             <div>

@@ -97,7 +97,7 @@ class QRCodeBlock extends AbstractBlock {
         $margin = ! empty( $content_settings['margin'] ) ? $content_settings['margin'] : '10px 0px 0px 0px';
         $alignment = ! empty( $content_settings['alignment'] ) ? $content_settings['alignment'] : 'center';
 
-        $attendee_id       = ! empty( $_GET['attendee_id'] ) ? intval( $_GET['attendee_id'] ) : 0;
+        $attendee_id       = ! empty( $_GET['attendee_id'] ) ? intval( $_GET['attendee_id'] ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- QR code block render; attendee_id is cast to integer via intval().
         $unique_id         = get_post_meta( $attendee_id, 'etn_unique_ticket_id', true );
         $ticket_verify_url = admin_url( '/edit.php?post_type=etn-attendee&etn_action=ticket_scanner' );
         $ticket_verify_url .= "&attendee_id=$attendee_id&ticket_id=$unique_id";
@@ -112,7 +112,7 @@ class QRCodeBlock extends AbstractBlock {
         
         ob_start();
         ?>
-        <?php echo $this->render_frontend_css( $styles, esc_attr( $container_class ) ); ?>
+        <?php echo $this->render_frontend_css( $styles, esc_attr( $container_class ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- CSS rendered by render_frontend_css(); script and style tags stripped by generate_frontend_css(). ?>
         <div class="eventin-ticket-qrcode" style="<?php echo esc_attr( $content_styles ); ?>">
             <p class="etn-ticket-id" id="ticketUnqId" data-ticketverifyurl="<?php echo esc_url( $ticket_verify_url ) ?>"></p>
             <img class="etn-qrImage" src="" alt="" id="qrImage" />

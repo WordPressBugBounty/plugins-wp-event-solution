@@ -29,7 +29,7 @@ $logo                       = wp_get_attachment_image_src( $etn_schedule_company
 					<img src="<?php echo esc_url( $logo[0] ); ?>" alt="<?php the_title_attribute(); ?>">
 				<?php endif;?>
 				<label> <?php echo esc_html__( "Designation ", 'eventin' ); ?> </label>
-				<?php echo Helper::kses( $etn_schedule_designation ); ?>
+				<?php echo Helper::kses( $etn_schedule_designation ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Helper::kses() wraps wp_kses() with an allowed tags list. ?>
 				<label> <?php echo esc_html__( "Email ", 'eventin' ); ?> </label>
 				<a href="mailto:<?php echo esc_attr( $etn_schedule_website_email ); ?>"><?php echo esc_html( $etn_schedule_website_email ); ?></a>
 				<a href="<?php echo esc_url( $etn_schedule_website_url ); ?>"><?php echo esc_html__( "website ", 'eventin' ); ?> </a>

@@ -49,7 +49,8 @@ class MeetingPlatform {
         $platforms = self::get_platforms();
 
         if ( ! isset( $platforms[$platform] ) ) {
-            throw new Exception( esc_html__( 'Unsupported platform ' . $platform, 'eventin' ) );
+            // translators: %s is the name of the unsupported platform.
+            throw new Exception( sprintf( esc_html__( 'Unsupported platform: %s', 'eventin' ), esc_html( $platform ) ) ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- esc_html() applied to the dynamic variable.
         }
 
         return $platforms[$platform];

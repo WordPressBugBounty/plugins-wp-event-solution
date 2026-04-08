@@ -77,7 +77,7 @@ var $maxStrLenRead;
 
 	function getMetrics($file) {
 		$this->filename = $file;
-		$this->fh = fopen($file,'rb') or die( esc_html( 'Can\'t open file ' . $file ) );
+		$this->fh = fopen($file,'rb') or die( esc_html( 'Can\'t open file ' . $file ) ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen -- binary font file parser, WP_Filesystem cannot handle binary stream I/O.
 		$this->_pos = 0;
 		$this->charWidths = '';
 		$this->glyphPos = array();
@@ -96,7 +96,7 @@ var $maxStrLenRead;
 			die( esc_html( "Not a TrueType font: version=".$version ) );
 		$this->readTableDirectory();
 		$this->extractInfo();
-		fclose($this->fh);
+		fclose($this->fh); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- binary font file parser, WP_Filesystem cannot handle binary stream I/O.
 	}
 
 
@@ -169,12 +169,12 @@ var $maxStrLenRead;
 
 	function read_tag() {
 		$this->_pos += 4;
-		return fread($this->fh,4);
+		return fread($this->fh,4); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fread -- binary font file parser, WP_Filesystem cannot handle binary stream I/O.
 	}
 
 	function read_short() {
 		$this->_pos += 2;
-		$s = fread($this->fh,2);
+		$s = fread($this->fh,2); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fread -- binary font file parser, WP_Filesystem cannot handle binary stream I/O.
 		$a = (ord($s[0])<<8) + ord($s[1]);
 		if ($a & (1 << 15) ) { $a = ($a - (1 << 16)) ; }
 		return $a;
@@ -190,26 +190,26 @@ var $maxStrLenRead;
 
 	function read_ushort() {
 		$this->_pos += 2;
-		$s = fread($this->fh,2);
+		$s = fread($this->fh,2); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fread -- binary font file parser, WP_Filesystem cannot handle binary stream I/O.
 		return (ord($s[0])<<8) + ord($s[1]);
 	}
 
 	function read_ulong() {
 		$this->_pos += 4;
-		$s = fread($this->fh,4);
+		$s = fread($this->fh,4); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fread -- binary font file parser, WP_Filesystem cannot handle binary stream I/O.
 		// if large uInt32 as an integer, PHP converts it to -ve
 		return (ord($s[0])*16777216) + (ord($s[1])<<16) + (ord($s[2])<<8) + ord($s[3]); // 	16777216  = 1<<24
 	}
 
 	function get_ushort($pos) {
 		fseek($this->fh,$pos);
-		$s = fread($this->fh,2);
+		$s = fread($this->fh,2); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fread -- binary font file parser, WP_Filesystem cannot handle binary stream I/O.
 		return (ord($s[0])<<8) + ord($s[1]);
 	}
 
 	function get_ulong($pos) {
 		fseek($this->fh,$pos);
-		$s = fread($this->fh,4);
+		$s = fread($this->fh,4); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fread -- binary font file parser, WP_Filesystem cannot handle binary stream I/O.
 		// iF large uInt32 as an integer, PHP converts it to -ve
 		return (ord($s[0])*16777216) + (ord($s[1])<<16) + (ord($s[2])<<8) + ord($s[3]); // 	16777216  = 1<<24
 	}
@@ -245,14 +245,14 @@ var $maxStrLenRead;
 	function get_chunk($pos, $length) {
 		fseek($this->fh,$pos);
 		if ($length <1) { return ''; }
-		return (fread($this->fh,$length));
+		return (fread($this->fh,$length)); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fread -- binary font file parser, WP_Filesystem cannot handle binary stream I/O.
 	}
 
 	function get_table($tag) {
 		list($pos, $length) = $this->get_table_pos($tag);
 		if ($length == 0) { die( esc_html( 'Truetype font ('.$this->filename.'): error reading table: '.$tag ) ); }
 		fseek($this->fh,$pos);
-		return (fread($this->fh,$length));
+		return (fread($this->fh,$length)); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fread -- binary font file parser, WP_Filesystem cannot handle binary stream I/O.
 	}
 
 	function add($tag, $data) {
@@ -298,7 +298,7 @@ var $maxStrLenRead;
 					$opos = $this->_pos;
 					$this->seek($string_data_offset + $offset);
 					if ($length % 2 != 0)
-						die("PostScript name is UTF-16BE string of odd length");
+						die("PostScript name is UTF-16BE string of odd length"); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Non-HTML binary font parser context; die() message not rendered in a browser.
 					$length /= 2;
 					$N = '';
 					while ($length > 0) {
@@ -330,7 +330,7 @@ var $maxStrLenRead;
 			else
 				$psName = '';
 			if (!$psName)
-				die("Could not find PostScript font name");
+				die("Could not find PostScript font name"); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Non-HTML binary font parser context; die() message not rendered in a browser.
 			$this->name = $psName;
 			if ($names[1]) { $this->familyName = $names[1]; } else { $this->familyName = $psName; }
 			if ($names[2]) { $this->styleName = $names[2]; } else { $this->styleName = 'Regular'; }
@@ -389,7 +389,7 @@ var $maxStrLenRead;
 			$this->sFamilyClass = ($sF >> 8);
 			$this->sFamilySubClass = ($sF & 0xFF);
 			$this->_pos += 10;  //PANOSE = 10 byte length
-			$panose = fread($this->fh,10);
+			$panose = fread($this->fh,10); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fread -- binary font file parser, WP_Filesystem cannot handle binary stream I/O.
 			$this->skip(26);
 			$sTypoAscender = $this->read_short();
 			$sTypoDescender = $this->read_short();
@@ -438,7 +438,7 @@ var $maxStrLenRead;
 		$this->skip(32); 
 		$metricDataFormat = $this->read_ushort();
 		if ($metricDataFormat != 0)
-			die('Unknown horizontal metric data format '.$metricDataFormat);
+			die('Unknown horizontal metric data format '.$metricDataFormat); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Non-HTML binary font parser context; die() message not rendered in a browser.
 		$numberOfHMetrics = $this->read_ushort();
 		if ($numberOfHMetrics == 0) 
 			die('Number of horizontal metrics is 0');
@@ -473,7 +473,7 @@ var $maxStrLenRead;
 			$this->seek($save_pos );
 		}
 		if (!$unicode_cmap_offset)
-			die('Font ('.$this->filename .') does not have cmap for Unicode (platform 3, encoding 1, format 4, or platform 0, any encoding, format 4)');
+			die('Font ('.$this->filename .') does not have cmap for Unicode (platform 3, encoding 1, format 4, or platform 0, any encoding, format 4)'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Non-HTML binary font parser context; die() message not rendered in a browser.
 
 
 		$glyphToChar = array();
@@ -494,7 +494,7 @@ var $maxStrLenRead;
 
 	function makeSubset($file, &$subset) {
 		$this->filename = $file;
-		$this->fh = fopen($file ,'rb') or die( esc_html( 'Can\'t open file ' . $file ) );
+		$this->fh = fopen($file ,'rb') or die( esc_html( 'Can\'t open file ' . $file ) ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen -- binary font file parser, WP_Filesystem cannot handle binary stream I/O.
 		$this->_pos = 0;
 		$this->charWidths = '';
 		$this->glyphPos = array();
@@ -555,7 +555,7 @@ var $maxStrLenRead;
 		}
 
 		if (!$unicode_cmap_offset)
-			die('Font ('.$this->filename .') does not have cmap for Unicode (platform 3, encoding 1, format 4, or platform 0, any encoding, format 4)');
+			die('Font ('.$this->filename .') does not have cmap for Unicode (platform 3, encoding 1, format 4, or platform 0, any encoding, format 4)'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Non-HTML binary font parser context; die() message not rendered in a browser.
 
 
 		$glyphToChar = array();
@@ -820,7 +820,7 @@ var $maxStrLenRead;
 		$os2 = $this->get_table('OS/2');
 		$this->add('OS/2', $os2 );
 
-		fclose($this->fh);
+		fclose($this->fh); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- binary font file parser, WP_Filesystem cannot handle binary stream I/O.
 
 		// Put the TTF file together
 		$stm = '';
@@ -954,13 +954,13 @@ var $maxStrLenRead;
 		$start = $this->seek_table("hmtx");
 		if ($gid < $numberOfHMetrics) {
 			$this->seek($start+($gid*4));
-			$hm = fread($this->fh,4);
+			$hm = fread($this->fh,4); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fread -- binary font file parser, WP_Filesystem cannot handle binary stream I/O.
 		}
 		else {
 			$this->seek($start+(($numberOfHMetrics-1)*4));
-			$hm = fread($this->fh,2);
+			$hm = fread($this->fh,2); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fread -- binary font file parser, WP_Filesystem cannot handle binary stream I/O.
 			$this->seek($start+($numberOfHMetrics*2)+($gid*2));
-			$hm .= fread($this->fh,2);
+			$hm .= fread($this->fh,2); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fread -- binary font file parser, WP_Filesystem cannot handle binary stream I/O.
 		}
 		return $hm;
 	}
@@ -983,7 +983,7 @@ var $maxStrLenRead;
 			}
 		}
 		else 
-			die('Unknown location table format '.$indexToLocFormat);
+			die('Unknown location table format '.$indexToLocFormat); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Non-HTML binary font parser context; die() message not rendered in a browser.
 	}
 
 

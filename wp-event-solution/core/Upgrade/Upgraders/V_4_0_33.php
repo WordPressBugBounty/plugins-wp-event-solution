@@ -67,7 +67,7 @@ defined( 'ABSPATH' ) || exit;
                 'post_type'      => 'etn-order',
                 'post_status'    => 'any',
                 'posts_per_page' => -1,
-                'meta_query'     => [
+                'meta_query'     => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
                     [
                         'key'     => 'status',
                         'value'   => 'completed',
@@ -171,7 +171,7 @@ defined( 'ABSPATH' ) || exit;
                 'post_type'      => 'etn-attendee',
                 'post_status'    => 'publish',
                 'posts_per_page' => -1,
-                'meta_key'       => 'eventin_order_id',
+                'meta_key'       => 'eventin_order_id', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
                 'fields'         => 'ids',
             ]);
  

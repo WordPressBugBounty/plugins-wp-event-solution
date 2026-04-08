@@ -67,7 +67,7 @@ class DependencyControls {
      */
     public function admin_notice_wc_not_active() {
 
-        if ( isset( $_GET['activate'] ) ) {
+        if ( isset( $_GET['activate'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- standard WP plugin activation redirect check; no data read or stored.
             unset( $_GET['activate'] );
         }
         $btn = array(

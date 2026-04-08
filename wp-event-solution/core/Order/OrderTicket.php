@@ -87,7 +87,7 @@ class OrderTicket implements HookableInterface {
                     'column'    => 'post_modified',
                 ],
             ],
-            'meta_query'     => [
+            'meta_query'     => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
                 [
                     'key'   => 'status',
                     'value' => 'failed',

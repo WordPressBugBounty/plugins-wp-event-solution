@@ -20,7 +20,7 @@ if ( !empty( $show_child_event ) && 'yes' == $show_child_event ) {
                                         <?php echo get_the_post_thumbnail( $item->ID, 'large' );  ?>
                                 </a>
                                 <div class="etn-event-category">
-                                        <?php echo  Helper::kses($recur_category); ?>
+                                        <?php echo  Helper::kses($recur_category); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Helper::kses() wraps wp_kses() with an allowed tags list. ?>
                                 </div>
                             </div>
                         <?php endif; ?>

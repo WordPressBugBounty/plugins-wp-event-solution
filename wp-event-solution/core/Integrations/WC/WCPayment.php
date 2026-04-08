@@ -46,7 +46,7 @@ class WCPayment implements PaymentInterface {
             'post_status' => 'any',
             'posts_per_page' => -1,
             'fields'          => 'ids',        
-            'meta_query'    => [
+            'meta_query'    => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
                 [
                     'key'   => 'eventin_order_id',
                     'value' => $order->id,

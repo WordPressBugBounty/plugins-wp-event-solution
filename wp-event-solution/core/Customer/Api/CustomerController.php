@@ -264,7 +264,8 @@ class CustomerController extends WP_REST_Controller {
             );
         }
 
-        $message = sprintf( __( '%d customers are deleted of %d', 'eventin' ), $count, count( $ids ) );
+        // translators: %1$d is the number of customers deleted, %2$d is the total number of customers selected.
+        $message = sprintf( __( '%1$d customers are deleted of %2$d', 'eventin' ), $count, count( $ids ) );
 
         return rest_ensure_response( $message );
     }

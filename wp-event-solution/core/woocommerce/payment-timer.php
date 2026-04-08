@@ -149,7 +149,7 @@ class Payment_Timer {
             WC()->session->__unset( 'eventin_woo_payment_timer_expire' );
         }
 
-        $expired = isset( $_GET['eventin_payment_time_expired'] ) ? (int) $_GET['eventin_payment_time_expired'] : 0;
+        $expired = isset( $_GET['eventin_payment_time_expired'] ) ? (int) $_GET['eventin_payment_time_expired'] : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- payment timer redirect param; value cast to integer via (int).
 
         if ( $expired ) {
             WC()->cart->empty_cart();

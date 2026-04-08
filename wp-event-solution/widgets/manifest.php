@@ -54,7 +54,7 @@ class Manifest {
             $elements_manager->add_category(
                 'etn-' . $k,
                 [
-                    'title' => esc_html__( $v, 'eventin' ),
+                    'title' => esc_html( $v ),
                     'icon'  => 'fa fa-plug',
                 ]
             );

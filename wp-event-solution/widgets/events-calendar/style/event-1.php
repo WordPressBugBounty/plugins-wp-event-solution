@@ -16,7 +16,7 @@ if (!empty($data)) {
 				$etn_end_date       = get_post_meta($value->ID, 'etn_end_date', true);
 				$category           =  Helper::cate_with_link($value->ID, 'etn_category');
 
-				$current_date = date('Y-m-d');
+				$current_date = gmdate('Y-m-d');
 				$title_single = get_the_title($value->ID);
 				$url = get_permalink($value->ID);
 

@@ -94,7 +94,15 @@ class Hooks {
         ];
         $data_controls = json_encode( $extra_controls );
         $data_cat_list = json_encode( $cat_json );
-        $data_selected_cats = json_encode( $cats );
+
+        // Send only integer term IDs so the JS URL param is a clean comma-separated
+        // string (e.g. "45") that the REST API can parse. Sending full WP_Term objects
+        // causes JS to serialize them as "[object Object]" and the filter is silently dropped.
+        if ( is_array( $event_cat ) && ! empty( $event_cat ) ) {
+            $data_selected_cats = json_encode( array_map( 'intval', $event_cat ) );
+        } else {
+            $data_selected_cats = json_encode( [] );
+        }
         
 
         ob_start();
@@ -257,6 +265,7 @@ class Hooks {
         $show_event_location  = !empty( $attributes["show_event_location"] ) ? $attributes["show_event_location"] : 'yes';
         
         $etn_desc_show      = (isset($attributes["etn_desc_show"]) ? $attributes["etn_desc_show"] : 'yes');
+        $show_remaining_tickets = !empty( $attributes["show_remaining_tickets"] ) ? $attributes["show_remaining_tickets"] : 'no';
 
 
         ob_start();
@@ -359,7 +368,11 @@ class Hooks {
             <div class="etn_search_<?php echo esc_attr( $widget_id ); ?> etn_search_wraper">
 
             <?php helper::get_event_search_form(); ?>
-            <p class="etn_search_bottom_area_text"><?php echo esc_html__( "Discover ". count(helper::get_eventin_search_data()) ." Upcoming and Expire "._n( "Event", "Events", count(helper::get_eventin_search_data()), 'eventin' )."", 'eventin' ); ?></p>
+            <p class="etn_search_bottom_area_text"><?php
+                $etn_search_count = count( helper::get_eventin_search_data() );
+                // translators: %d is the number of upcoming and expired events.
+                echo sprintf( esc_html( _n( 'Discover %d Upcoming and Expire Event', 'Discover %d Upcoming and Expire Events', $etn_search_count, 'eventin' ) ), absint( $etn_search_count ) );
+            ?></p>
             </div>
         <?php
         return ob_get_clean();
