@@ -88,7 +88,9 @@ class Event_Model extends Post_Model {
         'enable_legacy_certificate_template' => false,
         '_tax_status'                        => 'taxable',
         'pending_seats'                     => [],
-        'etn_last_update_date'              => ''
+        'etn_last_update_date'              => '',
+        'etn_enable_global_stock'           => false,
+        'etn_global_stock'                  => 0,
     ];
 
     /**

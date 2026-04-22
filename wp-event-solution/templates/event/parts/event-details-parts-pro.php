@@ -106,7 +106,7 @@ class EventDetailsPartsPro {
 		$data                   = Helper::single_template_options( $single_event_id );
 		$etn_event_schedule     = isset( $data['etn_event_schedule']) ? $data['etn_event_schedule'] : [];
 
-		if (!isset($event_options["etn_hide_schedule_from_details"]) && !empty($etn_event_schedule)) {
+		if (empty($event_options["etn_hide_schedule_from_details"]) && !empty($etn_event_schedule)) {
 				if (is_array($etn_event_schedule)) {
 						$args = array(
 								'post__in' => $etn_event_schedule,

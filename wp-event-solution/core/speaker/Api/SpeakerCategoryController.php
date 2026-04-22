@@ -109,10 +109,23 @@ class SpeakerCategoryController extends WP_REST_Controller {
      * @return WP_Error|WP_REST_Response
      */
     public function get_items( $request ) {
+        $per_page = ! empty( $request['per_page'] ) ? intval( $request['per_page'] ) : -1;
+        $paged    = ! empty( $request['paged'] ) ? intval( $request['paged'] ) : 1;
+        $search   = ! empty( $request['search'] ) ? sanitize_text_field( $request['search'] ) : '';
+
         $prepared_args = array(
             'taxonomy'   => $this->taxonomy,
             'hide_empty' => false,
         );
+
+        if ( $per_page > 0 ) {
+            $prepared_args['number'] = $per_page;
+            $prepared_args['offset'] = ( $paged - 1 ) * $per_page;
+        }
+
+        if ( ! empty( $search ) ) {
+            $prepared_args['name__like'] = $search;
+        }
 
         if ( ! current_user_can( 'manage_options' ) ) {
             $author_id = get_current_user_id();
@@ -128,13 +141,43 @@ class SpeakerCategoryController extends WP_REST_Controller {
 
         $query_result = get_terms( $prepared_args );
 
+        $total_args = array(
+            'taxonomy'   => $this->taxonomy,
+            'hide_empty' => false,
+        );
+
+        if ( ! empty( $search ) ) {
+            $total_args['name__like'] = $search;
+        }
+
+        if ( ! current_user_can( 'manage_options' ) ) {
+            $author_id = get_current_user_id();
+            $total_args['meta_query'] = array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+                array(
+                    'key'     => 'author', 
+                    'value'   => $author_id,
+                    'compare' => '='
+                )
+            );
+        }
+
+        $total_terms = get_terms( $total_args );
+        $total_items = is_array( $total_terms ) ? count( $total_terms ) : 0;
+
         $response = array();
 
         foreach ( $query_result as $term ) {
             $response[] = $this->prepare_item_for_response( $term->term_id, $request );
         }
 
-        return rest_ensure_response( $response );
+        $data = [
+            'items'       => $response,
+            'total_items' => $total_items,
+            'paged'       => $paged,
+            'per_page'    => $per_page
+        ];
+
+        return rest_ensure_response( $data );
     }
 
     /**
@@ -362,22 +405,23 @@ class SpeakerCategoryController extends WP_REST_Controller {
      * @param WP_REST_Request $request Request object.
      * @return WP_REST_Response $response
      */
-    public function prepare_item_for_response( $category_id, $request ) {
-        $item = get_term( $category_id, $this->taxonomy );
-    
+    public function prepare_item_for_response($category_id, $request)
+    {
+        $item = get_term($category_id, $this->taxonomy);
+
         // Fetch user IDs associated with this category
         $user_ids = $this->get_matching_user_ids_by_category($category_id);
-    
+
         $category_data = [
             'id'          => $item->term_id,
-            'count'       => count( $user_ids ),
+            'count'       => count($user_ids),
             'description' => $item->description,
-            'link'        => get_term_link( $item ),
+            'link'        => get_term_link($item),
             'name'        => $item->name,
             'slug'        => $item->slug,
-            'user_ids'    => $user_ids, 
+            'user_ids'    => $user_ids,
         ];
-    
+
         return $category_data;
     }
     
@@ -407,12 +451,12 @@ class SpeakerCategoryController extends WP_REST_Controller {
             $prepared_data['name'] = $input_data['name'];
         }
 
-        if ( ! empty( $input_data['description'] ) ) {
-            $prepared_data['description'] = $input_data['description'];
-        }
-
         if ( ! empty( $input_data['slug'] ) ) {
             $prepared_data['slug'] = $input_data['slug'];
+        }
+
+        if ( isset( $input_data['description'] ) ) {
+            $prepared_data['description'] = sanitize_textarea_field( $input_data['description'] );
         }
 
         if ( ! empty( $input_data['parent'] ) ) {

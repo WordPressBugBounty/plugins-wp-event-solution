@@ -67,7 +67,9 @@ class PluginManager {
         $skin      = new \Automatic_Upgrader_Skin();
         $upgrader  = new \Plugin_Upgrader($skin);
 
-        if($slug === 'eventin-addon-for-fluentcart') {
+        if ( $slug === 'migration-tool-for-eventin' ) {
+            $result = $upgrader->install( 'https://github.com/themewinter/migration-tool-for-eventin-public/releases/download/v1.0.0/migration-tool-for-eventin.zip' );
+        } elseif($slug === 'eventin-addon-for-fluentcart') {
             $result    = $upgrader->install('https://downloads.wordpress.org/plugin/eventin-addon-for-fluentcart.latest-stable.zip');
         } elseif($slug === 'aisentic') {
             $result    = $upgrader->install('https://github.com/themewinter/aisentic-public/releases/download/v1.0.0/aisentic-1.0.0.zip');

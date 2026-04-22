@@ -206,10 +206,10 @@ class TicketTemplate implements HookableInterface {
 
 		$stored_edit_token = get_post_meta( $attendee_id, "etn_info_edit_token", true );
 
-		if ( $stored_edit_token == $check_info_edit_token ) {
-			return true;
+		if ( ! $stored_edit_token ) {
+			return false;
 		}
 
-		return false;
+		return hash_equals( $stored_edit_token, $check_info_edit_token );
 	}
 }

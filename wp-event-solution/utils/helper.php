@@ -1538,6 +1538,15 @@
          *
          * @return void
          */
+        /**
+         * Generate a cryptographically secure token for attendee self-edit links.
+         *
+         * @return string 64-char hex token (256 bits of entropy).
+         */
+        public static function generate_secure_token() {
+            return bin2hex( random_bytes( 32 ) );
+        }
+
         public static function verify_attendee_edit_token($attendee_id, $check_info_edit_token)
         {
             $post_status = get_post_status($attendee_id);
@@ -1548,11 +1557,11 @@
 
             $stored_edit_token = get_post_meta($attendee_id, "etn_info_edit_token", true);
 
-            if ($stored_edit_token == $check_info_edit_token) {
-                return true;
+            if ( ! $stored_edit_token ) {
+                return false;
             }
 
-            return false;
+            return hash_equals( $stored_edit_token, $check_info_edit_token );
         }
 
         /**

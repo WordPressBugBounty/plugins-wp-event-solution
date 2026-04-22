@@ -1258,6 +1258,43 @@ if ( ! function_exists( 'etn_validate_event_tickets' ) ) {
         $event         = new Event_Model( $event_id );
         $sold_tickets    = (array)Helper::etn_get_sold_tickets_by_event( $event_id );
 
+        $enable_global_stock = get_post_meta( $event_id, 'etn_enable_global_stock', true );
+        $global_stock       = intval( get_post_meta( $event_id, 'etn_global_stock', true ) );
+
+        if ( $enable_global_stock && $global_stock > 0 ) {
+            $total_requested = 0;
+            foreach ( $order_tickets as $ticket ) {
+                $total_requested += intval( $ticket['ticket_quantity'] );
+            }
+
+            $total_sold = array_sum( $sold_tickets );
+
+            $ticket_variations = $event->etn_ticket_variations;
+            $total_pending = 0;
+            if ( is_array( $ticket_variations ) ) {
+                foreach ( $ticket_variations as $ticket_var ) {
+                    $total_pending += intval( $ticket_var['pending'] ?? 0 );
+                }
+            }
+
+            if ( $is_for_update ) {
+                $remaining = $global_stock - $total_sold - $total_pending + $total_requested;
+            } else {
+                $remaining = $global_stock - $total_sold - $total_pending;
+            }
+
+            if ( $total_requested > $remaining ) {
+                $only_left = max( 0, $remaining );
+                return new WP_Error( 
+                    'global_stock_limit', 
+                    sprintf( __( 'Only %d tickets left for this event.', 'eventin' ), $only_left ), 
+                    ['status' => 422] 
+                );
+            }
+
+            return true;
+        }
+
         foreach( $order_tickets as $ticket ) {
             $event_ticket = $event->get_ticket( $ticket['ticket_slug'] );
 
@@ -1268,7 +1305,7 @@ if ( ! function_exists( 'etn_validate_event_tickets' ) ) {
 			// check if `etn_avaiilable_tickets` exists. if not means unlimited ticket
 			if ( !isset($available) || !is_numeric($available) ) {
 				return true;
-			}
+            }
             if($is_for_update){
                 $ticket_left = intval($available) - intval($sold) - intval($pending) + intval($ticket['ticket_quantity']);
             }else{

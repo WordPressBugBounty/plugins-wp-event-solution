@@ -744,6 +744,22 @@ class Extension {
             'notice'        => __('NB: Need to activate FluentCart plugin', 'eventin'),
             'badge_tags'    => ['Free', 'New'],
         ];
+        $extensions['migration-tool-for-eventin'] = [
+            'name'          => 'migration-tool-for-eventin',
+            'slug'          => 'migration-tool-for-eventin',
+            'type'          => 'addon',
+            'status'        => 'off',
+            'is_pro'        => false,
+            'title'         => __( 'Migration Tool for Eventin', 'eventin' ),
+            'description'   => __( 'Import events from external platforms into Eventin.', 'eventin' ),
+            'icon'          => ExtensionIcon::get( 'migration-tool-for-eventin' ),
+            'notice'        => '',
+            'demo_link'     => '',
+            'settings_link' => admin_url( 'admin.php?page=eventin#/settings/import/eventbrite' ),
+            'doc_link'      => '',
+            'badge_tags'    => [ 'Free', 'New' ],
+        ];
+
         $extensions['aisentic'] = [
             'name'          => 'aisentic',
             'slug'          => 'aisentic',

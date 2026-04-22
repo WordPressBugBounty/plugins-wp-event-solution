@@ -141,6 +141,27 @@ class RsvpExporter implements PostExporterInterface {
 	
 	
     /**
+     * Convert a field label to a slug matching the frontend JS key convention.
+     *
+     * JS \w is ASCII-only ([a-zA-Z0-9_]), so non-ASCII letters (e.g. Polish ę) are
+     * stripped — not kept. This must be replicated exactly.
+     *
+     * @param   string  $label
+     * @return  string
+     */
+    private function label_to_slug( $label ) {
+        $slug = mb_strtolower( trim( $label ) );
+        // Normalize all Unicode whitespace (NBSP \u00A0, etc.) to a plain space.
+        // JS \s matches \u00A0 and turns it into a word separator (_),
+        // but PHP \s without the u flag treats those bytes as non-whitespace and strips them,
+        // causing adjacent words to merge (e.g. "si_pod" vs "sipod").
+        $slug = preg_replace( '/\p{Z}+/u', ' ', $slug );
+        $slug = preg_replace( '/[^a-z0-9 _]/', '', $slug );  // strip non-ASCII-alnum
+        $slug = preg_replace( '/[ _]+/', '_', $slug );        // spaces/_ → single _
+        return trim( $slug, '_' );
+    }
+
+    /**
      * Prepare extra field data
      *
      * @param   integer  $attendee_id
@@ -159,8 +180,8 @@ class RsvpExporter implements PostExporterInterface {
         if ( $extra_fields ) {
             foreach ( $extra_fields as $index => $value ) {
                 $field_id          = ! empty( $value['id'] ) ? $value['id'] : ( $index + 1 );
-                $slug              = rtrim( \Etn_Pro\Utils\Helper::get_name_structure_from_label( $value['label'] ), '_' );
-                $key               = 'etn_attendee_extra_field_' . $slug . '_' . $field_id;
+                $slug              = $this->label_to_slug( $value['label'] );
+                $key               = substr( 'etn_attendee_extra_field_' . $slug . '_' . $field_id, 0, 255 );
                 $this->extra_fields[$key] = $value['label'];
                 $extra_field_value = get_post_meta( $attendee_id, $key, true );
                 // Backward-compat: legacy entries stored without the _{id} suffix.

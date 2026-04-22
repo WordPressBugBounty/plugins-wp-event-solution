@@ -129,7 +129,7 @@ if ( ! function_exists( 'etn_after_single_event_content_schedule' ) ) {
 		if ( ( ETN_DEMO_SITE === false ) || ( ETN_DEMO_SITE == true && ETN_EVENT_TEMPLATE_TWO_ID != get_the_ID() && ETN_EVENT_TEMPLATE_THREE_ID != get_the_ID() ) ) {
 			$single_event_id = ! empty( $single_event_id ) ? $single_event_id : get_the_ID();
 			$event_options   = get_option( "etn_event_options" );
-			if ( ! isset( $event_options["etn_hide_schedule_from_details"] ) ) {
+			if ( empty( $event_options["etn_hide_schedule_from_details"] ) ) {
 				if ( file_exists( get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'event/schedule-list.php' ) ) {
 					include_once get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'event/schedule-list.php';
 				} elseif ( file_exists( get_template_directory() . \Wpeventin::theme_templates_dir() . 'event/schedule-list.php' ) ) {

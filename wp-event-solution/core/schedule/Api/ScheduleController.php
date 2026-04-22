@@ -456,13 +456,13 @@ class ScheduleController extends WP_REST_Controller {
             'meta_query'     => [
                 [
                     'key'     => 'etn_event_schedule',
-                    'value'   => '"' . $id . '"',
+                    'value'   => 'i:' . $id . ';',
                     'compare' => 'LIKE',
                 ],
             ],
         ] );
 
-        $event_name = ! empty( $parent_events ) ? get_the_title( $parent_events[0] ) : '';
+        $event_name = ! empty( $parent_events ) ? get_post_field( 'post_title', $parent_events[0] ) : '';
 
         $schedule_data = [
             'id'            => $id,

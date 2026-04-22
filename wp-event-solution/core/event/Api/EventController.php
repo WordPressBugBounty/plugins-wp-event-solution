@@ -1112,6 +1112,9 @@ class EventController extends WP_REST_Controller {
             'zoom_id'                 => get_post_meta( $id, 'etn_zoom_id', true ),
             'total_ticket'            => $event->get_total_ticket(),
             'sold_tickets'            => $event->get_total_sold_ticket(),
+            'total_sold_tickets'      => $event->get_total_sold_ticket(),
+            'etn_enable_global_stock' => rest_sanitize_boolean( get_post_meta( $id, 'etn_enable_global_stock', true ) ),
+            'etn_global_stock'        => intval( get_post_meta( $id, 'etn_global_stock', true ) ),
             'ticket_variations'       => $ticket_variations,
             'event_socials'           => $event_socials,
             'google_meet'             => get_post_meta( $id, 'etn_google_meet', true ),
@@ -1541,6 +1544,14 @@ class EventController extends WP_REST_Controller {
 
         if ( isset( $input_data['ticket_variations'] ) ) {
             $event_data['etn_ticket_variations'] = etn_sanitize_array_input( $input_data['ticket_variations'] );
+        }
+
+        if ( isset( $input_data['etn_enable_global_stock'] ) ) {
+            $event_data['etn_enable_global_stock'] = rest_sanitize_boolean( $input_data['etn_enable_global_stock'] );
+        }
+
+        if ( isset( $input_data['etn_global_stock'] ) ) {
+            $event_data['etn_global_stock'] = max( 0, intval( $input_data['etn_global_stock'] ) );
         }
 
         if ( isset( $input_data['event_logo'] ) ) {

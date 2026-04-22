@@ -1346,7 +1346,7 @@ class Hooks {
 
                     // Prepare data.
                     if ( $post_id ) {
-                        $info_edit_token    = md5( 'etn-edit-token' . $post_id . $access_token . time() );
+                        $info_edit_token    = \Etn\Utils\Helper::generate_secure_token();
                         $ticket_index       = $post_arr['ticket_index'][$i];
 
                         $data            = [

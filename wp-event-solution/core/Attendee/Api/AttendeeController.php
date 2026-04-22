@@ -132,14 +132,39 @@ class AttendeeController extends WP_REST_Controller {
             [
                 'methods'             => WP_REST_Server::READABLE,
                 'callback'            => [ $this, 'get_edit_info' ],
-                'permission_callback' => '__return_true',
+                'permission_callback' => [ $this, 'edit_info_permissions_check' ],
             ],
             [
                 'methods'             => WP_REST_Server::EDITABLE,
                 'callback'            => [ $this, 'update_edit_info' ],
-                'permission_callback' => '__return_true',
+                'permission_callback' => [ $this, 'edit_info_permissions_check' ],
             ],
         ] );
+    }
+
+    /**
+     * Permission check for the edit-info GET and PUT routes.
+     *
+     * Extracts the token from the query param (GET) or JSON body (PUT/POST)
+     * and validates it against the stored attendee token. WordPress calls this
+     * before the main callback, so auth logic lives in one place.
+     *
+     * @param WP_REST_Request $request
+     * @return true|WP_Error
+     */
+    public function edit_info_permissions_check( $request ) {
+        $id = intval( $request['id'] );
+
+        $body  = $request->get_json_params() ?? [];
+        $token = sanitize_text_field(
+            $request->get_param( 'etn_info_edit_token' ) ?? ( $body['etn_info_edit_token'] ?? '' )
+        );
+
+        if ( ! $id || ! $token || ! \Etn\Utils\Helper::verify_attendee_edit_token( $id, $token ) ) {
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -373,7 +398,7 @@ class AttendeeController extends WP_REST_Controller {
         }
         
 
-        $prepared_item['etn_info_edit_token'] = md5( time() . 'etn-attendee-info' );
+        $prepared_item['etn_info_edit_token'] = \Etn\Utils\Helper::generate_secure_token();
         $prepared_item['etn_unique_ticket_id'] = TicketIdGenerator::generate_ticket_id();
 
         $event  = new Event_Model( $prepared_item['etn_event_id'] );
@@ -386,6 +411,18 @@ class AttendeeController extends WP_REST_Controller {
             );
         }
 
+        // Validate global stock before creating order.
+        $order_tickets = [
+            [
+                'ticket_slug'     => $prepared_item['ticket_slug'] ?? '',
+                'ticket_quantity' => 1,
+            ]
+        ];
+        $stock_validation = etn_validate_event_tickets( $prepared_item['etn_event_id'], $order_tickets );
+        if ( is_wp_error( $stock_validation ) ) {
+            return $stock_validation;
+        }
+
         // Create customer.
         $customer = new CustomerModel();
         $customer->create( $this->prepare_customer_data( $request ) );
@@ -395,7 +432,7 @@ class AttendeeController extends WP_REST_Controller {
         $order->create( $this->prepare_order_data( $request, $customer->id ) );
         $prepared_item['eventin_order_id'] = $order->id;
 
-        $prepared_item['etn_info_edit_token'] = md5( time() . 'etn-attendee-info' );
+        $prepared_item['etn_info_edit_token'] = \Etn\Utils\Helper::generate_secure_token();
 
         // Create attendee.
         $attendee = new Attendee_Model();
@@ -1068,16 +1105,7 @@ class AttendeeController extends WP_REST_Controller {
      * @return WP_REST_Response|WP_Error
      */
     public function get_edit_info( $request ) {
-        $id    = intval( $request['id'] );
-        $token = sanitize_text_field( $request->get_param( 'etn_info_edit_token' ) );
-
-        if ( ! $id || ! $token || ! \Etn\Utils\Helper::verify_attendee_edit_token( $id, $token ) ) {
-            return new WP_Error(
-                'invalid_token',
-                __( 'Invalid or expired edit token.', 'eventin' ),
-                [ 'status' => 403 ]
-            );
-        }
+        $id = intval( $request['id'] );
 
         $attendee = new Attendee_Model( $id );
         $data     = $this->prepare_item_for_response( $attendee, $request );
@@ -1098,16 +1126,6 @@ class AttendeeController extends WP_REST_Controller {
     public function update_edit_info( $request ) {
         $id   = intval( $request['id'] );
         $body = $request->get_json_params();
-
-        $token = sanitize_text_field( $body['etn_info_edit_token'] ?? '' );
-
-        if ( ! $id || ! $token || ! \Etn\Utils\Helper::verify_attendee_edit_token( $id, $token ) ) {
-            return new WP_Error(
-                'invalid_token',
-                __( 'Invalid or expired edit token.', 'eventin' ),
-                [ 'status' => 403 ]
-            );
-        }
 
         // Whitelist: only allow safe attendee fields to be updated.
         if ( ! empty( $body['etn_name'] ) ) {

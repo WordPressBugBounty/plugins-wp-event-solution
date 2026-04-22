@@ -43,15 +43,26 @@ defined( 'ABSPATH' ) || exit;
             if ($this->is_editor()) {
                 $event_id = ! empty($attributes['eventId']) ? intval($attributes['eventId']) : 0;
 
-                if ($event_id == 0) {
+                if ($event_id == 0 || get_post_type($event_id) === 'etn-template') {
                     $template = new \Eventin\Template\TemplateModel(get_the_ID());
                     $event_id = $template->get_preview_event_id();
                 }
             } else if ('etn-template' == get_post_type(get_the_ID())) {
-                $template = new \Eventin\Template\TemplateModel(get_the_ID());
-                $event_id = $template->get_preview_event_id();
+                // Non-editor rendering inside a ticket/certificate template — output a placeholder
+                // so TemplateModel::get_rendable_content() can replace it with real attendee event data.
+                return '{{event_description}}';
             } else {
                 $event_id = get_the_ID();
+            }
+
+            // Guard: no valid event resolved — show placeholder in editor, nothing on frontend.
+            if ( empty( $event_id ) || 'etn' !== get_post_type( $event_id ) ) {
+                if ( $this->is_editor() ) {
+                    return '<div style="padding:16px;border:1px dashed #ccc;color:#888;">'
+                        . esc_html__( 'Event Description: no preview event found.', 'eventin' )
+                        . '</div>';
+                }
+                return '';
             }
 
             $event = new Event_Model($event_id);

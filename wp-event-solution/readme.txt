@@ -3,7 +3,7 @@ Contributors: arraytics, ehsanriyadh
 Tags: event calendar, event registration, event tickets, event booking, event management, event manager, event tickets, event scheduling, booking system, RSVP, event listing
 Requires at least: 6.2
 Tested up to: 6.9
-Stable tag: 4.1.9
+Stable tag: 4.1.10
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: [https://www.gnu.org/licenses/gpl-2.0.html](https://www.gnu.org/licenses/gpl-2.0.html)
@@ -311,6 +311,15 @@ No developer needed. Eventin is designed for non-technical users with a guided o
 Yes. Eventin is translation-ready and compatible with WPML and Loco Translate. It also fully supports right-to-left (RTL) languages including Arabic and Hebrew.
 
 == Changelog ==
+
+= 4.1.10 ( April 22, 2026 ) =
+
+New     : Ticket     - Global stock implemented
+New     : Speaker    - Speaker category reintroduced
+New     : Import     - Eventbrite event import integration addon added
+Tweak   : Schedule   - Event name added to schedule list table
+Fix     : Schedule   - Schedule display issue fixed 
+Fix     : Certificate Template   - Event description issue fixed
 
 = 4.1.9 ( April 7, 2026 ) =
 

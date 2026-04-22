@@ -891,6 +891,18 @@ class OrderController extends WP_REST_Controller {
         }
 
 
+        // Validate ticket quantities: each must be a positive integer.
+        foreach ( $input_data['tickets'] as $ticket ) {
+            $qty = intval( $ticket['ticket_quantity'] ?? 0 );
+            if ( $qty < 1 ) {
+                return new WP_Error(
+                    'invalid_ticket_quantity',
+                    __( 'Ticket quantity must be at least 1.', 'eventin' ),
+                    [ 'status' => 400 ]
+                );
+            }
+        }
+
         $ticket_validation = etn_validate_event_tickets( $input_data['event_id'], $input_data['tickets'],true );
 
         if ( is_wp_error( $ticket_validation ) ) {
@@ -1009,7 +1021,7 @@ class OrderController extends WP_REST_Controller {
                     'ticket_name'          => $ticket['etn_ticket_name'],
                     'ticket_slug'          => $ticket_slug,
                     'etn_ticket_price'     => $ticket['etn_ticket_price'],
-                    'etn_info_edit_token'  => md5( $ticket['etn_ticket_name'] ),
+                    'etn_info_edit_token'  => \Etn\Utils\Helper::generate_secure_token(),
                     'etn_unique_ticket_id' => substr(md5($ticket['etn_ticket_price']), 0, 10),
                     'eventin_order_id'     => $order_id,
                     'post_status'          => 'publish',
@@ -1066,7 +1078,7 @@ class OrderController extends WP_REST_Controller {
                     $temporary_status = 'pending';
                 }
                 $attendee['etn_status'] = $temporary_status;
-                $attendee['etn_info_edit_token'] = md5(time() . 'etn-attendee-info');
+                $attendee['etn_info_edit_token'] = \Etn\Utils\Helper::generate_secure_token();
                 
                 $attendee['etn_attendeee_ticket_status'] = 'unused';
                 $attendee['etn_unique_ticket_id']        =  TicketIdGenerator::generate_ticket_id();

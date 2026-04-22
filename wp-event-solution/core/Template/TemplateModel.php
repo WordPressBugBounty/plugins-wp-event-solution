@@ -161,6 +161,7 @@ class TemplateModel extends Post_Model {
 
         $placeholders = [
             '{{event_title}}'         => esc_html( $event->get_title() ),
+            '{{event_description}}'   => wp_kses_post( $event->get_description() ),
             '{{event_location}}'      => esc_html( $event->get_address() ),
             '{{event_start_date}}'    => esc_html( $start_date ),
             '{{event_end_date}}'      => esc_html( $end_date ),
@@ -220,13 +221,14 @@ class TemplateModel extends Post_Model {
 		$end_time   = wp_date( $time_format, $end_dt->getTimestamp() );
 
         return [
-            '{{event_title}}'       => esc_html( $event->get_title() ),
-            '{{event_location}}'    => esc_html( $event->get_address() ),
-            '{{event_start_date}}'  => esc_html( $start_date ),
-            '{{event_end_date}}'    => esc_html( $end_date ),
-            '{{event_start_time}}'  => esc_html( $start_time ),
-            '{{event_end_time}}'    => esc_html( $end_time ),
-            '{{event_timezone}}'    => esc_html( $event->event_timezone ),
+            '{{event_title}}'         => esc_html( $event->get_title() ),
+            '{{event_description}}'   => wp_kses_post( $event->get_description() ),
+            '{{event_location}}'      => esc_html( $event->get_address() ),
+            '{{event_start_date}}'    => esc_html( $start_date ),
+            '{{event_end_date}}'      => esc_html( $end_date ),
+            '{{event_start_time}}'    => esc_html( $start_time ),
+            '{{event_end_time}}'      => esc_html( $end_time ),
+            '{{event_timezone}}'      => esc_html( $event->event_timezone ),
         ];
     }
 
@@ -236,9 +238,25 @@ class TemplateModel extends Post_Model {
      * @return  string
      */
     public function get_html_content() {
+        global $post;
+        $original_post = $post;
+
+        $template_post = get_post( $this->id );
+        if ( $template_post ) {
+            $post = $template_post; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- intentionally set so dynamic blocks detect etn-template context during do_blocks().
+            setup_postdata( $post );
+        }
+
         $content = $this->add_proxy_image( $this->get_content() );
         $content = do_blocks( $content ); // Process Gutenberg blocks
         $content = do_shortcode( $content ); // Process shortcodes
+
+        $post = $original_post; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+        if ( $original_post ) {
+            setup_postdata( $original_post );
+        } else {
+            wp_reset_postdata();
+        }
 
         return $content;
     }
@@ -268,17 +286,21 @@ class TemplateModel extends Post_Model {
      */
     public function get_preview_event_id() {
         $event_id = $this->preview_event_id;
-        if ( ! isset( $event_id ) ) {
+        if ( empty( $event_id ) ) {
             $event_id = $this->get_available_event_id();
         }
-        
+
+        if ( empty( $event_id ) ) {
+            return 0;
+        }
+
         $post = get_post( $event_id );
-        
+
         if ( $post && 'etn' === $post->post_type ) {
             return $post->ID;
         }
- 
-        return '';
+
+        return 0;
     }
     /**
      * Retrieves the first availble ( event with status publish) events id
@@ -438,8 +460,9 @@ class TemplateModel extends Post_Model {
 		$time_format = get_option( 'time_format' );
 
         return [
-            '{{event_title}}'       => 'Event Title',
-            '{{event_location}}'    => 'Springfield, IL 62701, United States',
+            '{{event_title}}'         => 'Event Title',
+            '{{event_description}}'   => 'This is a sample event description.',
+            '{{event_location}}'      => 'Springfield, IL 62701, United States',
             '{{event_start_date}}'  => gmdate( $date_format ),
             '{{event_end_date}}'    => gmdate( $date_format ),
             '{{event_start_time}}'  => gmdate( $time_format ),
