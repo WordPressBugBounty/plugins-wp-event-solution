@@ -2,14 +2,14 @@
 # This file is distributed under the GPL-2.0+.
 msgid ""
 msgstr ""
-"Project-Id-Version: Eventin 4.1.10\n"
+"Project-Id-Version: Eventin 4.1.11\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/eventin\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-04-20T12:01:47+00:00\n"
+"POT-Creation-Date: 2026-04-27T05:48:36+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: eventin\n"
@@ -229,36 +229,40 @@ msgstr ""
 msgid "QR Scan Access"
 msgstr ""
 
-#: core/Admin/hooks.php:184
+#: core/Admin/hooks.php:187
 msgid "Heads up! Please backup before upgrading!"
 msgstr ""
 
-#: core/Admin/hooks.php:189
+#: core/Admin/hooks.php:192
 msgid "Eventin 4.0, the latest version, includes major changes across different areas of the plugin. For a smooth transition, we strongly advise you to backup your site before upgrading and testing it in a staging environment first."
 msgstr ""
 
-#: core/Admin/hooks.php:627
+#: core/Admin/hooks.php:630
 #: core/event/api.php:420
 #: core/event/api.php:448
 msgid "Event not found."
 msgstr ""
 
-#: core/Admin/hooks.php:741
+#: core/Admin/hooks.php:744
 msgid "Important Update:"
 msgstr ""
 
-#: core/Admin/hooks.php:742
+#: core/Admin/hooks.php:745
 msgid "A new version of <strong>Eventin Pro</strong> is available with major improvements and new features. Please update to the latest version for the best experience."
 msgstr ""
 
-#: core/Admin/hooks.php:744
+#: core/Admin/hooks.php:747
 msgid "Update Now"
 msgstr ""
 
-#: core/Admin/hooks.php:883
-#: core/Admin/hooks.php:889
-#: core/Admin/hooks.php:897
-#: core/Admin/hooks.php:905
+#: core/Admin/hooks.php:879
+msgid "Go Pro"
+msgstr ""
+
+#: core/Admin/hooks.php:902
+#: core/Admin/hooks.php:908
+#: core/Admin/hooks.php:916
+#: core/Admin/hooks.php:924
 #: src/pages/about-us/get-help-layout.jsx:30
 #: src/pages/about-us/get-help-layout.jsx:36
 #: src/pages/about-us/get-help-layout.jsx:48
@@ -266,17 +270,17 @@ msgstr ""
 msgid "Learn More"
 msgstr ""
 
-#: core/Admin/hooks.php:887
+#: core/Admin/hooks.php:906
 #: src/pages/about-us/get-help-layout.jsx:34
 msgid "Email Support"
 msgstr ""
 
-#: core/Admin/hooks.php:895
+#: core/Admin/hooks.php:914
 #: src/pages/about-us/get-help-layout.jsx:40
 msgid "Live Chat"
 msgstr ""
 
-#: core/Admin/hooks.php:903
+#: core/Admin/hooks.php:922
 msgid "Video Tutorials"
 msgstr ""
 
@@ -385,7 +389,7 @@ msgstr ""
 #: core/event/Api/CategoryController.php:490
 #: core/event/Api/EventController.php:1851
 #: core/event/Api/EventTagController.php:454
-#: core/Order/OrderController.php:1144
+#: core/Order/OrderController.php:1153
 #: core/schedule/Api/ScheduleController.php:566
 #: core/speaker/Api/SpeakerController.php:810
 #: core/speaker/Api/SpeakerController.php:877
@@ -396,7 +400,7 @@ msgstr ""
 #: core/event/Api/CategoryController.php:522
 #: core/event/Api/EventController.php:1885
 #: core/event/Api/EventTagController.php:490
-#: core/Order/OrderController.php:1180
+#: core/Order/OrderController.php:1189
 #: core/schedule/Api/ScheduleController.php:598
 #: core/speaker/Api/SpeakerController.php:842
 #: core/speaker/Api/SpeakerController.php:904
@@ -2120,7 +2124,7 @@ msgstr ""
 #: core/Extensions/addons.php:176
 #: core/Extensions/addons.php:179
 #: core/Extensions/Extension.php:453
-#: build/chunks/js/856.7b8da008.js:1
+#: build/chunks/js/856.6883fef8.js:1
 #: build/js/index-onboard.js:1239
 #: src/pages/about-us/constant.js:101
 msgid "Certificate Builder"
@@ -2246,7 +2250,7 @@ msgstr ""
 #: core/Extensions/addons.php:528
 #: core/Extensions/addons.php:581
 #: templates/layout/header.php:120
-#: build/chunks/js/856.7b8da008.js:546
+#: build/chunks/js/856.6883fef8.js:653
 #: build/js/packages.js:714
 #: src/components/header/help-dropdown.jsx:62
 #: src/pages/about-us/get-help-layout.jsx:28
@@ -2477,87 +2481,87 @@ msgstr ""
 msgid "Event Period Has Ended"
 msgstr ""
 
-#: core/Order/OrderController.php:418
+#: core/Order/OrderController.php:427
 msgid "Invalid event ID or seat IDs."
 msgstr ""
 
-#: core/Order/OrderController.php:434
+#: core/Order/OrderController.php:443
 msgid "The number of tickets u have selected is not available."
 msgstr ""
 
-#: core/Order/OrderController.php:446
-#: core/Order/OrderController.php:459
+#: core/Order/OrderController.php:455
+#: core/Order/OrderController.php:468
 msgid "Some of selected seats are already booked."
 msgstr ""
 
-#: core/Order/OrderController.php:500
+#: core/Order/OrderController.php:509
 msgid "Seats booked successfully."
 msgstr ""
 
-#: core/Order/OrderController.php:541
+#: core/Order/OrderController.php:550
 msgid "Invalid status"
 msgstr ""
 
-#: core/Order/OrderController.php:567
+#: core/Order/OrderController.php:576
 msgid "You can't refund a failed order"
 msgstr ""
 
-#: core/Order/OrderController.php:571
+#: core/Order/OrderController.php:580
 msgid "You can't fail a refunded order"
 msgstr ""
 
-#: core/Order/OrderController.php:615
-#: core/Order/OrderController.php:1339
+#: core/Order/OrderController.php:624
+#: core/Order/OrderController.php:1348
 msgid "Successfully refunded"
 msgstr ""
 
-#: core/Order/OrderController.php:619
-#: core/Order/OrderController.php:1343
+#: core/Order/OrderController.php:628
+#: core/Order/OrderController.php:1352
 msgid "Refund unsuccessful"
 msgstr ""
 
-#: core/Order/OrderController.php:732
+#: core/Order/OrderController.php:741
 msgid "The order cannot be deleted."
 msgstr ""
 
-#: core/Order/OrderController.php:754
+#: core/Order/OrderController.php:763
 msgid "Order ids can not be empty."
 msgstr ""
 
-#: core/Order/OrderController.php:788
+#: core/Order/OrderController.php:797
 msgid "Order cannot be deleted."
 msgstr ""
 
 #. translators: %1$d is the number of orders deleted, %2$d is the total number of orders selected.
-#: core/Order/OrderController.php:794
+#: core/Order/OrderController.php:803
 #, php-format
 msgid "%1$d orders are deleted of %2$d"
 msgstr ""
 
-#: core/Order/OrderController.php:900
+#: core/Order/OrderController.php:909
 msgid "Ticket quantity must be at least 1."
 msgstr ""
 
-#: core/Order/OrderController.php:1191
+#: core/Order/OrderController.php:1200
 msgid "Successfully imported order"
 msgstr ""
 
-#: core/Order/OrderController.php:1252
-#: core/Order/OrderController.php:1256
-#: core/Order/OrderController.php:1309
-#: core/Order/OrderController.php:1313
+#: core/Order/OrderController.php:1261
+#: core/Order/OrderController.php:1265
+#: core/Order/OrderController.php:1318
+#: core/Order/OrderController.php:1322
 msgid "Invalid order id"
 msgstr ""
 
-#: core/Order/OrderController.php:1279
+#: core/Order/OrderController.php:1288
 msgid "Successfully send ticket email to"
 msgstr ""
 
-#: core/Order/OrderController.php:1319
+#: core/Order/OrderController.php:1328
 msgid "Amount is too low"
 msgstr ""
 
-#: core/Order/OrderController.php:1323
+#: core/Order/OrderController.php:1332
 msgid "No payment method found"
 msgstr ""
 
@@ -4010,7 +4014,7 @@ msgstr ""
 #: templates/template-parts/attendee/ticket-markup-block.php:101
 #: build/chunks/js/269.8b242293.js:221
 #: build/chunks/js/665.d934eefb.js:1
-#: build/chunks/js/856.7b8da008.js:546
+#: build/chunks/js/856.6883fef8.js:653
 #: build/js/packages.js:2448
 #: src/pages/attendees/attendees-table/actions/preview-modal.jsx:199
 #: src/pages/extensions/components/single-module-card/ModuleFooterActions.jsx:86
@@ -6376,7 +6380,7 @@ msgid "Default Title"
 msgstr ""
 
 #: utils/pro-awareness/pro-awareness.php:190
-#: build/chunks/js/856.7b8da008.js:1
+#: build/chunks/js/856.6883fef8.js:1
 #: src/pages/about-us/get-help-layout.jsx:62
 #: src/pages/about-us/get-started/setup-wizard.jsx:29
 msgid "Setup Wizard"
@@ -10218,7 +10222,7 @@ msgstr ""
 #: build/chunks/js/279.d69c0d3a.js:456
 #: build/chunks/js/828.8b56ac56.js:1
 #: build/chunks/js/828.8b56ac56.js:510
-#: build/chunks/js/856.7b8da008.js:1
+#: build/chunks/js/856.6883fef8.js:1
 #: build/js/dashboard.js:261
 #: build/js/dashboard.js:328
 #: build/js/feedback-modal.js:1
@@ -12899,7 +12903,7 @@ msgstr ""
 
 #: build/chunks/js/658.a49b80d8.js:331
 #: build/chunks/js/665.d934eefb.js:1
-#: build/chunks/js/856.7b8da008.js:546
+#: build/chunks/js/856.6883fef8.js:653
 #: src/pages/extensions/components/single-module-card/ModuleFooterActions.jsx:59
 #: src/pages/extensions/components/single-module-card/ModuleFooterActions.jsx:100
 #: src/pages/our-plugins/single-module-card.jsx:160
@@ -14321,7 +14325,7 @@ msgid "Google Calendar"
 msgstr ""
 
 #: build/chunks/js/658.a49b80d8.js:455
-#: build/chunks/js/856.7b8da008.js:1
+#: build/chunks/js/856.6883fef8.js:1
 #: build/js/index-onboard.js:1239
 #: src/pages/about-us/constant.js:58
 #: src/pages/settings/settings-guidelines-constants.js:201
@@ -14345,7 +14349,7 @@ msgid "Get Eventin Pro"
 msgstr ""
 
 #: build/chunks/js/665.d934eefb.js:1
-#: build/chunks/js/856.7b8da008.js:1
+#: build/chunks/js/856.6883fef8.js:1
 #: src/helpers/utils/update-extension.js:33
 msgid "Update failed! Please check the plugin list and try again."
 msgstr ""
@@ -14492,7 +14496,7 @@ msgid "Eventin integrations"
 msgstr ""
 
 #: build/chunks/js/665.d934eefb.js:1
-#: build/chunks/js/856.7b8da008.js:1
+#: build/chunks/js/856.6883fef8.js:1
 #: build/js/index-onboard.js:1239
 #: src/pages/about-us/constant.js:8
 #: src/pages/about-us/constant.js:22
@@ -14520,21 +14524,21 @@ msgid "Tutorial"
 msgstr ""
 
 #: build/chunks/js/665.d934eefb.js:1
-#: build/chunks/js/856.7b8da008.js:546
+#: build/chunks/js/856.6883fef8.js:653
 #: src/pages/extensions/components/single-module-card/ModuleFooterActions.jsx:69
 #: src/pages/our-plugins/single-module-card.jsx:113
 msgid "Install"
 msgstr ""
 
 #: build/chunks/js/665.d934eefb.js:1
-#: build/chunks/js/856.7b8da008.js:546
+#: build/chunks/js/856.6883fef8.js:653
 #: src/pages/extensions/components/single-module-card/ModuleFooterActions.jsx:79
 #: src/pages/our-plugins/single-module-card.jsx:126
 msgid "Activate"
 msgstr ""
 
 #: build/chunks/js/665.d934eefb.js:1
-#: build/chunks/js/856.7b8da008.js:546
+#: build/chunks/js/856.6883fef8.js:653
 #: src/pages/extensions/components/single-module-card/ModuleFooterActions.jsx:95
 #: src/pages/our-plugins/single-module-card.jsx:151
 msgid "Deactivate"
@@ -14917,98 +14921,123 @@ msgstr ""
 msgid "Landing page"
 msgstr ""
 
-#: build/chunks/js/856.7b8da008.js:1
+#: build/chunks/js/856.6883fef8.js:1
 #: src/pages/about-us/about/our-plugins.jsx:33
 msgid "Our plugins"
 msgstr ""
 
-#: build/chunks/js/856.7b8da008.js:1
+#: build/chunks/js/856.6883fef8.js:1
 #: src/pages/about-us/about/our-saas.jsx:74
 msgid "Smart AI Booking — Let clients book 24/7 without back-and-forth emails"
 msgstr ""
 
-#: build/chunks/js/856.7b8da008.js:1
+#: build/chunks/js/856.6883fef8.js:1
 #: src/pages/about-us/about/our-saas.jsx:78
 msgid "Multi-Calendar Sync — Google, Outlook & iCal synced in real time"
 msgstr ""
 
-#: build/chunks/js/856.7b8da008.js:1
+#: build/chunks/js/856.6883fef8.js:1
 #: src/pages/about-us/about/our-saas.jsx:82
 msgid "Team Scheduling — Assign staff, manage availability across your whole team"
 msgstr ""
 
-#: build/chunks/js/856.7b8da008.js:1
+#: build/chunks/js/856.6883fef8.js:1
 #: src/pages/about-us/about/our-saas.jsx:86
 msgid "Automated Reminders — Reduce no-shows with SMS & email notifications"
 msgstr ""
 
-#: build/chunks/js/856.7b8da008.js:1
+#: build/chunks/js/856.6883fef8.js:1
 #: src/pages/about-us/about/our-saas.jsx:90
 msgid "Analytics Dashboard — Track revenue, peak hours & booking trends"
 msgstr ""
 
-#: build/chunks/js/856.7b8da008.js:1
+#: build/chunks/js/856.6883fef8.js:1
 #: src/pages/about-us/about/our-saas.jsx:102
 msgid "Our SaaS"
 msgstr ""
 
-#: build/chunks/js/856.7b8da008.js:1
+#: build/chunks/js/856.6883fef8.js:1
 #: src/pages/about-us/about/our-saas.jsx:111
 msgid "AI-Powered Scheduling"
 msgstr ""
 
-#: build/chunks/js/856.7b8da008.js:1
+#: build/chunks/js/856.6883fef8.js:1
 #: src/pages/about-us/about/our-saas.jsx:118
 msgid "Timetics AI"
 msgstr ""
 
-#: build/chunks/js/856.7b8da008.js:1
+#: build/chunks/js/856.6883fef8.js:1
 #: src/pages/about-us/about/our-saas.jsx:122
 msgid "v2.0"
 msgstr ""
 
-#: build/chunks/js/856.7b8da008.js:1
+#: build/chunks/js/856.6883fef8.js:1
 #: src/pages/about-us/about/our-saas.jsx:130
 msgid "Timetics AI is your intelligent appointment scheduling assistant. Automate bookings, sync calendars, manage services, and delight your clients — all in one place."
 msgstr ""
 
-#: build/chunks/js/856.7b8da008.js:1
+#: build/chunks/js/856.6883fef8.js:1
 #: src/pages/about-us/about/our-saas.jsx:158
 msgid "Get Started Free"
 msgstr ""
 
-#: build/chunks/js/856.7b8da008.js:1
+#: build/chunks/js/856.6883fef8.js:1
 #: src/pages/about-us/about/our-saas.jsx:175
 msgid "Timetics AI Scheduling"
 msgstr ""
 
-#: build/chunks/js/856.7b8da008.js:1
+#: build/chunks/js/856.6883fef8.js:1
+#: src/pages/about-us/about/refer-earn.jsx:82
+msgid "30% Commission"
+msgstr ""
+
+#: build/chunks/js/856.6883fef8.js:1
+#: src/pages/about-us/about/refer-earn.jsx:88
+msgid "Refer & Earn"
+msgstr ""
+
+#: build/chunks/js/856.6883fef8.js:1
+#: src/pages/about-us/about/refer-earn.jsx:91
+msgid "Share our plugin with your audience and earn a generous 30% commission for every successful sale."
+msgstr ""
+
+#: build/chunks/js/856.6883fef8.js:1
+#: src/pages/about-us/about/refer-earn.jsx:107
+msgid "Join Affiliate Program"
+msgstr ""
+
+#: build/chunks/js/856.6883fef8.js:1
+#: src/pages/about-us/about/refer-earn.jsx:114
+msgid "Refer and earn illustration"
+msgstr ""
+
+#: build/chunks/js/856.6883fef8.js:1
 #: src/pages/about-us/about/top-section.jsx:31
 msgid "About Our Company"
 msgstr ""
 
-#: build/chunks/js/856.7b8da008.js:1
+#: build/chunks/js/856.6883fef8.js:1
 #: src/pages/about-us/about/top-section.jsx:33
 msgid "Arraytics is a software company founded in 2013, specializing in WordPress, AI, Machine Learning, SaaS, and mobile applications. We’re committed to delivering high-quality tech solutions that help businesses grow and simplify people’s lives."
 msgstr ""
 
-#: build/chunks/js/856.7b8da008.js:1
+#: build/chunks/js/856.6883fef8.js:1
 #: src/pages/about-us/about/top-section.jsx:39
 msgid "Today, our products are trusted by nearly 70,000 customers across 120+ countries, powered by a passionate team of 30+ experts with over 12 years of industry experience. We’re proud to be a Level 12 author on Envato."
 msgstr ""
 
-#: build/chunks/js/856.7b8da008.js:1
+#: build/chunks/js/856.6883fef8.js:1
 #: src/pages/about-us/about/top-section.jsx:48
 msgid "About Image"
 msgstr ""
 
-#: build/chunks/js/856.7b8da008.js:1
+#: build/chunks/js/856.6883fef8.js:1
 #: build/js/index-onboard.js:1239
 #: src/pages/about-us/constant.js:6
 msgid "An Introduction to Eventin"
 msgstr ""
 
-#: build/chunks/js/856.7b8da008.js:1
+#: build/chunks/js/856.6883fef8.js:1
 #: build/js/index-onboard.js:1239
 #: src/pages/about-us/constant.js:9
 #: src/pages/about-us/constant.js:23
@@ -15029,157 +15058,157 @@ msgstr ""
 msgid "Watch Tutorial"
 msgstr ""
 
-#: build/chunks/js/856.7b8da008.js:1
+#: build/chunks/js/856.6883fef8.js:1
 #: build/js/index-onboard.js:1239
 #: src/pages/about-us/constant.js:11
 msgid "New to Eventin? Start here. This quick guide breaks down how Eventin works and shows you how to build your first event in minutes."
 msgstr ""
 
-#: build/chunks/js/856.7b8da008.js:1
+#: build/chunks/js/856.6883fef8.js:1
 #: build/js/index-onboard.js:1239
 #: src/pages/about-us/constant.js:20
 msgid "How to install & activate extensions"
 msgstr ""
 
-#: build/chunks/js/856.7b8da008.js:1
+#: build/chunks/js/856.6883fef8.js:1
 #: build/js/index-onboard.js:1239
 #: src/pages/about-us/constant.js:25
 msgid "Get the most out of Eventin. Learn how to install premium or free extensions to expand functionality like Zoom, ticketing, and automation tools."
 msgstr ""
 
-#: build/chunks/js/856.7b8da008.js:1
+#: build/chunks/js/856.6883fef8.js:1
 #: build/js/index-onboard.js:1239
 #: src/pages/about-us/constant.js:34
 msgid "Eventin Setup Walkthrough"
 msgstr ""
 
-#: build/chunks/js/856.7b8da008.js:1
+#: build/chunks/js/856.6883fef8.js:1
 #: build/js/index-onboard.js:1239
 #: src/pages/about-us/constant.js:39
 msgid "A hands-on guide to walk you through the essential setup: event creation, calendar sync, ticket templates, and speaker layouts."
 msgstr ""
 
-#: build/chunks/js/856.7b8da008.js:1
+#: build/chunks/js/856.6883fef8.js:1
 #: build/js/index-onboard.js:1239
 #: src/pages/about-us/constant.js:48
 msgid "Ticket Manage"
 msgstr ""
 
-#: build/chunks/js/856.7b8da008.js:1
+#: build/chunks/js/856.6883fef8.js:1
 #: build/js/index-onboard.js:1239
 #: src/pages/about-us/constant.js:69
 msgid "Google Meet Integration"
 msgstr ""
 
-#: build/chunks/js/856.7b8da008.js:1
+#: build/chunks/js/856.6883fef8.js:1
 #: build/js/index-onboard.js:1239
 #: src/pages/about-us/constant.js:79
 msgid "Attendee QR"
 msgstr ""
 
-#: build/chunks/js/856.7b8da008.js:1
+#: build/chunks/js/856.6883fef8.js:1
 #: build/js/index-onboard.js:1239
 #: src/pages/about-us/constant.js:90
 msgid "Event Template Setup"
 msgstr ""
 
-#: build/chunks/js/856.7b8da008.js:1
+#: build/chunks/js/856.6883fef8.js:1
 #: build/js/index-onboard.js:1239
 #: src/pages/about-us/constant.js:112
 msgid "Organizer & Speaker Setup"
 msgstr ""
 
-#: build/chunks/js/856.7b8da008.js:1
+#: build/chunks/js/856.6883fef8.js:1
 #: build/js/index-onboard.js:1239
 #: src/pages/about-us/constant.js:122
 msgid "Seatmap Integration"
 msgstr ""
 
-#: build/chunks/js/856.7b8da008.js:1
+#: build/chunks/js/856.6883fef8.js:1
 #: build/js/index-onboard.js:1239
 #: src/pages/about-us/constant.js:133
 msgid "Dokan Setup"
 msgstr ""
 
-#: build/chunks/js/856.7b8da008.js:1
+#: build/chunks/js/856.6883fef8.js:1
 #: build/js/index-onboard.js:1239
 #: src/pages/about-us/constant.js:143
 msgid "Attendee Extra Field"
 msgstr ""
 
-#: build/chunks/js/856.7b8da008.js:1
+#: build/chunks/js/856.6883fef8.js:1
 #: build/js/index-onboard.js:1239
 #: src/pages/about-us/constant.js:154
 msgid "RSVP Setup"
 msgstr ""
 
-#: build/chunks/js/856.7b8da008.js:1
+#: build/chunks/js/856.6883fef8.js:1
 #: build/js/index-onboard.js:1239
 #: src/pages/about-us/constant.js:165
 msgid "Event Email Automation"
 msgstr ""
 
-#: build/chunks/js/856.7b8da008.js:1
+#: build/chunks/js/856.6883fef8.js:1
 #: build/js/index-onboard.js:1239
 #: src/pages/about-us/constant.js:176
 msgid "Hybrid Event Setup"
 msgstr ""
 
-#: build/chunks/js/856.7b8da008.js:1
+#: build/chunks/js/856.6883fef8.js:1
 #: build/js/index-onboard.js:1239
 #: src/pages/about-us/constant.js:191
 msgid "The free version outperforms many paid options, and has great performance. Works beautifully, looks great, and integrates with any theme I’ve tried. Great work, folks!."
 msgstr ""
 
-#: build/chunks/js/856.7b8da008.js:1
+#: build/chunks/js/856.6883fef8.js:1
 #: build/js/index-onboard.js:1239
 #: src/pages/about-us/constant.js:200
 msgid "I have researched numerous event plugins to meet specific needs, and I have found that Eventin provides all the features necessary for creating a variety of event website types."
 msgstr ""
 
-#: build/chunks/js/856.7b8da008.js:1
+#: build/chunks/js/856.6883fef8.js:1
 #: build/js/index-onboard.js:1239
 #: src/pages/about-us/constant.js:209
 msgid "Arraytics has truly impressed me. their solutions work seamlessly, n their support team is absolutely topnotch. Any time I've had a question or a minor issue, theyve been incredibly responsive, knowledgeable, and genuinely eager to help. It's rare to find a company that combines excellent products with such outstanding customer service. Highly recommend."
 msgstr ""
 
-#: build/chunks/js/856.7b8da008.js:1
+#: build/chunks/js/856.6883fef8.js:1
 #: build/js/index-onboard.js:1239
 #: src/pages/about-us/constant.js:218
 msgid "To be very honest, I have never seen a great support team than Arraytics support team. From the very day i started using the plugins, they have been very helpful on every issues i bring to them and fix it in less than no time to get my website fully active without any issues again... I would recommend to anyone who is interested in trying out their plugins."
 msgstr ""
 
-#: build/chunks/js/856.7b8da008.js:1
+#: build/chunks/js/856.6883fef8.js:1
 #: src/pages/about-us/get-started/event-resource.jsx:17
 msgid "Eventin Resources"
 msgstr ""
 
-#: build/chunks/js/856.7b8da008.js:1
+#: build/chunks/js/856.6883fef8.js:1
 #: src/pages/about-us/get-started/setup-wizard.jsx:31
 msgid "Launch Eventin in minutes with our guided Setup Wizard."
 msgstr ""
 
-#: build/chunks/js/856.7b8da008.js:1
+#: build/chunks/js/856.6883fef8.js:1
 #: src/pages/about-us/get-started/setup-wizard.jsx:36
 msgid "From event settings to ticketing and payments — we’ll walk you "
 msgstr ""
 
-#: build/chunks/js/856.7b8da008.js:1
+#: build/chunks/js/856.6883fef8.js:1
 #: src/pages/about-us/get-started/setup-wizard.jsx:41
 msgid " through everything step by step."
 msgstr ""
 
-#: build/chunks/js/856.7b8da008.js:1
+#: build/chunks/js/856.6883fef8.js:1
 #: src/pages/about-us/get-started/setup-wizard.jsx:52
 msgid "Get started"
 msgstr ""
 
-#: build/chunks/js/856.7b8da008.js:1
+#: build/chunks/js/856.6883fef8.js:1
 #: src/pages/about-us/index.jsx:26
 msgid "Getting Started"
 msgstr ""
 
-#: build/chunks/js/856.7b8da008.js:1
+#: build/chunks/js/856.6883fef8.js:1
 #: src/pages/about-us/index.jsx:31
 msgid "About us"
 msgstr ""
@@ -17334,6 +17363,12 @@ msgstr ""
 #: build/js/packages.js:525
 #: src/components/extra-fields/field-type-options.jsx:70
 msgid "Add Option"
+msgstr ""
+
+#: build/js/dashboard.js:499
+#: build/js/packages.js:700
+#: src/components/fixed-header.jsx:99
+msgid "Refer & Earn — 30% Commission"
 msgstr ""
 
 #: build/js/dashboard.js:520

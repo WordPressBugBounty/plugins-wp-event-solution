@@ -157,7 +157,7 @@ class OrderController extends WP_REST_Controller {
      * @return WP_Error|boolean
      */
     public function get_items_permissions_check( $request ) {
-        return current_user_can( 'etn_manage_event' );
+        return current_user_can( 'etn_manage_event' ) || current_user_can( 'etn_manage_order' ) || current_user_can( 'etn-customer' );
     }
 
     public function get_item_permissions_check( $request ) {
@@ -236,15 +236,24 @@ class OrderController extends WP_REST_Controller {
         }
 
         if ( ! current_user_can( 'manage_options' ) ) {
-            $event     = new Event_Model();
-            $event_ids = $event->get_ids_by_author( get_current_user_id() );
-            $event_ids = ! empty( $event_ids ) ? $event_ids : '';
+            if ( current_user_can( 'etn_manage_event' ) ) {
+                $event     = new Event_Model();
+                $event_ids = $event->get_ids_by_author( get_current_user_id() );
+                $event_ids = ! empty( $event_ids ) ? $event_ids : '';
 
-            $meta_query[] = [
-                'key'     => 'event_id',
-                'value'   => $event_ids,
-                'compare' => 'IN',
-            ];
+                $meta_query[] = [
+                    'key'     => 'event_id',
+                    'value'   => $event_ids,
+                    'compare' => 'IN',
+                ];
+            } else {
+                // etn-customer users see only their own orders by customer_id.
+                $meta_query[] = [
+                    'key'     => 'customer_id',
+                    'value'   => get_current_user_id(),
+                    'compare' => '=',
+                ];
+            }
         }
 
         if ( $strt_datetime && $end_datetime ) {

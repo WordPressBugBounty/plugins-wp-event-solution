@@ -1,9 +1,9 @@
 <?php return array(
     'root' => array(
         'name' => 'arraytics/eventin',
-        'pretty_version' => 'dev-master',
-        'version' => 'dev-master',
-        'reference' => '9ac2db86c05ce954c7887950f70b8a983fcb641b',
+        'pretty_version' => 'dev-develop',
+        'version' => 'dev-develop',
+        'reference' => 'bd4e46bedcd42b7b83109227d2941d9ea3d2dbe0',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -11,9 +11,9 @@
     ),
     'versions' => array(
         'arraytics/eventin' => array(
-            'pretty_version' => 'dev-master',
-            'version' => 'dev-master',
-            'reference' => '9ac2db86c05ce954c7887950f70b8a983fcb641b',
+            'pretty_version' => 'dev-develop',
+            'version' => 'dev-develop',
+            'reference' => 'bd4e46bedcd42b7b83109227d2941d9ea3d2dbe0',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

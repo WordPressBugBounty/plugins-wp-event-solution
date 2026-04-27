@@ -78,6 +78,9 @@ class Hooks {
         $this->has_pro = defined( 'ETN_PRO_FILES_LOADED' );
         // $this->handle_get_help_and_upgrade_menu();
 
+        // Add "Go Pro" link to the plugin action links row.
+        add_filter( 'plugin_action_links_' . plugin_basename( \Wpeventin::plugin_file() ), [ $this, 'add_go_pro_action_link' ] );
+
         new AttendeeHooks();
     }
 
@@ -861,6 +864,22 @@ class Hooks {
         }
 
         return false;
+    }
+
+    /**
+     * Append a "Go Pro" link to the Eventin plugin action links row.
+     *
+     * @param array $links Existing action links.
+     * @return array
+     */
+    public function add_go_pro_action_link( $links ) {
+        $links[] = sprintf(
+            '<a href="%s" target="_blank" style="color: #d63638; font-weight: 600;">%s</a>',
+            esc_url( 'https://themewinter.com/eventin/pricing/' ),
+            esc_html__( 'Go Pro', 'eventin' )
+        );
+
+        return $links;
     }
 
     /**

@@ -299,6 +299,9 @@ class Permission {
                 'etn_manage_organizer',
                 'etn_manage_schedule',
             ],
+            'etn-customer'  => [
+                'etn_manage_order',
+            ],
         ];
 
         return $permissions;
