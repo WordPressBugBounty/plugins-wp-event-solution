@@ -58,7 +58,7 @@ if (is_array($data) && !empty($data)) {
                                             <h3 class="schedule-slot-title">
                                                 <?php echo esc_html($etn_schedule_topic); ?>
                                             </h3>
-                                            <p class="schedule-slot-details"><?php echo Helper::render($etn_schedule_objective); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Helper::render() outputs trusted admin-entered HTML content. ?></p>
+                                            <p class="schedule-slot-details"><?php echo Helper::kses($etn_schedule_objective); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Helper::kses() wraps wp_kses() with an allowed tags list. ?></p>
                                             <div class="multi-speaker">
                                                 <?php
                                                 $speaker_avatar = apply_filters("etn/speakers/avatar", \Wpeventin::assets_url() . "images/avatar.jpg");

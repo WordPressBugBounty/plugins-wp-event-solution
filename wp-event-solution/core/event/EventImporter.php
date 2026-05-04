@@ -92,7 +92,7 @@ class EventImporter implements PostImporterInterface {
                 'fluent_crm_webhook'                => ! empty( $row['fluent_crm_webhook'] ) ? sanitize_text_field( $row['fluent_crm_webhook'] ) : '',
             ];
 
-            $location              = ! empty( $row['location'] ) ? sanitize_text_field( $row['location'] ) : '';
+            $location              = ! empty( $row['location'] ) ? ( is_array( $row['location'] ) ? etn_sanitize_array_input( $row['location'] ) : sanitize_text_field( $row['location'] ) ) : '';
             $ticket_variations     = ! empty( $row['ticket_variations'] ) ? etn_sanitize_array_input( $row['ticket_variations'] ) : '';
             $event_socials         = ! empty( $row['event_socials'] ) ? etn_sanitize_array_input( $row['event_socials'] ) : '';
             $event_schedule        = ! empty( $row['schedules'] ) ? etn_sanitize_array_input( $row['schedules'] ) : '';

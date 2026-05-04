@@ -21,22 +21,34 @@ class AdminAssets implements AssetsInterface {
             //TODO: make deps load dynamically
             'etn-packages' => [
                 'src'       => \Wpeventin::plugin_url( 'build/js/packages.js' ),
-                'deps'      => ['moment', 'react', 'react-dom', 'wp-api-fetch', 'wp-block-editor', 'wp-block-library', 'wp-blocks', 'wp-components', 'wp-compose', 'wp-data', 'wp-element', 'wp-hooks', 'wp-html-entities', 'wp-i18n', 'wp-keyboard-shortcuts', 'wp-primitives', 'wp-url'],
+                'deps'      => array_merge(
+                    ['moment', 'react', 'react-dom', 'wp-api-fetch', 'wp-block-editor', 'wp-block-library', 'wp-blocks', 'wp-components', 'wp-compose', 'wp-data', 'wp-element', 'wp-hooks', 'wp-html-entities', 'wp-i18n', 'wp-keyboard-shortcuts', 'wp-primitives', 'wp-url'],
+                    ChunkManifest::vendor_deps_for( 'packages' )
+                ),
                 'in_footer' => false,
             ],
             'etn-app-index'     => [
                 'src'       => \Wpeventin::plugin_url( 'build/js/index-calendar.js' ),
-                'deps'      => [ 'jquery' ],
+                'deps'      => array_merge(
+                    [ 'jquery' ],
+                    ChunkManifest::vendor_deps_for( 'index-calendar' )
+                ),
                 'in_footer' => true,
             ],
             'etn-onboard-index' => [
                 'src'       => \Wpeventin::plugin_url( 'build/js/index-onboard.js' ),
-                'deps'      => [ 'jquery',],
+                'deps'      => array_merge(
+                    [ 'jquery' ],
+                    ChunkManifest::vendor_deps_for( 'index-onboard' )
+                ),
                 'in_footer' => true,
             ],
             'etn-ai' => [
                 'src'       => \Wpeventin::plugin_url( 'build/js/index-ai-script.js' ),
-                'deps'      => [ 'jquery', 'wp-scripts' ],
+                'deps'      => array_merge(
+                    [ 'jquery', 'wp-scripts' ],
+                    ChunkManifest::vendor_deps_for( 'index-ai-script' )
+                ),
                 'in_footer' => true,
             ],
              'etn-html-2-canvas' => [
@@ -46,7 +58,10 @@ class AdminAssets implements AssetsInterface {
             ],
             'etn-dashboard' => [
                 'src'       => \Wpeventin::plugin_url( 'build/js/dashboard.js' ),
-                'deps'      => ['wp-format-library','etn-html-2-canvas'],
+                'deps'      => array_merge(
+                    ['wp-format-library', 'etn-html-2-canvas'],
+                    ChunkManifest::vendor_deps_for( 'dashboard' )
+                ),
                 'in_footer' => true,
             ],
             'etn-fedback-modal-js' => [

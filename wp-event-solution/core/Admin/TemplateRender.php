@@ -14,7 +14,7 @@ class TemplateRender implements HookableInterface {
      * @return  void
      */
     public function register_hooks(): void {
-        add_filter('template_include', [$this, 'render_checkout_template'],99 );
+        add_filter('template_include', [$this, 'render_checkout_template'], PHP_INT_MAX);
         add_filter('body_class', [$this, 'add_checkout_page_class']);
     }
 
@@ -25,23 +25,31 @@ class TemplateRender implements HookableInterface {
      */
     public function render_checkout_template( $template ) {
         $query_var = get_query_var('eventin-purchase');
-    
-        if ( $query_var !== 'checkout' ) {
-            return $template;
+
+        if ( $query_var === 'checkout' ) {
+            $checkout_template = \Wpeventin::templates_dir() . 'checkout-template.php';
+            if ( file_exists( $checkout_template ) ) {
+                return $checkout_template;
+            }
         }
-    
-        $checkout_template = \Wpeventin::templates_dir() . 'checkout-template.php';
-    
-        if ( file_exists( $checkout_template ) ) {
-            return $checkout_template;
+
+        if ( $query_var === 'preview' ) {
+            $preview_template = \Wpeventin::templates_dir() . 'order-preview-template.php';
+            if ( file_exists( $preview_template ) ) {
+                return $preview_template;
+            }
         }
-    
+
         return $template;
     }
 
     public function add_checkout_page_class($classes) {
-        if (get_query_var('eventin-purchase') === 'checkout') {
+        $query_var = get_query_var('eventin-purchase');
+        if ( $query_var === 'checkout' ) {
             $classes[] = 'eventin-checkout-page';
+        }
+        if ( $query_var === 'preview' ) {
+            $classes[] = 'eventin-order-preview-page';
         }
         return $classes;
     }

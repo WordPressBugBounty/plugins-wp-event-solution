@@ -38,7 +38,7 @@ class TemplateController extends WP_REST_Controller {
             [
                 'methods'             => WP_REST_Server::READABLE,
                 'callback'            => [$this, 'get_items'],
-                'permission_callback' => [$this, 'get_item_permissions_check'],
+                'permission_callback' => [$this, 'get_items_permissions_check'],
             ],
         ]);
 
@@ -71,7 +71,7 @@ class TemplateController extends WP_REST_Controller {
             [
                 'methods'             => WP_REST_Server::READABLE,
                 'callback'            => [$this, 'get_item'],
-                'permission_callback' => [$this, 'get_item_permissions_check'],
+                'permission_callback' => [$this, 'get_single_item_permissions_check'],
             ],
             [
                 'methods'             => WP_REST_Server::EDITABLE,
@@ -105,7 +105,7 @@ class TemplateController extends WP_REST_Controller {
                 [
                     'methods'             => WP_REST_Server::EDITABLE,
                     'callback'            => array( $this, 'update_item_status' ),
-                    'permission_callback' => array( $this, 'get_item_permissions_check' ),
+                    'permission_callback' => array( $this, 'update_item_permission_check' ),
                     'args'                => $this->get_collection_params(),
                 ],
             ],
@@ -118,7 +118,7 @@ class TemplateController extends WP_REST_Controller {
                 [
                     'methods'             => WP_REST_Server::EDITABLE,
                     'callback'            => array( $this, 'item_thumbnail_update' ),
-                    'permission_callback' => array( $this, 'get_item_permissions_check' ),
+                    'permission_callback' => array( $this, 'update_item_permission_check' ),
                     'args'                => $this->get_collection_params(),
                 ],
             ],
@@ -168,7 +168,7 @@ class TemplateController extends WP_REST_Controller {
                 [
                     'methods'             => WP_REST_Server::READABLE,
                     'callback'            => array( $this, 'get_template_events' ),
-                    'permission_callback' => array( $this, 'get_item_permissions_check' ),
+                    'permission_callback' => array( $this, 'get_template_events_permissions_check' ),
                 ],
             ],
         );
@@ -384,7 +384,50 @@ class TemplateController extends WP_REST_Controller {
      * @return  WP_Rest_Response | WP_Error
      */
     public function get_item_permissions_check( $request ) {
-        return true;
+        return current_user_can( 'etn_manage_template' );
+    }
+
+    /**
+     * Permission check for listing templates
+     *
+     * Allows users with the `etn_manage_template` capability, and also allows
+     * public access when the request carries `is_remote=true` (used by the
+     * remote template library browser that lists only published templates).
+     *
+     * @param   WP_Rest_Request  $request
+     *
+     * @return  bool
+     */
+    public function get_items_permissions_check( $request ) {
+        $is_remote = isset( $request['is_remote'] ) && filter_var( $request['is_remote'], FILTER_VALIDATE_BOOLEAN );
+
+        if ( $is_remote ) {
+            return true;
+        }
+
+        return current_user_can( 'etn_manage_template' );
+    }
+
+    /**
+     * Permission check for reading a single template
+     *
+     * @param   WP_Rest_Request  $request
+     *
+     * @return  bool
+     */
+    public function get_single_item_permissions_check( $request ) {
+        return current_user_can( 'etn_manage_template' );
+    }
+
+    /**
+     * Permission check for listing events assigned to a template
+     *
+     * @param   WP_Rest_Request  $request
+     *
+     * @return  bool
+     */
+    public function get_template_events_permissions_check( $request ) {
+        return current_user_can( 'etn_manage_template' );
     }
 
     /**

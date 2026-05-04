@@ -48,7 +48,7 @@ class SetupNotification extends WP_REST_Controller {
                     'methods'             => WP_REST_Server::EDITABLE,
                     'callback'            => array( $this, 'update_notification_dismiss_status' ),
                     'args'                => array(),
-                    'permission_callback' => array( $this, 'get_item_permissions_check' ),
+                    'permission_callback' => array( $this, 'update_notification_dismiss_permissions_check' ),
                 ),
             )
         );
@@ -61,8 +61,21 @@ class SetupNotification extends WP_REST_Controller {
      * @return WP_Error|boolean
      */
     public function get_item_permissions_check( $request ) {
-        return current_user_can( 'etn_manage_setting' ) 
+        return current_user_can( 'etn_manage_setting' )
                 || current_user_can( 'etn_manage_event' );
+    }
+
+    /**
+     * Permission check for flipping the site-wide notification dismissed flag.
+     *
+     * Restricted to administrators because the option is global; an event
+     * manager should not be able to hide the onboarding banner for everyone.
+     *
+     * @param WP_REST_Request $request
+     * @return bool
+     */
+    public function update_notification_dismiss_permissions_check( $request ) {
+        return current_user_can( 'manage_options' );
     }
 
     /**

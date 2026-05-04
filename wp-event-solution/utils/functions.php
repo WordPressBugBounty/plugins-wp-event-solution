@@ -1251,15 +1251,17 @@ if ( ! function_exists( 'etn_validate_event_tickets' ) ) {
      *
      * @param   integer  $event_id       Event id that will be purchased
      * @param   array  $order_tickets    Order ticket list
+     * @param   bool    $is_for_update  Whether this is an update operation
+     * @param   bool    $is_waiting    Whether this is for waiting list
      *
      * @return  bool | WP_Error
      */
-    function etn_validate_event_tickets( $event_id, $order_tickets,$is_for_update = false ) {
+    function etn_validate_event_tickets( $event_id, $order_tickets, $is_for_update = false, $is_waiting = false ) {
         $event         = new Event_Model( $event_id );
-        $sold_tickets    = (array)Helper::etn_get_sold_tickets_by_event( $event_id );
+        $sold_tickets  = (array)Helper::etn_get_sold_tickets_by_event( $event_id );
 
         $enable_global_stock = get_post_meta( $event_id, 'etn_enable_global_stock', true );
-        $global_stock       = intval( get_post_meta( $event_id, 'etn_global_stock', true ) );
+        $global_stock      = intval( get_post_meta( $event_id, 'etn_global_stock', true ) );
 
         if ( $enable_global_stock && $global_stock > 0 ) {
             $total_requested = 0;
@@ -1277,19 +1279,31 @@ if ( ! function_exists( 'etn_validate_event_tickets' ) ) {
                 }
             }
 
+            $remaining = $global_stock - $total_sold - $total_pending;
             if ( $is_for_update ) {
-                $remaining = $global_stock - $total_sold - $total_pending + $total_requested;
-            } else {
-                $remaining = $global_stock - $total_sold - $total_pending;
+                $remaining += $total_requested;
             }
 
-            if ( $total_requested > $remaining ) {
-                $only_left = max( 0, $remaining );
-                return new WP_Error( 
-                    'global_stock_limit', 
-                    sprintf( __( 'Only %d tickets left for this event.', 'eventin' ), $only_left ), 
-                    ['status' => 422] 
-                );
+            if ( $is_waiting ) {
+                $global_waiting_list = intval( get_post_meta( $event_id, 'etn_global_waiting_list', true ) );
+                $total_waiting       = array_sum( etn_get_waiting_list_counts_by_slug( $event_id ) );
+                $waiting_remaining   = $global_waiting_list - $total_waiting;
+                if ( $total_requested > $waiting_remaining ) {
+                    return new WP_Error(
+                        'waiting_list_limit',
+                        sprintf( __( 'Waiting list is full. Only %d spots available.', 'eventin' ), max( 0, $waiting_remaining ) ),
+                        ['status' => 422]
+                    );
+                }
+            } else {
+                if ( $total_requested > $remaining ) {
+                    $only_left = max( 0, $remaining );
+                    return new WP_Error(
+                        'global_stock_limit',
+                        sprintf( __( 'Only %d tickets left for this event.', 'eventin' ), $only_left ),
+                        ['status' => 422]
+                    );
+                }
             }
 
             return true;
@@ -1298,26 +1312,225 @@ if ( ! function_exists( 'etn_validate_event_tickets' ) ) {
         foreach( $order_tickets as $ticket ) {
             $event_ticket = $event->get_ticket( $ticket['ticket_slug'] );
 
-            $available = $event_ticket['etn_avaiilable_tickets']??0;
-            $sold      = $sold_tickets[$ticket['ticket_slug']]??0;
-            $pending   = $event_ticket['pending']??0;
-
-			// check if `etn_avaiilable_tickets` exists. if not means unlimited ticket
-			if ( !isset($available) || !is_numeric($available) ) {
-				return true;
-            }
-            if($is_for_update){
-                $ticket_left = intval($available) - intval($sold) - intval($pending) + intval($ticket['ticket_quantity']);
-            }else{
-                $ticket_left = intval($available) - intval($sold) - intval($pending);
+            if ( ! $event_ticket ) {
+                return new WP_Error( 'ticket_not_found', __( 'Ticket not found', 'eventin' ), ['status' => 422] );
             }
 
-            $available = $event_ticket['etn_avaiilable_tickets']??0;
-            if ($available > 0 && $ticket['ticket_quantity'] > $ticket_left ) {
-                return new WP_Error( 'ticket_limit', __( 'The ticket limit has been exceeded', 'eventin' ), ['status' => 422] );
+            $available = $event_ticket['etn_avaiilable_tickets'] ?? 0;
+            $sold      = $sold_tickets[$ticket['ticket_slug']] ?? 0;
+            $pending   = $event_ticket['pending'] ?? 0;
+
+            if ( ! isset( $available ) || ! is_numeric( $available ) ) {
+                return true;
+            }
+
+            $ticket_left = intval( $available ) - intval( $sold ) - intval( $pending );
+            if ( $is_for_update ) {
+                $ticket_left += intval( $ticket['ticket_quantity'] );
+            }
+
+            if ( $is_waiting ) {
+                $waiting_counts       = etn_get_waiting_list_counts_by_slug( $event_id );
+                $ticket_waiting_limit = intval( $event_ticket['etn_ticket_waiting_list_limit'] ?? 0 );
+                $waiting_for_slug     = $waiting_counts[ $ticket['ticket_slug'] ] ?? 0;
+                $waiting_remaining    = $ticket_waiting_limit - $waiting_for_slug;
+                if ( intval( $ticket['ticket_quantity'] ) > $waiting_remaining ) {
+                    return new WP_Error(
+                        'waiting_list_limit',
+                        sprintf( __( 'Waiting list is full for this ticket type. Only %d spots available.', 'eventin' ), max( 0, $waiting_remaining ) ),
+                        ['status' => 422]
+                    );
+                }
+            } else {
+                if ( $available > 0 && $ticket['ticket_quantity'] > $ticket_left ) {
+                    return new WP_Error( 'ticket_limit', __( 'The ticket limit has been exceeded', 'eventin' ), ['status' => 422] );
+                }
             }
         }
-        
+
+        return true;
+    }
+}
+
+if ( ! function_exists( 'etn_validate_ticket_quantity' ) ) {
+    /**
+     * Validate ticket quantity against min/max per ticket variant
+     *
+     * @param   array  $order_tickets  Order ticket list
+     * @param   integer  $event_id       Event id
+     *
+     * @return  bool | WP_Error
+     */
+    function etn_validate_ticket_quantity( $order_tickets, $event_id ) {
+        $event = new Event_Model( $event_id );
+
+        foreach ( $order_tickets as $ticket ) {
+            $event_ticket = $event->get_ticket( $ticket['ticket_slug'] );
+
+            if ( ! $event_ticket ) {
+                continue;
+            }
+
+            $qty = intval( $ticket['ticket_quantity'] );
+            $min = intval( $event_ticket['etn_min_ticket'] ?? 0 );
+            $max = intval( $event_ticket['etn_max_ticket'] ?? 0 );
+
+            // When no explicit per-order max is configured, fall back to the
+            // ticket's total capacity so requests cannot exceed what the event
+            // can ever fulfill (relevant for waiting-list orders where the
+            // normal stock check is bypassed).
+            if ( $max === 0 ) {
+                $available = intval( $event_ticket['etn_avaiilable_tickets'] ?? 0 );
+                if ( $available > 0 ) {
+                    $max = $available;
+                }
+            }
+
+            if ( $min > 0 && $qty < $min ) {
+                return new WP_Error(
+                    'min_ticket_quantity',
+                    sprintf( __( 'Minimum %d tickets required for this ticket type.', 'eventin' ), $min ),
+                    ['status' => 422]
+                );
+            }
+
+            if ( $max > 0 && $qty > $max ) {
+                return new WP_Error(
+                    'max_ticket_quantity',
+                    sprintf( __( 'Maximum %d tickets allowed for this ticket type.', 'eventin' ), $max ),
+                    ['status' => 422]
+                );
+            }
+        }
+
+        return true;
+    }
+}
+
+if ( ! function_exists( 'etn_get_waiting_list_counts_by_slug' ) ) {
+    /**
+     * Return ticket quantities on the waiting list for an event, keyed by ticket slug.
+     * Counts all orders that carry the is_from_waiting_list meta flag.
+     *
+     * @param   integer  $event_id
+     *
+     * @return  array  [ ticket_slug => total_quantity, ... ]
+     */
+    function etn_get_waiting_list_counts_by_slug( $event_id ) {
+        $query = new WP_Query( [
+            'post_type'      => 'etn-order',
+            'post_status'    => 'any',
+            'posts_per_page' => -1,
+            'fields'         => 'ids',
+            'meta_query'     => [
+                [
+                    'key'   => 'event_id',
+                    'value' => $event_id,
+                ],
+                [
+                    'key'   => 'is_from_waiting_list',
+                    'value' => '1',
+                ],
+            ],
+        ] );
+
+        $counts = [];
+        foreach ( $query->posts as $order_id ) {
+            $tickets = etn_safe_decode( get_post_meta( $order_id, 'tickets', true ) );
+            if ( ! is_array( $tickets ) ) {
+                continue;
+            }
+            foreach ( $tickets as $ticket ) {
+                $slug = $ticket['ticket_slug'] ?? '';
+                $qty  = intval( $ticket['ticket_quantity'] ?? 0 );
+                if ( $slug ) {
+                    $counts[ $slug ] = ( $counts[ $slug ] ?? 0 ) + $qty;
+                }
+            }
+        }
+
+        return $counts;
+    }
+}
+
+if ( ! function_exists( 'etn_is_tickets_sold_out' ) ) {
+    /**
+     * Check whether the requested tickets are sold out (stock exhausted).
+     *
+     * Returns true when every requested ticket type has no remaining stock,
+     * or a WP_Error naming the ticket type(s) that still have availability.
+     * Tickets with no capacity limit (available = 0) are treated as unlimited
+     * and therefore never considered sold out.
+     *
+     * @param   integer  $event_id       Event ID.
+     * @param   array    $order_tickets  Tickets array from the order request.
+     *
+     * @return  true|WP_Error
+     */
+    function etn_is_tickets_sold_out( $event_id, $order_tickets ) {
+        $event        = new Event_Model( $event_id );
+        $sold_tickets = (array) Helper::etn_get_sold_tickets_by_event( $event_id );
+
+        $enable_global_stock = get_post_meta( $event_id, 'etn_enable_global_stock', true );
+        $global_stock        = intval( get_post_meta( $event_id, 'etn_global_stock', true ) );
+
+        if ( $enable_global_stock && $global_stock > 0 ) {
+            $total_sold    = array_sum( $sold_tickets );
+            $ticket_vars   = $event->etn_ticket_variations;
+            $total_pending = 0;
+            if ( is_array( $ticket_vars ) ) {
+                foreach ( $ticket_vars as $ticket_var ) {
+                    $total_pending += intval( $ticket_var['pending'] ?? 0 );
+                }
+            }
+            $remaining = $global_stock - $total_sold - $total_pending;
+            if ( $remaining > 0 ) {
+                return new WP_Error(
+                    'tickets_available',
+                    sprintf(
+                        /* translators: %d: number of tickets still available */
+                        __( 'Tickets are still available (%d remaining). You can only join the waiting list when the event is sold out.', 'eventin' ),
+                        $remaining
+                    ),
+                    [ 'status' => 400 ]
+                );
+            }
+            return true;
+        }
+
+        // Per-ticket check.
+        foreach ( $order_tickets as $ticket ) {
+            $event_ticket = $event->get_ticket( $ticket['ticket_slug'] );
+
+            if ( ! $event_ticket ) {
+                continue;
+            }
+
+            $available = intval( $event_ticket['etn_avaiilable_tickets'] ?? 0 );
+
+            // Skip tickets with no capacity limit (unlimited).
+            if ( $available <= 0 ) {
+                continue;
+            }
+
+            $sold    = intval( $sold_tickets[ $ticket['ticket_slug'] ] ?? 0 );
+            $pending = intval( $event_ticket['pending'] ?? 0 );
+            $left    = $available - $sold - $pending;
+
+            if ( $left > 0 ) {
+                return new WP_Error(
+                    'tickets_available',
+                    sprintf(
+                        /* translators: 1: ticket name, 2: number of tickets still available */
+                        __( 'Tickets are still available for "%1$s" (%2$d remaining). You can only join the waiting list when tickets are sold out.', 'eventin' ),
+                        $event_ticket['etn_ticket_name'] ?? $ticket['ticket_slug'],
+                        $left
+                    ),
+                    [ 'status' => 400 ]
+                );
+            }
+        }
+
         return true;
     }
 }

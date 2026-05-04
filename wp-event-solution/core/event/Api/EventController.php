@@ -310,9 +310,16 @@ class EventController extends WP_REST_Controller {
         $speaker        = ! empty( $request['speaker'] ) ? intval($request['speaker']) : [];
         $parent         = isset( $request['parent'] ) ? intval( $request['parent'] ) : null;
 
+        $can_see_drafts = current_user_can( 'etn_manage_event' );
+
+        if ( ! $can_see_drafts && 'all' !== $status ) {
+            // Anonymous / nonce-only callers must not be able to request draft or private status.
+            $status = 'all';
+        }
+
         $args = [
             'post_type'      => 'etn',
-            'post_status'    => 'any',
+            'post_status'    => $can_see_drafts ? 'any' : [ 'publish' ],
             'posts_per_page' => $per_page,
             'paged'          => $paged,
         ];
@@ -379,12 +386,14 @@ class EventController extends WP_REST_Controller {
         $tomorrow = gmdate( 'Y-m-d H:i:s', strtotime( '+1 day' ) );
         $yesterday = gmdate( 'Y-m-d H:i:s', strtotime( '-1 day' ) );
     
-        if ( 'draft' === $status ) {
+        if ( 'draft' === $status && $can_see_drafts ) {
             $args['post_status'] = 'draft';
         }
 		elseif ( 'all' !== $status ) {
             // Exclude drafts unless explicitly requested
-            $args['post_status'] = array('publish', 'pending', 'future', 'private', 'inherit');
+            $args['post_status'] = $can_see_drafts
+                ? array( 'publish', 'pending', 'future', 'private', 'inherit' )
+                : array( 'publish' );
     
             if ( 'upcoming' === $status ) {
                 $meta_query[] = [
@@ -530,6 +539,14 @@ class EventController extends WP_REST_Controller {
     public function get_item( $request ) {
         $id   = intval( $request['id'] );
         $post = get_post( $id );
+
+        if ( ! $post || 'etn' !== $post->post_type ) {
+            return new WP_Error( 'rest_event_invalid', __( 'Invalid event id.', 'eventin' ), [ 'status' => 404 ] );
+        }
+
+        if ( ! current_user_can( 'etn_manage_event' ) && 'publish' !== $post->post_status ) {
+            return new WP_Error( 'rest_forbidden', __( 'You do not have permission to view this event.', 'eventin' ), [ 'status' => 403 ] );
+        }
 
         $item = $this->prepare_item_for_response( $post, $request );
         $item['revenue'] = RevenueReport::get_total_revenue( [], $id );
@@ -710,6 +727,8 @@ class EventController extends WP_REST_Controller {
         $previous_event_start_date = $event->etn_start_date;
         $previous_event_start_time = $event->etn_start_time;
 
+        $was_recurring = get_post_meta( $request['id'], 'recurring_enabled', true );
+
         $updated = $event->update( $prepared_event );
 
         if ( ! $updated ) {
@@ -718,6 +737,29 @@ class EventController extends WP_REST_Controller {
                 __( 'Event can not be updated.', 'eventin' ),
                 array( 'status' => 500 )
             );
+        }
+
+        // Detach previously-generated child recurring events when admin toggles recurring off.
+        $is_recurring_now = ! empty( $prepared_event['recurring_enabled'] ) && 'yes' === $prepared_event['recurring_enabled'];
+
+        if ( 'yes' === $was_recurring && ! $is_recurring_now ) {
+            $child_ids = get_posts( [
+                'post_type'      => 'etn',
+                'post_parent'    => $request['id'],
+                'post_status'    => 'any',
+                'posts_per_page' => -1,
+                'fields'         => 'ids',
+            ] );
+
+            foreach ( $child_ids as $child_id ) {
+                wp_update_post( [
+                    'ID'          => $child_id,
+                    'post_parent' => 0,
+                ] );
+                clean_post_cache( $child_id );
+            }
+
+            do_action( 'eventin_recurring_disabled_children_detached', $request['id'], $child_ids );
         }
 
         // Update event categories.
@@ -1052,8 +1094,11 @@ class EventController extends WP_REST_Controller {
             $speaker         = array_map( function( $org ) { return (int) $org; }, $filter_user['speaker']);
         }
 
+        $waiting_list_counts = etn_get_waiting_list_counts_by_slug( $id );
         foreach( $ticket_variations as &$ticket ) {
-            $ticket['etn_sold_tickets'] = !empty($sold_tickets[$ticket['etn_ticket_slug']]) ? $sold_tickets[$ticket['etn_ticket_slug']] : 0;
+            $slug = $ticket['etn_ticket_slug'];
+            $ticket['etn_sold_tickets']    = !empty($sold_tickets[$slug]) ? $sold_tickets[$slug] : 0;
+            $ticket['waiting_list_count']  = !empty($waiting_list_counts[$slug]) ? intval($waiting_list_counts[$slug]) : 0;
         }
         unset($ticket);
         $settings_options   = get_option( 'etn_event_options' );      
@@ -1087,7 +1132,7 @@ class EventController extends WP_REST_Controller {
             'tags'                    => $tags,
             'visibility_status'       => $post->post_status,
             'status'                  => $event->get_status(),
-            'password'                => $post->post_password,
+            'password'                => current_user_can( 'edit_post', $id ) ? $post->post_password : '',
             'link'                    => get_permalink( $id ),
             'link_base'               => home_url().'/'.(!empty($settings_options['event_slug'])?$settings_options['event_slug']:'etn'),
             'schedules'               => is_array( $schedules ) ? array_map('intval', $schedules ) : [],
@@ -1115,6 +1160,8 @@ class EventController extends WP_REST_Controller {
             'total_sold_tickets'      => $event->get_total_sold_ticket(),
             'etn_enable_global_stock' => rest_sanitize_boolean( get_post_meta( $id, 'etn_enable_global_stock', true ) ),
             'etn_global_stock'        => intval( get_post_meta( $id, 'etn_global_stock', true ) ),
+            'etn_global_waiting_list'        => intval( get_post_meta( $id, 'etn_global_waiting_list', true ) ),
+            'enable_attendee_waiting_list'   => rest_sanitize_boolean( get_post_meta( $id, 'enable_attendee_waiting_list', true ) ),
             'ticket_variations'       => $ticket_variations,
             'event_socials'           => $event_socials,
             'google_meet'             => get_post_meta( $id, 'etn_google_meet', true ),
@@ -1554,6 +1601,14 @@ class EventController extends WP_REST_Controller {
             $event_data['etn_global_stock'] = max( 0, intval( $input_data['etn_global_stock'] ) );
         }
 
+        if ( isset( $input_data['etn_global_waiting_list'] ) ) {
+            $event_data['etn_global_waiting_list'] = max( 0, intval( $input_data['etn_global_waiting_list'] ) );
+        }
+
+        if ( isset( $input_data['enable_attendee_waiting_list'] ) ) {
+            $event_data['enable_attendee_waiting_list'] = rest_sanitize_boolean( $input_data['enable_attendee_waiting_list'] );
+        }
+
         if ( isset( $input_data['event_logo'] ) ) {
             $event_data['etn_event_logo'] = $input_data['event_logo'];
         }
@@ -1751,13 +1806,32 @@ class EventController extends WP_REST_Controller {
           $event_data['menu_order'] = $input_data['_etn_buddy_group_id'];
         }
 
-        $sold_tickets    = (array)Helper::etn_get_sold_tickets_by_event( $input_data['id'] );
+        $is_global_stock_enabled = isset( $event_data['etn_enable_global_stock'] )
+            ? rest_sanitize_boolean( $event_data['etn_enable_global_stock'] )
+            : rest_sanitize_boolean( get_post_meta( $input_data['id'], 'etn_enable_global_stock', true ) );
 
-        foreach($event_data['etn_ticket_variations'] as &$ticket){
-            $ticket['etn_sold_tickets'] = !empty($sold_tickets[$ticket['etn_ticket_slug']]) ? $sold_tickets[$ticket['etn_ticket_slug']] : 0;
-            $ticket['etn_avaiilable_tickets'] = (int)$ticket['etn_avaiilable_tickets'];
-            if($ticket['etn_avaiilable_tickets'] > 0 && $ticket['etn_sold_tickets'] > $ticket['etn_avaiilable_tickets']){
-                return new WP_Error( 'etn_ticket_sold_out', __( 'Available ticket must be greater than the sold ticket', 'eventin' ) );
+        $sold_tickets = (array) Helper::etn_get_sold_tickets_by_event( $input_data['id'] );
+
+        foreach ( $event_data['etn_ticket_variations'] as &$ticket ) {
+            $ticket['etn_sold_tickets']       = ! empty( $sold_tickets[ $ticket['etn_ticket_slug'] ] ) ? $sold_tickets[ $ticket['etn_ticket_slug'] ] : 0;
+            $ticket['etn_avaiilable_tickets'] = (int) $ticket['etn_avaiilable_tickets'];
+        }
+        unset( $ticket );
+
+        if ( $is_global_stock_enabled ) {
+            $global_capacity = isset( $event_data['etn_global_stock'] )
+                ? (int) $event_data['etn_global_stock']
+                : (int) get_post_meta( $input_data['id'], 'etn_global_stock', true );
+            $total_sold      = array_sum( array_map( 'intval', $sold_tickets ) );
+
+            if ( $global_capacity > 0 && $total_sold > $global_capacity ) {
+                return new WP_Error( 'etn_ticket_sold_out', __( 'Global ticket capacity must be greater or equal to the total sold tickets', 'eventin' ) );
+            }
+        } else {
+            foreach ( $event_data['etn_ticket_variations'] as $ticket ) {
+                if ( $ticket['etn_avaiilable_tickets'] > 0 && $ticket['etn_sold_tickets'] > $ticket['etn_avaiilable_tickets'] ) {
+                    return new WP_Error( 'etn_ticket_sold_out', __( 'Available ticket must be greater or equal to the sold ticket', 'eventin' ) );
+                }
             }
         }
 		

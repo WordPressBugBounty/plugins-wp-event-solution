@@ -231,18 +231,50 @@ class OrderTicket implements HookableInterface {
         $event = new Event_Model( $order->event_id );
 
         $event_tickets = $event->etn_ticket_variations;
+        $is_waiting_list_order = (bool) get_post_meta( $order->id, 'is_from_waiting_list', true );
 
         $updated_tickets = [];
 
         if ( $event_tickets ) {
             foreach( $event_tickets as $ticket ) {
-                $updated_ticket = $this->prepare_event_ticket( $order, $ticket );
+                $updated_ticket = $this->prepare_event_ticket( $order, $ticket, $is_waiting_list_order );
 
                 $updated_tickets[] = $updated_ticket;
             }
         }
 
-        $event->update([ 'etn_ticket_variations' => $updated_tickets ]);
+        $event_update = [ 'etn_ticket_variations' => $updated_tickets ];
+
+        if ( $is_waiting_list_order ) {
+            $enable_global_stock = get_post_meta( $order->event_id, 'etn_enable_global_stock', true );
+            $total_ordered      = array_sum( array_column( (array) $order->tickets, 'ticket_quantity' ) );
+
+            if ( $enable_global_stock ) {
+                $event_update['etn_global_stock'] = (int) get_post_meta( $order->event_id, 'etn_global_stock', true ) + $total_ordered;
+
+                $current_global_waiting = (int) get_post_meta( $order->event_id, 'etn_global_waiting_list', true );
+                $event_update['etn_global_waiting_list'] = max( 0, $current_global_waiting - $total_ordered );
+            } else {
+                $ordered_qty_by_slug = [];
+                foreach ( (array) $order->tickets as $ordered_ticket ) {
+                    $slug = $ordered_ticket['ticket_slug'] ?? '';
+                    if ( $slug ) {
+                        $ordered_qty_by_slug[ $slug ] = ( $ordered_qty_by_slug[ $slug ] ?? 0 ) + (int) ( $ordered_ticket['ticket_quantity'] ?? 0 );
+                    }
+                }
+
+                foreach ( $event_update['etn_ticket_variations'] as &$variation ) {
+                    $slug = $variation['etn_ticket_slug'] ?? '';
+                    if ( $slug && isset( $ordered_qty_by_slug[ $slug ] ) ) {
+                        $current_limit = (int) ( $variation['etn_ticket_waiting_list_limit'] ?? 0 );
+                        $variation['etn_ticket_waiting_list_limit'] = max( 0, $current_limit - $ordered_qty_by_slug[ $slug ] );
+                    }
+                }
+                unset( $variation );
+            }
+        }
+
+        $event->update( $event_update );
 
         $this->update_booked_seat($event, $order);
         $this->update_pending_seat($event, $order);
@@ -279,7 +311,7 @@ class OrderTicket implements HookableInterface {
      *
      * @return  array          [return description]
      */
-    private function prepare_event_ticket( $order, $event_ticket ) {
+    private function prepare_event_ticket( $order, $event_ticket, $is_waiting_list = false ) {
         $order_tickets = $order->tickets;
         $event_id = $order->event_id ?? null;
         $sold_tickets = $event_id ? (array)Helper::etn_get_sold_tickets_by_event( $event_id ) : [];
@@ -287,9 +319,16 @@ class OrderTicket implements HookableInterface {
         foreach( $order_tickets as $ticket ) {
             if ( $ticket['ticket_slug'] === $event_ticket['etn_ticket_slug'] ) {
                 $event_ticket['etn_sold_tickets'] = $sold_tickets[$ticket['ticket_slug']] ?? 0;
-                $event_ticket['pending'] = isset( $event_ticket['pending'] ) ? $event_ticket['pending'] - $ticket['ticket_quantity'] : 0;
-                if ( $event_ticket['pending'] < 0 ) {
-                    $event_ticket['pending'] = 0;
+
+                if ( $is_waiting_list ) {
+                    // Expand capacity to absorb the waiting-list conversion so the ticket
+                    // never appears oversold after this order completes.
+                    $event_ticket['etn_avaiilable_tickets'] = (int) ( $event_ticket['etn_avaiilable_tickets'] ?? 0 ) + (int) $ticket['ticket_quantity'];
+                } else {
+                    $event_ticket['pending'] = isset( $event_ticket['pending'] ) ? $event_ticket['pending'] - $ticket['ticket_quantity'] : 0;
+                    if ( $event_ticket['pending'] < 0 ) {
+                        $event_ticket['pending'] = 0;
+                    }
                 }
                 break;
             }

@@ -503,10 +503,18 @@ class Hooks {
             }
 	        
          
-	        $imageContent = file_get_contents($imageUrl);
-         
-         
-	        if (  false !== $imageContent && getimagesize($imageUrl) ) {
+	        $response = wp_safe_remote_get( $imageUrl, [
+	            'timeout'     => 10,
+	            'redirection' => 0,
+	        ] );
+
+	        if ( ! is_wp_error( $response ) && 200 === (int) wp_remote_retrieve_response_code( $response ) ) {
+	            $imageContent = wp_remote_retrieve_body( $response );
+	        } else {
+	            $imageContent = false;
+	        }
+
+	        if ( false !== $imageContent && '' !== $imageContent ) {
 		        
                 // Check file size limit (5MB)
                 if ( strlen( $imageContent ) > 5 * 1024 * 1024 ) {

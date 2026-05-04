@@ -71,7 +71,26 @@ if ( !function_exists( 'ens_sanitize_recursive' ) ) {
                 $input = floatval( $input );
             } elseif ( is_string( $input ) ) {
                 if ( strpos( $input, '<svg' ) === false ) {
-                    $input = wp_kses_post( $input );
+                    $allowed_protocols   = wp_allowed_protocols();
+                    $allowed_protocols[] = 'data';
+
+                    $prev_backtrack = ini_get( 'pcre.backtrack_limit' );
+                    $prev_recursion = ini_get( 'pcre.recursion_limit' );
+                    if ( strlen( $input ) > 500000 ) {
+                        @ini_set( 'pcre.backtrack_limit', max( (int) $prev_backtrack, strlen( $input ) * 4 ) );
+                        @ini_set( 'pcre.recursion_limit', max( (int) $prev_recursion, strlen( $input ) * 4 ) );
+                    }
+
+                    $sanitized = wp_kses( $input, 'post', array_unique( $allowed_protocols ) );
+
+                    if ( strlen( $input ) > 500000 ) {
+                        @ini_set( 'pcre.backtrack_limit', $prev_backtrack );
+                        @ini_set( 'pcre.recursion_limit', $prev_recursion );
+                    }
+
+                    if ( null !== $sanitized && '' !== $sanitized ) {
+                        $input = $sanitized;
+                    }
                 }
             }
         }

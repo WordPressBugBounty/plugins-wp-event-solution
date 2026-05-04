@@ -11,6 +11,7 @@ use Eventin\Customer\CustomerModel;
 use Eventin\Input;
 use Eventin\Emails\AdminOrderEmail;
 use Eventin\Emails\AttendeeOrderEmail;
+use Eventin\Emails\WaitingListPaymentEmail;
 use Eventin\Integrations\Webhook\FluentCRM;
 use Eventin\Mails\Mail;
 use WP_Error;
@@ -140,6 +141,24 @@ class OrderController extends WP_REST_Controller {
                 'permission_callback' => function( $request ) {
                     return wp_verify_nonce( $request->get_header( 'X-WP-Nonce' ), 'wp_rest' );
                 },
+            ],
+        ] );
+
+        register_rest_route( $this->namespace, $this->rest_base.'/waiting-list', [
+            [
+                'methods'             => WP_REST_Server::CREATABLE,
+                'callback'            => [$this, 'add_to_waiting_list'],
+                'permission_callback' => function( $request ) {
+                    return true;
+                },
+            ],
+        ] );
+
+        register_rest_route( $this->namespace, $this->rest_base . '/(?P<id>[\d]+)/send-payment-link', [
+            [
+                'methods'             => WP_REST_Server::READABLE,
+                'callback'            => [ $this, 'send_payment_link' ],
+                'permission_callback' => [ $this, 'send_payment_link_permissions_check' ],
             ],
         ] );
     }
@@ -311,7 +330,7 @@ class OrderController extends WP_REST_Controller {
                 ),
             );
 
-            $args['meta_query'] = $meta_query; 
+            $args['meta_query'] = $meta_query;
         }
 
 		
@@ -374,6 +393,11 @@ class OrderController extends WP_REST_Controller {
 
         if ( is_wp_error( $prepared_order ) ) {
             return new WP_Error( 'order_create_error', $prepared_order->get_error_message(), ['status' => 400] );
+        }
+
+        $qty_validation = etn_validate_ticket_quantity( $prepared_order['tickets'], $prepared_order['event_id'] );
+        if ( is_wp_error( $qty_validation ) ) {
+            return $qty_validation;
         }
 
         $prepared_order['date_time'] = gmdate('Y-m-d h:i A', current_time('timestamp')); // phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
@@ -515,6 +539,121 @@ class OrderController extends WP_REST_Controller {
     }
 
     /**
+     * Add attendee to waiting list for an event.
+     *
+     * @param WP_REST_Request $request Full details about the request.
+     * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+     */
+    public function add_to_waiting_list( $request ) {
+        $prepared_order = $this->prepare_item_for_database( $request, true );
+
+        if ( is_wp_error( $prepared_order ) ) {
+            return new WP_Error( 'waiting_list_error', $prepared_order->get_error_message(), ['status' => 400] );
+        }
+
+        $waiting_list_enabled = rest_sanitize_boolean( get_post_meta( $prepared_order['event_id'], 'enable_attendee_waiting_list', true ) );
+        if ( ! $waiting_list_enabled ) {
+            return new WP_Error( 'waiting_list_disabled', __( 'Waiting list is not enabled for this event.', 'eventin' ), ['status' => 400] );
+        }
+
+        // Block waiting-list signup when stock is still available.
+        $sold_out_check = etn_is_tickets_sold_out( $prepared_order['event_id'], $prepared_order['tickets'] );
+        if ( is_wp_error( $sold_out_check ) ) {
+            return $sold_out_check;
+        }
+
+        $ticket_validation = etn_validate_event_tickets( $prepared_order['event_id'], $prepared_order['tickets'], false, true );
+        if ( is_wp_error( $ticket_validation ) ) {
+            return $ticket_validation;
+        }
+
+        $qty_validation = etn_validate_ticket_quantity( $prepared_order['tickets'], $prepared_order['event_id'] );
+        if ( is_wp_error( $qty_validation ) ) {
+            return $qty_validation;
+        }
+
+        $prepared_order['date_time'] = gmdate( 'Y-m-d h:i A', current_time( 'timestamp' ) );
+        $prepared_order['status'] = 'waiting';
+
+        $order = new OrderModel();
+        $order->create( $prepared_order );
+
+        update_post_meta( $order->id, 'is_from_waiting_list', 1 );
+
+        do_action( 'eventin_before_attendees_create', $order );
+
+        $attendees = $this->prepare_attendee_data_for_waiting_list( $prepared_order['attendees'], $prepared_order['event_id'], $order->id );
+
+        $this->create_attendees( $attendees );
+
+        $this->create_customer( $order, $request );
+
+        $access_token = bin2hex( random_bytes( 16 ) );
+        update_post_meta( $order->id, '_order_access_token', $access_token );
+
+        $response = $this->prepare_item_for_response( $order, $request );
+        $response['order_access_token'] = $access_token;
+
+        do_action( 'eventin_after_order_create', $order, $attendees );
+
+        return rest_ensure_response( $response );
+    }
+
+    /**
+     * Prepare attendee data for waiting list
+     *
+     * @param array $attendees Attendees data from request
+     * @param int $event_id Event id
+     * @param int $order_id Order id
+     * @return array Prepared attendee data
+     */
+    protected function prepare_attendee_data_for_waiting_list( $attendees, $event_id, $order_id ) {
+        $attendee_data = [];
+        $event_tickets = etn_safe_decode( get_post_meta( $event_id, 'etn_ticket_variations', true ) );
+
+        if ( empty( $attendees ) ) {
+            return $attendee_data;
+        }
+
+        foreach ( $attendees as $attendee ) {
+            $ticket_slug = $attendee['ticket_slug'];
+            $ticket_name = '';
+            $ticket_price = 0;
+
+            if ( is_array( $event_tickets ) ) {
+                foreach ( $event_tickets as $ticket ) {
+                    if ( isset( $ticket['etn_ticket_slug'] ) && $ticket['etn_ticket_slug'] === $ticket_slug ) {
+                        $ticket_name = $ticket['etn_ticket_name'] ?? '';
+                        $ticket_price = floatval( $ticket['etn_ticket_price'] ?? 0 );
+                        break;
+                    }
+                }
+            }
+
+            $new_attendee = [
+                'etn_name'               => $attendee['name'],
+                'etn_email'              => $attendee['email'],
+                'etn_phone'              => $attendee['phone'] ?? '',
+                'etn_event_id'           => $event_id,
+                'ticket_name'            => $ticket_name,
+                'ticket_slug'           => $ticket_slug,
+                'etn_ticket_price'       => $ticket_price,
+                'etn_info_edit_token'   => \Etn\Utils\Helper::generate_secure_token(),
+                'etn_unique_ticket_id'  => substr( md5( $ticket_price ), 0, 10 ),
+                'eventin_order_id'        => $order_id,
+                'post_status'            => 'publish',
+                'etn_status'            => 'waiting',
+            ];
+
+            $extra_fields = isset( $attendee['extra_fields'] ) ? $this->prepare_attendee_extra_fields( $attendee['extra_fields'] ) : [];
+
+            $attendee_data[] = array_merge( $new_attendee, $extra_fields );
+        }
+
+        return $attendee_data;
+    }
+
+    /**
      * Checks if a given request has access to create an order.
      *
      * Intentionally nonce-only: ticket purchases are made by unauthenticated guests
@@ -542,7 +681,27 @@ class OrderController extends WP_REST_Controller {
      * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
      */
     public function update_item( $request ) {
-		
+
+        // Update payment method only (used when a waiting-list customer proceeds to payment).
+        if ( isset( $request['action'] ) && $request['action'] === 'update_payment_method' ) {
+            $id             = intval( $request['id'] );
+            $payment_method = isset( $request['payment_method'] ) ? sanitize_text_field( $request['payment_method'] ) : '';
+
+            if ( empty( $payment_method ) ) {
+                return new WP_Error( 'missing_payment_method', __( 'Payment method is required.', 'eventin' ), [ 'status' => 400 ] );
+            }
+
+            $order = new OrderModel( $id );
+
+            if ( ! $order->id ) {
+                return new WP_Error( 'invalid_order', __( 'Invalid order id.', 'eventin' ), [ 'status' => 404 ] );
+            }
+
+            $order->update( [ 'payment_method' => $payment_method, 'status' => 'pending' ] );
+
+            return rest_ensure_response( $this->prepare_item_for_response( $order, $request ) );
+        }
+
 		// if request for status update
 	    if ( isset( $request['action'] ) && $request['action'] == "update_booking_status" ) {
 		    $status = $request['status'];
@@ -688,7 +847,21 @@ class OrderController extends WP_REST_Controller {
      * @return true|WP_Error True if the request has access to update the item, WP_Error object otherwise.
      */
     public function update_item_permissions_check( $request ) {
-        return current_user_can( 'etn_manage_order' );
+        if ( current_user_can( 'etn_manage_order' ) ) {
+            return true;
+        }
+
+        if ( wp_verify_nonce( $request->get_header( 'X-Wp-Nonce' ), 'wp_rest' ) ) {
+            $id     = intval( $request['id'] );
+            $token  = sanitize_text_field( $request->get_param( 'order_token' ) );
+            $stored = get_post_meta( $id, '_order_access_token', true );
+
+            if ( $token && $stored && hash_equals( $stored, $token ) ) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -877,7 +1050,7 @@ class OrderController extends WP_REST_Controller {
      * @param WP_REST_Request $request Request object.
      * @return WP_Error|object $prepared_item
      */
-    protected function prepare_item_for_database( $request ) {
+    protected function prepare_item_for_database( $request, $is_waiting = false ) {
         $input_data = json_decode( $request->get_body(), true ) ?? [];
 
         // Get settings to check if phone is required
@@ -912,7 +1085,7 @@ class OrderController extends WP_REST_Controller {
             }
         }
 
-        $ticket_validation = etn_validate_event_tickets( $input_data['event_id'], $input_data['tickets'],true );
+        $ticket_validation = etn_validate_event_tickets( $input_data['event_id'], $input_data['tickets'], true, $is_waiting );
 
         if ( is_wp_error( $ticket_validation ) ) {
             return $ticket_validation;
@@ -1058,13 +1231,28 @@ class OrderController extends WP_REST_Controller {
 
         $data = [];
 
+        if ( ! is_array( $extra_fields ) ) {
+            return $data;
+        }
+
         // Add extra fields meta key prefix.
         foreach( $extra_fields as $key => $value ) {
-            $text = mb_strtolower( preg_replace( '/[^\p{L}\p{N}]+/u', '_', trim($key) ) );
+            $text          = mb_strtolower( preg_replace( '/[^\p{L}\p{N}]+/u', '_', trim( (string) $key ) ) );
+            $sanitized_key = sanitize_key( $text );
 
-            $meta_key = $prefix . $text;
-            
-            $data[$meta_key] = $value;
+            if ( '' === $sanitized_key ) {
+                continue;
+            }
+
+            if ( is_array( $value ) ) {
+                $sanitized_value = map_deep( $value, 'sanitize_text_field' );
+            } else {
+                $sanitized_value = sanitize_text_field( (string) $value );
+            }
+
+            $meta_key = $prefix . $sanitized_key;
+
+            $data[ $meta_key ] = $sanitized_value;
         }
 
         return $data;
@@ -1154,7 +1342,58 @@ class OrderController extends WP_REST_Controller {
         }
 
         if ( ! $ids ) {
-            $ids = (new OrderModel())->get_ids();
+            $filters    = ! empty( $request['filters'] ) && is_array( $request['filters'] ) ? $request['filters'] : [];
+            $args       = [];
+            $meta_query = [];
+
+            if ( ! empty( $filters['eventId'] ) ) {
+                $meta_query[] = [
+                    'key'     => 'event_id',
+                    'value'   => sanitize_text_field( $filters['eventId'] ),
+                    'compare' => '=',
+                ];
+            }
+
+            if ( ! empty( $filters['status'] ) ) {
+                $meta_query[] = [
+                    'key'     => 'status',
+                    'value'   => sanitize_text_field( $filters['status'] ),
+                    'compare' => '=',
+                ];
+            }
+
+            if ( ! empty( $filters['payment_method'] ) ) {
+                $meta_query[] = [
+                    'key'     => 'payment_method',
+                    'value'   => sanitize_text_field( $filters['payment_method'] ),
+                    'compare' => '=',
+                ];
+            }
+
+            if ( ! empty( $filters['startDate'] ) && ! empty( $filters['endDate'] ) ) {
+                $args['date_query'] = [ [
+                    'after'     => sanitize_text_field( $filters['startDate'] ),
+                    'before'    => sanitize_text_field( $filters['endDate'] ),
+                    'inclusive' => true,
+                ] ];
+            }
+
+            if ( ! empty( $filters['searchTerm'] ) && ! is_numeric( $filters['searchTerm'] ) ) {
+                $search = sanitize_text_field( $filters['searchTerm'] );
+                $args['meta_query'] = [
+                    'relation' => 'OR',
+                    [ 'key' => 'customer_fname',  'value' => $search, 'compare' => 'LIKE' ],
+                    [ 'key' => 'customer_lname',  'value' => $search, 'compare' => 'LIKE' ],
+                    [ 'key' => 'customer_email',  'value' => $search, 'compare' => 'LIKE' ],
+                    [ 'key' => 'customer_phone',  'value' => $search, 'compare' => 'LIKE' ],
+                    [ 'key' => 'payment_method',  'value' => $search, 'compare' => 'LIKE' ],
+                ];
+            } elseif ( ! empty( $meta_query ) ) {
+                $meta_query['relation'] = 'AND';
+                $args['meta_query']     = $meta_query;
+            }
+
+            $ids = ( new OrderModel() )->get_ids( $args );
         }
 
         $exporter = new OrderExporter();
@@ -1303,6 +1542,72 @@ class OrderController extends WP_REST_Controller {
     }
 
     /**
+     * Send a direct payment link to a customer whose order is on the waiting list.
+     *
+     * Generates (or reuses) a signed access token, builds a checkout URL that
+     * pre-populates the cart via URL query params, and emails the link to the
+     * customer associated with the order.
+     *
+     * @param WP_REST_Request $request
+     * @return WP_REST_Response|WP_Error
+     */
+    public function send_payment_link( $request ) {
+        $id = intval( $request['id'] );
+
+        $post = get_post( $id );
+
+        if ( ! $post ) {
+            return new WP_Error( 'invalid_order', __( 'Invalid order id', 'eventin' ), [ 'status' => 404 ] );
+        }
+
+        if ( 'etn-order' !== $post->post_type ) {
+            return new WP_Error( 'invalid_order', __( 'Invalid order id', 'eventin' ), [ 'status' => 404 ] );
+        }
+
+        $order = new OrderModel( $id );
+
+        if ( 'waiting' !== $order->status ) {
+            return new WP_Error(
+                'invalid_status',
+                __( 'Payment link can only be sent for orders with waiting-list status.', 'eventin' ),
+                [ 'status' => 400 ]
+            );
+        }
+
+        // Reuse the existing token or create one if missing.
+        $access_token = get_post_meta( $id, '_order_access_token', true );
+        if ( ! $access_token ) {
+            $access_token = bin2hex( random_bytes( 16 ) );
+            update_post_meta( $id, '_order_access_token', $access_token );
+        }
+
+        $payment_url = add_query_arg(
+            [
+                'order_id'    => $id,
+                'order_token' => $access_token,
+            ],
+            site_url( 'eventin-purchase/preview/' )
+        );
+
+        $from = etn_get_email_settings( 'purchase_email' )['from'];
+        Mail::to( $order->customer_email )->from( $from )->send( new WaitingListPaymentEmail( $order, $payment_url ) );
+
+        return rest_ensure_response( [
+            'message'     => __( 'Payment link sent successfully.', 'eventin' ),
+            'payment_url' => $payment_url,
+        ] );
+    }
+
+    /**
+     * Check permissions for send_payment_link.
+     *
+     * @return bool
+     */
+    public function send_payment_link_permissions_check() {
+        return current_user_can( 'etn_manage_order' );
+    }
+
+    /**
      * Refund an order
      *
      * @param   WP_Rest_Request  $request  [$request description]
@@ -1360,7 +1665,7 @@ class OrderController extends WP_REST_Controller {
      * @return  bool
      */
     public function refund_ticket_permissions_check( $request ) {
-        return current_user_can( 'manage_options' );
+        return current_user_can( 'etn_manage_order' );
     }
 	
 	

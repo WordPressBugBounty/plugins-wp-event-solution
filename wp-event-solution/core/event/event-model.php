@@ -91,6 +91,8 @@ class Event_Model extends Post_Model {
         'etn_last_update_date'              => '',
         'etn_enable_global_stock'           => false,
         'etn_global_stock'                  => 0,
+        'etn_global_waiting_list'            => 0,
+        'enable_attendee_waiting_list'      => false,
     ];
 
     /**
@@ -99,6 +101,10 @@ class Event_Model extends Post_Model {
      * @return  integer
      */
     public function get_total_ticket() {
+        if ( $this->etn_enable_global_stock ) {
+            return intval( $this->etn_global_stock );
+        }
+
         $ticket_variations = $this->etn_ticket_variations;
         $total_ticket      = 0;
 

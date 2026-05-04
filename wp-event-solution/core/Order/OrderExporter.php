@@ -90,7 +90,7 @@ class OrderExporter implements PostExporterInterface {
             $tax_display_mode = get_post_meta( $order->id, 'tax_display_mode', true );
             $extra_fields = json_encode(etn_safe_decode(get_post_meta( $order->id, 'extra_fields', true )));
             
-            $final_total = $order->total_price - $total_discount;
+            $final_total = floatval( $order->total_price ) - $total_discount;
 
             if ( $tax_display_mode != 'incl' ) {
                 $final_total = $final_total + $total_tax;

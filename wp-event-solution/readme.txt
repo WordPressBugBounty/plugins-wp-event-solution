@@ -3,7 +3,7 @@ Contributors: arraytics, ehsanriyadh
 Tags: event calendar, event registration, event tickets, event booking, event management, event manager, event tickets, event scheduling, booking system, RSVP, event listing
 Requires at least: 6.2
 Tested up to: 6.9
-Stable tag: 4.1.11
+Stable tag: 4.1.12
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: [https://www.gnu.org/licenses/gpl-2.0.html](https://www.gnu.org/licenses/gpl-2.0.html)
@@ -279,7 +279,23 @@ No developer needed. Eventin is designed for non-technical users with a guided o
 = Does Eventin support multiple languages and RTL? =
 Yes. Eventin is translation-ready and compatible with WPML and Loco Translate. It also fully supports right-to-left (RTL) languages including Arabic and Hebrew.
 
+= Where do I report security bugs found in this plugin? =
+Please report security bugs found in the source code of the WP Event Solution plugin through the [Patchstack Vulnerability Disclosure Program](https://patchstack.com/database/vdp/5b5e63df-930d-4f15-9bf8-db51f5732488). The Patchstack team will assist you with verification, CVE assignment, and notify the developers of this plugin.
+
 == Changelog ==
+
+= 4.1.12 ( May 4, 2026 ) =
+New     : Import - Event import from The Events Calendar implemented
+New     : Import - Event import from Facebook event implemented
+New     : Waiting List - Implemented waiting list feature
+Tweak   : Export - Attendee & booking export improved (filtered data only)
+Tweak   : Import - Eventbrite event import fully reviewed and validated
+Fix     : Booking - Author can't refund booking
+Fix     : Dashboard - Customers can't view their own orders from frontend dashboard
+Fix     : Elementor - Template builder disappearing issue resolved
+Fix     : Email - Email styling inconsistencies fixed
+Fix     : Calendar Pro - Shortcode issues resolved
+Fix     : Booking - Event author refund issue fixed
 
 = 4.1.11 ( April 27, 2026 ) =
 New : User guidance and helpful resources added

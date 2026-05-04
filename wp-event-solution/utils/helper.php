@@ -443,14 +443,18 @@
                         $etn_orderby_filter = static function ($orderby_statement, $query) use (&$etn_orderby_filter) { // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
                             global $wpdb;
                             if ($query->get('orderby') && is_array($query->get('orderby'))) {
+                                $dir = strtoupper((string) $query->get('order')) === 'ASC' ? 'ASC' : 'DESC';
                                 return "
-								(SELECT meta_value FROM {$wpdb->postmeta} WHERE post_id = {$wpdb->posts}.ID AND meta_key = 'etn_start_date') {$query->get('order')},
-								STR_TO_DATE((SELECT meta_value FROM {$wpdb->postmeta} WHERE post_id = {$wpdb->posts}.ID AND meta_key = 'etn_start_time'), '%h:%i %p') {$query->get('order')}
+								(SELECT meta_value FROM {$wpdb->postmeta} WHERE post_id = {$wpdb->posts}.ID AND meta_key = 'etn_start_date') {$dir},
+								COALESCE(
+									STR_TO_DATE((SELECT meta_value FROM {$wpdb->postmeta} WHERE post_id = {$wpdb->posts}.ID AND meta_key = 'etn_start_time'), '%h:%i %p'),
+									STR_TO_DATE((SELECT meta_value FROM {$wpdb->postmeta} WHERE post_id = {$wpdb->posts}.ID AND meta_key = 'etn_start_time'), '%H:%i')
+								) {$dir}
 							";
                             }
                             return $orderby_statement;
                         };
-                        add_filter('posts_orderby', $etn_orderby_filter, 10, 2);
+                        add_filter('posts_orderby', $etn_orderby_filter, PHP_INT_MAX, 2);
                     } else {
                         $args['meta_key'] = $orderby; // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
                         $args['orderby']  = $orderby_meta;
@@ -573,7 +577,7 @@
 
             // Remove the orderby filter immediately after query so it doesn't bleed into subsequent queries
             if (isset($etn_orderby_filter)) {
-                remove_filter('posts_orderby', $etn_orderby_filter, 10);
+                remove_filter('posts_orderby', $etn_orderby_filter, PHP_INT_MAX);
             }
 
             // adding recurring tag
@@ -1158,8 +1162,8 @@
             $etn_left_tickets   = $etn_avaiilable_tickets - $etn_sold_tickets;
             $event_options      = get_option("etn_event_options");
             $event_time_format  = empty($event_options["time_format"]) ? '12' : $event_options["time_format"];
-            $event_start_time   = empty($etn_start_time) ? '' : (($event_time_format == "24") ? gmdate('H:i', $etn_start_time) : gmdate('g:i a', $etn_start_time));
-            $event_end_time     = empty($etn_end_time) ? '' : (($event_time_format == "24") ? gmdate('H:i', $etn_end_time) : gmdate('g:i a', $etn_end_time));
+            $event_start_time   = empty($etn_start_time) ? '' : (($event_time_format == "24") ? date('H:i', $etn_start_time) : date('g:i a', $etn_start_time));
+            $event_end_time     = empty($etn_end_time) ? '' : (($event_time_format == "24") ? date('H:i', $etn_end_time) : date('g:i a', $etn_end_time));
             $event_start_date   = self::etn_date($etn_start_date);
             $event_end_date     = self::etn_date($etn_end_date);
             $etn_deadline       = get_post_meta($single_event_id, 'etn_registration_deadline', true);
@@ -2199,6 +2203,7 @@
                 // ajax event filter in event archive
                 public static function etn_event_ajax_get_data()
                 {
+                    check_ajax_referer('etn_event_ajax', '_ajax_nonce');
                     $post_arr  = filter_input_array(INPUT_POST, FILTER_SANITIZE_SPECIAL_CHARS);
                     $prev_date = gmdate('Y-m-d', strtotime('-1 day'));
                     $next_date = gmdate('Y-m-d', strtotime('+1 day'));
@@ -3631,8 +3636,8 @@
 
                             $event_options     = get_option("etn_event_options");
                             $event_time_format = get_option('time_format');
-                            $start_time        = empty($etn_start_time) ? '' : (($event_time_format == "24") ? gmdate('H:i', $etn_start_time) : gmdate('g:i a', $etn_start_time));
-                            $end_time          = empty($etn_end_time) ? '' : (($event_time_format == "24") ? gmdate('H:i', $etn_end_time) : gmdate('g:i a', $etn_end_time));
+                            $start_time        = empty($etn_start_time) ? '' : (($event_time_format == "24") ? date('H:i', $etn_start_time) : date('g:i a', $etn_start_time));
+                            $end_time          = empty($etn_end_time) ? '' : (($event_time_format == "24") ? date('H:i', $etn_end_time) : date('g:i a', $etn_end_time));
 
                             if ($start_date < $end_date) {
                                 $start_date = $start_date;
@@ -4252,22 +4257,26 @@
                 {
                     global $wpdb;
 
-                    // Define HERE the orders status to include in  <==  <==  <==  <==  <==  <==  <==
-                    $orders_statuses = "'wc-completed', 'wc-processing', 'wc-on-hold'";
+                    $order_statuses      = [ 'wc-completed', 'wc-processing', 'wc-on-hold' ];
+                    $status_placeholders = implode( ',', array_fill( 0, count( $order_statuses ), '%s' ) );
 
-                    # Get All defined statuses Orders IDs for a defined product ID (or variation ID)
-                    return $wpdb->get_col( /* phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared */
+                    $like = '%' . $wpdb->esc_like( (string) $event_id ) . '%';
+
+                    $sql = $wpdb->prepare(
                         "SELECT DISTINCT woi.order_id
-                FROM {$wpdb->prefix}woocommerce_order_itemmeta as woim,
-                    {$wpdb->prefix}woocommerce_order_items as woi,
-                    {$wpdb->prefix}posts as p
-                WHERE woi.order_item_id = woim.order_item_id
-                AND woi.order_id = p.ID
-                AND p.post_status IN ( $orders_statuses )
-                AND woim.meta_key IN ( '_product_id', '_variation_id', 'event_id' )
-                AND woim.meta_value LIKE '$event_id'
-                ORDER BY woi.order_item_id DESC"
+                        FROM {$wpdb->prefix}woocommerce_order_itemmeta as woim,
+                            {$wpdb->prefix}woocommerce_order_items as woi,
+                            {$wpdb->prefix}posts as p
+                        WHERE woi.order_item_id = woim.order_item_id
+                        AND woi.order_id = p.ID
+                        AND p.post_status IN ( {$status_placeholders} )
+                        AND woim.meta_key IN ( '_product_id', '_variation_id', 'event_id' )
+                        AND woim.meta_value LIKE %s
+                        ORDER BY woi.order_item_id DESC",
+                        array_merge( $order_statuses, [ $like ] )
                     );
+
+                    return $wpdb->get_col( $sql );
                 }
 
                 /**
@@ -4310,10 +4319,10 @@
 
                     // Replace template tags with data
                     $etn_value_arr = [
-                        get_bloginfo('name'),
-                        get_option('home'),
+                        esc_html( get_bloginfo( 'name' ) ),
+                        esc_url( get_option( 'home' ) ),
                         $site_logo,
-                        $event_name,
+                        esc_html( (string) $event_name ),
                     ];
 
                     return str_replace($etn_tag_arr, $etn_value_arr, $content);

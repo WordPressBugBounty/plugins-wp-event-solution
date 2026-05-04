@@ -40,21 +40,33 @@ class FrontendAssets implements AssetsInterface {
             ],
             'etn-public' => [
                 'src'       => \Wpeventin::plugin_url( 'build/js/event-manager-public.js' ),
-                'deps'      => ['jquery']
+                'deps'      => array_merge(
+                    ['jquery'],
+                    ChunkManifest::vendor_deps_for( 'event-manager-public' )
+                )
             ],
             'etn-app-index'     => [
                 'src'       => \Wpeventin::plugin_url( 'build/js/index-calendar.js' ),
-                'deps'      =>[ 'jquery',  ],
+                'deps'      => array_merge(
+                    [ 'jquery' ],
+                    ChunkManifest::vendor_deps_for( 'index-calendar' )
+                ),
                 'in_footer' => true,
             ],
             'eventin-block-js' => [
                 'src'       => \Wpeventin::plugin_url( 'build/js/gutenberg-blocks.js' ),
-                'deps'      => [ 'jquery' ],
+                'deps'      => array_merge(
+                    [ 'jquery' ],
+                    ChunkManifest::vendor_deps_for( 'gutenberg-blocks' )
+                ),
                 'in_footer' => false,
             ],
             'etn-module-purchase' => [
                 'src'       => \Wpeventin::plugin_url( 'build/js/module-purchase.js' ),
-                'deps'      => ['etn-packages','underscore','wp-i18n'],
+                'deps'      => array_merge(
+                    ['etn-packages', 'underscore', 'wp-i18n'],
+                    ChunkManifest::vendor_deps_for( 'module-purchase' )
+                ),
                 'in_footer' => true,
             ],
         ];

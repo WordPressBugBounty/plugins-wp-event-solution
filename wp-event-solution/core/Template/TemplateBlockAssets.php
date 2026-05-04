@@ -9,6 +9,7 @@ namespace Eventin\Template;
 
 defined( 'ABSPATH' ) || exit;
 
+use Eventin\Enqueue\ChunkManifest;
 use Eventin\Interfaces\HookableInterface;
 use Wpeventin;
 
@@ -41,7 +42,16 @@ class TemplateBlockAssets implements HookableInterface
     {
         $screen = get_current_screen();
         if (is_admin() && $screen && $screen->is_block_editor()) {
-            wp_enqueue_script('etn-blocks', Wpeventin::plugin_url() . 'build/js/gutenberg-blocks.js', ['wp-blocks', 'wp-element', 'wp-editor', "etn-dashboard"], Wpeventin::version(), true);
+            wp_enqueue_script(
+                'etn-blocks',
+                Wpeventin::plugin_url() . 'build/js/gutenberg-blocks.js',
+                array_merge(
+                    ['wp-blocks', 'wp-element', 'wp-editor', 'etn-dashboard'],
+                    ChunkManifest::vendor_deps_for( 'gutenberg-blocks' )
+                ),
+                Wpeventin::version(),
+                true
+            );
             wp_set_script_translations('etn-blocks', 'eventin');
             wp_enqueue_style('eventin-blocks-editor-style', Wpeventin::plugin_url() . 'build/css/gutenberg-blocks.css', [], Wpeventin::version(), 'all');
         }
@@ -76,7 +86,16 @@ class TemplateBlockAssets implements HookableInterface
         $screen = get_current_screen();
 
         if (is_admin() && $screen && $screen->post_type === 'etn-template' && $screen->is_block_editor()) {
-            wp_enqueue_script('etn-header-toolbar', Wpeventin::plugin_url() . 'build/js/template-builder-header-toolbar.js', ['wp-blocks', 'wp-element', 'wp-editor'], Wpeventin::version(), true);
+            wp_enqueue_script(
+                'etn-header-toolbar',
+                Wpeventin::plugin_url() . 'build/js/template-builder-header-toolbar.js',
+                array_merge(
+                    ['wp-blocks', 'wp-element', 'wp-editor'],
+                    ChunkManifest::vendor_deps_for( 'template-builder-header-toolbar' )
+                ),
+                Wpeventin::version(),
+                true
+            );
         }
     }
 

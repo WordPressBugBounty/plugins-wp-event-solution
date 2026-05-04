@@ -156,6 +156,11 @@ if ( ! function_exists( 'etn_after_single_event_content_faq' ) ) {
 		if ( ( ETN_DEMO_SITE === false ) || ( ETN_DEMO_SITE == true && ETN_EVENT_TEMPLATE_TWO_ID != get_the_ID() && ETN_EVENT_TEMPLATE_THREE_ID != get_the_ID() ) ) {
 			$single_event_id  = ! empty( $single_event_id ) ? $single_event_id : get_the_ID();
 			$event_options    = get_option( "etn_event_options" );
+
+			if ( ! empty( $event_options["hide_faq_from_details"] ) ) {
+				return;
+			}
+
 			$default_faq_view = "";
 			$faq_view         = 'event/event-faq.php';
 
@@ -190,7 +195,7 @@ if ( ! function_exists( 'etn_after_single_event_meta_organizers' ) ) {
 			$etn_organizer_events = get_post_meta( $single_event_id, 'etn_event_organizer', true );
 
 			// show event organizers
-			if ( ! isset( $event_options["etn_hide_organizers_from_details"] ) ) {
+			if ( empty( $event_options["etn_hide_organizers_from_details"] ) ) {
 				Helper::single_template_organizer_free( $etn_organizer_events );
 				//  etn widget end
 			}
@@ -247,7 +252,13 @@ if ( ! function_exists( 'etn_after_single_event_meta_recurring_event_ticket_form
 	 */
 	function etn_after_single_event_meta_recurring_event_ticket_form( $single_event_id ) {
 
-		$single_event_id  = ! empty( $single_event_id ) ? $single_event_id : get_the_ID();
+		$single_event_id   = ! empty( $single_event_id ) ? $single_event_id : get_the_ID();
+		$recurring_enabled = get_post_meta( $single_event_id, 'recurring_enabled', true );
+
+		if ( 'yes' !== $recurring_enabled ) {
+			return;
+		}
+
 		$event_options    = get_option( "etn_event_options" );
 		$has_child_events = Helper::get_child_events( $single_event_id );
 

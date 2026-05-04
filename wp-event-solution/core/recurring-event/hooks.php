@@ -120,6 +120,10 @@ class Hooks {
             } else {
                 $child_event_id = isset( $_GET['post'] ) ? absint( $_GET['post'] ) : 0; // child event id
 
+                if ( ! current_user_can( 'edit_post', $child_event_id ) && ! current_user_can( 'etn_manage_event' ) ) {
+                    return false;
+                }
+
                 $this->detach_this_child_event_from_parent( $child_event_id );
 
                 // redirect to etn custom post type
@@ -955,22 +959,18 @@ class Hooks {
      * @return  array
      */
     private function prepare_child_ticket_data( $post_id, $ticket_variations ) {
-        
-
         $modified_tickets = [];
-        $post_start_date   = get_post_meta( $post_id, 'etn_start_date', true );
-        $post_publish_date = get_the_date( 'Y-m-d', $post_id );
         $previous_ticket_variations = get_post_meta( $post_id, 'etn_ticket_variations', true );
 
         if ( $ticket_variations ) {
             foreach( $ticket_variations as $ticket ) {
-                foreach( $previous_ticket_variations as $previous_ticket ) {
-                    if ( $ticket['etn_ticket_slug'] == $previous_ticket['etn_ticket_slug'] ) {
-                        $ticket['etn_sold_tickets'] = $previous_ticket['etn_sold_tickets'];
+                if ( is_array( $previous_ticket_variations ) ) {
+                    foreach( $previous_ticket_variations as $previous_ticket ) {
+                        if ( $ticket['etn_ticket_slug'] == $previous_ticket['etn_ticket_slug'] ) {
+                            $ticket['etn_sold_tickets'] = $previous_ticket['etn_sold_tickets'];
+                        }
                     }
                 }
-                $ticket['start_date'] = $post_publish_date;
-                $ticket['end_date']   = $post_start_date;
 
                 $modified_tickets[] = $ticket;
             }

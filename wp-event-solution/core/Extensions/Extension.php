@@ -756,7 +756,7 @@ class Extension {
             'notice'        => '',
             'demo_link'     => '',
             'settings_link' => admin_url( 'admin.php?page=eventin#/settings/import/eventbrite' ),
-            'doc_link'      => '',
+            'doc_link'      => 'https://support.themewinter.com/docs/plugins/plugin-docs/event-imports/import-event-from-facebook/',
             'badge_tags'    => [ 'Free', 'New' ],
         ];
 

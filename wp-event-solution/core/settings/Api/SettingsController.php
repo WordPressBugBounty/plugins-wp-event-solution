@@ -48,7 +48,7 @@ class SettingsController extends WP_REST_Controller {
                     'methods'             => WP_REST_Server::EDITABLE,
                     'callback'            => array( $this, 'update_item' ),
                     'args'                => $this->get_endpoint_args_for_item_schema( WP_REST_Server::EDITABLE ),
-                    'permission_callback' => array( $this, 'get_item_permissions_check' ),
+                    'permission_callback' => array( $this, 'update_item_permissions_check' ),
                 ),
                 'schema' => array( $this, 'get_public_item_schema' ),
             )
@@ -75,8 +75,22 @@ class SettingsController extends WP_REST_Controller {
      * @return WP_Error|boolean
      */
     public function get_item_permissions_check( $request ) {
-        return current_user_can( 'etn_manage_setting' ) 
+        return current_user_can( 'etn_manage_setting' )
                 || current_user_can( 'etn_manage_event' );
+    }
+
+    /**
+     * Check if a given request has access to update settings.
+     *
+     * Writes are restricted to users with the dedicated setting-management
+     * capability (or site administrators); event-author roles must not be
+     * able to overwrite payment credentials or other global options.
+     *
+     * @param WP_REST_Request $request Full data about the request.
+     * @return bool
+     */
+    public function update_item_permissions_check( $request ) {
+        return current_user_can( 'etn_manage_setting' ) || current_user_can( 'manage_options' );
     }
 
     /**

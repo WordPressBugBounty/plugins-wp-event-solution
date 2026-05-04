@@ -656,15 +656,15 @@ class Api extends \Etn\Base\Api_Handler {
 		$messages    = $content    = [];
 		$request     = json_decode( $this->request->get_body(), true );
 		
-		// check if email is valid
-		$isValidEmail = $this->verify_email_status($request[ 'subscriber_email' ]);
-		
+		$subscriber_email = isset( $request['subscriber_email'] ) ? sanitize_email( $request['subscriber_email'] ) : '';
+		$isValidEmail     = ! empty( $subscriber_email ) && is_email( $subscriber_email );
+
 		if ( ! is_admin() && ! current_user_can( 'manage_options' ) ) {
-			if ( ! empty( $request[ 'subscriber_email' ] )  && $isValidEmail === true ) {
+			if ( $isValidEmail ) {
 				$status_code = 1;
 				
 				$body = [
-					'email' => $request[ 'subscriber_email' ]
+					'email' => $subscriber_email,
 				];
 				
 				$url_fluent = 'https://themewinter.com/?fluentcrm=1&route=contact&hash=4358b0a5-2c38-447e-bdf2-8d4b0a3a464f';
@@ -700,29 +700,6 @@ class Api extends \Etn\Base\Api_Handler {
 		} else {
 			return 'simple';
 		}
-	}
-	
-	
-	public function verify_email_status(string $email = "")
-	{
-		$api_key = '700tpaQtc06FcqN93Ljkoibz6oo76KWk'; // Replace with your actual API key
-		$url = 'https://emailverifier.reoon.com/api/v1/verify';
-		
-		$response = wp_remote_get(add_query_arg([
-			'email' => $email,
-			'key'   => $api_key,
-			'mode'  => 'quick',
-		], $url));
-		
-		if (is_wp_error($response)) {
-			return 'error';
-		}
-		
-		$body = wp_remote_retrieve_body($response);
-		$data = json_decode($body, true);
-		
-		
-		return isset($data['status']) && $data['status'] === "valid";
 	}
 
 }

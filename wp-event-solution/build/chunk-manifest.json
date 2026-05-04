@@ -1,0 +1,83 @@
+{
+  "packages": [
+    "js/vendor-antd-icons.js",
+    "js/vendor-antd.js",
+    "js/vendor-react.js",
+    "js/vendor-date.js",
+    "js/vendor-fullcalendar.js",
+    "js/vendor-common.js",
+    "js/packages.js"
+  ],
+  "i18n-loader": [
+    "js/vendor-common.js",
+    "js/i18n-loader.js"
+  ],
+  "event-manager-public-styles": [],
+  "event-manager-admin": [],
+  "index-ai-style": [],
+  "feedback-modal-styles": [],
+  "etn-block-styles": [],
+  "index-calendar": [
+    "js/vendor-antd-icons.js",
+    "js/vendor-antd.js",
+    "js/vendor-date.js",
+    "js/vendor-fullcalendar.js",
+    "js/vendor-common.js",
+    "js/index-calendar.js"
+  ],
+  "index-onboard": [
+    "js/vendor-antd-icons.js",
+    "js/vendor-antd.js",
+    "js/vendor-react.js",
+    "js/vendor-date.js",
+    "js/vendor-fullcalendar.js",
+    "js/vendor-common.js",
+    "js/index-onboard.js"
+  ],
+  "event-manager-public": [
+    "js/event-manager-public.js"
+  ],
+  "index-ai-script": [
+    "js/index-ai-script.js"
+  ],
+  "dashboard": [
+    "js/vendor-antd-icons.js",
+    "js/vendor-antd.js",
+    "js/vendor-react.js",
+    "js/vendor-date.js",
+    "js/vendor-fullcalendar.js",
+    "js/vendor-common.js",
+    "js/dashboard.js"
+  ],
+  "module-purchase": [
+    "js/vendor-antd-icons.js",
+    "js/vendor-antd.js",
+    "js/vendor-react.js",
+    "js/vendor-date.js",
+    "js/vendor-fullcalendar.js",
+    "js/vendor-common.js",
+    "js/module-purchase.js"
+  ],
+  "gutenberg-blocks": [
+    "js/vendor-antd-icons.js",
+    "js/vendor-antd.js",
+    "js/vendor-react.js",
+    "js/vendor-date.js",
+    "js/vendor-fullcalendar.js",
+    "js/vendor-common.js",
+    "js/gutenberg-blocks.js"
+  ],
+  "feedback-modal": [
+    "js/feedback-modal.js"
+  ],
+  "template-builder-header-toolbar": [
+    "js/vendor-antd-icons.js",
+    "js/vendor-antd.js",
+    "js/vendor-date.js",
+    "js/vendor-common.js",
+    "js/template-builder-header-toolbar.js"
+  ],
+  "elementor-scripts": [
+    "js/elementor-scripts.js"
+  ]
+}

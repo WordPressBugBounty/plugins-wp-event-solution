@@ -33,6 +33,7 @@ $data = [
     'payment_option_local_payment' => etn_get_option( 'local_payment_status' ),
     'currency_symbol'             => etn_currency_symbol(),
     'nonce'                       => wp_create_nonce('wp_rest'),
+    'etn_event_ajax_nonce'        => wp_create_nonce('etn_event_ajax'),
     'timetics_pro_active'         => class_exists( 'TimeticsPro' ) ? true : false ,
     'etn_purchase_login_required' => etn_get_option( 'etn_purchase_login_required' ),
     'etn_hide_seats_from_details' => etn_get_option( 'etn_hide_seats_from_details' ),

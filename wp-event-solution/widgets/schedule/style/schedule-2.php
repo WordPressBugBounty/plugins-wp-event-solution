@@ -83,7 +83,7 @@ $i = -1;
                                 </div>
                                 <div class='etn-schedule-content'>
                                     <h4 class='etn-title'><?php echo esc_html($etn_schedule_topic); ?></h4>
-                                    <p><?php echo Helper::render($etn_schedule_objective); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Helper::render() outputs trusted admin-entered HTML content. ?></p>
+                                    <p><?php echo Helper::kses($etn_schedule_objective); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Helper::kses() wraps wp_kses() with an allowed tags list. ?></p>
                                 </div>
                                 <?php if ( $show_speaker_section === 'yes' ) : ?>
                                 <div class='etn-schedule-right-content'>

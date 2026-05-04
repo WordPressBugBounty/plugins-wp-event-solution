@@ -763,11 +763,27 @@ class AttendeeController extends WP_REST_Controller {
 
         $data = [];
 
+        if ( ! is_array( $extra_fields ) ) {
+            return $data;
+        }
+
         // Add extra fields meta key prefix.
         foreach( $extra_fields as $key => $value ) {
-            $meta_key = $prefix . $key;
+            $sanitized_key = sanitize_key( (string) $key );
 
-            $data[$meta_key] = $value;
+            if ( '' === $sanitized_key ) {
+                continue;
+            }
+
+            if ( is_array( $value ) ) {
+                $sanitized_value = map_deep( $value, 'sanitize_text_field' );
+            } else {
+                $sanitized_value = sanitize_text_field( (string) $value );
+            }
+
+            $meta_key = $prefix . $sanitized_key;
+
+            $data[ $meta_key ] = $sanitized_value;
         }
 
         return $data;
@@ -790,7 +806,49 @@ class AttendeeController extends WP_REST_Controller {
         }
 
         if ( ! $ids ) {
-            $ids = (new Attendee_Model())->get_ids();
+            $filters    = ! empty( $request['filters'] ) && is_array( $request['filters'] ) ? $request['filters'] : [];
+            $args       = [];
+            $meta_query = [];
+
+            if ( ! empty( $filters['event_id'] ) ) {
+                $meta_query[] = [
+                    'key'     => 'etn_event_id',
+                    'value'   => sanitize_text_field( $filters['event_id'] ),
+                    'compare' => '=',
+                ];
+            }
+
+            if ( ! empty( $filters['payment_status'] ) ) {
+                $meta_query[] = [
+                    'key'     => 'etn_status',
+                    'value'   => sanitize_text_field( $filters['payment_status'] ),
+                    'compare' => '=',
+                ];
+            }
+
+            if ( ! empty( $filters['ticket_status'] ) ) {
+                $meta_query[] = [
+                    'key'     => 'etn_attendeee_ticket_status',
+                    'value'   => sanitize_text_field( $filters['ticket_status'] ),
+                    'compare' => '=',
+                ];
+            }
+
+            if ( ! empty( $filters['search'] ) ) {
+                $search     = sanitize_text_field( $filters['search'] );
+                $args['meta_query'] = [
+                    'relation' => 'OR',
+                    [ 'key' => 'etn_name',  'value' => $search, 'compare' => 'LIKE' ],
+                    [ 'key' => 'etn_email', 'value' => $search, 'compare' => 'LIKE' ],
+                    [ 'key' => 'etn_phone', 'value' => $search, 'compare' => 'LIKE' ],
+                    [ 'key' => 'ticket_name', 'value' => $search, 'compare' => 'LIKE' ],
+                ];
+            } elseif ( ! empty( $meta_query ) ) {
+                $meta_query['relation'] = 'AND';
+                $args['meta_query']     = $meta_query;
+            }
+
+            $ids = ( new Attendee_Model() )->get_ids( $args );
         }
 
         $exporter = new AttendeeExporter();
