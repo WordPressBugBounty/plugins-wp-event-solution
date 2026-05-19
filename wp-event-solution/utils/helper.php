@@ -3899,11 +3899,17 @@
                                                 $dt_int     = strtotime($dt);
                                                 $now_dt_int = strtotime($now_dt);
                                             } else {
-                                                $tz         = new \DateTimeZone($event_timezone);
-                                                $dt_obj     = new \DateTime($event_expire_date_time, $tz);
-                                                $now_obj    = new \DateTime('now', $tz);
-                                                $dt_int     = $dt_obj->getTimestamp();
-                                                $now_dt_int = $now_obj->getTimestamp();
+                                                try {
+                                                    $tz         = new \DateTimeZone($event_timezone);
+                                                    $dt_obj     = new \DateTime($event_expire_date_time, $tz);
+                                                    $now_obj    = new \DateTime('now', $tz);
+                                                    $dt_int     = $dt_obj->getTimestamp();
+                                                    $now_dt_int = $now_obj->getTimestamp();
+                                                } catch ( \Exception $e ) {
+                                                    // Malformed timezone or deadline → treat as not-yet-expired rather than fataling.
+                                                    $dt_int     = PHP_INT_MAX;
+                                                    $now_dt_int = 0;
+                                                }
                                             }
 
                                             if ($now_dt_int > $dt_int) {

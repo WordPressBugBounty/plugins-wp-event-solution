@@ -149,7 +149,7 @@ class AttendeeExporter implements PostExporterInterface {
                         $data[$key] = $extra_field_value;
                     break;
 
-                    case 'checkbox': 
+                    case 'checkbox':
                         $data[$key] = $extra_field_value;
                     break;
 
@@ -160,8 +160,15 @@ class AttendeeExporter implements PostExporterInterface {
                         if ( ! $extra_field_value ) {
                             $date = '';
                         }
-                        
+
                         $data[$key] = $date;
+                    break;
+
+                    case 'file':
+                        $url = ( $extra_field_value && is_numeric( $extra_field_value ) )
+                            ? wp_get_attachment_url( (int) $extra_field_value )
+                            : '';
+                        $data[$key] = $url ? $url : '';
                     break;
 
                     default:

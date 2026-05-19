@@ -13,6 +13,14 @@ class Hooks {
     use Singleton;
 
     /**
+     * Status applied to children that no longer match a parent's recurrence rule.
+     * Set by the REST update controller from the user's popup choice.
+     *
+     * @var string 'draft' | 'publish'
+     */
+    public $orphan_status = 'draft';
+
+    /**
      * Initialize Recurring Event Hooks
 	 * 
 	 * @since 3.0.0
@@ -223,10 +231,12 @@ class Hooks {
 
             $recurrence_data        = $this->valid_recurrences( $new_matching_events, $existing_matches );
             $matching_to_be_created = !empty( $recurrence_data['create_events'] ) ? $recurrence_data['create_events'] : [];
-            $events_to_be_removed   = !empty( $recurrence_data['remove_events'] ) ? $recurrence_data['remove_events'] : [];
 
-            // process existing recurrence data which are now junk.
-            $this->process_existing_junk_recurrences( $post_id, $parent_post_slug, $events_to_be_removed );
+            // Detach any child whose date is no longer produced by the new
+            // rule. Compares actual children's etn_start_date against the
+            // freshly computed matching_events instead of relying on
+            // date-suffixed slugs or the (often stale) timestamps meta.
+            $this->detach_mismatched_children( $post_id, $new_matching_events );
 
             // update and replace all recurrence meta data with parent meta
             $this->process_existing_recurrence_meta( $post_id );
@@ -264,12 +274,16 @@ class Hooks {
 
                     $child_post_meta['etn_start_date'] = $recurrence_start_date;
                     $child_post_meta['etn_end_date']   = $recurrence_end_date;
-            
+
                     $this->create_recurring_event( $recurrence_args, $child_post_meta );
                 }
-
-                update_post_meta( $post_id, 'etn_recurrence_timestamps', $new_matching_events );
             }
+
+            // Always store the freshly computed timestamps so the next rule
+            // change has an accurate baseline (the previous code only updated
+            // this when new dates were being created, leaving the meta stale
+            // after pure detach passes).
+            update_post_meta( $post_id, 'etn_recurrence_timestamps', $new_matching_events );
 
             return;
         }
@@ -399,21 +413,8 @@ class Hooks {
             return $recurrence_array;
         }
 
-        $current_timestamp = ( new \DateTime() )->getTimestamp();
-        $create_events     = array_diff( $new_matching_events, $existing_matching_events );
-        $remove_events     = array_diff( $existing_matching_events, $new_matching_events );
-
-        if ( is_array( $remove_events ) && !empty( $remove_events ) ) {
-
-            foreach ( $remove_events as $key => $timestamp ) {
-
-                if ( $timestamp < $current_timestamp ) {
-                    unset( $remove_events[$key] );
-                }
-
-            }
-
-        }
+        $create_events = array_diff( $new_matching_events, $existing_matching_events );
+        $remove_events = array_diff( $existing_matching_events, $new_matching_events );
 
         $recurrence_array['create_events'] = $create_events;
         $recurrence_array['remove_events'] = $remove_events;
@@ -828,29 +829,67 @@ class Hooks {
      * @return void
      */
     public function process_existing_junk_recurrences( $parent_post_id, $parent_post_slug, $events_to_be_removed = [] ) {
+        // Legacy entry point kept for backwards compatibility. Modern code
+        // path goes through detach_mismatched_children() with the freshly
+        // computed matching_events from check_recurring_rules().
+        $rules               = $this->check_recurring_rules( $parent_post_id );
+        $new_matching_events = ! empty( $rules['matching_events'] ) && is_array( $rules['matching_events'] )
+            ? $rules['matching_events']
+            : [];
+        $this->detach_mismatched_children( $parent_post_id, $new_matching_events );
+    }
 
-        if ( empty( $events_to_be_removed ) ) {
+    /**
+     * Detach any child whose etn_start_date is not produced by the parent's
+     * current recurrence rule. The caller passes $new_matching_events — the
+     * timestamps the new rule generates for this parent's date range; any
+     * child whose Y-m-d falls outside that set is unparented, has its
+     * recurrence meta cleared, and gets `$this->orphan_status` applied as
+     * its post_status. An empty $new_matching_events means the rule produces
+     * no dates, so every child is detached.
+     *
+     * @param int   $parent_post_id
+     * @param int[] $new_matching_events  Timestamps the new rule produces.
+     */
+    public function detach_mismatched_children( $parent_post_id, $new_matching_events = [] ) {
+        $children = Helper::get_child_events( $parent_post_id );
+
+        if ( ! is_array( $children ) || empty( $children ) ) {
             return;
         }
 
-        foreach ( $events_to_be_removed as $single_match_day ) {
-            $recurrence_start_date = gmdate( "Y-m-d", $single_match_day );
-            $recurrence_event_slug = Helper::sanitize_recurring_event_slug( $parent_post_slug, $recurrence_start_date );
-            $args                  = [
-                'name'        => $recurrence_event_slug,
-                'post_type'   => "etn",
-                'post_parent' => $parent_post_id,
-                'numberposts' => 1,
-            ];
-            $single_recurrence = get_posts( $args );
+        $orphan_status = in_array( $this->orphan_status, [ 'draft', 'publish' ], true ) ? $this->orphan_status : 'draft';
 
-            if ( $single_recurrence ) {
-                $recurrence_id = $single_recurrence[0]->ID;
-                wp_delete_post( $recurrence_id );
+        $valid_dates = array_map( function ( $ts ) {
+            return gmdate( 'Y-m-d', (int) $ts );
+        }, (array) $new_matching_events );
+
+        foreach ( $children as $child ) {
+            $child_id   = $child->ID;
+            $child_date = get_post_meta( $child_id, 'etn_start_date', true );
+
+            if ( empty( $child_date ) ) {
+                continue;
             }
 
-        }
+            if ( in_array( $child_date, $valid_dates, true ) ) {
+                continue;
+            }
 
+            wp_update_post( [
+                'ID'          => $child_id,
+                'post_parent' => 0,
+                'post_status' => $orphan_status,
+            ] );
+
+            delete_post_meta( $child_id, 'recurring_enabled' );
+            delete_post_meta( $child_id, 'etn_event_recurrence' );
+            delete_post_meta( $child_id, 'etn_recurrence_timestamps' );
+
+            clean_post_cache( $child_id );
+
+            do_action( 'eventin_recurring_child_detached', $child_id, $parent_post_id, $orphan_status );
+        }
     }
 
     /**

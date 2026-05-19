@@ -3,7 +3,7 @@ Contributors: arraytics, ehsanriyadh
 Tags: event calendar, event registration, event tickets, event booking, event management, event manager, event tickets, event scheduling, booking system, RSVP, event listing
 Requires at least: 6.2
 Tested up to: 6.9
-Stable tag: 4.1.12
+Stable tag: 4.1.13
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: [https://www.gnu.org/licenses/gpl-2.0.html](https://www.gnu.org/licenses/gpl-2.0.html)
@@ -283,6 +283,16 @@ Yes. Eventin is translation-ready and compatible with WPML and Loco Translate. I
 Please report security bugs found in the source code of the WP Event Solution plugin through the [Patchstack Vulnerability Disclosure Program](https://patchstack.com/database/vdp/5b5e63df-930d-4f15-9bf8-db51f5732488). The Patchstack team will assist you with verification, CVE assignment, and notify the developers of this plugin.
 
 == Changelog ==
+
+= 4.1.13 ( May 20, 2026 ) =
+
+New     : Integration - Added support for syncing attendee contacts with Mail Mint
+New     : Integration - Added support for Tutor LMS
+New     : Booking - Added email-based ticket booking restrictions
+New     : Shortcode - Added a shortcode for displaying tickets based on speakers and organizers
+New     : Webhook - Added RSVP webhooks for create and delete actions
+Fix     : Recurring Event - Fixed the child detachment issue after updating recurrence time
+Fix     : Event - Fixed the event creation issue in the French language
 
 = 4.1.12 ( May 4, 2026 ) =
 New     : Import - Event import from The Events Calendar implemented

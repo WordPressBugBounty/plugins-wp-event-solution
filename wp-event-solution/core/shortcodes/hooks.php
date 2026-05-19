@@ -35,6 +35,352 @@ class Hooks {
         //[etn_zoom_api_link meeting_id ='123456789' link_only='no']
         add_shortcode( "etn_zoom_api_link", [$this, "etn_zoom_api_link"] );
         add_shortcode( "etn_event_meta_info", [$this, "etn_event_meta_info"] );
+
+        //[etn_speaker_events id='5' event_cat_ids='1,2' event_tag_ids='1,2' event_ids='10,11' style='event-1' limit='10' /]
+        add_shortcode( "etn_speaker_events", [$this, "etn_speaker_events_widget"] );
+
+        //[etn_organizer_events id='8' event_cat_ids='1,2' event_tag_ids='1,2' event_ids='10,11' style='event-1' limit='10' /]
+        add_shortcode( "etn_organizer_events", [$this, "etn_organizer_events_widget"] );
+    }
+
+    /**
+     * Speaker events shortcode — list events linked to a given speaker user.
+     */
+    public function etn_speaker_events_widget( $attributes ) {
+        return $this->etn_user_events_widget( $attributes, 'etn_event_speaker' );
+    }
+
+    /**
+     * Organizer events shortcode — list events linked to a given organizer user.
+     */
+    public function etn_organizer_events_widget( $attributes ) {
+        return $this->etn_user_events_widget( $attributes, 'etn_event_organizer' );
+    }
+
+    /**
+     * Shared renderer for speaker / organizer event listings. Reuses the existing
+     * event-1 / event-2 widget templates so the markup matches [events].
+     */
+    protected function etn_user_events_widget( $attributes, $meta_key ) {
+        $user_id = isset( $attributes['id'] ) && is_numeric( $attributes['id'] ) ? intval( $attributes['id'] ) : 0;
+        if ( ! $user_id ) {
+            return '<p class="etn-not-found-post">' . esc_html__( 'No Post Found', 'eventin' ) . '</p>';
+        }
+
+        $allowed_styles = ['event-1', 'event-2'];
+        $style = ! empty( $attributes['style'] ) && in_array( $attributes['style'], $allowed_styles, true )
+            ? $attributes['style']
+            : 'event-1';
+
+        $event_cat = ! empty( $attributes['event_cat_ids'] ) && is_string( $attributes['event_cat_ids'] )
+            ? array_filter( array_map( 'intval', explode( ',', $attributes['event_cat_ids'] ) ) )
+            : null;
+        $event_tag = ! empty( $attributes['event_tag_ids'] ) && is_string( $attributes['event_tag_ids'] )
+            ? array_filter( array_map( 'intval', explode( ',', $attributes['event_tag_ids'] ) ) )
+            : null;
+        $selected_events = ! empty( $attributes['event_ids'] ) && is_string( $attributes['event_ids'] )
+            ? array_filter( array_map( 'intval', explode( ',', $attributes['event_ids'] ) ) )
+            : null;
+
+        $posts_to_show = ! empty( $attributes['limit'] ) && is_numeric( $attributes['limit'] )
+            ? intval( $attributes['limit'] )
+            : -1;
+        $order = ! empty( $attributes['order'] ) && in_array( strtoupper( $attributes['order'] ), ['ASC', 'DESC'], true )
+            ? strtoupper( $attributes['order'] )
+            : 'DESC';
+
+        $post_attributes = ['title', 'ID', 'name', 'post_date'];
+        $orderby = ! empty( $attributes['orderby'] ) && is_string( $attributes['orderby'] )
+            ? sanitize_text_field( $attributes['orderby'] )
+            : 'ID';
+        $orderby_meta = ! in_array( $orderby, $post_attributes, true ) ? 'meta_value' : false;
+
+        $etn_event_col = ! empty( $attributes['etn_event_col'] ) ? intval( $attributes['etn_event_col'] ) : 3;
+        switch ( $etn_event_col ) {
+            case 6: case 5: $etn_event_col = 2; break;
+            case 4: $etn_event_col = 3; break;
+            case 3: $etn_event_col = 4; break;
+            case 2: $etn_event_col = 6; break;
+            case 1: $etn_event_col = 12; break;
+        }
+
+        $etn_desc_limit         = ! empty( $attributes['desc_limit'] ) ? intval( $attributes['desc_limit'] ) : 20;
+        $etn_desc_show          = isset( $attributes['etn_desc_show'] ) ? sanitize_text_field( $attributes['etn_desc_show'] ) : 'yes';
+        $show_end_date          = isset( $attributes['show_end_date'] ) ? sanitize_text_field( $attributes['show_end_date'] ) : 'no';
+        $show_event_location    = isset( $attributes['show_event_location'] ) ? sanitize_text_field( $attributes['show_event_location'] ) : 'yes';
+        $show_remaining_tickets = isset( $attributes['show_remaining_tickets'] ) ? sanitize_text_field( $attributes['show_remaining_tickets'] ) : 'no';
+        $filter_with_status     = isset( $attributes['filter_with_status'] ) ? sanitize_text_field( $attributes['filter_with_status'] ) : '';
+
+        $args = [
+            'post_type'      => 'etn',
+            'post_status'    => 'publish',
+            'posts_per_page' => $posts_to_show,
+            'order'          => $order,
+            'meta_query'     => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+                'relation' => 'AND',
+                [
+                    'relation' => 'OR',
+                    [ 'key' => $meta_key, 'value' => sprintf( '"%d"', $user_id ), 'compare' => 'LIKE' ],
+                    [ 'key' => $meta_key, 'value' => sprintf( 'i:%d;', $user_id ),  'compare' => 'LIKE' ],
+                ],
+            ],
+            'tax_query'      => [ 'relation' => 'AND' ], // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
+        ];
+
+        if ( $orderby_meta ) {
+            $args['meta_key'] = $orderby; // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+            $args['orderby'] = $orderby_meta;
+        } else {
+            $args['orderby'] = $orderby;
+        }
+
+        if ( ! empty( $event_cat ) ) {
+            $args['tax_query'][] = [
+                'taxonomy' => 'etn_category',
+                'field'    => 'term_id',
+                'terms'    => $event_cat,
+                'operator' => 'IN',
+            ];
+        }
+        if ( ! empty( $event_tag ) ) {
+            $args['tax_query'][] = [
+                'taxonomy' => 'etn_tags',
+                'field'    => 'term_id',
+                'terms'    => $event_tag,
+                'operator' => 'IN',
+            ];
+        }
+        if ( ! empty( $selected_events ) ) {
+            $args['post__in'] = $selected_events;
+        }
+
+        if ( 'upcoming' === $filter_with_status ) {
+            $args['meta_query'][] = [
+                'key'     => 'etn_start_date',
+                'value'   => gmdate( 'Y-m-d' ),
+                'compare' => '>=',
+                'type'    => 'DATE',
+            ];
+        } elseif ( 'expire' === $filter_with_status ) {
+            $args['meta_query'][] = [
+                'key'     => 'etn_end_date',
+                'value'   => gmdate( 'Y-m-d' ),
+                'compare' => '<',
+                'type'    => 'DATE',
+            ];
+        }
+
+        $data = get_posts( $args );
+        $event_count = is_array( $data ) ? count( $data ) : 0;
+
+        $user_type = ( 'etn_event_speaker' === $meta_key ) ? 'speaker' : 'organizer';
+
+        if ( wp_style_is( 'etn-icon', 'registered' ) ) {
+            wp_enqueue_style( 'etn-icon' );
+        }
+
+        ob_start();
+        echo '<div class="etn-user-events-shortcode etn-user-events--' . esc_attr( $user_type ) . '">';
+        echo $this->render_user_profile_header( $user_id, $user_type, $event_count ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+        echo '<div class="etn-user-events-list">';
+        if ( file_exists( \Wpeventin::widgets_dir() . "events/style/{$style}.php" ) ) {
+            include \Wpeventin::widgets_dir() . "events/style/{$style}.php";
+        }
+        echo '</div></div>';
+        return ob_get_clean();
+    }
+
+    /**
+     * Render the speaker / organizer profile hero header that sits above the
+     * events grid. Pulls user data via User_Model and outputs a self-contained
+     * HTML block plus its scoped CSS (printed once per request).
+     */
+    protected function render_user_profile_header( $user_id, $type, $event_count ) {
+        $user = get_userdata( $user_id );
+        if ( ! $user ) {
+            return '';
+        }
+
+        $model = new \Etn\Core\Speaker\User_Model( $user_id );
+
+        $name        = $model->get_speaker_title() ?: $user->display_name;
+        $designation = $model->get_speaker_designation();
+        $company     = $model->get_company_name();
+        $company_url = $model->get_speaker_url();
+        $company_logo = $model->get_speaker_company_logo();
+        $bio = ( 'organizer' === $type ) ? $model->get_organizer_bio() : $model->get_speaker_summary();
+        if ( empty( $bio ) ) {
+            $bio = $model->get_speaker_summary();
+        }
+        if ( empty( $bio ) ) {
+            $bio = get_user_meta( $user_id, 'organizer_bio', true );
+        }
+        if ( empty( $bio ) ) {
+            $bio = get_user_meta( $user_id, 'description', true );
+        }
+        if ( empty( $bio ) && ! empty( $user->description ) ) {
+            $bio = $user->description;
+        }
+        $email   = $model->get_speaker_email();
+        $phone   = $model->get_phone();
+        $socials = $model->get_speaker_socials();
+
+        $image    = $model->get_image();
+        $image_id = $model->get_image_id();
+        if ( empty( $image ) && $image_id ) {
+            $src   = wp_get_attachment_image_src( $image_id, 'medium' );
+            $image = $src[0] ?? '';
+        }
+        if ( empty( $image ) ) {
+            $image = get_avatar_url( $user_id, [ 'size' => 160 ] );
+        }
+
+        $role_label = ( 'organizer' === $type )
+            ? esc_html__( 'Organizer', 'eventin' )
+            : esc_html__( 'Speaker', 'eventin' );
+
+        // translators: %s is the speaker / organizer name.
+        $events_label_template = ( 'organizer' === $type )
+            ? esc_html__( 'Events by %s', 'eventin' )
+            : esc_html__( 'Events featuring %s', 'eventin' );
+
+        ob_start();
+        $this->print_user_profile_header_styles();
+        ?>
+        <div class="etn-uep-hero">
+            <div class="etn-uep-hero__cover" aria-hidden="true"></div>
+            <div class="etn-uep-hero__body">
+                <div class="etn-uep-hero__avatar">
+                    <img src="<?php echo esc_url( $image ); ?>" alt="<?php echo esc_attr( $name ); ?>" loading="lazy" />
+                </div>
+                <div class="etn-uep-hero__main">
+                    <h2 class="etn-uep-hero__name"><?php echo esc_html( $name ); ?></h2>
+                    <div class="etn-uep-hero__meta">
+                        <?php if ( $designation ) : ?>
+                            <span class="etn-uep-hero__designation"><?php echo wp_kses_post( $designation ); ?></span>
+                        <?php else : ?>
+                            <span class="etn-uep-hero__designation"><?php echo esc_html( $role_label ); ?></span>
+                        <?php endif; ?>
+                        <?php if ( $company ) : ?>
+                            <span class="etn-uep-hero__sep">&middot;</span>
+                            <?php if ( $company_url ) : ?>
+                                <a class="etn-uep-hero__company" href="<?php echo esc_url( $company_url ); ?>" target="_blank" rel="noopener noreferrer">
+                                    <?php if ( $company_logo ) : ?>
+                                        <img class="etn-uep-hero__company-logo" src="<?php echo esc_url( $company_logo ); ?>" alt="<?php echo esc_attr( $company ); ?>" loading="lazy" />
+                                    <?php endif; ?>
+                                    <?php echo esc_html( $company ); ?>
+                                </a>
+                            <?php else : ?>
+                                <span class="etn-uep-hero__company">
+                                    <?php if ( $company_logo ) : ?>
+                                        <img class="etn-uep-hero__company-logo" src="<?php echo esc_url( $company_logo ); ?>" alt="<?php echo esc_attr( $company ); ?>" loading="lazy" />
+                                    <?php endif; ?>
+                                    <?php echo esc_html( $company ); ?>
+                                </span>
+                            <?php endif; ?>
+                        <?php endif; ?>
+                    </div>
+
+                    <?php if ( $email || $phone || ! empty( $socials ) ) : ?>
+                        <div class="etn-uep-hero__contact">
+                            <?php if ( $email ) : ?>
+                                <a class="etn-uep-hero__contact-link" href="mailto:<?php echo esc_attr( $email ); ?>" aria-label="<?php echo esc_attr__( 'Email', 'eventin' ); ?>">
+                                    <span class="etn-uep-icon" aria-hidden="true">&#9993;</span>
+                                    <span class="etn-uep-hero__contact-text"><?php echo esc_html( $email ); ?></span>
+                                </a>
+                            <?php endif; ?>
+                            <?php if ( $phone ) : ?>
+                                <a class="etn-uep-hero__contact-link" href="tel:<?php echo esc_attr( preg_replace( '/[^0-9+]/', '', $phone ) ); ?>" aria-label="<?php echo esc_attr__( 'Phone', 'eventin' ); ?>">
+                                    <span class="etn-uep-icon" aria-hidden="true">&#9742;</span>
+                                    <span class="etn-uep-hero__contact-text"><?php echo esc_html( $phone ); ?></span>
+                                </a>
+                            <?php endif; ?>
+                            <?php if ( ! empty( $socials ) && is_array( $socials ) ) : ?>
+                                <span class="etn-uep-hero__socials">
+                                    <?php foreach ( $socials as $social ) :
+                                        if ( empty( $social['etn_social_url'] ) ) { continue; }
+                                        $raw_icon   = isset( $social['icon'] ) ? (string) $social['icon'] : '';
+                                        $icon_parts = array_filter( array_map( 'sanitize_html_class', preg_split( '/\s+/', trim( $raw_icon ) ) ) );
+                                        $icon_class = implode( ' ', $icon_parts );
+                                        ?>
+                                        <a class="etn-uep-hero__social"
+                                           href="<?php echo esc_url( $social['etn_social_url'] ); ?>"
+                                           target="_blank" rel="noopener noreferrer"
+                                           aria-label="<?php echo esc_attr( $social['etn_social_url'] ); ?>">
+                                            <i class="etn-icon <?php echo esc_attr( $icon_class ); ?>" aria-hidden="true"></i>
+                                        </a>
+                                    <?php endforeach; ?>
+                                </span>
+                            <?php endif; ?>
+                        </div>
+                    <?php endif; ?>
+
+                    <?php if ( $bio ) : ?>
+                        <div class="etn-uep-hero__bio"><?php echo wp_kses_post( wpautop( $bio ) ); ?></div>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+
+        <div class="etn-uep-events-heading">
+            <h3 class="etn-uep-events-heading__title">
+                <?php echo esc_html( sprintf( $events_label_template, $name ) ); ?>
+            </h3>
+            <span class="etn-uep-events-heading__badge"><?php echo esc_html( number_format_i18n( $event_count ) ); ?></span>
+        </div>
+        <?php
+        return ob_get_clean();
+    }
+
+    /**
+     * Print scoped CSS for the speaker / organizer profile hero. Static guard
+     * keeps it to one copy per request even if multiple shortcodes appear.
+     */
+    protected function print_user_profile_header_styles() {
+        static $printed = false;
+        if ( $printed ) {
+            return;
+        }
+        $printed = true;
+        ?>
+        <style id="etn-user-events-profile-css">
+        .etn-user-events-shortcode{margin:0 0 32px;font-family:inherit;color:#1f2937}
+        .etn-uep-hero{position:relative;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 6px 24px rgba(15,23,42,.08);border:1px solid #eef2f7;margin-bottom:28px}
+        .etn-uep-hero__cover{height:140px;background:linear-gradient(135deg,#6366f1 0%,#8b5cf6 50%,#ec4899 100%)}
+        .etn-uep-hero__body{padding:0 28px 24px;display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap}
+        .etn-uep-hero__avatar{margin-top:-60px;flex:0 0 auto}
+        .etn-uep-hero__avatar img{width:120px;height:120px;border-radius:50%;object-fit:cover;border:4px solid #fff;box-shadow:0 4px 12px rgba(15,23,42,.12);background:#f3f4f6;display:block}
+        .etn-uep-hero__main{flex:1 1 320px;min-width:0;padding-top:14px}
+        .etn-uep-hero__name{font-size:1.6rem;font-weight:700;margin:0 0 6px;line-height:1.25;color:#0f172a}
+        .etn-uep-hero__meta{display:flex;flex-wrap:wrap;align-items:center;gap:8px;color:#475569;font-size:.95rem;margin-bottom:12px}
+        .etn-uep-hero__designation{font-weight:500}
+        .etn-uep-hero__sep{color:#cbd5e1}
+        .etn-uep-hero__company{display:inline-flex;align-items:center;gap:6px;color:#475569;text-decoration:none}
+        .etn-uep-hero__company:hover{color:#6366f1}
+        .etn-uep-hero__company-logo{width:20px;height:20px;border-radius:4px;object-fit:contain;background:#f8fafc}
+        .etn-uep-hero__contact{display:flex;flex-wrap:wrap;align-items:center;gap:14px 18px;margin-bottom:14px}
+        .etn-uep-hero__contact-link{display:inline-flex;align-items:center;gap:6px;color:#475569;text-decoration:none;font-size:.9rem;transition:color .15s ease}
+        .etn-uep-hero__contact-link:hover{color:#6366f1}
+        .etn-uep-icon{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:#eef2ff;color:#6366f1;font-size:.78rem;line-height:1}
+        .etn-uep-hero__socials{display:inline-flex;flex-wrap:wrap;align-items:center;gap:8px}
+        .etn-uep-hero__social{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;background:#f1f5f9;color:#475569;text-decoration:none;transition:background .15s ease,color .15s ease,transform .15s ease}
+        .etn-uep-hero__social:hover{background:#6366f1;color:#fff;transform:translateY(-1px)}
+        .etn-uep-hero__social i{font-size:.9rem;line-height:1}
+        .etn-uep-hero__bio{color:#475569;font-size:.95rem;line-height:1.65;margin-top:4px}
+        .etn-uep-hero__bio p:last-child{margin-bottom:0}
+        .etn-uep-events-heading{display:flex;align-items:center;gap:10px;margin:0 0 18px;padding-bottom:12px;border-bottom:1px solid #e5e7eb}
+        .etn-uep-events-heading__title{font-size:1.15rem;font-weight:600;margin:0;color:#0f172a}
+        .etn-uep-events-heading__badge{display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:24px;padding:0 8px;border-radius:999px;background:#eef2ff;color:#4338ca;font-size:.8rem;font-weight:600}
+        @media (max-width:600px){
+            .etn-uep-hero__cover{height:110px}
+            .etn-uep-hero__body{padding:0 18px 20px;gap:16px}
+            .etn-uep-hero__avatar{margin-top:-48px}
+            .etn-uep-hero__avatar img{width:96px;height:96px}
+            .etn-uep-hero__name{font-size:1.35rem}
+            .etn-uep-hero__main{padding-top:8px;flex-basis:100%}
+        }
+        </style>
+        <?php
     }
     
     /**

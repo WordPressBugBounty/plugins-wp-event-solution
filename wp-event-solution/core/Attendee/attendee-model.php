@@ -118,7 +118,7 @@ class Attendee_Model extends Post_Model {
         if ( ! is_array( $fields ) ) {
             return $extra_fields;
         }
-        
+
         foreach( $fields as $key => $value ) {
             // Check extra fields exist or not.
             if ( strpos( $key, 'etn_attendee_extra_field_' ) !== false ) {
@@ -130,6 +130,101 @@ class Attendee_Model extends Post_Model {
         }
 
         return $extra_fields;
+    }
+
+    /**
+     * Get the event-level extra-fields schema (config rows) for this attendee's event.
+     * Falls back to global settings.
+     *
+     * @return array
+     */
+    public function get_extra_fields_schema() {
+        $event_id = (int) get_post_meta( $this->id, 'etn_event_id', true );
+        $schema   = $event_id ? get_post_meta( $event_id, 'attendee_extra_fields', true ) : '';
+
+        if ( empty( $schema ) ) {
+            $settings = etn_get_option();
+            $schema   = ! empty( $settings['extra_fields'] ) ? $settings['extra_fields'] : ( ! empty( $settings['attendee_extra_fields'] ) ? $settings['attendee_extra_fields'] : [] );
+        }
+
+        return is_array( $schema ) ? $schema : [];
+    }
+
+    /**
+     * Convert a field label to a slug matching the JS frontend convention.
+     * Replicates AttendeeExporter::label_to_slug — keep in sync.
+     *
+     * @param string $label
+     * @return string
+     */
+    private function label_to_slug( $label ) {
+        $slug = mb_strtolower( trim( (string) $label ) );
+        $slug = preg_replace( '/\p{Z}+/u', ' ', $slug );
+        $slug = preg_replace( '/[^a-z0-9 _]/', '', $slug );
+        $slug = preg_replace( '/[ _]+/', '_', $slug );
+        return trim( $slug, '_' );
+    }
+
+    /**
+     * For each schema entry of field_type "file", resolve attachment metadata
+     * keyed by the attendee's stored extra-field key.
+     *
+     * @return array<string, array{id:int, url:string, mime:string, filename:string}>
+     */
+    public function get_extra_field_files() {
+        $schema = $this->get_extra_fields_schema();
+        if ( ! $schema ) {
+            return [];
+        }
+
+        $extras = $this->get_extra_fields();
+        $files  = [];
+
+        foreach ( $schema as $idx => $row ) {
+            if ( ! isset( $row['field_type'] ) || 'file' !== $row['field_type'] ) {
+                continue;
+            }
+
+            $field_id  = ! empty( $row['id'] ) ? $row['id'] : ( $idx + 1 );
+            $slug      = $this->label_to_slug( $row['label'] ?? '' );
+            $field_key = $slug . '_' . $field_id;
+
+            $att_id = isset( $extras[ $field_key ] ) ? $extras[ $field_key ] : '';
+            // Backward-compat: legacy entries stored without the _{id} suffix.
+            if ( '' === $att_id || null === $att_id ) {
+                $att_id = isset( $extras[ $slug ] ) ? $extras[ $slug ] : '';
+            }
+
+            if ( '' === $att_id || ! is_numeric( $att_id ) ) {
+                continue;
+            }
+
+            $att_id = (int) $att_id;
+            $url    = wp_get_attachment_url( $att_id );
+            if ( ! $url ) {
+                continue;
+            }
+
+            $files[ $field_key ] = [
+                'id'       => $att_id,
+                'url'      => $url,
+                'mime'     => (string) get_post_mime_type( $att_id ),
+                'filename' => wp_basename( $url ),
+            ];
+        }
+
+        return $files;
+    }
+
+    /**
+     * Look up resolved file metadata for a single extra-field key.
+     *
+     * @param string $field_key  Key as returned by get_extra_fields() (no meta prefix).
+     * @return array|null
+     */
+    public function get_extra_field_file_meta( $field_key ) {
+        $files = $this->get_extra_field_files();
+        return isset( $files[ $field_key ] ) ? $files[ $field_key ] : null;
     }
 
     /**
@@ -150,24 +245,113 @@ class Attendee_Model extends Post_Model {
     }
 
     /**
-     * Get extra fields as html content
+     * Build the rendered HTML for a single extra-field value.
      *
-     * @return  string
+     * Handles file-type extras (image attachments rendered inline; other mime
+     * types rendered as a download link) and falls back to escaped plain text.
+     *
+     * @since 4.1.13
+     *
+     * @param string $key   Extra-field key as stored in post meta (without prefix).
+     * @param mixed  $field Stored extra-field value (scalar or array).
+     * @param array  $files Resolved file map keyed by field_key.
+     * @return string Escaped HTML safe for output.
+     */
+    protected function render_extra_field_value( $key, $field, $files ) {
+        if ( isset( $files[ $key ] ) ) {
+            $url      = esc_url( $files[ $key ]['url'] );
+            $filename = esc_attr( $files[ $key ]['filename'] );
+            $mime     = isset( $files[ $key ]['mime'] ) ? (string) $files[ $key ]['mime'] : '';
+
+            if ( 0 === strpos( $mime, 'image/' ) ) {
+                $image_style = apply_filters(
+                    'eventin_attendee_extra_field_image_style',
+                    'width:80px;height:80px;display:inline-block;vertical-align:middle;object-fit:cover;border-radius:4px;',
+                    $key,
+                    $files[ $key ]
+                );
+
+                $value = sprintf(
+                    '<img src="%1$s" alt="%2$s" style="%3$s" />',
+                    $url,
+                    $filename,
+                    esc_attr( $image_style )
+                );
+            } else {
+                $value = sprintf(
+                    '<a href="%1$s" target="_blank" rel="noopener">%2$s</a>',
+                    $url,
+                    $filename
+                );
+            }
+        } else {
+            $value = is_array( $field )
+                ? esc_html( implode( ', ', $field ) )
+                : esc_html( (string) $field );
+        }
+
+        /**
+         * Filters the rendered HTML for a single attendee extra-field value.
+         *
+         * @since 4.1.13
+         *
+         * @param string         $value  Rendered HTML.
+         * @param string         $key    Extra-field key.
+         * @param mixed          $field  Stored value.
+         * @param array          $files  Resolved file map.
+         * @param Attendee_Model $model  Current attendee model instance.
+         */
+        return apply_filters( 'eventin_attendee_extra_field_value', $value, $key, $field, $files, $this );
+    }
+
+    /**
+     * Get extra fields as html content.
+     *
+     * @return string
      */
     public function get_extra_fields_content() {
-        $fields = '<ul class="etn-attendee-extra-data" style="list-style: none; list-style-type: none; padding-left: 0; margin-left: 0;">';
         $extra_fields = $this->get_extra_fields();
+        $files        = $this->get_extra_field_files();
 
-        if ( $extra_fields ) {
+        $list_style = apply_filters(
+            'eventin_attendee_extra_fields_list_style',
+            'list-style: none; list-style-type: none; padding-left: 0; margin-left: 0;'
+        );
+
+        $fields = sprintf(
+            '<ul class="etn-attendee-extra-data" style="%s">',
+            esc_attr( $list_style )
+        );
+
+        if ( ! empty( $extra_fields ) ) {
             foreach ( $extra_fields as $key => $field ) {
-                // Format label: replace underscores with spaces and capitalize each word
-                $label = ucwords(str_replace('_', ' ', $key));
+                // Format label: replace underscores with spaces and capitalize each word.
+                $label = ucwords( str_replace( '_', ' ', $key ) );
 
-                $fields .= "<li><label style='font-weight: bold;'>{$label}:</label> <span>{$field}</span></li>";
+                $label = apply_filters( 'eventin_attendee_extra_field_label', $label, $key, $this );
+                $value = $this->render_extra_field_value( $key, $field, $files );
+
+                $fields .= sprintf(
+                    '<li><label style="font-weight: bold;">%1$s:</label> <span>%2$s</span></li>',
+                    esc_html( $label ),
+                    $value
+                );
             }
         }
+
         $fields .= '</ul>';
-        return $fields;
+
+        /**
+         * Filters the final HTML for all rendered attendee extra fields.
+         *
+         * @since 4.1.13
+         *
+         * @param string         $fields       Final HTML.
+         * @param array          $extra_fields Raw extra-field key => value map.
+         * @param array          $files        Resolved file map.
+         * @param Attendee_Model $model        Current attendee model instance.
+         */
+        return apply_filters( 'eventin_attendee_extra_fields_content', $fields, $extra_fields, $files, $this );
     }
     /**
      * Get a single extra field value by key
@@ -195,11 +379,18 @@ class Attendee_Model extends Post_Model {
      */
     public function get_extra_fields_inline() {
         $extra_fields = $this->get_extra_fields();
+        $files        = $this->get_extra_field_files();
         $parts        = [];
 
         foreach ( $extra_fields as $key => $field ) {
-            $label   = ucwords( str_replace( '_', ' ', $key ) );
-            $value   = is_array( $field ) ? implode( ', ', $field ) : $field;
+            $label = ucwords( str_replace( '_', ' ', $key ) );
+
+            if ( isset( $files[ $key ] ) ) {
+                $value = $files[ $key ]['url'];
+            } else {
+                $value = is_array( $field ) ? implode( ', ', $field ) : $field;
+            }
+
             $parts[] = $label . ': ' . $value;
         }
 

@@ -78,8 +78,10 @@ class Hooks {
         $this->has_pro = defined( 'ETN_PRO_FILES_LOADED' );
         // $this->handle_get_help_and_upgrade_menu();
 
-        // Add "Go Pro" link to the plugin action links row.
-        add_filter( 'plugin_action_links_' . plugin_basename( \Wpeventin::plugin_file() ), [ $this, 'add_go_pro_action_link' ] );
+        // Add "Go Pro" link to the plugin action links row (free build only).
+        if ( ! class_exists( 'Wpeventin_Pro' ) ) {
+            add_filter( 'plugin_action_links_' . plugin_basename( \Wpeventin::plugin_file() ), [ $this, 'add_go_pro_action_link' ] );
+        }
 
         new AttendeeHooks();
     }
@@ -670,8 +672,8 @@ class Hooks {
             // Commas are stripped to match the same cleanup the event model performs.
             try {
                 $utc     = new \DateTimeZone( 'UTC' );
-                $dtstart = ( new \DateTime( str_replace( ',', '', $start_date . ' ' . $start_time ), $event_tz ) )->setTimezone( $utc )->format( 'Ymd\THis\Z' );
-                $dtend   = ( new \DateTime( str_replace( ',', '', $end_date . ' ' . $end_time ), $event_tz ) )->setTimezone( $utc )->format( 'Ymd\THis\Z' );
+                $dtstart = etn_parse_event_datetime( str_replace( ',', '', $start_date ), $start_time, $event_tz )->setTimezone( $utc )->format( 'Ymd\THis\Z' );
+                $dtend   = etn_parse_event_datetime( str_replace( ',', '', $end_date ), $end_time, $event_tz )->setTimezone( $utc )->format( 'Ymd\THis\Z' );
             } catch ( \Exception $e ) {
                 $dtstart = '';
                 $dtend   = '';

@@ -84,10 +84,14 @@ if ( $raw_order_id && $raw_order_token ) {
             ];
 
             // phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped
+            // Wipe stale `etn_preferred_payment_method` from a prior WC/SureCart/FluentCart
+            // session — otherwise `useBackButtonHandler` reads the leftover value on mount
+            // and bounces the customer back to the event page before they can pay.
             $wl_cart_script = '<script>(function(){'
                 . 'var c=' . wp_json_encode( $cart_context ) . ','
                 . 'e=' . wp_json_encode( $event_data ) . ';'
                 . 'try{'
+                . 'localStorage.removeItem("etn_preferred_payment_method");'
                 . 'localStorage.setItem("etn_cart_info",JSON.stringify(c));'
                 . 'localStorage.setItem("etn_event_data",JSON.stringify(e));'
                 . 'localStorage.setItem("etn_order_id",' . wp_json_encode( (string) $raw_order_id ) . ');'
@@ -110,6 +114,11 @@ if ( wp_is_block_theme() ) {
 
 // purchase module script
 wp_enqueue_script( 'etn-module-purchase' );
+
+// File-upload extra fields use wp.media; load on the purchase page only.
+if ( ! did_action( 'wp_enqueue_media' ) ) {
+    wp_enqueue_media();
+}
 ?>
 
 <?php

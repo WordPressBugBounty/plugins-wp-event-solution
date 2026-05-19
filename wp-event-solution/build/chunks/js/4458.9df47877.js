@@ -1,0 +1,85 @@
+"use strict";(globalThis.webpackChunkwp_event_solution=globalThis.webpackChunkwp_event_solution||[]).push([[4458],{2959(e,t,n){n.d(t,{A:()=>w});var a=n(51609),l=n(86087),i=n(27723),r=n(17437),s=n(50400),d=n(38181),o=n(54861),c=n(60742),m=n(87959),u=n(51643),p=n(36492),_=n(67313),f=n(59499),v=n(85102),g=n(85641),x=n(74353),E=n.n(x),h=n(5019),b=n(10012),A=n(6836),y=n(27154);const{Text:k}=_.A;function q({value:e,onChange:t}){const[n,d]=(0,l.useState)(null);(0,l.useEffect)(()=>{if(!e)return void d(null);if(n?.id===e)return;const t=window?.wp?.media;if(!t)return;const a=t.attachment(e);a.fetch().then(()=>d(a.toJSON()))},[e]);const o=()=>{const e=window?.wp?.media;if(!e)return void m.Ay.error((0,i.__)("WordPress media library is not available on this page.","eventin"));const n=e({title:(0,i.__)("Select File","eventin"),button:{text:(0,i.__)("Use this file","eventin")},library:{type:["image","application/pdf"]},multiple:!1});n.on("select",()=>{const e=n.state().get("selection").first().toJSON();y.fileUploadAllowedMimes.includes(e.mime)?(d(e),t?.(e.id)):m.Ay.error((0,i.__)("Unsupported file type. Allowed: JPG, PNG, WEBP, PDF.","eventin"))}),n.open()},c=n?.mime?.startsWith("image/");return e?(0,a.createElement)("div",{className:"etn-media-picker",style:{display:"flex",alignItems:"center",gap:12,padding:8,border:"1px solid #e5e7eb",borderRadius:6,background:"#fafafa",flexWrap:"wrap"}},(0,a.createElement)(r.mL,{styles:r.AH`
+					.etn-media-picker .ant-btn,
+					.etn-media-picker .ant-btn * {
+						text-decoration: none !important;
+					}
+					.etn-media-picker .ant-btn {
+						height: auto !important;
+						min-height: 0 !important;
+						line-height: 1.5715 !important;
+						border-color: #d9d9d9 !important;
+						color: rgba(0, 0, 0, 0.88) !important;
+					}
+					.etn-media-picker .ant-btn-sm {
+						padding: 4px 12px !important;
+					}
+					.etn-media-picker .ant-btn-lg {
+						padding: 8px 16px !important;
+					}
+					.etn-media-picker .ant-btn-icon-only {
+						padding: 4px !important;
+						width: auto !important;
+					}
+					.etn-media-picker .ant-btn-text {
+						border-color: transparent !important;
+					}
+					.etn-media-picker .ant-btn:hover {
+						border-color: #4096ff !important;
+						color: #4096ff !important;
+					}
+				`}),c&&n?.url?(0,a.createElement)("img",{src:n.url,alt:n.filename||"",style:{width:56,height:56,borderRadius:4,objectFit:"cover",flexShrink:0}}):(0,a.createElement)("div",{style:{width:56,height:56,borderRadius:4,background:"#f0f0f0",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}},(0,a.createElement)(v.A,{style:{fontSize:28,color:"#d4380d"}})),(0,a.createElement)("div",{style:{flex:1,minWidth:0,overflow:"hidden"}},(0,a.createElement)(k,{ellipsis:!0,style:{display:"block",fontWeight:500}},n?.filename||n?.title||(0,i.__)("Attached file","eventin")),n?.filesizeHumanReadable&&(0,a.createElement)(k,{type:"secondary",style:{fontSize:12}},n.filesizeHumanReadable)),(0,a.createElement)("div",{style:{display:"flex",gap:8,flexShrink:0}},(0,a.createElement)(s.Ay,{icon:(0,a.createElement)(g.A,null),onClick:o,size:"small"},(0,i.__)("Replace","eventin")),(0,a.createElement)(s.Ay,{icon:(0,a.createElement)(f.A,null),onClick:()=>{d(null),t?.(void 0)},size:"small",type:"text","aria-label":(0,i.__)("Remove file","eventin")}))):(0,a.createElement)(a.Fragment,null,(0,a.createElement)(r.mL,{styles:r.AH`
+						.etn-media-picker .ant-btn,
+						.etn-media-picker .ant-btn * {
+							text-decoration: none !important;
+						}
+					`}),(0,a.createElement)(s.Ay,{className:"etn-media-picker",icon:(0,a.createElement)(g.A,null),onClick:o,size:"large"},(0,i.__)("Choose file","eventin")))}const w=function(e){const{extraFields:t,parentKey:n}=e;return(0,a.createElement)("div",{className:"etn-extra-fields-container"},(0,a.createElement)(r.mL,{styles:r.AH`
+					.etn-extra-form-field {
+						.ant-form-item-extra {
+							font-size: 14px;
+							font-style: italic;
+							margin-bottom: 10px;
+							letter-spacing: 0.5px;
+						}
+					}
+				`}),t?.map((e,t,l)=>(0,a.createElement)("div",{className:"etn-extra-form-field",key:t},function(e,t){const l=e?.label?.trim()?.toLowerCase()?.replace(/[^\w\s]/g,"")?.replace(/\s+/g,"_")?.replace(/_+/g,"_")?.replace(/^_|_$/g,""),r=e?.id||t,s=n?["attendees",n,"extra_fields",`${l}_${r}`]:["extra_fields",`${l}_${r}`];switch(e?.field_type){case"text":return(0,a.createElement)(b.ks,{label:e?.label,name:s,placeholder:(0,i.__)(`${e?.placeholder_text||""}`,"eventin"),size:"large",type:"text",required:e?.required,extra:e?.additional_text,rules:[{required:e?.required,message:(0,i.__)(`${e?.label} is required!`,"eventin")}]});case"textarea":return(0,a.createElement)(b.No,{label:e?.label,name:s,placeholder:e?.placeholder_text||"",type:"textarea",extra:e?.additional_text,rows:3,cols:50,required:e?.required,className:"etn-extra-field-text-area",rules:[{required:e?.required,message:(0,i.__)(`${e?.label} is required!`,"eventin")}]});case"number":return(0,a.createElement)(c.A.Item,{label:e?.label,name:s,placeholder:e?.placeholder_text||"",extra:e?.additional_text,rules:[{required:e?.required,message:(0,i.__)(`${e?.label} is required!`,"eventin")}],required:e?.required},(0,a.createElement)(h.A,{placeholder:e?.placeholder_text||"",className:"etn-extra-field-number"}));case"select":return(0,a.createElement)(c.A.Item,{label:e?.label,name:s,extra:e?.additional_text,rules:[{required:e?.required,message:(0,i.__)(`${e?.label} is required!`,"eventin")}],required:e?.required},(0,a.createElement)(p.A,{placeholder:e?.placeholder_text||"",size:"large",options:e?.field_options,allowClear:!0,className:"etn-extra-field-select"}));case"radio":return(0,a.createElement)(c.A.Item,{label:e?.label,name:s,extra:e?.additional_text,rules:[{required:e?.required,message:(0,i.__)(`${e?.label} is required!`,"eventin")}]},(0,a.createElement)(u.Ay.Group,{className:"etn-radio-group"},e?.field_options?e?.field_options?.map((e,t)=>(0,a.createElement)(u.Ay,{key:t,value:e.value},e.value)):null));case"checkbox":return(0,a.createElement)(c.A.Item,{label:e?.label,name:s,extra:e?.additional_text,rules:[{required:e?.required,message:(0,i.__)(`${e?.label} is required!`,"eventin")}]},(0,a.createElement)(d.A.Group,{className:"etn-checkbox-group"},e?.field_options?.map((e,t)=>(0,a.createElement)(d.A,{key:t,value:e?.value},e?.value))));case"file":return(0,a.createElement)(c.A.Item,{label:e?.label,name:s,extra:e?.additional_text,rules:[{required:e?.required,message:(0,i.__)(`${e?.label} is required!`,"eventin")}],required:e?.required},(0,a.createElement)(q,null));case"date":return(0,a.createElement)(c.A.Item,{label:e?.label,name:s,getValueProps:e=>({value:e?E()(e):null}),normalize:e=>e?E()(e).format("YYYY-MM-DD"):e,extra:e?.additional_text,rules:[{required:e?.required,message:(0,i.__)(`${e?.label} is required!`,"eventin")}]},(0,a.createElement)(o.A,{size:"large",style:{width:"100%"},format:(0,A.getDateFormat)()}));default:return null}}(e,t))))}},89833(e,t,n){n.d(t,{A:()=>s});var a=n(51609),l=n(82654),i=n(69815);n(7638);const r=i.default.div`
+	.ant-alert-message {
+		font-size: 14px;
+		color: #020617;
+		font-weight: 500;
+	}
+	.ant-alert-description {
+		font-size: 12px;
+		color: #747474;
+	}
+`,s=(i.default.div`
+	@media only screen and ( max-width: 520px ) {
+		display: none;
+	}
+`,e=>{const{title:t,description:n=null}=e;return(0,a.createElement)(r,null,(0,a.createElement)(l.A,{style:{border:"1px solid #FF4D4F",backgroundColor:"#FFFAFA",marginTop:"20px"},message:t,description:n,type:"warning"}))})},82833(e,t,n){n.d(t,{A:()=>p});var a=n(51609),l=n(27723),i=n(86087),r=n(18537),s=n(16370),d=n(60742),o=n(47152),c=n(36492),m=n(10012),u=n(2959);const p=e=>{const{form:t,eventList:n,attendeeExtraFields:p,isInEditMode:_,isPhoneRequired:f,isEmailRequired:v,defaultExtraFields:g,setIsSeatPlanEvent:x}=e,[E,h]=(0,i.useState)(null),[b,A]=(0,i.useState)(p||[]),y=d.A.useWatch("etn_event_id",{form:t,preserve:!0}),k=d.A.useWatch("attendee_seat",{form:t,preserve:!0}),q=n&&n?.items.map(e=>({value:e.id,label:(0,r.decodeEntities)(e.title)})),w=E?.ticket_variations&&E?.ticket_variations?.map(e=>({value:e?.etn_ticket_name,label:e?.etn_ticket_name})),S=Boolean(E?.seat_plan);return x(!(_||!S)),(0,i.useEffect)(()=>{y?n?.items?.forEach(e=>{if(e.id==y){h(e);const t=e?.extra_fields;A(t&&t.length>0?t:p||[])}}):A(p||[])},[y,n,p]),(0,a.createElement)(o.A,{gutter:[16,0]},!_&&(0,a.createElement)(s.A,{xs:24,md:24},(0,a.createElement)(d.A.Item,{label:(0,l.__)("Select Event","eventin"),name:"etn_event_id",rules:[{required:!0,message:(0,l.__)("Please select event","eventin")}]},(0,a.createElement)(c.A,{options:q,showSearch:!0,optionFilterProp:"label",size:"large",placeholder:(0,l.__)("Select Event","eventin"),allowClear:!0,onChange:()=>t.setFieldsValue({ticket_name:null,etn_ticket_price:null})}))),Array.isArray(g)?(0,a.createElement)(a.Fragment,null,g?.map(e=>{if(e?.show)return(0,a.createElement)(s.A,{xs:24,md:24},(0,a.createElement)(m.ks,{key:e.name,label:e.label,name:e.name,rules:[{required:e.required,message:e.label+(0,l.__)(" is required!","eventin")},"etn_phone"===e.name&&{pattern:new RegExp(/^[+]?[\d\s()-]+$/),message:(0,l.__)("Please enter a valid phone number","eventin")}].filter(Boolean),required:e.required,placeholder:e.placeholder_text,size:"large"}))})):(0,a.createElement)(a.Fragment,null,(0,a.createElement)(s.A,{xs:24,md:24},(0,a.createElement)(m.ks,{label:(0,l.__)("Full name","eventin"),name:"etn_name",rules:[{required:!0,message:(0,l.__)("Full name is required!","eventin")}],required:!0,placeholder:(0,l.__)("Name of the attendee","eventin"),size:"large"})),v&&(0,a.createElement)(s.A,{xs:24,md:12},(0,a.createElement)(m.ks,{label:(0,l.__)("Email","eventin"),name:"etn_email",placeholder:(0,l.__)("Enter your email","eventin"),size:"large",rules:[{type:"email",required:!0,message:(0,l.__)("Enter Valid Email!","eventin")}],required:!0})),f&&(0,a.createElement)(s.A,{xs:24,md:12},(0,a.createElement)(m.ks,{label:(0,l.__)("Phone","eventin"),name:"etn_phone",placeholder:(0,l.__)("+01234567490","eventin"),rules:[{required:!0,message:(0,l.__)("Phone is Required!","eventin")},{pattern:new RegExp(/^[+]?[\d\s()-]+$/),message:(0,l.__)("Please enter a valid phone number","eventin")}],required:!0}))),_&&(0,a.createElement)(s.A,{xs:24,md:12},(0,a.createElement)(m.ks,{label:(0,l.__)("Ticket ID","eventin"),name:"etn_unique_ticket_id",size:"large",readOnly:!0,disabled:!0})),(0,a.createElement)(s.A,{xs:24,md:12},_?(0,a.createElement)(m.ks,{label:k?(0,l.__)("Seat Name","eventin"):(0,l.__)("Ticket Name","eventin"),name:k?"attendee_seat":"ticket_name",size:"large",readOnly:!0,disabled:!0}):(0,a.createElement)(d.A.Item,{label:(0,l.__)("Ticket Name","eventin"),name:"ticket_name"},(0,a.createElement)(c.A,{options:w,size:"large",showSearch:!0,optionFilterProp:"label",placeholder:(0,l.__)("Select a Ticket"),onSelect:e=>{E?.ticket_variations?.map(n=>{n.etn_ticket_name===e&&t.setFieldsValue({etn_ticket_price:n.etn_ticket_price,ticket_slug:n.etn_ticket_slug})})},filterOption:(e,t)=>t?.label?.toLowerCase()?.includes(e?.toLowerCase())}))),!_&&(0,a.createElement)(s.A,{xs:24,md:12},(0,a.createElement)(m.ks,{label:(0,l.__)("Ticket Price","eventin"),name:"etn_ticket_price",size:"large",placeholder:(0,l.__)("Ticket Price","eventin"),readOnly:!0})),(0,a.createElement)(s.A,{xs:24,md:12},(0,a.createElement)(d.A.Item,{label:(0,l.__)("Ticket Status","eventin"),name:"etn_attendeee_ticket_status"},(0,a.createElement)(c.A,{options:[{label:(0,l.__)("Unused","eventin"),value:"unused"},{label:(0,l.__)("Used","eventin"),value:"used"}],size:"large",placeholder:(0,l.__)("Select Ticket Status","eventin")}))),(0,a.createElement)(s.A,{xs:24,md:12},(0,a.createElement)(d.A.Item,{label:(0,l.__)("Payment Status","eventin"),name:"etn_status"},(0,a.createElement)(c.A,{options:[{label:(0,l.__)("Success","eventin"),value:"success"},{label:(0,l.__)("Failed","eventin"),value:"failed"}],size:"large",placeholder:(0,l.__)("Select Payment Status","eventin")}))),(0,a.createElement)(s.A,{xs:24,md:24},(0,a.createElement)(u.A,{extraFields:b})))}},97439(e,t,n){n.d(t,{A:()=>y});var a=n(51609),l=n(29491),i=n(47143),r=n(86087),s=n(52619),d=n(27723),o=n(92911),c=n(60742),m=n(428),u=n(67313),p=n(47767),_=n(7638),f=n(64282),v=n(89833),g=n(82833),x=n(90950);const{Title:E,Text:h}=u.A,b=(0,i.withDispatch)(e=>{const t=e("eventin/global");return{refreshAttendeesList:()=>t.invalidateResolution("getAttendeesList")}}),A=(0,i.withSelect)(e=>{const t=e("eventin/global");return{settings:t.getSettings(),isSettingsLoading:t.isResolving("getSettings"),eventList:t.getAllEvents(),isLoading:t.isResolving("getAllEvents"),refreshAttendeesList:()=>t.invalidateResolution("getAttendeesList")}}),y=(0,l.compose)([A,b])(function(e){const{isLoading:t,isSettingsLoading:n,settings:l,eventList:i,refreshAttendeesList:u}=e,[b]=c.A.useForm(),{id:A}=(0,p.useParams)(),y=(0,p.useNavigate)(),[k,q]=(0,r.useState)(!1),[w,S]=(0,r.useState)(!1),[F,z]=(0,r.useState)(!1),C=l&&l?.extra_fields,P=l&&"on"===l?.reg_require_phone,N=l&&"on"===l?.reg_require_email,R=l&&l?.default_extra_fields,L=!!A;return(0,r.useEffect)(()=>{A&&(S(!0),f.A.attendees.singleAttendee(A).then(e=>{let t={...e,extra_fields:Array.isArray(e?.extra_fields)?{}:e?.extra_fields};b.setFieldsValue(t)}).finally(()=>{S(!1)}))},[]),(0,a.createElement)(x.sC,{className:"eventin-edit-attendee-form-wrapper"},(0,a.createElement)(x.MG,{className:"eventin-edit-attendee-form-container"},(0,a.createElement)("div",{style:{marginBottom:"40px"}},(0,a.createElement)(E,{level:3,style:{fontWeight:600,margin:"0 0 8px 0",fontSize:"26px",lineHeight:"32px",color:"#111827"}},L?(0,d.__)("Update attendee profile","eventin"):(0,d.__)("Create new attendee profile","eventin")),(0,a.createElement)(h,{style:{fontSize:"14px",color:"#6B7280",display:"block"}},(0,d.__)("Add or update an attendee by filling out the details below.","eventin"))),w?(0,a.createElement)(o.A,{justify:"center",align:"center",style:{minHeight:"320px"}},(0,a.createElement)(m.A,null)):(0,a.createElement)(c.A,{layout:"vertical",form:b,scrollToFirstError:!0,size:"large",onFinish:async()=>{q(!0);try{await b.validateFields();const e=b.getFieldsValue(!0);if(L){const t=await f.A.attendees.updateAttendee(A,e);if(!t?.id)throw new Error("Couldn't update attendee properly!");y("/attendees"),u(),(0,s.doAction)("eventin_notification",{type:"success",message:(0,d.__)("Successfully updated the attendee!","eventin")})}else{const t=await f.A.attendees.createAttendee(e);if(!t?.id)throw new Error("Couldn't create attendee properly!");u(),y("/attendees"),(0,s.doAction)("eventin_notification",{type:"success",message:(0,d.__)("Successfully created the attendee!","eventin")})}}catch(e){(0,s.doAction)("eventin_notification",{type:"error",message:e.message})}finally{q(!1)}}},(0,a.createElement)(g.A,{form:b,eventList:i,attendeeExtraFields:C,isInEditMode:L,isPhoneRequired:P,isEmailRequired:N,defaultExtraFields:R,setIsSeatPlanEvent:z}),F&&(0,a.createElement)(v.A,{title:(0,d.__)("You can't add an attendee to a seat plan event ","eventin"),description:(0,d.__)("This is a seat plan event. You can only add attendees to a non-seat plan event","eventin")}),(0,a.createElement)(o.A,{gap:12,justify:"end",style:{marginTop:"20px"}},(0,a.createElement)(_.Ay,{variant:_.Vt,htmlType:"reset",onClick:()=>y(-1),sx:{color:"#262626",padding:"8px 24px"}},(0,d.__)("Cancel","eventin")),(0,a.createElement)(_.Ay,{variant:_.zB,loading:k,htmlType:"submit",disabled:F,sx:{}},L?(0,d.__)("Update Attendee","eventin"):(0,d.__)("Add Attendee","eventin"))))))})},14458(e,t,n){n.r(t),n.d(t,{default:()=>v});var a=n(51609),l=n(56427),i=n(27723),r=n(92911),s=n(47767),d=n(54725),o=n(7638),c=n(75093),m=n(18062),u=n(27154),p=n(97439),_=n(69815),f=n(90950);const v=function(e){const{id:t}=(0,s.useParams)(),n=!!t,v=(0,s.useNavigate)();return _.default.div`
+		@media ( max-width: 560px ) {
+			display: none;
+			border: 1px solid red;
+		}
+	`,(0,a.createElement)(f.ff,null,(0,a.createElement)(l.Fill,{name:u.PRIMARY_HEADER_NAME},(0,a.createElement)(r.A,{justify:"space-between",align:"center"},(0,a.createElement)(r.A,{align:"center",gap:16},(0,a.createElement)(o.Ay,{variant:o.Vt,icon:(0,a.createElement)(d.AngleLeftIcon,null),sx:{height:"36px",width:"36px",backgroundColor:"#fafafa",borderColor:"transparent",lineHeight:"1"},onClick:()=>{v("/attendees")}}),(0,a.createElement)(m.A,{title:n?(0,i.__)("Attendees Details","eventin"):(0,i.__)("New Attendee","eventin")})))),(0,a.createElement)(p.A,null),(0,a.createElement)(c.FloatingHelpButton,null))}},90950(e,t,n){n.d(t,{MG:()=>r,ff:()=>l,sC:()=>i});var a=n(69815);const l=a.default.div`
+	background: #f3f5f7;
+	min-height: calc( 100vh - 60px );
+	padding-top: 30px;
+`,i=a.default.div`
+	background: #ffffff;
+	border: 1px solid #e1e4e9;
+	border-radius: 8px;
+	padding: 20px;
+	margin: 30px;
+	margin-top: 0;
+	@media ( max-width: 768px ) {
+		padding: 10px;
+		margin: 5px;
+	}
+`,r=a.default.div`
+	max-width: 900px;
+	padding: 20px 40px;
+	margin: 0 auto;
+	@media ( max-width: 768px ) {
+		padding: 10px;
+	}
+`}}]);

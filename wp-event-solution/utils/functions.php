@@ -342,6 +342,54 @@ if ( ! function_exists( 'etn_update_option' ) ) {
     }
 }
 
+if ( ! function_exists( 'etn_parse_event_datetime' ) ) {
+    /**
+     * Build a DateTime from a stored event date + time pair.
+     *
+     * Normalizes non-standard time shapes ("8h00", "6.45", "6 45") to "HH:MM"
+     * before construction, and falls back to date-only at midnight rather than
+     * fataling on unparseable input.
+     *
+     * @param   string                       $date      Date string (Y-m-d).
+     * @param   string                       $time      Time string. May be empty or malformed.
+     * @param   \DateTimeZone|string|null    $timezone  DateTimeZone instance, IANA string, or null for wp_timezone().
+     *
+     * @return  \DateTime
+     */
+    function etn_parse_event_datetime( $date, $time = '', $timezone = null ) {
+        if ( $timezone instanceof \DateTimeZone ) {
+            $tz = $timezone;
+        } elseif ( is_string( $timezone ) && $timezone !== '' ) {
+            try {
+                $tz = new \DateTimeZone( $timezone );
+            } catch ( \Exception $e ) {
+                $tz = wp_timezone();
+            }
+        } else {
+            $tz = wp_timezone();
+        }
+
+        $time = is_string( $time ) ? trim( $time ) : '';
+
+        // Normalize "digits + non-digits + digits" (e.g. "8h00", "6.45", "6 45") → "08:00" / "06:45".
+        if ( $time && preg_match( '/^(\d{1,2})\D+(\d{1,2})/', $time, $m ) ) {
+            $time = sprintf( '%02d:%02d', (int) $m[1], (int) $m[2] );
+        }
+
+        $date_time_string = trim( $date . ' ' . $time );
+
+        try {
+            return new \DateTime( $date_time_string, $tz );
+        } catch ( \Exception $e ) {
+            try {
+                return new \DateTime( (string) $date, $tz );
+            } catch ( \Exception $e2 ) {
+                return new \DateTime( 'now', $tz );
+            }
+        }
+    }
+}
+
 if ( ! function_exists( 'etn_is_ticket_sale_end' ) ) {
     /**
      * Check an event has attendees or not
@@ -352,18 +400,16 @@ if ( ! function_exists( 'etn_is_ticket_sale_end' ) ) {
      * @return  bool
      */
     function etn_is_ticket_sale_end( $end_date_time, $timezone = 'Asia/Dhaka' ) {
-        // Create a DateTime object for the end date and time in the given timezone
-        $event_end_dt = new DateTime( $end_date_time, new DateTimeZone( $timezone ) );
-    
-        // Create a DateTime object for the current date and time in the given timezone
-        $current_dt = new DateTime( 'now', new DateTimeZone( $timezone ) );
-    
-        // Compare the dates
-        if ( $current_dt > $event_end_dt ) {
-            return true;
+        try {
+            $tz           = new DateTimeZone( $timezone );
+            $event_end_dt = new DateTime( $end_date_time, $tz );
+            $current_dt   = new DateTime( 'now', $tz );
+        } catch ( \Exception $e ) {
+            // Unparseable inputs → treat as not-yet-ended rather than fataling.
+            return false;
         }
 
-        return false;
+        return $current_dt > $event_end_dt;
     }
 }
 
@@ -377,18 +423,16 @@ if ( ! function_exists( 'etn_is_ticket_sale_start' ) ) {
      * @return  bool
      */
     function etn_is_ticket_sale_start( $start_date_time, $timezone = 'Asia/Dhaka' ) {
-        // Create a DateTime object for the start date and time in the given timezone
-        $event_date = new DateTime( $start_date_time, new DateTimeZone( $timezone ) );
-    
-        // Create a DateTime object for the current date and time in the given timezone
-        $current_datte = new DateTime('now', new DateTimeZone( $timezone ) );
-    
-        // Compare the dates
-        if ( $current_datte < $event_date ) {
-            return false;
+        try {
+            $tz            = new DateTimeZone( $timezone );
+            $event_date    = new DateTime( $start_date_time, $tz );
+            $current_datte = new DateTime( 'now', $tz );
+        } catch ( \Exception $e ) {
+            // Unparseable inputs → treat as already started rather than fataling.
+            return true;
         }
 
-        return true;
+        return $current_datte >= $event_date;
     }
 }
 

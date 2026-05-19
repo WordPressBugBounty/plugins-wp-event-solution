@@ -674,6 +674,7 @@ class AttendeeController extends WP_REST_Controller {
         $data =  $item->get_data();
         $event_id = !empty($data['etn_event_id']) ? $data['etn_event_id'] : 0;
         $data['extra_fields'] = $item->get_extra_fields();
+        $data['extra_fields_files'] = $item->get_extra_field_files();
         $data['scanner_update_time'] = $item->get_scanner_update_time();
         $data['event_extra_field'] = get_post_meta( $event_id, 'attendee_extra_fields', true );
 
@@ -683,8 +684,6 @@ class AttendeeController extends WP_REST_Controller {
 
         $data['event_extra_field'] = !empty($event_extra_field) ? $event_extra_field : $settings_extra_field;
 
-		
-		
         return $data;
     }
 

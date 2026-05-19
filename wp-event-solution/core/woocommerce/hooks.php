@@ -32,6 +32,8 @@ class Hooks {
 
         add_filter( 'woocommerce_checkout_posted_data', [$this, 'modify_order_data'] );
 
+        add_filter( 'woocommerce_checkout_get_value', [$this, 'prefill_checkout_fields'], 10, 2 );
+
         // Redirect success page after woocommerce payment.
         add_action( 'woocommerce_thankyou', [ $this, 'redirect_success_page' ] );
 
@@ -542,7 +544,12 @@ class Hooks {
             '_etn_variation_total_price'    => $order->total_price,
             '_seat_unique_id'               => 'seat_' . time(),
             '_etn_variation_total_quantity' => $order->get_total_ticket(),
-            'event_id'                      => $order->event_id
+            'event_id'                      => $order->event_id,
+            // When the WC payment is settling a waiting-list order, the seats are
+            // already promised to this customer — stock-validation hooks below must
+            // skip these cart items, otherwise the customer can never pay if the
+            // ticket sold out (or was over-sold) in the meantime.
+            'etn_waiting_list_conversion'   => (bool) get_post_meta( $order->id, 'is_from_waiting_list', true ),
         ];
 
         $cart_item = array_merge( $cart_item, $cart_data );
@@ -1672,12 +1679,18 @@ class Hooks {
             foreach ( $cart_contents as $cart_item_key => $cart_data ) {
                 $event_id = isset( $cart_data['event_id'] ) ? absint( $cart_data['event_id'] ) : 0;
 
+                // Waiting-list conversion: seats already promised, skip stock validation
+                // so the customer can complete payment even after the ticket sold out.
+                if ( ! empty( $cart_data['etn_waiting_list_conversion'] ) ) {
+                    continue;
+                }
+
                 if ( !empty( $event_id ) && get_post_type( $event_id ) == 'etn' ) {
                     if ( !isset( $events_data[ $event_id ] ) ) {
                         $variations                             = !empty( get_post_meta( $event_id, "etn_ticket_variations", true ) ) ? get_post_meta( $event_id, "etn_ticket_variations", true ) : [];
                         $events_data[ $event_id ]['variations'] = $variations;
                     }
-                    // check if event is expired					
+                    // check if event is expired
                     $deadline_expired =  \Etn\Core\Event\Helper::instance()->event_registration_deadline( array('single_event_id' => $event_id ) );
                     if ( $deadline_expired ) {
                         $event_name       = get_the_title( $event_id );
@@ -2740,5 +2753,48 @@ class Hooks {
         }
 
         return $data;
+    }
+
+    /**
+     * Prefill WooCommerce checkout billing fields from the Eventin order
+     * tied to the current session, so users redirected from the Eventin
+     * order-create form do not retype data they already submitted.
+     *
+     * @param   mixed   $value
+     * @param   string  $input
+     *
+     * @return  mixed
+     */
+    public function prefill_checkout_fields( $value, $input ) {
+        if ( ! WC()->session ) {
+            return $value;
+        }
+
+        $event_order_id = WC()->session->get( 'event_order_id' );
+
+        if ( ! $event_order_id ) {
+            return $value;
+        }
+
+        $map = [
+            'billing_first_name' => 'customer_fname',
+            'billing_last_name'  => 'customer_lname',
+            'billing_email'      => 'customer_email',
+            'billing_phone'      => 'customer_phone',
+        ];
+
+        if ( ! isset( $map[ $input ] ) ) {
+            return $value;
+        }
+
+        $order      = new OrderModel( $event_order_id );
+        $field_name = $map[ $input ];
+        $field_val  = $order->{$field_name};
+
+        if ( empty( $field_val ) ) {
+            return $value;
+        }
+
+        return $field_val;
     }
 }

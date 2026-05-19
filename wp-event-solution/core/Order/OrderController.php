@@ -176,7 +176,16 @@ class OrderController extends WP_REST_Controller {
      * @return WP_Error|boolean
      */
     public function get_items_permissions_check( $request ) {
-        return current_user_can( 'etn_manage_event' ) || current_user_can( 'etn_manage_order' ) || current_user_can( 'etn-customer' );
+        if ( current_user_can( 'etn_manage_event' ) || current_user_can( 'etn_manage_order' ) ) {
+            return true;
+        }
+
+        $user = wp_get_current_user();
+        if ( $user && in_array( 'etn-customer', (array) $user->roles, true ) ) {
+            return true;
+        }
+
+        return false;
     }
 
     public function get_item_permissions_check( $request ) {
@@ -847,7 +856,7 @@ class OrderController extends WP_REST_Controller {
      * @return true|WP_Error True if the request has access to update the item, WP_Error object otherwise.
      */
     public function update_item_permissions_check( $request ) {
-        if ( current_user_can( 'etn_manage_order' ) ) {
+        if ( $this->user_can_access_order( $request['id'] ) ) {
             return true;
         }
 
@@ -937,6 +946,20 @@ class OrderController extends WP_REST_Controller {
                 array( 'status' => 400 )
             );
         }
+
+        // Filter to only orders the caller is authorized to delete.
+        $ids = array_values( array_filter( (array) $ids, function ( $id ) {
+            return $this->user_can_access_order( $id );
+        } ) );
+
+        if ( empty( $ids ) ) {
+            return new WP_Error(
+                'rest_cannot_delete',
+                __( 'No orders accessible to delete.', 'eventin' ),
+                array( 'status' => 403 )
+            );
+        }
+
         $count = 0;
 
         foreach ( $ids as $id ) {
@@ -985,6 +1008,12 @@ class OrderController extends WP_REST_Controller {
      * @return WP_Error|WP_REST_Response
      */
     public function delete_item_permissions_check( $request ) {
+        // Per-id route: require ownership of the specific order.
+        if ( ! empty( $request['id'] ) ) {
+            return $this->user_can_access_order( $request['id'] );
+        }
+
+        // Bulk route: cap-gate here; per-id filtering happens inside delete_items().
         return current_user_can( 'etn_manage_order' );
     }
 
@@ -1037,6 +1066,7 @@ class OrderController extends WP_REST_Controller {
             'customer'          => $order->get_customer(),
 	        'wc_order_id'       => $wc_order ? $wc_order->get_id() : null,
             'extra_fields'      => ( $order->extra_fields == "" || $order->extra_fields == null )  ? new \stdClass() : $order->extra_fields,
+            'extra_fields_files' => $order->get_extra_field_files(),
             'currency'          => $order->currency?$order->currency:etn_currency(),
             'currency_symbol'   => $order->currency_symbol?html_entity_decode($order->currency_symbol, ENT_QUOTES, 'UTF-8'): html_entity_decode(etn_currency_symbol()),
         ];
@@ -1089,6 +1119,17 @@ class OrderController extends WP_REST_Controller {
 
         if ( is_wp_error( $ticket_validation ) ) {
             return $ticket_validation;
+        }
+
+        $email_limit_check = $this->validate_email_purchase_limit(
+            $input_data['event_id'],
+            isset( $input_data['customer_email'] ) ? $input_data['customer_email'] : '',
+            $input_data['tickets'],
+            isset( $request['id'] ) ? intval( $request['id'] ) : 0
+        );
+
+        if ( is_wp_error( $email_limit_check ) ) {
+            return $email_limit_check;
         }
 
         if ( isset( $input_data['seat_ids'] ) ) {
@@ -1307,6 +1348,110 @@ class OrderController extends WP_REST_Controller {
     }
 
     /**
+     * Enforce per-email max ticket purchase limit for an event.
+     *
+     * Counts ticket quantities from this email's existing completed/pending orders
+     * for the same event, adds the requested quantity, and rejects if the sum
+     * exceeds the configured cap.
+     *
+     * @param int    $event_id        Target event id.
+     * @param string $customer_email  Buyer email.
+     * @param array  $tickets         Requested tickets ([['ticket_slug', 'ticket_quantity'], ...]).
+     * @param int    $exclude_order_id Order id to exclude (for update flow). 0 = none.
+     * @return true|WP_Error
+     */
+    protected function validate_email_purchase_limit( $event_id, $customer_email, $tickets, $exclude_order_id = 0 ) {
+        $is_enabled = etn_get_option( 'enable_email_purchase_limit', false );
+
+        if ( ! rest_sanitize_boolean( $is_enabled ) ) {
+            return true;
+        }
+
+        $max_limit = intval( etn_get_option( 'email_purchase_max_limit', 0 ) );
+
+        if ( $max_limit < 1 ) {
+            return true;
+        }
+
+        $customer_email = sanitize_email( $customer_email );
+
+        if ( ! $customer_email ) {
+            return true;
+        }
+
+        $requested = 0;
+        foreach ( $tickets as $ticket ) {
+            $requested += intval( $ticket['ticket_quantity'] ?? 0 );
+        }
+
+        $args = [
+            'post_type'      => 'etn-order',
+            'post_status'    => 'any',
+            'posts_per_page' => -1,
+            'fields'         => 'ids',
+            'meta_query'     => [
+                'relation' => 'AND',
+                [
+                    'key'   => 'customer_email',
+                    'value' => $customer_email,
+                ],
+                [
+                    'key'   => 'event_id',
+                    'value' => intval( $event_id ),
+                ],
+                [
+                    'key'     => 'status',
+                    'value'   => [ 'completed', 'pending', 'waiting' ],
+                    'compare' => 'IN',
+                ],
+            ],
+        ];
+
+        if ( $exclude_order_id > 0 ) {
+            $args['post__not_in'] = [ $exclude_order_id ];
+        }
+
+        $prior_order_ids = get_posts( $args );
+        $prior_quantity  = 0;
+
+        foreach ( $prior_order_ids as $prior_id ) {
+            $prior_order = new OrderModel( $prior_id );
+            $prior_quantity += $prior_order->get_total_ticket();
+        }
+
+        if ( $prior_quantity >= $max_limit ) {
+            return new WP_Error(
+                'email_purchase_limit_exceeded',
+                sprintf(
+                    /* translators: 1: tickets already purchased, 2: max allowed per email. */
+                    __( 'You have already purchased %1$d of %2$d allowed tickets for this event with this email.', 'eventin' ),
+                    $prior_quantity,
+                    $max_limit
+                ),
+                [ 'status' => 400 ]
+            );
+        }
+
+        if ( $prior_quantity + $requested > $max_limit ) {
+            $remaining = $max_limit - $prior_quantity;
+
+            return new WP_Error(
+                'email_purchase_limit_exceeded',
+                sprintf(
+                    /* translators: 1: tickets already purchased, 2: max allowed per email, 3: tickets the user can still buy. */
+                    __( 'You have already purchased %1$d of %2$d allowed tickets for this event. You can buy up to %3$d more with this email.', 'eventin' ),
+                    $prior_quantity,
+                    $max_limit,
+                    $remaining
+                ),
+                [ 'status' => 400 ]
+            );
+        }
+
+        return true;
+    }
+
+    /**
      * Calculate total price for an order
      *
      * @param   integer  $event_id       Event id
@@ -1393,7 +1538,40 @@ class OrderController extends WP_REST_Controller {
                 $args['meta_query']     = $meta_query;
             }
 
+            // Scope non-admin event-managers to their own events. Mirrors get_items()
+            // (lines 257-276) so the no-ids fallback can't leak orders for events the
+            // caller did not author.
+            if ( ! current_user_can( 'manage_options' ) && current_user_can( 'etn_manage_event' ) ) {
+                $event_model = new Event_Model();
+                $author_event_ids = $event_model->get_ids_by_author( get_current_user_id() );
+                $author_event_ids = ! empty( $author_event_ids ) ? $author_event_ids : [ 0 ];
+
+                $meta_query[] = [
+                    'key'     => 'event_id',
+                    'value'   => $author_event_ids,
+                    'compare' => 'IN',
+                ];
+
+                $meta_query['relation'] = 'AND';
+                $args['meta_query']     = $meta_query;
+            }
+
             $ids = ( new OrderModel() )->get_ids( $args );
+        }
+
+        // Filter supplied / resolved ids to those the caller is authorized to read.
+        // Closes the IDOR: even with etn_manage_order, a non-admin caller can only
+        // export orders tied to events they authored.
+        $ids = array_values( array_filter( (array) $ids, function ( $id ) {
+            return $this->user_can_access_order( $id );
+        } ) );
+
+        if ( empty( $ids ) ) {
+            return new WP_Error(
+                'no_accessible_orders',
+                __( 'No orders accessible to export.', 'eventin' ),
+                [ 'status' => 403 ]
+            );
         }
 
         $exporter = new OrderExporter();
@@ -1412,7 +1590,21 @@ class OrderController extends WP_REST_Controller {
      * @return  JSON
      */
     public function export_item_permissions_check( $request ) {
-        return current_user_can( 'etn_manage_order' );
+        if ( ! current_user_can( 'etn_manage_order' ) ) {
+            return false;
+        }
+
+        // Defense-in-depth: deny if the only role is etn-customer even if the cap
+        // is somehow re-granted via the permissions UI. Customer "my orders" listing
+        // goes through get_items(), not the export endpoint.
+        $user = wp_get_current_user();
+        if ( $user
+            && in_array( 'etn-customer', (array) $user->roles, true )
+            && ! current_user_can( 'manage_options' ) ) {
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -1538,7 +1730,7 @@ class OrderController extends WP_REST_Controller {
      * @return  bool
      */
     public function resend_ticket_permissions_check( $request ) {
-        return current_user_can( 'etn_manage_order' );
+        return $this->user_can_access_order( $request['id'] );
     }
 
     /**
@@ -1603,8 +1795,8 @@ class OrderController extends WP_REST_Controller {
      *
      * @return bool
      */
-    public function send_payment_link_permissions_check() {
-        return current_user_can( 'etn_manage_order' );
+    public function send_payment_link_permissions_check( $request ) {
+        return $this->user_can_access_order( $request['id'] );
     }
 
     /**
@@ -1665,10 +1857,51 @@ class OrderController extends WP_REST_Controller {
      * @return  bool
      */
     public function refund_ticket_permissions_check( $request ) {
-        return current_user_can( 'etn_manage_order' );
+        return $this->user_can_access_order( $request['id'] );
     }
 	
 	
+	/**
+	 * Authorize the current user against a specific order id.
+	 *
+	 * Admins (manage_options) pass unconditionally. Holders of etn_manage_order
+	 * are scoped down to orders attached to events they authored; this matches
+	 * the customer/event-manager scoping in get_items() and closes the IDOR
+	 * exposed by /orders/export when callers supply arbitrary ids.
+	 *
+	 * @param int|string $order_id Order post id.
+	 * @return bool
+	 */
+	private function user_can_access_order( $order_id ) {
+		if ( current_user_can( 'manage_options' ) ) {
+			return true;
+		}
+
+		if ( ! current_user_can( 'etn_manage_order' ) ) {
+			return false;
+		}
+
+		$order_id = intval( $order_id );
+		if ( ! $order_id ) {
+			return false;
+		}
+
+		$post = get_post( $order_id );
+		if ( ! $post || 'etn-order' !== $post->post_type ) {
+			return false;
+		}
+
+		if ( current_user_can( 'etn_manage_event' ) ) {
+			$event_id         = (int) get_post_meta( $order_id, 'event_id', true );
+			$event_model      = new Event_Model();
+			$author_event_ids = array_map( 'intval', (array) $event_model->get_ids_by_author( get_current_user_id() ) );
+
+			return in_array( $event_id, $author_event_ids, true );
+		}
+
+		return false;
+	}
+
 	private function wc_order_status_update( $eventin_order_id, $status ) {
 		$post_type = etn_is_enable_wc_synchronize_order() ? 'shop_order' : 'shop_order_placehold';
 		$args = [

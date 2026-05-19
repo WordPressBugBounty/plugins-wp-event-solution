@@ -168,7 +168,8 @@ class PaymentController extends WP_REST_Controller
 			return new WP_Error('invalid_payment_method', __('Invalid payment method.', 'eventin'), ['status' => 400]);
 		}
 
-		if ('local_payment' === $payment_method && ! etn_get_option('local_payment_status')) {
+		$is_admin_order_manager = current_user_can('etn_manage_order') || current_user_can('manage_options');
+		if ('local_payment' === $payment_method && ! etn_get_option('local_payment_status') && ! $is_admin_order_manager) {
 			return new WP_Error('invalid_payment_method', __('Invalid payment method.', 'eventin'), ['status' => 400]);
 		}
 

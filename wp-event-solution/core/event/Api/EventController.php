@@ -136,7 +136,7 @@ class EventController extends WP_REST_Controller {
                 array(
                     'methods'             => WP_REST_Server::READABLE,
                     'callback'            => array( $this, 'clone_item' ),
-                    'permission_callback' => array( $this, 'get_item_permissions_check' ),
+                    'permission_callback' => array( $this, 'clone_item_permissions_check' ),
                     'args'                => $this->get_collection_params(),
                 ),
 
@@ -289,6 +289,20 @@ class EventController extends WP_REST_Controller {
 
     public function get_single_item_permissions_check( $request ) {
         return current_user_can( 'etn_manage_event' ) || wp_verify_nonce( $request->get_header( 'X-Wp-Nonce' ), 'wp_rest' );
+    }
+
+    /**
+     * Check permissions for cloning an event.
+     *
+     * Cloning is an authoring action — it writes a new draft post and returns
+     * the source event's full data. The public wp_rest nonce is not sufficient;
+     * the caller must hold the event-management capability.
+     *
+     * @param WP_REST_Request $request
+     * @return bool
+     */
+    public function clone_item_permissions_check( $request ) {
+        return current_user_can( 'etn_manage_event' );
     }
 
     /**
@@ -728,6 +742,41 @@ class EventController extends WP_REST_Controller {
         $previous_event_start_time = $event->etn_start_time;
 
         $was_recurring = get_post_meta( $request['id'], 'recurring_enabled', true );
+
+        // Carry the user's draft|publish choice into the recurring hook so mismatched
+        // children become detached events with the chosen status (default: draft).
+        $orphan_status = $request->get_param( 'orphan_status' );
+        if ( in_array( $orphan_status, [ 'draft', 'publish' ], true ) ) {
+            \Etn\Core\Recurring_Event\Hooks::instance()->orphan_status = $orphan_status;
+        } else {
+            \Etn\Core\Recurring_Event\Hooks::instance()->orphan_status = 'draft';
+        }
+
+        // Child event date/time edit — caller confirmed detach in a popup.
+        $detach_from_parent = (bool) $request->get_param( 'detach_from_parent' );
+        $current_parent_id  = (int) wp_get_post_parent_id( $request['id'] );
+
+        if ( $detach_from_parent && $current_parent_id > 0 ) {
+            wp_update_post( [
+                'ID'          => (int) $request['id'],
+                'post_parent' => 0,
+            ] );
+
+            delete_post_meta( $request['id'], 'recurring_enabled' );
+            delete_post_meta( $request['id'], 'etn_event_recurrence' );
+            delete_post_meta( $request['id'], 'etn_recurrence_timestamps' );
+
+            clean_post_cache( $request['id'] );
+
+            // Reload the model so subsequent ->update() works against the now-detached post.
+            $event = new Event_Model( $request['id'] );
+
+            // Don't let the prepared payload reintroduce parent recurrence flags.
+            unset( $prepared_event['recurring_enabled'] );
+            unset( $prepared_event['etn_event_recurrence'] );
+
+            do_action( 'eventin_recurring_child_detached', (int) $request['id'], $current_parent_id, 'manual' );
+        }
 
         $updated = $event->update( $prepared_event );
 
@@ -1169,6 +1218,9 @@ class EventController extends WP_REST_Controller {
             'google_meet_description' => get_post_meta( $id, 'etn_google_meet_short_description', true ),
             'fluent_crm'              => get_post_meta( $id, 'fluent_crm', true ),
             'fluent_crm_webhook'      => get_post_meta( $id, 'fluent_crm_webhook', true ),
+            'mail_mint'               => get_post_meta( $id, 'mail_mint', true ),
+            'mail_mint_webhook'       => get_post_meta( $id, 'mail_mint_webhook', true ),
+            'mail_mint_send_to'       => get_post_meta( $id, 'mail_mint_send_to', true ) ?: [ 'purchaser', 'attendee' ],
             'faq'                     => get_post_meta( $id, 'etn_event_faq', true ),
             'external_link'           => get_post_meta( $id, 'external_link', true ),
             'ticket_template'         => get_post_meta( $id, 'ticket_template', true ),
@@ -1184,6 +1236,7 @@ class EventController extends WP_REST_Controller {
             'category_names'          => $category_names,
             'meeting_link'            => $meeting_link,
             'parent'                  => $parent,
+            'has_children'            => $this->event_has_children( $id ),
             'event_type'              => get_post_meta( $id, 'event_type', true ),
             '_virtual'                => get_post_meta( $id, '_virtual', true ),
             'etn_event_logo_url'      => get_post_meta( $id, 'etn_event_logo_url', true ),
@@ -1201,6 +1254,7 @@ class EventController extends WP_REST_Controller {
                 'rsvp' => ( \Etn\Core\Addons\Helper::instance()->check_active_module( 'rsvp' ) ) ? true : false,
             ],
             'revenue'                 => null,
+            'imported_from'           => get_post_meta( $id, 'imported_from', true ) ?: '',
         ];
 
         $location_type = get_post_meta( $id, 'etn_event_location_type', true );
@@ -1330,6 +1384,22 @@ class EventController extends WP_REST_Controller {
      *
      * @return  void
      */
+    /**
+     * Whether this event currently has any recurring child events attached.
+     */
+    protected function event_has_children( $post_id ) {
+        $children = get_posts( [
+            'post_type'      => 'etn',
+            'post_parent'    => (int) $post_id,
+            'post_status'    => 'any',
+            'posts_per_page' => 1,
+            'fields'         => 'ids',
+            'no_found_rows'  => true,
+        ] );
+
+        return ! empty( $children );
+    }
+
     protected function assign_categories( $post_id, $new_categories ) {
         // Update event categories.
         $categories = get_the_terms( $post_id, 'etn_category' );
@@ -1669,6 +1739,15 @@ class EventController extends WP_REST_Controller {
             $event_data['fluent_crm'] = $input_data['fluent_crm'];
         }
 
+        if ( isset( $input_data['mail_mint'] ) ) {
+            $event_data['mail_mint'] = $input_data['mail_mint'];
+        }
+
+        if ( isset( $input_data['mail_mint_send_to'] ) && is_array( $input_data['mail_mint_send_to'] ) ) {
+            $allowed                          = [ 'purchaser', 'attendee' ];
+            $event_data['mail_mint_send_to']  = array_values( array_intersect( $allowed, array_map( 'sanitize_key', $input_data['mail_mint_send_to'] ) ) );
+        }
+
         if ( isset( $input_data['location_type'] ) ) {
             $event_data['etn_event_location_type'] = $input_data['location_type'];
         }
@@ -1720,6 +1799,10 @@ class EventController extends WP_REST_Controller {
             $event_data['fluent_crm_webhook'] = $input_data['fluent_crm_webhook'];
         }
 
+        if ( isset( $input_data['mail_mint_webhook'] ) ) {
+            $event_data['mail_mint_webhook'] = esc_url_raw( $input_data['mail_mint_webhook'] );
+        }
+
         // Recurring event data.
         if ( isset( $input_data['recurring_enabled'] ) ) {
             $event_data['recurring_enabled'] = $input_data['recurring_enabled'];
@@ -1749,7 +1832,26 @@ class EventController extends WP_REST_Controller {
         }
 
         if ( isset( $input_data['certificate_template'] ) ) {
-            $event_data['certificate_template'] = $input_data['certificate_template'];
+            $candidate_template_id = absint( $input_data['certificate_template'] );
+            $legacy_enabled        = ! empty( $input_data['enable_legacy_certificate_template'] )
+                ? rest_sanitize_boolean( $input_data['enable_legacy_certificate_template'] )
+                : (bool) get_post_meta( $input_data['id'], 'enable_legacy_certificate_template', true );
+
+            if ( $candidate_template_id > 0 ) {
+                $candidate_post = get_post( $candidate_template_id );
+
+                // Accept etn-template posts unconditionally; allow other post
+                // types only when the legacy page-based certificate flow is
+                // enabled. Stale IDs that reference non-existent posts are
+                // dropped so the download handler can fall back cleanly.
+                if ( $candidate_post && ( 'etn-template' === $candidate_post->post_type || $legacy_enabled ) ) {
+                    $event_data['certificate_template'] = $candidate_template_id;
+                } else {
+                    $event_data['certificate_template'] = 0;
+                }
+            } else {
+                $event_data['certificate_template'] = 0;
+            }
         }
 
         if ( isset( $input_data['external_link'] ) ) {

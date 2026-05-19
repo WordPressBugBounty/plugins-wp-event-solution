@@ -105,8 +105,8 @@ if(class_exists('WooCommerce') && 'woocommerce' === $sells_engine) {
 					$start_date 	= ! empty( $value['start_date'] ) ? $value['start_date'] : '';
 					$end_date 	= ! empty( $value['end_date'] ) ? $value['end_date'] : '';
 					
-					$start_date = new DateTime( $start_date . ' ' . $start_time );
-					$end_date 	= new DateTime( $end_date . ' ' . $end_time );
+					$start_date = etn_parse_event_datetime( $start_date, $start_time );
+					$end_date 	= etn_parse_event_datetime( $end_date, $end_time );
 
 					$start_date_time = $start_date->format( 'Y-m-d h:i:s A' );
 					$end_date_time 	 = $end_date->format( 'Y-m-d h:i:s A' );

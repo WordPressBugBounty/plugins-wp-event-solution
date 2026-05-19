@@ -143,6 +143,10 @@ class ExtensionController extends WP_REST_Controller {
             etn_update_option('etn_ai_api',$status??null);
         }
 
+        if ( $name == 'mail_mint' ) {
+            etn_update_option( 'mail_mint_api', $status ?? null );
+        }
+
         if ( $name == 'eventin-addon-for-surecart' ) {
             etn_update_option('etn_surecart_enabled',$status=='on'?true:false);
             if($status=='off'){

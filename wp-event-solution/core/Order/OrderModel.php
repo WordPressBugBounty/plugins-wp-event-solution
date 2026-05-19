@@ -185,6 +185,98 @@ class OrderModel extends Post_Model {
     public function validate_ticket($is_for_update = false) {
        return etn_validate_event_tickets( $this->event_id, $this->tickets,$is_for_update );
     }
+
+    /**
+     * Get the order's extra-fields schema. Prefers event-level
+     * attendee_extra_fields meta and falls back to global settings.
+     *
+     * @return array
+     */
+    public function get_extra_fields_schema() {
+        $event_id = (int) $this->event_id;
+        $schema   = $event_id ? get_post_meta( $event_id, 'attendee_extra_fields', true ) : '';
+
+        if ( empty( $schema ) ) {
+            $settings = etn_get_option();
+            $schema   = ! empty( $settings['extra_fields'] )
+                ? $settings['extra_fields']
+                : ( ! empty( $settings['attendee_extra_fields'] ) ? $settings['attendee_extra_fields'] : [] );
+        }
+
+        return is_array( $schema ) ? $schema : [];
+    }
+
+    /**
+     * Convert a field label into the slug shape the JS form uses.
+     * Mirrors AttendeeModel::label_to_slug — keep in sync.
+     *
+     * @param string $label
+     * @return string
+     */
+    private function label_to_slug( $label ) {
+        $slug = mb_strtolower( trim( (string) $label ) );
+        $slug = preg_replace( '/\p{Z}+/u', ' ', $slug );
+        $slug = preg_replace( '/[^a-z0-9 _]/', '', $slug );
+        $slug = preg_replace( '/[ _]+/', '_', $slug );
+        return trim( $slug, '_' );
+    }
+
+    /**
+     * For each schema entry of field_type "file", resolve attachment metadata
+     * keyed by the order's stored extra-field key.
+     *
+     * @return array<string, array{id:int, url:string, mime:string, filename:string}>
+     */
+    public function get_extra_field_files() {
+        $schema = $this->get_extra_fields_schema();
+        if ( ! $schema ) {
+            return [];
+        }
+
+        $extras = $this->extra_fields;
+        if ( is_object( $extras ) ) {
+            $extras = (array) $extras;
+        }
+        if ( ! is_array( $extras ) ) {
+            return [];
+        }
+
+        $files = [];
+
+        foreach ( $schema as $idx => $row ) {
+            if ( ! isset( $row['field_type'] ) || 'file' !== $row['field_type'] ) {
+                continue;
+            }
+
+            $field_id  = ! empty( $row['id'] ) ? $row['id'] : ( $idx + 1 );
+            $slug      = $this->label_to_slug( $row['label'] ?? '' );
+            $field_key = $slug . '_' . $field_id;
+
+            $att_id = isset( $extras[ $field_key ] ) ? $extras[ $field_key ] : '';
+            if ( '' === $att_id || null === $att_id ) {
+                $att_id = isset( $extras[ $slug ] ) ? $extras[ $slug ] : '';
+            }
+
+            if ( '' === $att_id || ! is_numeric( $att_id ) ) {
+                continue;
+            }
+
+            $att_id = (int) $att_id;
+            $url    = wp_get_attachment_url( $att_id );
+            if ( ! $url ) {
+                continue;
+            }
+
+            $files[ $field_key ] = [
+                'id'       => $att_id,
+                'url'      => $url,
+                'mime'     => (string) get_post_mime_type( $att_id ),
+                'filename' => wp_basename( $url ),
+            ];
+        }
+
+        return $files;
+    }
 	
 	
 	/**

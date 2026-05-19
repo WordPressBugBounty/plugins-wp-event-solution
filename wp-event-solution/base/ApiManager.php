@@ -16,6 +16,7 @@ use Eventin\Settings\Api\SettingsController;
 use Eventin\Speaker\Api\SpeakerCategoryController;
 use Eventin\Speaker\Api\SpeakerController;
 use Eventin\Extensions\Api\ExtensionController;
+use Eventin\Extensions\Api\TutorLmsSettingsController;
 use Eventin\SetupNotification\Api\SetupNotification;
 use Eventin\Template\Api\TemplateController;
 use Eventin\Template\Api\TemplateBuilderController;
@@ -45,6 +46,7 @@ class ApiManager {
         PaymentController::class,
         CustomerController::class,
         ExtensionController::class,
+        TutorLmsSettingsController::class,
         ReportController::class,
         TemplateController::class,
         SetupNotification::class,

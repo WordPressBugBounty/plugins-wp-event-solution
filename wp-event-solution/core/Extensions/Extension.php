@@ -91,7 +91,12 @@ class Extension {
         return array_map( function( $extension ) {
             $settings = get_option( 'etn_addons_options', [] );
 
-            if ( isset( $settings[ $extension['name'] ] ) && $settings[ $extension['name']] === 'on' ) {
+            $user_setting = isset( $settings[ $extension['name'] ] ) ? $settings[ $extension['name'] ] : null;
+            $is_user_on   = 'on' === $user_setting;
+            $is_user_off  = 'off' === $user_setting;
+            $auto_enable  = ! $is_user_off && self::should_auto_enable( $extension );
+
+            if ( $is_user_on || $auto_enable ) {
 
                 $extension['status'] = ( $extension['type'] != 'integration' ) ? 'on' : $extension['status'];
 
@@ -116,7 +121,7 @@ class Extension {
                     $dependencies = self::get_depencies( $extension['slug'] );
                     $dependency   = is_array( $dependencies ) ? $dependencies[0] : '';
 
-                    if ( 
+                    if (
                         self::is_need_upgrade( $extension['name'] )
                         && ! PluginManager::is_installed( $dependency )
                     ) {
@@ -131,11 +136,23 @@ class Extension {
                         $extension['status'] = 'activate';
                     }
                 }
-    
+
                 if ( self::dependencies_resolved( $extension['name'] ) ) {
                     $extension['notice'] = false;
                 }
 
+            }
+
+            if ( ! $is_user_off && 'integration' === $extension['type'] && ! empty( $extension['deps'] ) ) {
+                $dependency = $extension['deps'][0];
+
+                if ( PluginManager::is_installed( $dependency ) ) {
+                    $extension['status'] = 'install';
+                }
+
+                if ( PluginManager::is_activated( $dependency ) ) {
+                    $extension['status'] = 'activate';
+                }
             }
 
             if ( 'plugin' === $extension['type'] ) {
@@ -222,10 +239,22 @@ class Extension {
                 }
             }
 
-            if ( 'install' === $status && ! PluginManager::is_installed( $slug ) ) {
-                $result = PluginManager::install_plugin( $slug );
-                if ( ! $result || is_wp_error( $result ) ) {
-                    return $result ?: false;
+            $one_click_install_addons = [ 'eventin-addon-for-tutor-lms' ];
+            $is_one_click_addon       = in_array( $slug, $one_click_install_addons, true );
+
+            if ( 'install' === $status || $is_one_click_addon ) {
+                if ( ! PluginManager::is_installed( $slug ) ) {
+                    $install_result = PluginManager::install_plugin( $slug );
+                    if ( ! $install_result || is_wp_error( $install_result ) ) {
+                        return $install_result ?: false;
+                    }
+                }
+
+                if ( $is_one_click_addon && ! PluginManager::is_activated( $slug ) ) {
+                    $activate_result = PluginManager::activate_plugin( $slug );
+                    if ( ! $activate_result || is_wp_error( $activate_result ) ) {
+                        return $activate_result ?: false;
+                    }
                 }
             }
 
@@ -288,6 +317,22 @@ class Extension {
             }
         }
 
+        if ( 'integration' === $extension['type'] && ! empty( $extension['deps'] ) ) {
+            $dependency = $extension['deps'][0];
+
+            if ( 'install' === $status && ! PluginManager::is_installed( $dependency ) ) {
+                $result = PluginManager::install_plugin( $dependency );
+            }
+
+            if ( 'activate' === $status && ! PluginManager::is_activated( $dependency ) ) {
+                $result = PluginManager::activate_plugin( $dependency );
+            }
+
+            if ( 'deactivate' === $status && PluginManager::is_activated( $dependency ) ) {
+                $result = PluginManager::deactivate_plugin( $dependency );
+            }
+        }
+
         update_option( 'etn_addons_options', $settings );
 
         return $result;
@@ -302,6 +347,44 @@ class Extension {
         $settings = get_option( 'etn_addons_options', [] );
 
         return $settings;
+    }
+
+    /**
+     * Decide whether an extension should be auto-enabled based on its
+     * declared dependencies.
+     *
+     * Returns true only when the extension declares `deps`, every declared
+     * dependency plugin is installed and activated, the extension is a
+     * module/addon/integration (not a `plugin` row), and the extension is
+     * not Pro-locked. The caller is responsible for short-circuiting when
+     * the user has explicitly disabled the extension via `etn_addons_options`.
+     *
+     * @param array $extension
+     * @return bool
+     */
+    public static function should_auto_enable( $extension ) {
+        if (
+            empty( $extension['type'] )
+            || ! in_array( $extension['type'], [ 'module', 'addon', 'integration' ], true )
+        ) {
+            return false;
+        }
+
+        if ( ! empty( $extension['is_pro'] ) && ! class_exists( 'Wpeventin_Pro' ) ) {
+            return false;
+        }
+
+        if ( empty( $extension['deps'] ) || ! is_array( $extension['deps'] ) ) {
+            return false;
+        }
+
+        foreach ( $extension['deps'] as $dependency ) {
+            if ( ! PluginManager::is_activated( $dependency ) ) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -690,6 +773,22 @@ class Extension {
                 ],
                 'badge_tags'    => ['Pro'],
             ],
+            'mail_mint' => [
+                'name'          => 'mail_mint',
+                'slug'          => 'mail-mint',
+                'type'          => 'integration',
+                'status'        => ( etn_get_option('mail_mint_api') && etn_get_option('mail_mint_api') !== 'off' ) ? 'on' : 'off',
+                'is_pro'        => false,
+                'deps'          => ['mail-mint'],
+                'title'         => __('Mail Mint', 'eventin'),
+                'description'   => __('Send purchaser and attendee data to Mail Mint via webhook on order create.', 'eventin'),
+                'icon'          => ExtensionIcon::get('mail_mint'),
+                'notice'        => __('NB: Need to install and activate Mail Mint plugin', 'eventin'),
+                'demo_link'     => 'https://getwpfunnels.com/mail-mint/',
+                'settings_link' => '',
+                'doc_link'      => 'https://support.themewinter.com/docs/plugins/plugin-docs/integration/how-to-integrate-mailmint-with-eventin/',
+                'badge_tags'    => ['Free'],
+            ],
             'eventin_ai' => [
                 'name'          => 'eventin_ai',
                 'slug'          => 'eventin_ai',
@@ -757,6 +856,23 @@ class Extension {
             'demo_link'     => '',
             'settings_link' => admin_url( 'admin.php?page=eventin#/settings/import/eventbrite' ),
             'doc_link'      => 'https://support.themewinter.com/docs/plugins/plugin-docs/event-imports/import-event-from-facebook/',
+            'badge_tags'    => [ 'Free', 'New' ],
+        ];
+
+        $extensions['eventin-addon-for-tutor-lms'] = [
+            'name'          => 'eventin-addon-for-tutor-lms',
+            'slug'          => 'eventin-addon-for-tutor-lms',
+            'type'          => 'addon',
+            'status'        => 'off',
+            'is_pro'        => false,
+            'deps'          => ['tutor'],
+            'title'         => __( 'Eventin Addon for Tutor LMS', 'eventin' ),
+            'description'   => __( 'Auto-enroll Eventin ticket buyers and registered attendees into mapped Tutor LMS courses.', 'eventin' ),
+            'icon'          => ExtensionIcon::get( 'tutor-lms' ),
+            'demo_link'     => 'https://product.themewinter.com/eventin/',
+            'settings_link' => '',
+            'doc_link'      => 'https://support.themewinter.com/docs/plugins/plugin-docs/integration/how-to-integrate-tutorlms-with-eventin/',
+            'notice'        => __( 'NB: Need to activate Tutor LMS plugin', 'eventin' ),
             'badge_tags'    => [ 'Free', 'New' ],
         ];
 

@@ -225,15 +225,27 @@ class EventReminder implements HookableInterface {
      * @return  int
      */
     public function get_event_date_timestamp( $date, $time ) {
-        $datetime = new DateTime( $time ); // Default timezone is used unless specified
-        $formatted = $datetime->format( 'H:i:s' ); // 24-hour format
+        $time = is_string( $time ) ? trim( $time ) : '';
 
-        $date = $date . ' ' . $formatted;
+        // Normalize any "digits + separator + digits" shape (e.g. "6h45", "6.45", "6 45") to "06:45".
+        if ( $time && preg_match( '/^(\d{1,2})\D+(\d{1,2})/', $time, $m ) ) {
+            $time = sprintf( '%02d:%02d', (int) $m[1], (int) $m[2] );
+        }
 
-        $dt = new DateTime( $date, wp_timezone() );
-        $timestamp = $dt->getTimestamp();
+        $formatted = '00:00:00';
+        if ( $time ) {
+            try {
+                $formatted = ( new DateTime( $time ) )->format( 'H:i:s' );
+            } catch ( \Exception $e ) {
+                // Unparseable time → fall back to midnight rather than fataling.
+            }
+        }
 
-        return $timestamp;
+        try {
+            return ( new DateTime( $date . ' ' . $formatted, wp_timezone() ) )->getTimestamp();
+        } catch ( \Exception $e ) {
+            return 0;
+        }
     }
 
 }

@@ -29,22 +29,12 @@ class Seatplan_Form {
 
 
 
-		$start_date = $event->etn_start_date;
-        $start_time = $event->etn_start_time;
-        $end_date   = $event->etn_end_date;
-        $end_time   = $event->etn_end_time;
-        $status     = get_post_status( $event_id );
-        $timezone   = $event->event_timezone ? etn_create_date_timezone( $event->event_timezone ) : 'Asia/Dhaka';
+        $status   = get_post_status( $event_id );
+        $timezone = $event->get_timezone();
 
-        $start_date_time = $start_date . ' ' . $start_time;
-        $end_date_time   = $end_date . ' ' . $end_time;
-
-        // Create a DateTime object for the start date and time in the given timezone
-        $start_date = new \DateTime( $start_date_time, new \DateTimeZone( $timezone ) );
-        $end_date   = new \DateTime( $end_date_time, new \DateTimeZone( $timezone ) );
-    
-        // Create a DateTime object for the current date and time in the given timezone
-        $current_date = new \DateTime('now', new \DateTimeZone( $timezone ) );
+        $start_date   = $event->get_datetime( $event->etn_start_date, $event->etn_start_time );
+        $end_date     = $event->get_datetime( $event->etn_end_date, $event->etn_end_time );
+        $current_date = new \DateTime( 'now', new \DateTimeZone( $timezone ) );
 
 
 

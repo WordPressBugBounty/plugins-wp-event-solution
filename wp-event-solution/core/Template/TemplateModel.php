@@ -148,11 +148,8 @@ class TemplateModel extends Post_Model {
 
 		$wp_timezone = wp_timezone();
 
-		$start_date_time = $event->etn_start_date . ' ' . $event->etn_start_time;
-		$end_date_time   = $event->etn_end_date . ' ' . $event->etn_end_time;
-
-		$start_dt = new \DateTime( $start_date_time, $wp_timezone );
-		$end_dt   = new \DateTime( $end_date_time, $wp_timezone );
+		$start_dt = etn_parse_event_datetime( $event->etn_start_date, $event->etn_start_time, $wp_timezone );
+		$end_dt   = etn_parse_event_datetime( $event->etn_end_date, $event->etn_end_time, $wp_timezone );
 
 		$start_date = wp_date( $date_format, $start_dt->getTimestamp() );
 		$end_date   = wp_date( $date_format, $end_dt->getTimestamp() );
@@ -181,12 +178,101 @@ class TemplateModel extends Post_Model {
             // '{{qr_code}}',
         ];
 
-        // Dynamic per-field tokens: {{extra_field_KEY}}
+        // Dynamic per-field tokens: {{extra_field_KEY}}.
+        $extra_field_files = $attendee->get_extra_field_files();
+
         foreach ( $attendee->get_extra_fields() as $key => $value ) {
-            $placeholders[ '{{extra_field_' . $key . '}}' ] = esc_html( is_array( $value ) ? implode( ', ', $value ) : $value );
+            $token = '{{extra_field_' . $key . '}}';
+
+            if ( isset( $extra_field_files[ $key ] ) ) {
+                $placeholders[ $token ] = $this->render_extra_field_token( $key, $extra_field_files[ $key ] );
+                continue;
+            }
+
+            $plain = is_array( $value ) ? implode( ', ', $value ) : (string) $value;
+
+            /**
+             * Filters the rendered HTML for a non-file extra-field placeholder.
+             *
+             * @since 4.1.13
+             *
+             * @param string         $rendered Escaped plain-text value.
+             * @param string         $key      Extra-field key.
+             * @param mixed          $value    Raw stored value.
+             * @param Attendee_Model $attendee Current attendee model.
+             */
+            $placeholders[ $token ] = apply_filters(
+                'eventin_template_extra_field_token',
+                esc_html( $plain ),
+                $key,
+                $value,
+                $attendee
+            );
         }
 
         return $placeholders;
+    }
+
+    /**
+     * Render the HTML for a single file-type extra-field placeholder token.
+     *
+     * Image attachments render inline; other mime types render as a download
+     * link. Output is escaped per token piece, not via wp_kses, because the
+     * caller pushes the value through `strtr()` on a raw HTML template.
+     *
+     * @since 4.1.13
+     *
+     * @param string $key  Extra-field key.
+     * @param array  $file Resolved file metadata (`id`, `url`, `mime`, `filename`).
+     * @return string Escaped HTML safe for output.
+     */
+    protected function render_extra_field_token( $key, $file ) {
+        $url      = esc_url( $file['url'] );
+        $mime     = isset( $file['mime'] ) ? (string) $file['mime'] : '';
+        $filename = isset( $file['filename'] ) ? $file['filename'] : wp_basename( $file['url'] );
+        $name     = esc_html( $filename );
+
+        if ( 0 === strpos( $mime, 'image/' ) ) {
+            /**
+             * Filters the inline `<img>` style used for image extra-field tokens.
+             *
+             * @since 4.1.13
+             *
+             * @param string $style Default inline CSS.
+             * @param string $key   Extra-field key.
+             * @param array  $file  Resolved file metadata.
+             */
+            $image_style = apply_filters(
+                'eventin_template_extra_field_image_style',
+                'width:80px;height:80px;display:inline-block;vertical-align:middle;object-fit:cover;border-radius:4px;',
+                $key,
+                $file
+            );
+
+            $rendered = sprintf(
+                '<img src="%1$s" alt="%2$s" style="%3$s" />',
+                $url,
+                $name,
+                esc_attr( $image_style )
+            );
+        } else {
+            $rendered = sprintf(
+                '<a href="%1$s" target="_blank" rel="noopener">%2$s</a>',
+                $url,
+                $name
+            );
+        }
+
+        /**
+         * Filters the rendered HTML for a file-type extra-field placeholder.
+         *
+         * @since 4.1.13
+         *
+         * @param string $rendered Default rendered HTML.
+         * @param string $key      Extra-field key.
+         * @param array  $file     Resolved file metadata.
+         */
+        return apply_filters( 'eventin_template_extra_field_file_token', $rendered, $key, $file );
     }
 
     /**
@@ -209,11 +295,8 @@ class TemplateModel extends Post_Model {
 
 		$wp_timezone = wp_timezone();
 
-		$start_date_time = $event->etn_start_date . ' ' . $event->etn_start_time;
-		$end_date_time   = $event->etn_end_date . ' ' . $event->etn_end_time;
-
-		$start_dt = new \DateTime( $start_date_time, $wp_timezone );
-		$end_dt   = new \DateTime( $end_date_time, $wp_timezone );
+		$start_dt = etn_parse_event_datetime( $event->etn_start_date, $event->etn_start_time, $wp_timezone );
+		$end_dt   = etn_parse_event_datetime( $event->etn_end_date, $event->etn_end_time, $wp_timezone );
 
 		$start_date = wp_date( $date_format, $start_dt->getTimestamp() );
 		$end_date   = wp_date( $date_format, $end_dt->getTimestamp() );

@@ -49,6 +49,8 @@ class Event_Model extends Post_Model {
         'etn_google_meet'                   => '',
         'etn_google_meet_short_description' => '',
         'fluent_crm'                        => '',
+        'mail_mint'                         => '',
+        'mail_mint_send_to'                 => [],
         'etn_event_location_type'           => '',
         'etn_event_location'                => '',
         'etn_event_socials'                 => [],
@@ -71,6 +73,7 @@ class Event_Model extends Post_Model {
         'etn_event_calendar_bg'             => '',
         'etn_event_calendar_text_color'     => '',
         'fluent_crm_webhook'                => '',
+        'mail_mint_webhook'                 => '',
         'attende_page_link'                 => '',
         'event_banner'                      => '',
         'event_layout'                      => '',
@@ -145,9 +148,8 @@ class Event_Model extends Post_Model {
         }
 
         try {
-            $tz         = new \DateTimeZone($timezone);
-            $start_date = new \DateTime($start_date_time, $tz);
-            $end_date   = new \DateTime($end_date_time, $tz);
+            $start_date = $this->get_datetime($start_date, $start_time);
+            $end_date   = $this->get_datetime($end_date, $end_time);
 
             // Create a DateTime object for the current date and time in the given timezone
             $current_date = new \DateTime('now', new \DateTimeZone($timezone));
@@ -298,12 +300,8 @@ class Event_Model extends Post_Model {
      *
      * @return  Datetime
      */
-    private function get_datetime($date, $time) {
-        $date_time_string = $date . ' ' . $time;
-
-        $datetime = new \DateTime( $date_time_string, new \DateTimeZone( $this->get_timezone() ) );
-
-        return $datetime;
+    public function get_datetime($date, $time) {
+        return etn_parse_event_datetime( $date, $time, $this->get_timezone() );
     }
 
     /**
