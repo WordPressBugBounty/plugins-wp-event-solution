@@ -81,6 +81,8 @@ class PluginManager {
             $result    = $upgrader->install('https://downloads.wordpress.org/plugin/surecart.latest-stable.zip');
         } else if($slug === 'fluent-cart') {
             $result    = $upgrader->install('https://downloads.wordpress.org/plugin/fluent-cart.latest-stable.zip');
+        } else if($slug === 'optiontics') {
+            $result    = $upgrader->install('https://github.com/themewinter/optiontics-public/releases/download/release/optiontics.zip');
         } else {
             $result    = $upgrader->install('https://downloads.wordpress.org/plugin/' . $slug . '.latest-stable.zip');
         }

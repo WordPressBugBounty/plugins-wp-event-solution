@@ -86,14 +86,7 @@
             </div>
 
             <?php if (! empty($venue_latitude) && ! empty($venue_longitude)):
-                    $google_api_key = function_exists('etn_get_option') ? etn_get_option('google_api_key') : '';
-                    $map_url        = 'https://www.google.com/maps/embed/v1/place';
-                    if ($google_api_key) {
-                        $map_url .= '?key=' . esc_attr($google_api_key) . '&q=' . esc_attr($venue_latitude) . ',' . esc_attr($venue_longitude);
-                    } else {
-                        // Fallback to static map or basic embed
-                        $map_url = 'https://www.google.com/maps?q=' . esc_attr($venue_latitude) . ',' . esc_attr($venue_longitude) . '&output=embed';
-                    }
+                    $map_url = 'https://www.google.com/maps?q=' . esc_attr($venue_latitude) . ',' . esc_attr($venue_longitude) . '&output=embed';
                 ?>
 						                    <div class="etn-venue-map-container">
 						                        <iframe

@@ -10,6 +10,7 @@ use Eventin\Event\Api\TransactionController;
 use Eventin\Location\Api\LocationController;
 use Eventin\Order\OrderController;
 use Eventin\Order\PaymentController;
+use Eventin\Refund\Api\RefundController;
 use Eventin\Reports\Api\ReportController;
 use Eventin\Schedule\Api\ScheduleController;
 use Eventin\Settings\Api\SettingsController;
@@ -44,6 +45,7 @@ class ApiManager {
         TransactionController::class,
         OrderController::class,
         PaymentController::class,
+        RefundController::class,
         CustomerController::class,
         ExtensionController::class,
         TutorLmsSettingsController::class,

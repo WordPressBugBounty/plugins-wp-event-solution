@@ -792,9 +792,16 @@ class EventController extends WP_REST_Controller {
         $is_recurring_now = ! empty( $prepared_event['recurring_enabled'] ) && 'yes' === $prepared_event['recurring_enabled'];
 
         if ( 'yes' === $was_recurring && ! $is_recurring_now ) {
+            // Normalize to original-language parent: children are only attached
+            // to the original event under our "inherit from translated parent" rule.
+            $parent_id = (int) $request['id'];
+            if ( class_exists( 'Etn_Wpml' ) ) {
+                $parent_id = \Etn_Wpml::original_id( $parent_id, 'post_etn' );
+            }
+
             $child_ids = get_posts( [
                 'post_type'      => 'etn',
-                'post_parent'    => $request['id'],
+                'post_parent'    => $parent_id,
                 'post_status'    => 'any',
                 'posts_per_page' => -1,
                 'fields'         => 'ids',
@@ -1079,7 +1086,8 @@ class EventController extends WP_REST_Controller {
         $event          = new Event_Model( $item->ID );
         $id             = $item->ID;
         $parent         = $item->post_parent;
-        $author         = get_userdata( $item->post_author )->display_name;
+        $author_data    = get_userdata( $item->post_author );
+        $author         = $author_data ? $author_data->display_name : '';
         $categories     = get_the_terms( $id, 'etn_category' );
         $category_names = wp_list_pluck( $categories, 'name', 'term_id' );
         $categories     = $categories ? array_column( $categories, 'term_id' ) : [];
@@ -1218,9 +1226,14 @@ class EventController extends WP_REST_Controller {
             'google_meet_description' => get_post_meta( $id, 'etn_google_meet_short_description', true ),
             'fluent_crm'              => get_post_meta( $id, 'fluent_crm', true ),
             'fluent_crm_webhook'      => get_post_meta( $id, 'fluent_crm_webhook', true ),
+            'zoho_crm'                => get_post_meta( $id, 'zoho_crm', true ),
+            'zoho_crm_webhook'        => get_post_meta( $id, 'zoho_crm_webhook', true ),
             'mail_mint'               => get_post_meta( $id, 'mail_mint', true ),
             'mail_mint_webhook'       => get_post_meta( $id, 'mail_mint_webhook', true ),
             'mail_mint_send_to'       => get_post_meta( $id, 'mail_mint_send_to', true ) ?: [ 'purchaser', 'attendee' ],
+            'funnel_kit'              => get_post_meta( $id, 'funnel_kit', true ),
+            'funnel_kit_webhook'      => get_post_meta( $id, 'funnel_kit_webhook', true ),
+            'funnel_kit_send_to'      => get_post_meta( $id, 'funnel_kit_send_to', true ) ?: [ 'purchaser', 'attendee' ],
             'faq'                     => get_post_meta( $id, 'etn_event_faq', true ),
             'external_link'           => get_post_meta( $id, 'external_link', true ),
             'ticket_template'         => get_post_meta( $id, 'ticket_template', true ),
@@ -1267,7 +1280,76 @@ class EventController extends WP_REST_Controller {
         $event_data['location_type'] = $location_type;
         $event_data['location']      = $location;
 
+        $event_data['wpml_translations'] = $this->get_wpml_translations_data( $id );
+
         return $event_data;
+    }
+
+    /**
+     * Build the WPML translations payload for an event response.
+     *
+     * Returned shape (always present; `active` is false when WPML is inactive):
+     *   [
+     *     'active'         => bool,
+     *     'current_lang'   => string,           // e.g. 'en'
+     *     'original_id'    => int,              // source-language event ID
+     *     'translations'   => [                 // languages that already have a sibling
+     *       [ 'code' => 'en', 'name' => 'English', 'native' => 'English',
+     *         'post_id' => 5089, 'is_current' => true ],
+     *       ...
+     *     ],
+     *     'create_url'     => string,           // wp-admin classic editor URL for the
+     *                                           // current event; WPML's metabox there
+     *                                           // exposes the per-language "+" buttons.
+     *   ]
+     */
+    protected function get_wpml_translations_data( $event_id ) {
+        $event_id = (int) $event_id;
+        $payload  = [
+            'active'       => false,
+            'current_lang' => '',
+            'original_id'  => $event_id,
+            'translations' => [],
+            'create_url'   => admin_url( "post.php?post={$event_id}&action=edit" ),
+        ];
+
+        if ( ! class_exists( 'Etn_Wpml' ) || ! \Etn_Wpml::is_active() ) {
+            return $payload;
+        }
+
+        $payload['active']       = true;
+        $payload['current_lang'] = \Etn_Wpml::post_lang( $event_id );
+        $payload['original_id']  = (int) \Etn_Wpml::original_id( $event_id, 'post_etn' );
+
+        $trid = apply_filters( 'wpml_element_trid', null, $event_id, 'post_etn' );
+        if ( ! $trid ) {
+            return $payload;
+        }
+
+        $translations = apply_filters( 'wpml_get_element_translations', [], $trid, 'post_etn' );
+        if ( ! is_array( $translations ) ) {
+            return $payload;
+        }
+
+        $active_languages = apply_filters( 'wpml_active_languages', [], [ 'skip_missing' => 0 ] );
+        $active_languages = is_array( $active_languages ) ? $active_languages : [];
+
+        foreach ( $translations as $lang_code => $info ) {
+            if ( empty( $info->element_id ) ) {
+                continue;
+            }
+            $sibling_id = (int) $info->element_id;
+            $lang_meta  = $active_languages[ $lang_code ] ?? [];
+            $payload['translations'][] = [
+                'code'       => (string) $lang_code,
+                'name'       => (string) ( $lang_meta['translated_name'] ?? $lang_meta['display_name'] ?? $lang_code ),
+                'native'     => (string) ( $lang_meta['native_name'] ?? $lang_code ),
+                'post_id'    => $sibling_id,
+                'is_current' => $sibling_id === $event_id,
+            ];
+        }
+
+        return $payload;
     }
 
     /**
@@ -1743,9 +1825,22 @@ class EventController extends WP_REST_Controller {
             $event_data['mail_mint'] = $input_data['mail_mint'];
         }
 
+        if ( isset( $input_data['zoho_crm'] ) ) {
+            $event_data['zoho_crm'] = $input_data['zoho_crm'];
+        }
+
         if ( isset( $input_data['mail_mint_send_to'] ) && is_array( $input_data['mail_mint_send_to'] ) ) {
             $allowed                          = [ 'purchaser', 'attendee' ];
             $event_data['mail_mint_send_to']  = array_values( array_intersect( $allowed, array_map( 'sanitize_key', $input_data['mail_mint_send_to'] ) ) );
+        }
+
+        if ( isset( $input_data['funnel_kit'] ) ) {
+            $event_data['funnel_kit'] = $input_data['funnel_kit'];
+        }
+
+        if ( isset( $input_data['funnel_kit_send_to'] ) && is_array( $input_data['funnel_kit_send_to'] ) ) {
+            $allowed                          = [ 'purchaser', 'attendee' ];
+            $event_data['funnel_kit_send_to'] = array_values( array_intersect( $allowed, array_map( 'sanitize_key', $input_data['funnel_kit_send_to'] ) ) );
         }
 
         if ( isset( $input_data['location_type'] ) ) {
@@ -1801,6 +1896,14 @@ class EventController extends WP_REST_Controller {
 
         if ( isset( $input_data['mail_mint_webhook'] ) ) {
             $event_data['mail_mint_webhook'] = esc_url_raw( $input_data['mail_mint_webhook'] );
+        }
+
+        if ( isset( $input_data['zoho_crm_webhook'] ) ) {
+            $event_data['zoho_crm_webhook'] = esc_url_raw( $input_data['zoho_crm_webhook'] );
+        }
+
+        if ( isset( $input_data['funnel_kit_webhook'] ) ) {
+            $event_data['funnel_kit_webhook'] = esc_url_raw( $input_data['funnel_kit_webhook'] );
         }
 
         // Recurring event data.

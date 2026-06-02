@@ -506,7 +506,7 @@ class Extension {
                 'demo_link'     => 'https://product.themewinter.com/eventin/',
                 'settings_link' => '',
                 'doc_link'      => 'https://support.themewinter.com/docs/plugins/plugin-docs/integration/multivendor-event-marketplace/',
-                'badge_tags'    => ['Popular', 'Trending'],
+                'badge_tags'    => ['Pro', 'Popular', 'Trending'],
                 'video_link'    => '',
             ],
             'buddyboss' => [
@@ -540,7 +540,7 @@ class Extension {
                 'demo_link'     => 'https://product.themewinter.com/eventin/',
                 'settings_link' => admin_url('admin.php?page=eventin#/settings/event-settings/attendees'),
                 'doc_link'      => 'https://support.themewinter.com/docs/plugins/plugin-docs/event/certificate-builder-for-attendee/',
-                'badge_tags'    => ['Pro'],
+                'badge_tags'    => ['Pro', 'Featured'],
             ],
             'rsvp' => [
                 'name'          => 'rsvp',
@@ -555,7 +555,7 @@ class Extension {
                 'demo_link'     => 'https://product.themewinter.com/eventin/',
                 'settings_link' => admin_url('admin.php?page=eventin#/settings/email/purchase-email'),
                 'doc_link'      => 'https://support.themewinter.com/docs/plugins/plugin-docs/rsvp-settings/what-is-rsvp-event/',
-                'badge_tags'    => ['Popular'],
+                'badge_tags'    => ['Pro', 'Popular'],
             ],
             'seat_map' => [
                 'name'          => 'seat_map',
@@ -588,7 +588,7 @@ class Extension {
                 'demo_link'     => 'https://themewinter.com/eventin/',
                 'settings_link' => '',
                 'doc_link'      => 'https://support.themewinter.com/docs/plugins/plugin-docs/email-settings/automation/',
-                'badge_tags'    => ['Free'],
+                'badge_tags'    => ['Free', 'Recommended'],
             ],
             'eventin-divi-addon' => [
                 'name'          => 'eventin-divi-addon',
@@ -706,6 +706,23 @@ class Extension {
                 'doc_link'      => 'https://docs.arraytics.com/docs/booktics/getting-started/',
                 'badge_tags'    => ['Free'],
             ],
+            'optiontics' => [
+                'name'          => 'optiontics',
+                'slug'          => 'optiontics',
+                'type'          => 'plugin',
+                'upgrade'       => false,
+                'upgrade_link'  => 'https://themewinter.com/optiontics/',
+                'status'        => 'on',
+                'is_pro'        => false,
+                'title'         => __( 'Optiontics', 'eventin' ),
+                'description'   => __( 'AI-powered product options plugin for WooCommerce — create configurable products with dynamic pricing, conditional logic, and pre-built templates.', 'eventin' ),
+                'icon'          => ExtensionIcon::get( 'optiontics' ),
+                'notice'        => '',
+                'demo_link'     => 'https://themewinter.com/optiontics/',
+                'settings_link' => '',
+                'doc_link'      => 'https://support.themewinter.com/docs/plugins/plugin-docs/optiontics/',
+                'badge_tags'    => [ 'Free', 'New', 'Updated' ],
+            ],
             'zoom' => [
                 'name'          => 'zoom',
                 'slug'          => 'zoom',
@@ -787,7 +804,84 @@ class Extension {
                 'demo_link'     => 'https://getwpfunnels.com/mail-mint/',
                 'settings_link' => '',
                 'doc_link'      => 'https://support.themewinter.com/docs/plugins/plugin-docs/integration/how-to-integrate-mailmint-with-eventin/',
-                'badge_tags'    => ['Free'],
+                'badge_tags'    => ['Free', 'Recommended'],
+            ],
+            'funnel_kit' => [
+                'name'          => 'funnel_kit',
+                'slug'          => 'funnel-kit',
+                'type'          => 'integration',
+                'status'        => ( etn_get_option('funnel_kit_api') && etn_get_option('funnel_kit_api') !== 'off' ) ? 'on' : 'off',
+                'is_pro'        => true,
+                'deps'          => ['wp-marketing-automations'],
+                'title'         => __('FunnelKit Automations', 'eventin'),
+                'description'   => __('Send purchaser and attendee data to FunnelKit Automations via webhook on order create. Requires Eventin Pro.', 'eventin'),
+                'icon'          => ExtensionIcon::get('funnel_kit'),
+                'notice'        => ( class_exists( 'Wpeventin_Pro' ) && PluginManager::is_activated( 'wp-marketing-automations' ) )
+                    ? ''
+                    : __( 'NB: Requires Eventin Pro and the FunnelKit Automations plugin', 'eventin' ),
+                'demo_link'     => 'https://funnelkit.com/automations/',
+                'settings_link' => '',
+                'doc_link'      => 'https://support.themewinter.com/docs/plugins/plugin-docs/integration/how-to-integration-funnelkit-autonami-with-eventin/',
+                'badge_tags'    => ['Pro'],
+            ],
+            'zoho_crm' => [
+                'name'          => 'zoho_crm',
+                'slug'          => 'zoho-crm',
+                'type'          => 'integration',
+                'status'        => ( etn_get_option('zoho_crm_api') && etn_get_option('zoho_crm_api') !== 'off' ) ? 'on' : 'off',
+                'is_pro'        => true,
+                'deps'          => [],
+                'title'         => __('Zoho CRM', 'eventin'),
+                'description'   => __('Send purchaser and attendee data to Zoho CRM via Zoho Flow webhook on order create. Requires Eventin Pro.', 'eventin'),
+                'icon'          => ExtensionIcon::get('zoho_crm'),
+                'notice'        => class_exists( 'Wpeventin_Pro' )
+                    ? ''
+                    : __( 'NB: Requires Eventin Pro', 'eventin' ),
+                'demo_link'     => 'https://www.zoho.com/crm/',
+                'settings_link' => '',
+                'doc_link'      => 'https://support.themewinter.com/docs/plugins/plugin-docs/integration/how-to-integrate-zoho-crm-with-eventin/',
+            ],
+            'stripe' => [
+                'name'          => 'stripe',
+                'slug'          => 'stripe',
+                'type'          => 'integration',
+                'status'        => ( 'stripe' === etn_get_option( 'etn_sells_engine_stripe' ) ) ? 'on' : 'off',
+                'is_pro'        => true,
+                'title'         => __( 'Stripe', 'eventin' ),
+                'description'   => __( 'Accept ticket payments through Stripe. Requires Eventin Pro.', 'eventin' ),
+                'icon'          => ExtensionIcon::get( 'stripe' ),
+                'notice'        => '',
+                'demo_link'     => 'https://product.themewinter.com/eventin/',
+                'settings_link' => '',
+                'doc_link'      => 'https://support.themewinter.com/docs/plugins/plugin-docs/payment-type/stripe/?utm_source=documentations&utm_medium=eventin&utm_campaign=eventin+documentations',
+                'data'          => [
+                    'etn_sells_engine_stripe'      => etn_get_option( 'etn_sells_engine_stripe' ) ? etn_get_option( 'etn_sells_engine_stripe' ) : '',
+                    'stripe_live_publishable_key'  => etn_get_option( 'stripe_live_publishable_key' ) ? etn_get_option( 'stripe_live_publishable_key' ) : '',
+                    'stripe_live_secret_key'       => etn_get_option( 'stripe_live_secret_key' ) ? etn_get_option( 'stripe_live_secret_key' ) : '',
+                    'etn_stripe_webhook_secret'    => etn_get_option( 'etn_stripe_webhook_secret' ) ? etn_get_option( 'etn_stripe_webhook_secret' ) : '',
+                ],
+                'badge_tags'    => ['Pro'],
+            ],
+            'paypal' => [
+                'name'          => 'paypal',
+                'slug'          => 'paypal',
+                'type'          => 'integration',
+                'status'        => etn_get_option( 'paypal_status' ) ? 'on' : 'off',
+                'is_pro'        => true,
+                'title'         => __( 'PayPal', 'eventin' ),
+                'description'   => __( 'Accept ticket payments through PayPal. Requires Eventin Pro.', 'eventin' ),
+                'icon'          => ExtensionIcon::get( 'paypal' ),
+                'notice'        => '',
+                'demo_link'     => 'https://product.themewinter.com/eventin/',
+                'settings_link' => '',
+                'doc_link'      => 'https://support.themewinter.com/docs/plugins/plugin-docs/payment-type/paypal/?utm_source=documentations&utm_medium=eventin&utm_campaign=eventin+documentations',
+                'data'          => [
+                    'paypal_status'         => etn_get_option( 'paypal_status' ) ? true : false,
+                    'paypal_client_id'      => etn_get_option( 'paypal_client_id' ) ? etn_get_option( 'paypal_client_id' ) : '',
+                    'paypal_client_secret'  => etn_get_option( 'paypal_client_secret' ) ? etn_get_option( 'paypal_client_secret' ) : '',
+                    'paypal_sandbox'        => etn_get_option( 'paypal_sandbox' ) ? true : false,
+                ],
+                'badge_tags'    => ['Pro'],
             ],
             'eventin_ai' => [
                 'name'          => 'eventin_ai',
@@ -856,7 +950,7 @@ class Extension {
             'demo_link'     => '',
             'settings_link' => admin_url( 'admin.php?page=eventin#/settings/import/eventbrite' ),
             'doc_link'      => 'https://support.themewinter.com/docs/plugins/plugin-docs/event-imports/import-event-from-facebook/',
-            'badge_tags'    => [ 'Free', 'New' ],
+            'badge_tags'    => [ 'Free', 'New', 'Featured' ],
         ];
 
         $extensions['eventin-addon-for-tutor-lms'] = [
@@ -873,7 +967,7 @@ class Extension {
             'settings_link' => '',
             'doc_link'      => 'https://support.themewinter.com/docs/plugins/plugin-docs/integration/how-to-integrate-tutorlms-with-eventin/',
             'notice'        => __( 'NB: Need to activate Tutor LMS plugin', 'eventin' ),
-            'badge_tags'    => [ 'Free', 'New' ],
+            'badge_tags'    => [ 'Free', 'New', 'Featured' ],
         ];
 
         $extensions['aisentic'] = [
@@ -889,6 +983,7 @@ class Extension {
             'demo_link'     => 'https://product.themewinter.com/eventin/',
             'settings_link' => '',
             'doc_link'      => 'https://support.themewinter.com/docs/plugins/plugin-docs/gettings-started-aisentic/how-to-manage-eventin-events-using-aisentics-ai-chatbot/',
+            'badge_tags'    => ['Free', 'New', "Recommended"],
         ];
 
         return $extensions;

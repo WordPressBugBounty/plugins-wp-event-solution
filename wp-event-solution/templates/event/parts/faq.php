@@ -10,7 +10,7 @@ if(!empty($etn_faqs)):
     <div class="etn-content-item eventin-block-container">
         <h4 class="etn-accordion-heading <?php echo esc_attr( $acc_class ); ?>">
             <?php echo esc_html( $faq["etn_faq_title"] ); ?>
-            <?php 
+            <?php
                                 if($acc_class){
                                     echo '<i class="etn-icon etn-minus"></i>';
                                 } else {

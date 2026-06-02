@@ -714,7 +714,7 @@ class OrderController extends WP_REST_Controller {
 		// if request for status update
 	    if ( isset( $request['action'] ) && $request['action'] == "update_booking_status" ) {
 		    $status = $request['status'];
-			if ( !in_array($status, ["failed", "completed", "refunded"]) ) {
+			if ( !in_array($status, ["failed", "completed", "refunded", "partially_refunded"]) ) {
 				return new WP_Error( 'order_update_booking_status_error', __( 'Invalid status', 'eventin' ), ['status' => 400] );
 			}
 			
@@ -748,13 +748,28 @@ class OrderController extends WP_REST_Controller {
                 return new WP_Error( 'order_update_booking_status_error', __( "You can't fail a refunded order", 'eventin' ), ['status' => 400] );
             }
 
-		    
+            // Allow partially_refunded → completed as an explicit "undo refund" flow
+            // (handled below via RefundService::undo_refunds_for_order). Block any
+            // other transition out of partially_refunded except staying or going fully refunded.
+            if ( $current_status === 'partially_refunded' && ! in_array( $status, [ 'partially_refunded', 'refunded', 'completed' ], true ) ) {
+                return new WP_Error( 'order_update_booking_status_error', __( "Partially refunded orders can only be fully refunded or restored to completed.", 'eventin' ), ['status' => 400] );
+            }
+
+
 		    $order->update(["status" => $status]);
-			
+
+		    // Undo recorded refunds when an operator manually flips a (partially_)refunded
+		    // order back to completed: restore ticket quantities and clear refund history.
+		    // Refund-confirmation emails already sent are NOT recalled (the customer
+		    // would need a separate "refund cancelled" notification, which is out of scope).
+		    if ( $status === 'completed' && in_array( $current_status, [ 'refunded', 'partially_refunded' ], true ) ) {
+		        ( new \Eventin\Refund\RefundService() )->undo_refunds_for_order( intval( $order->id ) );
+		    }
+
 		    $attendeeModel = new Attendee_Model();
 		    $attendees = $attendeeModel->get_attendees_model_by_eventin_order_id(intval($order->id));
 
-		    
+
 			foreach ($attendees as $attendee) {
 				if ( $status === "completed") {
 					update_post_meta($attendee->ID, 'etn_status', "success");
@@ -1043,6 +1058,33 @@ class OrderController extends WP_REST_Controller {
     	    $wc_order = $order->findWCOrderByEventinOrder();
         }
 		
+        // Display values for `total_price` and `total_ticket` shift with refund state:
+        //  - completed / refunded → ORIGINAL purchase values
+        //  - partially_refunded   → ORIGINAL minus all recorded refunds (per-slug + amount)
+        // This makes the bookings table communicate the *outstanding* balance during
+        // a multi-step refund, while preserving the original sale value for fully
+        // refunded orders (matches the pre-partial-refund display behavior).
+        $original_total_price  = (float) $order->total_price;
+        $original_total_ticket = (int) $order->get_total_ticket();
+        $refund_model          = new \Eventin\Refund\RefundModel();
+        $refunded_amount       = (float) $refund_model->refunded_total( $order->id );
+        $display_total_price   = $original_total_price;
+        $display_total_ticket  = $original_total_ticket;
+
+        if ( 'partially_refunded' === $order->status ) {
+            $display_total_price   = max( 0, round( $original_total_price - $refunded_amount, 2 ) );
+            $refunded_ticket_count = 0;
+            foreach ( $refund_model->find_by_order( $order->id ) as $r ) {
+                if ( ( $r['type'] ?? 'ticket' ) !== 'ticket' || empty( $r['slug_counts'] ) || ! is_array( $r['slug_counts'] ) ) {
+                    continue;
+                }
+                foreach ( $r['slug_counts'] as $count ) {
+                    $refunded_ticket_count += (int) $count;
+                }
+            }
+            $display_total_ticket = max( 0, $original_total_ticket - $refunded_ticket_count );
+        }
+
         $order_data = [
             'id'                => $order->id,
             'customer_fname'    => $order->customer_fname,
@@ -1054,11 +1096,14 @@ class OrderController extends WP_REST_Controller {
             'event_name'        => $event ? $event->post_title : '',
             'payment_method'    => $order->payment_method,
             'status'            => $order->status,
-            'total_price'       => $order->total_price,
-            'discount_total'    => $order->discount_total,
-            'tax_total'         => $order->tax_total,
-            'tax_display_mode'  => $order->tax_display_mode,
-            'total_ticket'      => $order->get_total_ticket(),
+            'total_price'           => $display_total_price,
+            'original_total_price'  => $original_total_price,
+            'refunded_amount'       => $refunded_amount,
+            'discount_total'        => $order->discount_total,
+            'tax_total'             => $order->tax_total,
+            'tax_display_mode'      => $order->tax_display_mode,
+            'total_ticket'          => $display_total_ticket,
+            'original_total_ticket' => $original_total_ticket,
             'ticket_items'      => $order->get_tickets(),
             'attendees'         => $order->get_attendees(),
             'seat_ids'          => $order->seat_ids,
@@ -1811,42 +1856,38 @@ class OrderController extends WP_REST_Controller {
 
         $post = get_post( $id );
 
-        if ( ! $post ) {
+        if ( ! $post || 'etn-order' !== $post->post_type ) {
             return new WP_Error( 'invalid_order', __( 'Invalid order id', 'eventin' ), ['status' => 404] );
         }
 
-        if ( 'etn-order' !== $post->post_type ) {
-            return new WP_Error( 'invalid_order', __( 'Invalid order id', 'eventin' ), ['status' => 404] );
+        $service    = new \Eventin\Refund\RefundService();
+        $attendees  = $service->load_order_attendees( $id );
+        $refunded   = ( new \Eventin\Refund\RefundModel() )->refunded_attendee_ids( $id );
+        $unrefunded = array_values( array_diff( array_keys( $attendees ), $refunded ) );
+
+        if ( empty( $unrefunded ) ) {
+            return new WP_Error( 'eventin_refund_invalid_state', __( 'No refundable tickets remain.', 'eventin' ), ['status' => 422] );
         }
 
-        $order = new OrderModel( $id );
+        $result = $service->create(
+            $id,
+            'ticket',
+            [ 'attendee_ids' => $unrefunded ],
+            $request->get_param( 'reason' )
+        );
 
-        if ( $order->total_price < 1 ) {
-            return new WP_Error( 'amount_low', __( 'Amount is too low', 'eventin' ), ['status' => 422] );
+        if ( is_wp_error( $result ) ) {
+            return $result;
         }
 
-        if ( ! $order->payment_method ) {
-            return new WP_Error( 'payment_method_error', __( 'No payment method found', 'eventin' ), ['status' => 422] );
-        }
+        // Preserve the legacy hook for backward compatibility with extensions
+        // listening on the old full-refund action.
+        do_action( 'eventin_order_refund', new OrderModel( $id ) );
 
-        $payment = PaymentFactory::get_method( $order->payment_method );
-
-        if ( $payment->refund( $order ) ) {
-            
-            if ( 'completed' === $order->status ) {
-                $order->update([
-                    'status' => 'refunded'
-                ]);
-    
-                do_action( 'eventin_order_refund', $order );
-            }
-
-            return rest_ensure_response([
-                'message' => __( 'Successfully refunded', 'eventin' )
-            ]);
-        }
-
-        return new WP_Error( 'refund_error', __( 'Refund unsuccessful', 'eventin' ), ['status' => 422] );
+        return rest_ensure_response([
+            'message' => __( 'Successfully refunded', 'eventin' ),
+            'result'  => $result,
+        ]);
     }
 
     /**

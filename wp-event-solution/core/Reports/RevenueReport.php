@@ -30,13 +30,15 @@ class RevenueReport extends AbstractReport {
             ? 'COALESCE(price.meta_value + 0, 0) - COALESCE(discount.meta_value + 0, 0)'
             : 'COALESCE(price.meta_value + 0, 0) - COALESCE(discount.meta_value + 0, 0) + COALESCE(tax.meta_value + 0, 0)';
 
+        // partially_refunded orders contribute (gross - sum of their refund amounts).
+        // refunded orders are excluded entirely (net is 0).
         $sql = "
-            SELECT COALESCE(SUM({$revenue_expr}), 0)
+            SELECT COALESCE(SUM({$revenue_expr}), 0) AS gross, p.ID AS order_id, status_m.meta_value AS status, refunds.meta_value AS refunds_raw
             FROM {$wpdb->posts} p
             INNER JOIN {$wpdb->postmeta} status_m
                 ON status_m.post_id = p.ID
                 AND status_m.meta_key = 'status'
-                AND status_m.meta_value = 'completed'
+                AND status_m.meta_value IN ( 'completed', 'partially_refunded' )
             INNER JOIN {$wpdb->postmeta} price
                 ON price.post_id = p.ID
                 AND price.meta_key = 'total_price'
@@ -46,6 +48,9 @@ class RevenueReport extends AbstractReport {
             LEFT JOIN {$wpdb->postmeta} tax
                 ON tax.post_id = p.ID
                 AND tax.meta_key = 'tax_total'
+            LEFT JOIN {$wpdb->postmeta} refunds
+                ON refunds.post_id = p.ID
+                AND refunds.meta_key = 'etn_refunds'
             WHERE p.post_type = 'etn-order'
             AND p.post_status != 'trash'
         ";
@@ -80,13 +85,34 @@ class RevenueReport extends AbstractReport {
             $params = array_merge( $params, $event_ids );
         }
 
+        // GROUP BY so we get one row per order with its gross + refunds_raw.
+        $sql .= " GROUP BY p.ID, status_m.meta_value, refunds.meta_value";
+
         if ( ! empty( $params ) ) {
             // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
             $sql = $wpdb->prepare( $sql, $params );
         }
 
         // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
-        return (float) $wpdb->get_var( $sql );
+        $rows = $wpdb->get_results( $sql );
+        if ( empty( $rows ) ) {
+            return 0.0;
+        }
+
+        $net = 0.0;
+        foreach ( $rows as $row ) {
+            $gross = (float) $row->gross;
+            if ( 'partially_refunded' === $row->status && ! empty( $row->refunds_raw ) ) {
+                $refunds = is_array( $row->refunds_raw ) ? $row->refunds_raw : json_decode( $row->refunds_raw, true );
+                if ( is_array( $refunds ) ) {
+                    foreach ( $refunds as $r ) {
+                        $gross -= (float) ( $r['amount'] ?? 0 );
+                    }
+                }
+            }
+            $net += max( 0, $gross );
+        }
+        return $net;
     }
 
     /**

@@ -11,6 +11,7 @@ use Eventin\Schedule\ScheduleProvider;
 use Eventin\Speaker\SpeakerProvider;
 use Eventin\Base\Speaker_role;
 use Eventin\Emails\EmailHookProvider;
+use Eventin\Refund\RefundProvider;
 use Eventin\Template\TemplateProvider;
 use Eventin\Upgrade\Upgraders\V_4_0_29;
 
@@ -37,6 +38,7 @@ class Bootstrap {
         SpeakerProvider::class,
         EmailHookProvider::class,
         TemplateProvider::class,
+        RefundProvider::class,
     ];
 
     /**

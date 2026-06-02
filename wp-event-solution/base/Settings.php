@@ -55,11 +55,25 @@ class Settings {
     }
 
     /**
+     * Color keys that must validate as a CSS hex color on write.
+     *
+     * Why: sanitize_text_field strips tags but accepts arbitrary content,
+     * which allowed pre-4.1.x installs to store payloads like
+     * `</style><script src=…>` in color fields. Whitelisting these keys to
+     * sanitize_hex_color blocks the save-side vector reported externally.
+     */
+    protected static $hex_color_keys = [
+        'etn_primary_color',
+        'etn_secondary_color',
+    ];
+
+    /**
      * Recursively sanitize settings, preserving safe HTML for email body fields.
      *
      * Email body fields (keyed `body`) are edited via a rich-text editor and
-     * must retain formatting tags. All other values are hardened with
-     * sanitize_text_field to strip unsafe markup.
+     * must retain formatting tags. Color fields listed in $hex_color_keys are
+     * validated against sanitize_hex_color and reset to empty on failure.
+     * All other values are hardened with sanitize_text_field.
      */
     protected static function sanitize_settings( $data ) {
         if ( ! is_array( $data ) ) {
@@ -73,6 +87,9 @@ class Settings {
                 $sanitized[$key] = self::sanitize_settings( $value );
             } elseif ( 'body' === $key ) {
                 $sanitized[$key] = wp_kses_post( $value );
+            } elseif ( in_array( $key, self::$hex_color_keys, true ) ) {
+                $hex             = sanitize_hex_color( (string) $value );
+                $sanitized[$key] = null === $hex ? '' : $hex;
             } else {
                 $sanitized[$key] = sanitize_text_field( $value );
             }

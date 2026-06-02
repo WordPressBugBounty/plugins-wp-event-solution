@@ -25,6 +25,20 @@ class TemplateModel extends Post_Model {
     protected $post_type = 'etn-template';
 
     /**
+     * The actual event being rendered on the frontend single-event page.
+     *
+     * When a real event is rendered through a custom block template, do_blocks()
+     * runs with the global $post set to the template post, so dynamic blocks can
+     * no longer tell which event to render and fall back to the template's
+     * design-time preview event. This static carries the real event id across
+     * those freshly-constructed block-side TemplateModel instances so
+     * get_preview_event_id() can return the event actually being viewed.
+     *
+     * @var int
+     */
+    protected static $rendering_event_id = 0;
+
+    /**
      * Template properties
      *
      * @var array
@@ -368,6 +382,17 @@ class TemplateModel extends Post_Model {
      * @return int|string returns event id or emptry string
      */
     public function get_preview_event_id() {
+        // On the frontend single-event page the block is rendering a real event
+        // through this template; show that event rather than the template's
+        // design-time preview event.
+        if ( self::$rendering_event_id ) {
+            $rendering_post = get_post( self::$rendering_event_id );
+
+            if ( $rendering_post && 'etn' === $rendering_post->post_type ) {
+                return $rendering_post->ID;
+            }
+        }
+
         $event_id = $this->preview_event_id;
         if ( empty( $event_id ) ) {
             $event_id = $this->get_available_event_id();
@@ -446,7 +471,17 @@ class TemplateModel extends Post_Model {
 
         $placeholder = $this->get_event_placeholders( $event_id );
 
-        return strtr( $this->get_rendered_content(), $placeholder );
+        // Expose the real event to dynamic blocks so they resolve it instead of
+        // the template's preview event while do_blocks() runs against the
+        // template post. Save/restore keeps nested template renders correct.
+        $previous_event_id        = self::$rendering_event_id;
+        self::$rendering_event_id = (int) $event_id;
+
+        try {
+            return strtr( $this->get_rendered_content(), $placeholder );
+        } finally {
+            self::$rendering_event_id = $previous_event_id;
+        }
     }
 
     /**

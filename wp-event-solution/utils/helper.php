@@ -1721,9 +1721,19 @@
                 $location_data = self::get_event_location();
 
             ?>
-		<form method="GET" action="<?php echo esc_url(home_url('/')); ?>" class="etn_event_inline_form">
-			<div class="etn-event-search-wrapper">
-				<div class="input-group">
+		<form method="GET" action="<?php echo esc_url(home_url('/')); ?>" class="etn_event_inline_form etn-event-search-form">
+			<div class="etn-event-search-wrapper etn-event-search-wrapper--modern">
+				<?php
+                    /**
+                     * Fires before the first field of the event search form.
+                     *
+                     * Use to prepend an extra filter `.input-group` block at the start of the bar.
+                     *
+                     * @since 4.0.30
+                     */
+                    do_action( 'eventin_search_form_before_fields' );
+                ?>
+				<div class="input-group etn-search-field etn-search-field--keyword">
 					<div class="input-group-prepend">
 						<span class="input-group-text">
 							<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
@@ -1742,7 +1752,7 @@
 						class="form-control">
 				</div>
 				<!-- // Search input filed -->
-				<div class="input-group">
+				<div class="input-group etn-search-field etn-search-field--location">
 					<div class="input-group-prepend">
 						<span class="input-group-text">
 							<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
@@ -1785,7 +1795,7 @@
 					</select>
 				</div>
 				<!-- // location -->
-				<div class="input-group">
+				<div class="input-group etn-search-field etn-search-field--category">
 					<div class="input-group-prepend">
 						<span class="input-group-text">
 							<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
@@ -1830,7 +1840,19 @@
 					</select>
 				</div>
                 <!-- // cat -->
-                <div class="search-button-wrapper">
+				<?php
+                    /**
+                     * Fires after the built-in fields and before the submit button row.
+                     *
+                     * Primary extension point for adding extra inline filter fields
+                     * (date range, tags, price, etc.). Echo a `.input-group.etn-search-field`
+                     * block so the new field aligns with the rest of the bar.
+                     *
+                     * @since 4.0.30
+                     */
+                    do_action( 'eventin_search_form_after_fields' );
+                ?>
+                <div class="search-button-wrapper etn-search-field etn-search-field--actions">
                     <input type="hidden" name="post_type" value="etn"/>
 					<?php if ( defined( 'ETN_PRO_FILES_LOADED' ) ) : ?>
                         <button
@@ -1855,12 +1877,27 @@
 					<?php endif; ?>
 					<button
 						type="submit"
-						class="etn-btn etn-btn-primary">
+						class="etn-btn etn-btn-primary etn-search-submit">
 						<?php echo esc_html($etn_event_button_title) ?>
 					</button>
+					<?php
+                        /**
+                         * Fires after the submit button row, still inside the search bar.
+                         *
+                         * Use for trailing actions like a "Reset" link.
+                         *
+                         * @since 4.0.30
+                         */
+                        do_action( 'eventin_search_form_after_buttons' );
+                    ?>
 				</div>
 			</div>
 			<?php
+                /**
+                 * Legacy advanced-search hook. Fires after the entire bar.
+                 * Prefer `eventin_search_form_after_fields` for new integrations
+                 * so injected fields render inline with the bar.
+                 */
                 do_action('etn_advanced_search');
                     ?>
 		</form>
@@ -3220,6 +3257,14 @@
                      */
                     public static function get_child_events($single_event_id)
                     {
+                        // WPML rule: recurring children inherit from the translated parent.
+                        // Children are only attached to the original-language parent — when a
+                        // visitor opens a translation, normalize back to that original ID so
+                        // the children don't disappear from the page.
+                        if ( class_exists( 'Etn_Wpml' ) ) {
+                            $single_event_id = \Etn_Wpml::original_id( $single_event_id, 'post_etn' );
+                        }
+
                         //if post type is etn and post has this is as parent-id
                         $args = [
                             'post_parent' => $single_event_id,
@@ -3241,6 +3286,10 @@
                     public static function get_all_data($id)
                     {
                         $events_data = [];
+
+                        if ( class_exists( 'Etn_Wpml' ) ) {
+                            $id = \Etn_Wpml::original_id( $id, 'post_etn' );
+                        }
 
                         $events = get_posts([
                             'post_parent'    => $id,
@@ -3267,6 +3316,10 @@
 
                     public static function total_data($id)
                     {
+                        if ( class_exists( 'Etn_Wpml' ) ) {
+                            $id = \Etn_Wpml::original_id( $id, 'post_etn' );
+                        }
+
                         $events = get_posts([
                             'post_parent'    => $id,
                             'posts_per_page' => -1,
@@ -4452,38 +4505,70 @@
      */
     public static function etn_get_sold_tickets_by_event_legacy($event_id)
     {
+        // Normalize to original event ID for WPML so callers that pass a translation
+        // ID still hit the original-event etn-order rows.
+        if ( \Etn_Wpml::is_active() ) {
+            $event_id = \Etn_Wpml::original_id( $event_id, 'post_etn' );
+        }
+
         global $wpdb;
 
         $sold_counts = [];
 
-        $rows = $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+        // Counted statuses: completed (no refunds), partially_refunded (some refunds to subtract).
+        // Fully `refunded` orders are excluded — every ticket is refunded so net contribution is 0.
+        // The `tickets` meta is the immutable original-purchase record; refunds are
+        // tracked separately in etn_refunds (with per-slug counts) and subtracted below.
+        $rows = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
             $wpdb->prepare(
-                "SELECT pm_tickets.meta_value
+                "SELECT p.ID AS order_id, pm_tickets.meta_value AS tickets_raw, pm_refunds.meta_value AS refunds_raw
                 FROM {$wpdb->posts} p
                 INNER JOIN {$wpdb->postmeta} pm_event    ON p.ID = pm_event.post_id    AND pm_event.meta_key    = 'event_id' AND pm_event.meta_value = %s
-                INNER JOIN {$wpdb->postmeta} pm_status   ON p.ID = pm_status.post_id   AND pm_status.meta_key   = 'status'   AND pm_status.meta_value = 'completed'
+                INNER JOIN {$wpdb->postmeta} pm_status   ON p.ID = pm_status.post_id   AND pm_status.meta_key   = 'status'   AND pm_status.meta_value IN ( 'completed', 'partially_refunded' )
                 INNER JOIN {$wpdb->postmeta} pm_tickets  ON p.ID = pm_tickets.post_id  AND pm_tickets.meta_key  = 'tickets'
+                LEFT  JOIN {$wpdb->postmeta} pm_refunds  ON p.ID = pm_refunds.post_id  AND pm_refunds.meta_key  = 'etn_refunds'
                 WHERE p.post_type = 'etn-order'",
                 $event_id
             )
         );
 
-        foreach ( $rows as $raw_tickets ) {
-            $tickets = etn_safe_decode( $raw_tickets );
-
+        foreach ( $rows as $row ) {
+            $tickets = etn_safe_decode( $row->tickets_raw );
             if ( ! is_array( $tickets ) ) {
                 continue;
             }
 
+            // Build this order's slug → quantity from the immutable tickets meta.
+            $order_slug_qty = [];
             foreach ( $tickets as $ticket ) {
                 if ( empty( $ticket['ticket_slug'] ) || empty( $ticket['ticket_quantity'] ) ) {
                     continue;
                 }
+                $slug                    = sanitize_text_field( $ticket['ticket_slug'] );
+                $order_slug_qty[ $slug ] = ( $order_slug_qty[ $slug ] ?? 0 ) + intval( $ticket['ticket_quantity'] );
+            }
 
-                $slug = sanitize_text_field( $ticket['ticket_slug'] );
-                $qty  = intval( $ticket['ticket_quantity'] );
+            // Subtract refunded quantities per slug (ticket-type refunds only).
+            if ( ! empty( $row->refunds_raw ) ) {
+                $refunds = is_array( $row->refunds_raw ) ? $row->refunds_raw : json_decode( $row->refunds_raw, true );
+                if ( is_array( $refunds ) ) {
+                    foreach ( $refunds as $r ) {
+                        if ( ( $r['type'] ?? 'ticket' ) !== 'ticket' || empty( $r['slug_counts'] ) || ! is_array( $r['slug_counts'] ) ) {
+                            continue;
+                        }
+                        foreach ( $r['slug_counts'] as $slug => $count ) {
+                            $slug = sanitize_text_field( (string) $slug );
+                            if ( ! isset( $order_slug_qty[ $slug ] ) ) {
+                                continue;
+                            }
+                            $order_slug_qty[ $slug ] = max( 0, $order_slug_qty[ $slug ] - (int) $count );
+                        }
+                    }
+                }
+            }
 
-                $sold_counts[ $slug ] = ( $sold_counts[ $slug ] ?? 0 ) + $qty;
+            foreach ( $order_slug_qty as $slug => $net ) {
+                $sold_counts[ $slug ] = ( $sold_counts[ $slug ] ?? 0 ) + $net;
             }
         }
 

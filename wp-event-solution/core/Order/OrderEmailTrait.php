@@ -30,12 +30,16 @@ trait OrderEmailTrait {
             $is_automation_module_on = $etn_addons_options["automation"] ?? "off";
         }
 
+        do_action( 'etn_before_send_email', $this );
+
         // check if automation module is on
         if ( 'on' === $is_automation_module_on ) {
             $this->send_email_through_automation();
         } else {
             $this->send_email_through_default_system();
         }
+
+        do_action( 'etn_after_send_email', $this );
     }
 
     /**

@@ -21,6 +21,7 @@ null, null, $event_tag, $orderby_meta, $orderby, $filter_with_status, $post_pare
             $event = new \Etn\Core\Event\Event_Model($value->ID);
 			$total_tickets = $event->get_total_ticket();
 			$total_sold_tickets = $event->get_total_sold_ticket();
+			$remaining_tickets = $total_tickets === -1 ? -1 : max( 0, $total_tickets - $total_sold_tickets );
 
 
 			$social             = get_post_meta($value->ID, 'etn_event_socials', true);
@@ -113,10 +114,10 @@ null, null, $event_tag, $orderby_meta, $orderby, $filter_with_status, $post_pare
                 if( isset( $show_remaining_tickets ) && $show_remaining_tickets =='yes'):
             ?>
             <div class="etn-mt-1 etn-remaining-tickets">
-                <?php if ( $total_tickets === -1 ) : ?>
+                <?php if ( $remaining_tickets === -1 ) : ?>
                     <small class="etn-ticket-count-lot"><?php echo esc_html__( 'Unlimited tickets remaining', 'eventin' ); ?></small>
                 <?php else : ?>
-                    <small class="<?php echo $total_tickets > 5 ? 'etn-ticket-count-lot' : 'etn-ticket-count-few' ;?>"><?php echo esc_html( etn_humanize_number( $total_tickets ) ); ?> <?php echo $total_tickets > 1 ? esc_html__( 'tickets', 'eventin' ) : esc_html__( 'ticket', 'eventin' ); ?> <?php esc_html_e( 'remaining', 'eventin' ); ?></small>
+                    <small class="<?php echo $remaining_tickets > 5 ? 'etn-ticket-count-lot' : 'etn-ticket-count-few' ;?>"><?php echo esc_html( etn_humanize_number( $remaining_tickets ) ); ?> <?php echo $remaining_tickets > 1 ? esc_html__( 'tickets', 'eventin' ) : esc_html__( 'ticket', 'eventin' ); ?> <?php esc_html_e( 'remaining', 'eventin' ); ?></small>
                 <?php endif; ?>
             </div>
             <?php endif; ?>

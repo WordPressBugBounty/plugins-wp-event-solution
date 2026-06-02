@@ -2,8 +2,8 @@
 Contributors: arraytics, ehsanriyadh
 Tags: event calendar, event registration, event tickets, event booking, event management, event manager, event tickets, event scheduling, booking system, RSVP, event listing
 Requires at least: 6.2
-Tested up to: 6.9
-Stable tag: 4.1.13
+Tested up to: 7.0
+Stable tag: 4.1.14
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: [https://www.gnu.org/licenses/gpl-2.0.html](https://www.gnu.org/licenses/gpl-2.0.html)
@@ -283,6 +283,24 @@ Yes. Eventin is translation-ready and compatible with WPML and Loco Translate. I
 Please report security bugs found in the source code of the WP Event Solution plugin through the [Patchstack Vulnerability Disclosure Program](https://patchstack.com/database/vdp/5b5e63df-930d-4f15-9bf8-db51f5732488). The Patchstack team will assist you with verification, CVE assignment, and notify the developers of this plugin.
 
 == Changelog ==
+
+= 4.1.14 ( June 02, 2026 ) =
+New     : Pertial Refund - Integrated pertial refund system
+New     : WPML - Added support for WPML translation
+
+Tweak   : Booking - Added support for include and exclude tax handling in FluentCart integration
+Tweak   : Extension Page - User experience updated
+
+Fix     : Shortcode - Fixed attendee list access from event list in the frontend dashboard shortcode
+Fix     : Dokan - Fix attendee list access from event list in the Dokan dashboard
+Fix     : Author Role - Fixed the issue where authors could access the organizer list
+Fix     : Responsive - Fixed responsive issues on the event archive page and advanced search widget
+Fix     : Waiting List - Fixed the payment issue on the waiting list system
+Fix     : Ticket Scanner - Fixed ticket scanner compatibility issues
+Fix     : Schedule - Fixed the schedule time mismatch issue
+Fix     : Shortcode - Fixed the remaining ticket count issue on shortcode output
+Fix     : Event Template - Fixed the map loading issue in Event Template 4
+Fix     : Calendar - Fixed Eventin Calendar issue
 
 = 4.1.13 ( May 20, 2026 ) =
 

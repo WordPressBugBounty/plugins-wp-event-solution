@@ -372,8 +372,15 @@ if ( ! function_exists( 'etn_parse_event_datetime' ) ) {
         $time = is_string( $time ) ? trim( $time ) : '';
 
         // Normalize "digits + non-digits + digits" (e.g. "8h00", "6.45", "6 45") → "08:00" / "06:45".
-        if ( $time && preg_match( '/^(\d{1,2})\D+(\d{1,2})/', $time, $m ) ) {
+        // Skip values that already contain a colon — "9:00 PM" / "21:00" are parsed natively by
+        // \DateTime, and reformatting them here would drop the AM/PM meridiem (turning every PM
+        // time into the morning). Preserve any meridiem for the compact formats that do get normalized.
+        if ( $time && false === strpos( $time, ':' )
+            && preg_match( '/^(\d{1,2})\D+(\d{1,2})\s*([AaPp][Mm])?/', $time, $m ) ) {
             $time = sprintf( '%02d:%02d', (int) $m[1], (int) $m[2] );
+            if ( ! empty( $m[3] ) ) {
+                $time .= ' ' . strtoupper( $m[3] );
+            }
         }
 
         $date_time_string = trim( $date . ' ' . $time );

@@ -169,8 +169,8 @@ class EventDetailsPartsPro {
 														if( is_array( $schedule_topics ) && !empty( $schedule_topics )){
 																foreach($schedule_topics as $topic) {
 																		$etn_schedule_topic         = (isset($topic['etn_schedule_topic']) ? $topic['etn_schedule_topic'] : '');
-																		$etn_schedule_start_time    = !empty($topic['etn_shedule_start_time']) ? date_i18n($etn_tab_time_format, strtotime($topic['etn_shedule_start_time'])) : '';
-																		$etn_schedule_end_time      = !empty($topic['etn_shedule_end_time']) ? date_i18n($etn_tab_time_format, strtotime($topic['etn_shedule_end_time'])) : '';
+																		$etn_schedule_start_time    = !empty($topic['etn_shedule_start_time']) ? wp_date($etn_tab_time_format, ( new \DateTime($topic['etn_shedule_start_time'], wp_timezone()) )->getTimestamp()) : '';
+																		$etn_schedule_end_time      = !empty($topic['etn_shedule_end_time']) ? wp_date($etn_tab_time_format, ( new \DateTime($topic['etn_shedule_end_time'], wp_timezone()) )->getTimestamp()) : '';
 																		$etn_schedule_room          = (isset($topic['etn_shedule_room']) ? $topic['etn_shedule_room'] : '');
 																		$etn_schedule_objective     = (isset($topic['etn_shedule_objective']) ? $topic['etn_shedule_objective'] : '');
 																		$etn_schedule_speaker       = (isset($topic['speakers']) ? (array) $topic['speakers'] : []);
@@ -186,7 +186,7 @@ class EventDetailsPartsPro {
 																						if((!empty($etn_schedule_start_time) || !empty( $etn_schedule_end_time )) && $is_active){
 																								?>
                     <span class='etn-schedule-time'>
-                        <?php echo esc_html($etn_schedule_start_time) . esc_html($dash_sign) . esc_html($etn_schedule_end_time); ?>111
+                        <?php echo esc_html($etn_schedule_start_time) . esc_html($dash_sign) . esc_html($etn_schedule_end_time); ?>
                     </span>
 
                     <?php

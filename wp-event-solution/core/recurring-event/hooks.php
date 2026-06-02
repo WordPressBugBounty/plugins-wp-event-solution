@@ -859,6 +859,10 @@ class Hooks {
         }
 
         $orphan_status = in_array( $this->orphan_status, [ 'draft', 'publish' ], true ) ? $this->orphan_status : 'draft';
+        // Children only live under the original-language parent.
+        if ( class_exists( 'Etn_Wpml' ) ) {
+            $parent_post_id = \Etn_Wpml::original_id( $parent_post_id, 'post_etn' );
+        }
 
         $valid_dates = array_map( function ( $ts ) {
             return gmdate( 'Y-m-d', (int) $ts );

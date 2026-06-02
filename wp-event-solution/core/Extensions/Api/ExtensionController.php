@@ -147,6 +147,14 @@ class ExtensionController extends WP_REST_Controller {
             etn_update_option( 'mail_mint_api', $status ?? null );
         }
 
+        if ( $name == 'funnel_kit' ) {
+            etn_update_option( 'funnel_kit_api', $status ?? null );
+        }
+
+        if ( $name == 'zoho_crm' ) {
+            etn_update_option( 'zoho_crm_api', $status ?? null );
+        }
+
         if ( $name == 'eventin-addon-for-surecart' ) {
             etn_update_option('etn_surecart_enabled',$status=='on'?true:false);
             if($status=='off'){
@@ -163,6 +171,30 @@ class ExtensionController extends WP_REST_Controller {
             etn_update_option('etn_aisentic_enabled',$status=='on'?true:false);
             if($status=='off'){
                 etn_update_option('aisentic_status',false);
+            }
+        }
+
+        $clear_conflicts = (bool) $input->get( 'clear_conflicts' );
+
+        if ( $name == 'stripe' ) {
+            etn_update_option( 'etn_sells_engine_stripe', $status == 'on' ? 'stripe' : null );
+
+            if ( $status == 'on' && $clear_conflicts ) {
+                etn_update_option( 'sell_tickets', null );
+                etn_update_option( 'payment_method', '' );
+                etn_update_option( 'surecart_status', false );
+                etn_update_option( 'fluentcart_status', false );
+            }
+        }
+
+        if ( $name == 'paypal' ) {
+            etn_update_option( 'paypal_status', $status == 'on' ? true : false );
+
+            if ( $status == 'on' && $clear_conflicts ) {
+                etn_update_option( 'sell_tickets', null );
+                etn_update_option( 'payment_method', '' );
+                etn_update_option( 'surecart_status', false );
+                etn_update_option( 'fluentcart_status', false );
             }
         }
 

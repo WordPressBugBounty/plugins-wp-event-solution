@@ -1,38 +1,141 @@
 <wpml-config>
- 
+
 <custom-fields>
+  <!-- Stock / availability — keep identical across translations -->
   <custom-field action="copy">etn_avaiilable_tickets</custom-field>
   <custom-field action="copy">etn_sold_tickets</custom-field>
+  <custom-field action="copy">etn_total_sold_tickets</custom-field>
+  <custom-field action="copy">etn_total_avaiilable_tickets</custom-field>
+  <custom-field action="copy">etn_max_attendee</custom-field>
+  <custom-field action="copy">etn_global_stock</custom-field>
+  <custom-field action="copy">etn_global_waiting_list</custom-field>
+  <custom-field action="copy">etn_enable_global_stock</custom-field>
+  <custom-field action="copy">enable_attendee_waiting_list</custom-field>
+  <custom-field action="copy">pending_seats</custom-field>
+  <custom-field action="copy">_etn_seat_unique_id</custom-field>
+
+  <!-- Schedule / dates / times -->
   <custom-field action="copy">etn_start_time</custom-field>
   <custom-field action="copy">etn_end_time</custom-field>
   <custom-field action="copy">etn_start_date</custom-field>
   <custom-field action="copy">etn_end_date</custom-field>
   <custom-field action="copy">etn_registration_deadline</custom-field>
+
+  <!-- Recurring -->
   <custom-field action="copy">recurring_enabled</custom-field>
   <custom-field action="copy">etn_event_recurrence</custom-field>
   <custom-field action="copy">etn_recurrence_timestamps</custom-field>
+
+  <!-- Pricing / tickets (names/descriptions same across languages by product decision) -->
   <custom-field action="copy">etn_ticket_price</custom-field>
   <custom-field action="copy">etn_ticket_variations</custom-field>
+  <custom-field action="copy">etn_ticket_availability</custom-field>
+
+  <!-- Misc -->
   <custom-field action="copy">etn_event_socials</custom-field>
   <custom-field action="copy">alignment</custom-field>
-  <custom-field action="copy">etn_ticket_availability</custom-field>
-  <custom-field action="copy">etn_ticket_variations</custom-field>
-  <custom-field action="copy">etn_total_avaiilable_tickets</custom-field>
-  
-  <custom-field action="translate">etn_event_location</custom-field>
-  <custom-field action="translate">etn_event_organizer</custom-field>
-  <custom-field action="translate">etn_event_schedule</custom-field>
-  <custom-field action="translate">event_timezone</custom-field>
-  
-<!--  <custom-field action="translate">custom-title</custom-field>
- <custom-field action="copy">weight</custom-field>
- <custom-field action="copy-once">bg-color</custom-field>
- <custom-field action="translate">custom-description</custom-field>
- <custom-field action="ignore">date-added</custom-field> -->
+
+  <!-- Structural / ID-bearing fields — must stay identical across translations.
+       (Translating an IANA timezone, a serialized schedule, or post-ID arrays
+       corrupts the data; the venue address is a product call to keep verbatim.) -->
+  <custom-field action="copy">event_timezone</custom-field>
+  <custom-field action="copy">etn_event_location</custom-field>
+  <custom-field action="copy">etn_event_location_type</custom-field>
+  <custom-field action="copy">etn_event_location_list</custom-field>
+  <custom-field action="copy">etn_event_organizer</custom-field>
+  <custom-field action="copy">etn_event_speaker</custom-field>
+  <custom-field action="copy">etn_event_schedule</custom-field>
+  <custom-field action="copy">location</custom-field>
+  <custom-field action="copy">event_type</custom-field>
+  <custom-field action="copy">organizer_type</custom-field>
+  <custom-field action="copy">organizer_group</custom-field>
+  <custom-field action="copy">speaker_type</custom-field>
+  <custom-field action="copy">speaker_group</custom-field>
+
+  <!-- Layout, banner, logo, theme — visual presentation copied across translations -->
+  <custom-field action="copy">event_layout</custom-field>
+  <custom-field action="copy">event_banner</custom-field>
+  <custom-field action="copy">event_banner_id</custom-field>
+  <custom-field action="copy">event_logo_id</custom-field>
+  <custom-field action="copy">etn_event_logo</custom-field>
+  <custom-field action="copy">etn_event_calendar_bg</custom-field>
+  <custom-field action="copy">etn_event_calendar_text_color</custom-field>
+  <custom-field action="copy">excerpt_enable</custom-field>
+  <custom-field action="copy">external_link</custom-field>
+  <custom-field action="copy">attende_page_link</custom-field>
+
+  <!-- FAQ, attendee fields, certificate, seatmap, RSVP, ticket template -->
+  <!-- etn_event_faq: copy-once = duplicated as a starting draft when a
+       translation is created, then independent. Each language can edit/add/
+       remove/reorder its own FAQ items via the normal post editor — no
+       String Translation detour. Trade-off: structural changes on the original
+       (e.g. adding a new FAQ) do not auto-propagate to existing translations. -->
+  <custom-field action="copy-once">etn_event_faq</custom-field>
+  <custom-field action="copy-once">attendee_extra_fields</custom-field>
+  <custom-field action="copy">certificate_template</custom-field>
+  <custom-field action="copy">enable_legacy_certificate_template</custom-field>
+  <custom-field action="copy">enable_seatmap</custom-field>
+  <custom-field action="copy">seat_plan</custom-field>
+  <custom-field action="copy">rsvp_settings</custom-field>
+  <custom-field action="copy">ticket_template</custom-field>
+  <custom-field action="copy">etn_select_speaker_schedule_type</custom-field>
+
+  <!-- Online-meeting integrations (Zoom / Google Meet) -->
+  <custom-field action="copy">etn_zoom_event</custom-field>
+  <custom-field action="copy">etn_zoom_id</custom-field>
+  <custom-field action="copy">etn_google_meet</custom-field>
+  <custom-field action="copy">etn_google_meet_short_description</custom-field>
+
+  <!-- Cross-plugin integrations / housekeeping -->
+  <custom-field action="copy">fluent_crm</custom-field>
+  <custom-field action="copy">fluent_crm_webhook</custom-field>
+  <custom-field action="copy">ens_flow_id</custom-field>
+  <custom-field action="copy">etn_last_update_date</custom-field>
+  <custom-field action="copy">copied_media_ids</custom-field>
+  <custom-field action="copy">referenced_media_ids</custom-field>
+
+  <!-- Schedule post meta (`etn-schedule` CPT).
+       Operational fields stay synced across translations; display fields are
+       seeded as a draft on translation creation and edited per language.
+       Topic time sub-keys inside `etn_schedule_topics` are kept in sync at
+       runtime by `etn_update_schedule_meta` in core/wpml/init.php — copy-once
+       alone would let topic times diverge across languages on a reschedule. -->
+  <custom-field action="copy">etn_schedule_date</custom-field>
+  <custom-field action="copy">hide_date_on_event_page</custom-field>
+  <custom-field action="copy-once">etn_schedule_day</custom-field>
+  <custom-field action="copy-once">etn_schedule_title</custom-field>
+  <custom-field action="copy-once">etn_schedule_topics</custom-field>
 </custom-fields>
- 
+
 <custom-types>
+  <custom-type translate="1">etn</custom-type>
+  <custom-type translate="1">etn-schedule</custom-type>
+  <custom-type translate="0">etn-template</custom-type>
   <custom-type translate="0">etn-attendee</custom-type>
+  <!--
+    Speakers are NOT a custom post type in Eventin — `etn-speaker` is a WordPress
+    user role (see core/speaker/speaker-role.php). Users are not translatable via
+    WPML's post-translation pipeline, so there is no `etn-speaker` entry here.
+    The same reasoning excludes the `etn_speaker_category` taxonomy: it is
+    registered against the (non-existent) `etn-speaker` post type and used as a
+    free-floating taxonomy on user IDs, so WPML's post-taxonomy translation does
+    not apply. The `etn_event_speaker` event meta is declared `copy` above, which
+    makes every translation of an event reference the same speaker user IDs —
+    the speaker's display_name/description renders identically across languages.
+  -->
 </custom-types>
+
+<taxonomies>
+  <taxonomy translate="1">etn_category</taxonomy>
+  <taxonomy translate="1">etn_tags</taxonomy>
+</taxonomies>
+
+<admin-texts>
+  <key name="etn_event_options">
+    <key name="wp_eventlty_singular_name" />
+    <key name="etn_event_archive" />
+    <key name="etn_event_all" />
+  </key>
+</admin-texts>
 
 </wpml-config>

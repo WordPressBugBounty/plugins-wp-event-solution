@@ -49,8 +49,11 @@ class Event_Model extends Post_Model {
         'etn_google_meet'                   => '',
         'etn_google_meet_short_description' => '',
         'fluent_crm'                        => '',
+        'zoho_crm'                          => '',
         'mail_mint'                         => '',
         'mail_mint_send_to'                 => [],
+        'funnel_kit'                        => '',
+        'funnel_kit_send_to'                => [],
         'etn_event_location_type'           => '',
         'etn_event_location'                => '',
         'etn_event_socials'                 => [],
@@ -73,7 +76,9 @@ class Event_Model extends Post_Model {
         'etn_event_calendar_bg'             => '',
         'etn_event_calendar_text_color'     => '',
         'fluent_crm_webhook'                => '',
+        'zoho_crm_webhook'                  => '',
         'mail_mint_webhook'                 => '',
+        'funnel_kit_webhook'                => '',
         'attende_page_link'                 => '',
         'event_banner'                      => '',
         'event_layout'                      => '',
@@ -457,11 +462,12 @@ class Event_Model extends Post_Model {
         $tag_ids = wp_list_pluck( $tags, 'term_id' );
 
         $args = [
-            'post_type'      => $this->post_type,
-            'post_status'    => 'any',
-            'posts_per_page' => $limit,
-            'post__not_in'   => [ $this->id ], // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post__not_in
-            'tax_query'      => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
+            'post_type'        => $this->post_type,
+            'post_status'      => 'any',
+            'posts_per_page'   => $limit,
+            'post__not_in'     => [ $this->id ], // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post__not_in
+            'suppress_filters' => false, // let WPML scope to current language
+            'tax_query'        => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
                 [
                     'taxonomy' => 'etn_tags',
                     'field'    => 'term_id',

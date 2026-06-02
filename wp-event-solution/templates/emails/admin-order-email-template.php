@@ -1,6 +1,19 @@
 <?php
-    // Check WooCommerce tax display setting
-    $tax_display_mode = get_option( 'woocommerce_tax_display_shop' );
+    // For FluentCart orders with tax, always defer to the FC store's tax_inclusion setting -
+    // the saved tax_display_mode on the order can be stale or wrong when FC's tax_behavior
+    // column wasn't populated from the cart's tax_data at order creation time. For all other
+    // gateways, prefer the order's stored value; fall back to the WooCommerce global last.
+    $tax_display_mode = $order->tax_display_mode;
+
+    if ( $order->payment_method === 'fluentcart' && $order->tax_total > 0 && class_exists( '\\FluentCart\\App\\Modules\\Tax\\TaxModule' ) ) {
+        $fc_tax_settings  = ( new \FluentCart\App\Modules\Tax\TaxModule() )->getSettings();
+        $fc_tax_inclusion = is_array( $fc_tax_settings ) ? ( $fc_tax_settings['tax_inclusion'] ?? '' ) : '';
+        $tax_display_mode = ( 'included' === $fc_tax_inclusion ) ? 'incl' : 'excl';
+    }
+
+    if ( empty( $tax_display_mode ) ) {
+        $tax_display_mode = get_option( 'woocommerce_tax_display_shop' );
+    }
 ?>
 <!--Email Content Area -->
 <?php if ( ! empty( $content ) ) { ?>
@@ -123,7 +136,7 @@
             </td>
         </tr>
         <?php endif; ?>
-        <?php if ( $tax_display_mode != 'incl' && class_exists('WooCommerce') && $order->payment_method == 'wc' && $order->tax_total > 0 ) : ?>
+        <?php if ( $tax_display_mode != 'incl' && $order->tax_total > 0 ) : ?>
         <!-- Tax -->
         <tr>
             <td
@@ -181,7 +194,7 @@
                 $tax_total = 0;
             }
             
-            if ( $tax_display_mode === 'incl' && class_exists('WooCommerce') && $order->payment_method == 'wc' ) {
+            if ( $tax_display_mode === 'incl' && $order->tax_total > 0 ) {
                 // Inclusive tax: total already includes tax, so don't add it again
                 $final_total = floatval($order->total_price ) - floatval($discount_price);
                 $price_with_currency = \Etn\Core\Event\Helper::instance()->currency_with_position( number_format($final_total,2), $order );

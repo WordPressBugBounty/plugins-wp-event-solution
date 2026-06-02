@@ -5,7 +5,6 @@ use \Etn\Utils\Helper;
 defined( 'ABSPATH' ) || exit;
 
 $etn_event_schedule     = get_post_meta( $single_event_id, 'etn_event_schedule', true);
-date_default_timezone_set('UTC'); // phpcs:ignore WordPress.DateTime.RestrictedFunctions.timezone_change_date_default_timezone_set -- intentional UTC context for schedule sorting.
 
 if ( is_array($etn_event_schedule) && !empty($etn_event_schedule) ) {
     $args = array(
@@ -76,16 +75,16 @@ if ( is_array($etn_event_schedule) && !empty($etn_event_schedule) ) {
                         $etn_tab_time_format = ( isset( $event_options["time_format"] ) && $event_options["time_format"] == '24' ) ? "H:i" : get_option( 'time_format' );
                         if( is_array( $schedule_topics ) && !empty($schedule_topics) ){
                             usort( $schedule_topics, function( $a, $b ) {
-                                $a_time = ! empty( $a['etn_shedule_start_time'] ) ? strtotime( $a['etn_shedule_start_time'] ) : 0;
-                                $b_time = ! empty( $b['etn_shedule_start_time'] ) ? strtotime( $b['etn_shedule_start_time'] ) : 0;
+                                $a_time = ! empty( $a['etn_shedule_start_time'] ) ? ( new \DateTime( $a['etn_shedule_start_time'], wp_timezone() ) )->getTimestamp() : 0;
+                                $b_time = ! empty( $b['etn_shedule_start_time'] ) ? ( new \DateTime( $b['etn_shedule_start_time'], wp_timezone() ) )->getTimestamp() : 0;
                                 return $a_time <=> $b_time;
                             } );
                             foreach ($schedule_topics as $topic) :
                                 // Skip topic if is_active is set and equals 0
                                 if ( !isset($topic['is_active']) || $topic['is_active'] != 0 ) :
                                     $etn_schedule_topic         = (isset($topic['etn_schedule_topic']) ? $topic['etn_schedule_topic'] : '');
-                                    $etn_schedule_start_time    = !empty($topic['etn_shedule_start_time']) ? date_i18n($etn_tab_time_format, strtotime($topic['etn_shedule_start_time'])) : '';
-                                    $etn_schedule_end_time      = !empty($topic['etn_shedule_end_time']) ? date_i18n($etn_tab_time_format, strtotime($topic['etn_shedule_end_time'])) : '';
+                                    $etn_schedule_start_time    = !empty($topic['etn_shedule_start_time']) ? wp_date($etn_tab_time_format, ( new \DateTime($topic['etn_shedule_start_time'], wp_timezone()) )->getTimestamp()) : '';
+                                    $etn_schedule_end_time      = !empty($topic['etn_shedule_end_time']) ? wp_date($etn_tab_time_format, ( new \DateTime($topic['etn_shedule_end_time'], wp_timezone()) )->getTimestamp()) : '';
                                     $etn_schedule_room          = (isset($topic['etn_shedule_room']) ? $topic['etn_shedule_room'] : '');
                                     $etn_schedule_objective     = (isset($topic['etn_shedule_objective']) ? $topic['etn_shedule_objective'] : '');
                                     $etn_schedule_speaker       = (isset($topic['speakers']) ? $topic['speakers'] : []);

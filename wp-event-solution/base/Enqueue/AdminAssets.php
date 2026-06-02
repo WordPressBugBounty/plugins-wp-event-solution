@@ -46,7 +46,7 @@ class AdminAssets implements AssetsInterface {
             'etn-ai' => [
                 'src'       => \Wpeventin::plugin_url( 'build/js/index-ai-script.js' ),
                 'deps'      => array_merge(
-                    [ 'jquery', 'wp-scripts' ],
+                    [ 'jquery', 'wp-scripts', 'etn-packages' ],
                     ChunkManifest::vendor_deps_for( 'index-ai-script' )
                 ),
                 'in_footer' => true,
@@ -59,7 +59,7 @@ class AdminAssets implements AssetsInterface {
             'etn-dashboard' => [
                 'src'       => \Wpeventin::plugin_url( 'build/js/dashboard.js' ),
                 'deps'      => array_merge(
-                    ['wp-format-library', 'etn-html-2-canvas'],
+                    ['wp-format-library', 'etn-html-2-canvas', 'etn-packages'],
                     ChunkManifest::vendor_deps_for( 'dashboard' )
                 ),
                 'in_footer' => true,
@@ -70,13 +70,6 @@ class AdminAssets implements AssetsInterface {
                 'in_footer' => true,
             ],
         ];
-        // Conditionally add 'etn-packages' to 'etn-dashboard' dependencies
-         if (class_exists('Wpeventin_Pro')) {
-            $scripts['etn-dashboard']['deps'][] = 'etn-packages';
-            //Re-index the array to avoid possible issues.
-            $scripts['etn-dashboard']['deps'] = array_values(array_unique($scripts['etn-dashboard']['deps']));
-        }
-           
         return apply_filters( 'etn_admin_register_scripts', $scripts );
     }
 
