@@ -159,7 +159,11 @@ class Api extends \Etn\Base\Api_Handler {
 			$post_parent   = ! empty( $request['postParent'] ) ? $request['postParent'] : 'child';
 			$post_id       = ! empty( $request['postID'] ) ? $request['postID'] : 0;
 			$selected_cats = ! empty( $request['selectedCats'] ) ? $request['selectedCats'] : [];
-			$event_list    = Helper::get_events_by_date( $month, $year, $display, $endDate, $startTime, $start, $end, $post_parent, $post_id, $selected_cats );
+			// Whitelist the status filter — endpoint is public/front-end.
+			$allowed_status     = ['', 'upcoming', 'ongoing', 'expire'];
+			$filter_with_status = ! empty( $request['filterWithStatus'] ) ? sanitize_text_field( $request['filterWithStatus'] ) : '';
+			$filter_with_status = in_array( $filter_with_status, $allowed_status, true ) ? $filter_with_status : '';
+			$event_list    = Helper::get_events_by_date( $month, $year, $display, $endDate, $startTime, $start, $end, $post_parent, $post_id, $selected_cats, $filter_with_status );
 
 			if ( ! empty( $event_list ) ) {
 				$status_code         = 1;

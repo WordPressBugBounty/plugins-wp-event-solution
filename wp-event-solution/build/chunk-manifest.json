@@ -1,5 +1,6 @@
 {
   "packages": [
+    "js/vendor-rc.js",
     "js/vendor-antd-icons.js",
     "js/vendor-antd.js",
     "js/vendor-react.js",
@@ -7,6 +8,14 @@
     "js/vendor-fullcalendar.js",
     "js/vendor-common.js",
     "js/packages.js"
+  ],
+  "packages-frontend": [
+    "js/vendor-rc.js",
+    "js/vendor-antd-icons.js",
+    "js/vendor-antd.js",
+    "js/vendor-date.js",
+    "js/vendor-common.js",
+    "js/packages-frontend.js"
   ],
   "i18n-loader": [
     "js/vendor-common.js",
@@ -18,14 +27,15 @@
   "feedback-modal-styles": [],
   "etn-block-styles": [],
   "index-calendar": [
+    "js/vendor-rc.js",
     "js/vendor-antd-icons.js",
-    "js/vendor-antd.js",
     "js/vendor-date.js",
     "js/vendor-fullcalendar.js",
     "js/vendor-common.js",
     "js/index-calendar.js"
   ],
   "index-onboard": [
+    "js/vendor-rc.js",
     "js/vendor-antd-icons.js",
     "js/vendor-antd.js",
     "js/vendor-react.js",
@@ -41,6 +51,7 @@
     "js/index-ai-script.js"
   ],
   "dashboard": [
+    "js/vendor-rc.js",
     "js/vendor-antd-icons.js",
     "js/vendor-antd.js",
     "js/vendor-react.js",
@@ -50,20 +61,19 @@
     "js/dashboard.js"
   ],
   "module-purchase": [
+    "js/vendor-rc.js",
     "js/vendor-antd-icons.js",
     "js/vendor-antd.js",
     "js/vendor-react.js",
     "js/vendor-date.js",
-    "js/vendor-fullcalendar.js",
     "js/vendor-common.js",
     "js/module-purchase.js"
   ],
   "gutenberg-blocks": [
+    "js/vendor-rc.js",
     "js/vendor-antd-icons.js",
     "js/vendor-antd.js",
-    "js/vendor-react.js",
     "js/vendor-date.js",
-    "js/vendor-fullcalendar.js",
     "js/vendor-common.js",
     "js/gutenberg-blocks.js"
   ],
@@ -71,6 +81,7 @@
     "js/feedback-modal.js"
   ],
   "template-builder-header-toolbar": [
+    "js/vendor-rc.js",
     "js/vendor-antd-icons.js",
     "js/vendor-antd.js",
     "js/vendor-date.js",

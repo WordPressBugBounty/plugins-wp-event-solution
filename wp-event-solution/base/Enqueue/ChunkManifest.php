@@ -72,8 +72,8 @@ class ChunkManifest {
             return [];
         }
 
-        $deps    = [];
-        $version = \Wpeventin::version();
+        $deps     = [];
+        $fallback = \Wpeventin::version();
 
         foreach ( $manifest[ $entry ] as $file ) {
             // Match files like "js/vendor-antd.js" → handle "etn-vendor-antd".
@@ -82,6 +82,19 @@ class ChunkManifest {
             }
             $name   = $matches[1];
             $handle = 'etn-' . $name;
+
+            // CACHE-BUST: version each vendor chunk by its file CONTENT, not the
+            // static plugin version. Vendor chunk filenames are stable
+            // (js/vendor-*.js, no content hash in the name), so a chunk whose
+            // contents change between builds at the SAME plugin version would keep
+            // the same ?ver= — and browsers/CDNs/page-caches then serve the stale
+            // copy alongside freshly-built sibling chunks. That mixes two builds and
+            // breaks webpack's cross-chunk module-id resolution (e.g.
+            // "n.dn is not a function" thrown from vendor-antd when it requires a
+            // stale vendor-rc). Hashing the file guarantees ?ver= changes whenever
+            // the chunk does. crc32b is content-exact and fast (sub-ms per chunk).
+            $file_path = \Wpeventin::plugin_dir() . 'build/' . $file;
+            $file_ver  = file_exists( $file_path ) ? hash_file( 'crc32b', $file_path ) : $fallback;
 
             // Always (re-)register: WP can swap the active WP_Scripts instance
             // mid-request (e.g. _wp_get_iframed_editor_assets()), and a static
@@ -92,7 +105,7 @@ class ChunkManifest {
                     $handle,
                     \Wpeventin::plugin_url( 'build/' . $file ),
                     [],
-                    $version,
+                    $file_ver,
                     false // Vendor chunks must load in <head> before the entry runs in footer.
                 );
             }

@@ -52,4 +52,17 @@ $data = [
     'rsvp'                        => ( \Etn\Core\Addons\Helper::instance()->check_active_module( 'rsvp' ) ) ? true : false,
 ];
 
+// Expose the logged-in user's billing details so the checkout form can prefill them.
+if ( is_user_logged_in() ) {
+    $current_user  = wp_get_current_user();
+    $billing_phone = get_user_meta( $current_user->ID, 'billing_phone', true );
+
+    $data['current_user'] = [
+        'first_name' => $current_user->first_name,
+        'last_name'  => $current_user->last_name,
+        'email'      => $current_user->user_email,
+        'phone'      => $billing_phone ? $billing_phone : '',
+    ];
+}
+
 return apply_filters( 'etn_locale_vars', $data );

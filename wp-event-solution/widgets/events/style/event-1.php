@@ -51,6 +51,13 @@ null, null, $event_tag, $orderby_meta, $orderby, $filter_with_status, $post_pare
                     >
                         <?php echo get_the_post_thumbnail($value->ID, 'large');  ?>
                     </a>
+                <?php else: ?>
+                    <a
+                        href="<?php echo esc_url(get_the_permalink($value->ID)); ?>"
+                        aria-label="<?php echo esc_attr(get_the_title()); ?>"
+                    >
+                        <img class="etn-event-placeholder" src="<?php echo esc_url(\Wpeventin::assets_url() . 'images/placeholder.jpg'); ?>" alt="<?php echo esc_attr__('Event placeholder image', 'eventin'); ?>">
+                    </a>
                 <?php endif; ?>
 
                 <div class="etn-event-category">

@@ -9,7 +9,7 @@ if( ( ETN_DEMO_SITE === false ) || ( ETN_DEMO_SITE == true && ETN_EVENT_TEMPLATE
 ?>
 <?php do_action("etn_before_single_event_details", $single_event_id); ?>
 
-<div class="etn-event-single-wrap">
+<div class="etn-event-single-wrap" role="main">
     <div class="etn-container">
 
         <?php  do_action("etn_before_single_event_container", $single_event_id); ?>

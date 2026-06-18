@@ -60,28 +60,26 @@ class EventImporter implements PostImporterInterface {
         $rows = $this->data;
 
         foreach ( $rows as $row ) {
+            $row = $this->normalize_row_keys( $row );
+
             $args = [
                 'post_status'                       => ! empty( $row['status'] ) ? $row['status'] : 'publish',
                 'post_title'                        => ! empty( $row['title'] ) ? sanitize_text_field( $row['title'] ) : '',
-                'post_content'  => ! empty( $row['description'] ) ? wp_kses_post( $row['description'] ) : '',
+                'post_content'                      => ! empty( $row['description'] ) ? wp_kses_post( $row['description'] ) : '',
                 'etn_start_date'                    => ! empty( $row['start_date'] ) ? sanitize_text_field( $row['start_date'] ) : '',
-                'etn_end_date'  => ! empty( $row['end_date'] ) ? sanitize_text_field( $row['end_date'] ) : '',
+                'etn_end_date'                      => ! empty( $row['end_date'] ) ? sanitize_text_field( $row['end_date'] ) : '',
                 'etn_start_time'                    => ! empty( $row['start_time'] ) ? sanitize_text_field( $row['start_time'] ) : '',
                 'etn_end_time'                      => ! empty( $row['end_time'] ) ? sanitize_text_field( $row['end_time'] ) : '',
                 'event_timezone'                    => ! empty( $row['timezone'] ) ? sanitize_text_field( $row['timezone'] ) : '',
-
-                'event_type'                    => ! empty( $row['event_type'] ) ? sanitize_text_field( $row['event_type'] ) : '',
-                'speaker_type'                    => ! empty( $row['speaker_type'] ) ? sanitize_text_field( $row['speaker_type'] ) : '',
+                'event_type'                        => ! empty( $row['event_type'] ) ? sanitize_text_field( $row['event_type'] ) : '',
+                'speaker_type'                      => ! empty( $row['speaker_type'] ) ? sanitize_text_field( $row['speaker_type'] ) : '',
                 'organizer_type'                    => ! empty( $row['organizer_type'] ) ? sanitize_text_field( $row['organizer_type'] ) : '',
-
                 'etn_ticket_availability'           => ! empty( $row['ticket_availability'] ) ? sanitize_text_field( $row['ticket_availability'] ) : '',
-                'etn_event_logo'                    => ! empty( $row['event_logo'] ) ? sanitize_text_field( $row['event_logo'] ) : '',
-                'event_banner'                    => ! empty( $row['event_banner'] ) ? sanitize_text_field( $row['event_banner'] ) : '',
-                'event_layout'                    => ! empty( $row['event_layout'] ) ? sanitize_text_field( $row['event_layout'] ) : '',
-                'ticket_template'                    => ! empty( $row['ticket_template'] ) ? sanitize_text_field( $row['ticket_template'] ) : '',
-                'certificate_template'                    => ! empty( $row['certificate_template'] ) ? sanitize_text_field( $row['certificate_template'] ) : '',
-
-
+                'etn_event_logo'                    => '',
+                'event_banner'                      => ! empty( $row['event_banner'] ) ? esc_url_raw( $row['event_banner'] ) : '',
+                'event_layout'                      => ! empty( $row['event_layout'] ) ? sanitize_text_field( $row['event_layout'] ) : '',
+                'ticket_template'                   => ! empty( $row['ticket_template'] ) ? sanitize_text_field( $row['ticket_template'] ) : '',
+                'certificate_template'              => ! empty( $row['certificate_template'] ) ? sanitize_text_field( $row['certificate_template'] ) : '',
                 'etn_event_calendar_bg'             => ! empty( $row['calendar_bg'] ) ? sanitize_text_field( $row['calendar_bg'] ) : '',
                 'etn_event_calendar_text_color'     => ! empty( $row['calendar_text_color'] ) ? sanitize_text_field( $row['calendar_text_color'] ) : '',
                 'etn_registration_deadline'         => ! empty( $row['registration_deadline'] ) ? sanitize_text_field( $row['registration_deadline'] ) : '',
@@ -90,36 +88,26 @@ class EventImporter implements PostImporterInterface {
                 'etn_total_sold_tickets'            => ! empty( $row['sold_tickets'] ) ? sanitize_text_field( $row['sold_tickets'] ) : '',
                 'fluent_crm'                        => ! empty( $row['fluent_crm'] ) ? sanitize_text_field( $row['fluent_crm'] ) : '',
                 'fluent_crm_webhook'                => ! empty( $row['fluent_crm_webhook'] ) ? sanitize_text_field( $row['fluent_crm_webhook'] ) : '',
+                'meeting_link'                      => ! empty( $row['meeting_link'] ) ? esc_url_raw( $row['meeting_link'] ) : '',
+                'etn_event_location_type'           => ! empty( $row['location_type'] ) ? sanitize_text_field( $row['location_type'] ) : '',
             ];
 
-            $location              = ! empty( $row['location'] ) ? ( is_array( $row['location'] ) ? etn_sanitize_array_input( $row['location'] ) : sanitize_text_field( $row['location'] ) ) : '';
             $ticket_variations     = ! empty( $row['ticket_variations'] ) ? etn_sanitize_array_input( $row['ticket_variations'] ) : '';
             $event_socials         = ! empty( $row['event_socials'] ) ? etn_sanitize_array_input( $row['event_socials'] ) : '';
             $event_schedule        = ! empty( $row['schedules'] ) ? etn_sanitize_array_input( $row['schedules'] ) : '';
             $event_faq             = ! empty( $row['faq'] ) ? etn_sanitize_array_input( $row['faq'] ) : '';
             $attendee_extra_fields = ! empty( $row['extra_fields'] ) ? etn_sanitize_array_input( $row['extra_fields'] ) : '';
+            $speaker               = ! empty( $row['speaker'] ) ? etn_sanitize_array_input( $row['speaker'] ) : '';
+            $speaker_group         = ! empty( $row['speaker_groups'] ) ? etn_sanitize_array_input( $row['speaker_groups'] ) : '';
+            $organizer             = ! empty( $row['organizer'] ) ? etn_sanitize_array_input( $row['organizer'] ) : '';
+            $organizer_group       = ! empty( $row['organizer_group'] ) ? etn_sanitize_array_input( $row['organizer_group'] ) : '';
+            $rsvp                  = ! empty( $row['rsvp'] ) ? etn_sanitize_array_input( $row['rsvp'] ) : '';
+            $categories            = ! empty( $row['categories'] ) ? etn_sanitize_array_input( $row['categories'] ) : '';
+            $tags                  = ! empty( $row['tags'] ) ? etn_sanitize_array_input( $row['tags'] ) : '';
 
-            $speaker                = ! empty( $row['speaker'] ) ? etn_sanitize_array_input( $row['speaker'] ) : '';
-            $speaker_group          = ! empty( $row['speaker_groups'] ) ? etn_sanitize_array_input( $row['speaker_groups'] ) : '';
-            $organizer              = ! empty( $row['organizer'] ) ? etn_sanitize_array_input( $row['organizer'] ) : '';
-            $organizer_group        = ! empty( $row['organizer_group'] ) ? etn_sanitize_array_input( $row['organizer_group'] ) : '';
-            $rsvp                   = ! empty( $row['rsvp'] ) ? etn_sanitize_array_input( $row['rsvp'] ) : '';
-            $categories             = ! empty( $row['categories'] ) ? etn_sanitize_array_input( $row['categories'] ) : '';
-            $tags                   = ! empty( $row['tags'] ) ? etn_sanitize_array_input( $row['tags'] ) : '';
-
-
-            $args['etn_event_location']    = $location;
-            $args['etn_ticket_variations'] = $ticket_variations;
-            $args['etn_event_socials']     = $event_socials;
-            $args['etn_event_schedule']    = $event_schedule;
-            $args['etn_event_faq']         = $event_faq;
-            $args['attendee_extra_fields'] = $attendee_extra_fields;
-            $args['etn_event_speaker']     = $speaker;
-            $args['speaker_group']         = $speaker_group;
-            $args['etn_event_organizer']   = $organizer;
-            $args['organizer_group']       = $organizer_group;
-            $args['rsvp_settings']         = $rsvp;
-
+            $location  = ! empty( $row['location'] ) ? $row['location'] : '';
+            $logo_url  = ! empty( $row['event_logo'] ) ? esc_url_raw( $row['event_logo'] ) : '';
+            $banner_url = ! empty( $row['event_banner'] ) ? esc_url_raw( $row['event_banner'] ) : '';
 
             if ( 'text/csv' == $file_type ) {
                 $args['etn_ticket_variations'] = $this->format_tickets( $ticket_variations );
@@ -127,29 +115,29 @@ class EventImporter implements PostImporterInterface {
                 $args['etn_event_schedule']    = etn_csv_column_array( $event_schedule );
                 $args['etn_event_faq']         = etn_csv_column_multi_dimension_array( $event_faq );
                 $args['attendee_extra_fields'] = etn_csv_column_multi_dimension_array( $attendee_extra_fields );
-
-                $event_type = ! empty( $row['event_type'] ) ? sanitize_text_field( $row['event_type'] ) : '';
-
-                if ( 'offline' === $event_type || 'hybrid' === $event_type ) {
-                    list($key, $value) = explode( ':', $location );
-
-                    $new_location = [];
-
-                    if ( 'address' === $key ) {
-                        $new_location[$key] = $value;
-                    }
-                }
-
-                $args['etn_event_location']    = $new_location;
                 $args['etn_event_speaker']     = etn_csv_column_array( $speaker );
                 $args['speaker_group']         = etn_csv_column_array( $speaker_group );
                 $args['etn_event_organizer']   = etn_csv_column_array( $organizer );
                 $args['organizer_group']       = etn_csv_column_array( $organizer_group );
-
-                $args['rsvp_settings']         =  $this->formate_rsvp_data( $rsvp );
+                $args['rsvp_settings']         = $this->formate_rsvp_data( $rsvp );
                 $categories = etn_csv_column_array( $categories );
                 $tags       = etn_csv_column_array( $tags );
+                $args['etn_event_location']    = $this->parse_csv_location( $location );
+            } else {
+                $args['etn_event_speaker']   = $speaker;
+                $args['speaker_group']       = $speaker_group;
+                $args['etn_event_organizer'] = $organizer;
+                $args['organizer_group']     = $organizer_group;
+                $args['rsvp_settings']       = $rsvp;
+                $args['etn_event_location']  = is_array( $location )
+                    ? etn_sanitize_array_input( $location )
+                    : sanitize_text_field( $location );
             }
+
+            $args['etn_event_speaker']   = $this->resolve_user_emails( $args['etn_event_speaker'], 'etn-speaker' );
+            $args['etn_event_organizer'] = $this->resolve_user_emails( $args['etn_event_organizer'], 'etn-organizer' );
+            $categories = $this->resolve_term_names( $categories, 'etn_category' );
+            $tags       = $this->resolve_term_names( $tags, 'etn_tags' );
 
             $event->create( $args );
 
@@ -157,12 +145,13 @@ class EventImporter implements PostImporterInterface {
             $this->assign_tags( $event->id, $tags );
 
             // Woo support meta.
-            update_post_meta( $event->id, "_price", 0 );
-            update_post_meta( $event->id, "_regular_price", 0 );
-            update_post_meta( $event->id, "_sale_price", 0 );
-            update_post_meta( $event->id, "_stock", 0 );
-        }
+            update_post_meta( $event->id, '_price', 0 );
+            update_post_meta( $event->id, '_regular_price', 0 );
+            update_post_meta( $event->id, '_sale_price', 0 );
+            update_post_meta( $event->id, '_stock', 0 );
 
+            $this->import_event_images( $event->id, $logo_url, $banner_url );
+        }
     }
 
     /**
@@ -244,6 +233,101 @@ class EventImporter implements PostImporterInterface {
     }
 
     /**
+     * Normalize row keys to match exporter keys
+     *
+     * CSVReader converts column headers to keys by lowercasing and
+     * replacing spaces with underscores, but the exporter uses short
+     * keys that may not match. This maps aliases to the expected keys.
+     *
+     * @param   array  $row
+     *
+     * @return  array
+     */
+    private function normalize_row_keys( $row ) {
+        $aliases = [
+            'logo'                => 'event_logo',
+            'banner'              => 'event_banner',
+            'layout'              => 'event_layout',
+            'calendar_background' => 'calendar_bg',
+            'attendee_page_link'  => 'attende_page_link',
+            'sold_ticket'         => 'sold_tickets',
+        ];
+
+        foreach ( $aliases as $alias => $original ) {
+            if ( isset( $row[$alias] ) && ! isset( $row[$original] ) ) {
+                $row[$original] = $row[$alias];
+            }
+        }
+
+        return $row;
+    }
+
+    /**
+     * Download and attach event banner and logo images
+     *
+     * @param   int     $event_id
+     * @param   string  $logo_url
+     * @param   string  $banner_url
+     *
+     * @return  void
+     */
+    private function import_event_images( $event_id, $logo_url, $banner_url ) {
+        if ( $logo_url ) {
+            $attachment_id = $this->sideload_image( $logo_url, $event_id );
+
+            if ( $attachment_id ) {
+                update_post_meta( $event_id, 'etn_event_logo', $attachment_id );
+                update_post_meta( $event_id, 'event_logo_id', $attachment_id );
+            }
+        }
+
+        if ( $banner_url ) {
+            $attachment_id = $this->sideload_image( $banner_url, $event_id );
+
+            if ( $attachment_id ) {
+                update_post_meta( $event_id, 'event_banner_id', $attachment_id );
+                set_post_thumbnail( $event_id, $attachment_id );
+            }
+        }
+    }
+
+    /**
+     * Download an image from a URL and attach it to a post
+     *
+     * @param   string  $url
+     * @param   int     $post_id
+     *
+     * @return  int|false
+     */
+    private function sideload_image( $url, $post_id = 0 ) {
+        if ( ! function_exists( 'media_handle_sideload' ) ) {
+            require_once ABSPATH . 'wp-admin/includes/media.php';
+            require_once ABSPATH . 'wp-admin/includes/file.php';
+            require_once ABSPATH . 'wp-admin/includes/image.php';
+        }
+
+        $tmp = download_url( $url );
+
+        if ( is_wp_error( $tmp ) ) {
+            return false;
+        }
+
+        $file_array = [
+            'name'     => wp_basename( $url ),
+            'tmp_name' => $tmp,
+        ];
+
+        $id = media_handle_sideload( $file_array, $post_id );
+
+        if ( is_wp_error( $id ) ) {
+            @unlink( $file_array['tmp_name'] );
+            return false;
+        }
+
+        return $id;
+    }
+
+    /**
      * Assgin event categories
      *
      * @param   integer  $post_id
@@ -281,5 +365,136 @@ class EventImporter implements PostImporterInterface {
         }
 
         wp_set_post_terms( $post_id, $new_tags, 'etn_tags', true );
+    }
+
+    /**
+     * Parse a CSV location value into the correct format
+     *
+     * @param   mixed  $location
+     *
+     * @return  mixed
+     */
+    private function parse_csv_location( $location ) {
+        if ( empty( $location ) || ! is_string( $location ) ) {
+            return '';
+        }
+
+        if ( preg_match( '/^[a-z_]+:.+/i', $location ) ) {
+            $parts = explode( ':', $location, 2 );
+
+            return [ $parts[0] => $parts[1] ];
+        }
+
+        return $location;
+    }
+
+    /**
+     * Resolve term names/slugs to term IDs, creating terms if needed
+     *
+     * @param   mixed   $terms    Array or string of term names/IDs
+     * @param   string  $taxonomy Taxonomy name
+     *
+     * @return  array             Array of term IDs
+     */
+    private function resolve_term_names( $terms, $taxonomy ) {
+        if ( empty( $terms ) ) {
+            return [];
+        }
+
+        if ( is_string( $terms ) ) {
+            $terms = [ $terms ];
+        }
+
+        if ( ! is_array( $terms ) ) {
+            return [];
+        }
+
+        $term_ids = [];
+
+        foreach ( $terms as $term ) {
+            if ( is_numeric( $term ) ) {
+                $term_ids[] = (int) $term;
+                continue;
+            }
+
+            $term = sanitize_text_field( $term );
+
+            if ( empty( $term ) ) {
+                continue;
+            }
+
+            $existing = term_exists( $term, $taxonomy );
+
+            if ( $existing ) {
+                $term_ids[] = (int) $existing['term_id'];
+                continue;
+            }
+
+            $result = wp_insert_term( $term, $taxonomy );
+
+            if ( ! is_wp_error( $result ) ) {
+                $term_ids[] = (int) $result['term_id'];
+            }
+        }
+
+        return $term_ids;
+    }
+
+    /**
+     * Resolve user emails to user IDs, creating users if needed
+     *
+     * @param   mixed   $users Array or string of user emails/IDs
+     * @param   string  $role  User role to assign
+     *
+     * @return  array          Array of user IDs
+     */
+    private function resolve_user_emails( $users, $role = 'etn-speaker' ) {
+        if ( empty( $users ) ) {
+            return [];
+        }
+
+        if ( is_string( $users ) ) {
+            $users = [ $users ];
+        }
+
+        if ( ! is_array( $users ) ) {
+            return [];
+        }
+
+        $user_ids = [];
+
+        foreach ( $users as $user ) {
+            if ( is_numeric( $user ) ) {
+                $user_ids[] = (int) $user;
+                continue;
+            }
+
+            $user = sanitize_text_field( $user );
+
+            if ( empty( $user ) || ! is_email( $user ) ) {
+                continue;
+            }
+
+            $existing = get_user_by( 'email', $user );
+
+            if ( $existing ) {
+                $user_ids[] = $existing->ID;
+                continue;
+            }
+
+            $result = wp_insert_user( [
+                'user_email' => $user,
+                'user_login' => $user,
+                'user_pass'  => wp_generate_password(),
+                'role'       => $role,
+                'display_name' => $user,
+            ] );
+
+            if ( ! is_wp_error( $result ) ) {
+                $user_ids[] = $result;
+            }
+        }
+
+        return $user_ids;
     }
 }

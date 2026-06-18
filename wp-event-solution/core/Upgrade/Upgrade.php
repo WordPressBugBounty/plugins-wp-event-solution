@@ -19,6 +19,7 @@ use Eventin\Upgrade\Upgraders\V_4_0_50;
 use Eventin\Upgrade\Upgraders\V_4_1_2;
 use Eventin\Upgrade\Upgraders\V_4_1_13;
 use Eventin\Upgrade\Upgraders\V_4_1_14;
+use Eventin\Upgrade\Upgraders\V_4_1_15;
 use Wpeventin;
 
 /**
@@ -45,6 +46,7 @@ class Upgrade {
         '4.1.2'  => V_4_1_2::class,
         '4.1.13' => V_4_1_13::class,
         '4.1.14' => V_4_1_14::class,
+        '4.1.15' => V_4_1_15::class,
     ];
 
     /**

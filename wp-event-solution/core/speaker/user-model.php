@@ -147,15 +147,27 @@ class User_Model {
      * @return string
      */
     public function get_speaker_group() {
-        $value = get_user_meta($this->id, 'etn_speaker_group', true );
-	    $value = is_array($value) ? "[]" : $value;
-	    try {
-            $group = json_decode( $value );
-	    } catch (\Exception $e) {
-			$group = [];
-	    }
+        $value = get_user_meta( $this->id, 'etn_speaker_group', true );
 
-        return $group;
+        if ( empty( $value ) ) {
+            return [];
+        }
+
+        if ( is_array( $value ) ) {
+            return $value;
+        }
+
+        $decoded = json_decode( $value, true );
+
+        if ( is_array( $decoded ) ) {
+            return $decoded;
+        }
+
+        if ( is_numeric( $value ) ) {
+            return [ intval( $value ) ];
+        }
+
+        return [];
     }         
     
     /**

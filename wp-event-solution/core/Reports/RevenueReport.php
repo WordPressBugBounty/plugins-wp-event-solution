@@ -137,28 +137,34 @@ class RevenueReport extends AbstractReport {
 
         $placeholders = implode( ',', array_fill( 0, count( $event_ids ), '%d' ) );
 
+        // IMPORTANT: drive the join from `em` (event_id IN (...)) — the most selective
+        // filter on this page — instead of letting MySQL start from status='completed',
+        // which matches every completed order in the site. On large datasets the default
+        // optimizer plan scans hundreds of thousands of `status` rows and the query takes
+        // several seconds; STRAIGHT_JOIN with `em` first keeps it to the handful of orders
+        // that actually belong to the requested events. See get_revenue_map perf notes.
         // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
         $sql = $wpdb->prepare(
-            "SELECT em.meta_value AS event_id, COALESCE(SUM({$revenue_expr}), 0) AS revenue
-            FROM {$wpdb->posts} p
+            "SELECT STRAIGHT_JOIN em.meta_value AS event_id, COALESCE(SUM({$revenue_expr}), 0) AS revenue
+            FROM {$wpdb->postmeta} em
+            INNER JOIN {$wpdb->posts} p
+                ON p.ID = em.post_id
+                AND p.post_type = 'etn-order'
+                AND p.post_status != 'trash'
             INNER JOIN {$wpdb->postmeta} status_m
-                ON status_m.post_id = p.ID
+                ON status_m.post_id = em.post_id
                 AND status_m.meta_key = 'status'
                 AND status_m.meta_value = 'completed'
             INNER JOIN {$wpdb->postmeta} price
-                ON price.post_id = p.ID
+                ON price.post_id = em.post_id
                 AND price.meta_key = 'total_price'
             LEFT JOIN {$wpdb->postmeta} discount
-                ON discount.post_id = p.ID
+                ON discount.post_id = em.post_id
                 AND discount.meta_key = 'discount_total'
             LEFT JOIN {$wpdb->postmeta} tax
-                ON tax.post_id = p.ID
+                ON tax.post_id = em.post_id
                 AND tax.meta_key = 'tax_total'
-            INNER JOIN {$wpdb->postmeta} em
-                ON em.post_id = p.ID
-                AND em.meta_key = 'event_id'
-            WHERE p.post_type = 'etn-order'
-            AND p.post_status != 'trash'
+            WHERE em.meta_key = 'event_id'
             AND em.meta_value IN ({$placeholders})
             GROUP BY em.meta_value", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
             $event_ids

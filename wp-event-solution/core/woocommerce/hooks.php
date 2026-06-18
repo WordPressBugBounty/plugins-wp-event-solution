@@ -4,6 +4,7 @@ namespace Etn\Core\Woocommerce;
 
 use Etn\Utils\Helper;
 use Eventin\Order\OrderModel;
+use Eventin\Customer\CustomerModel;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -89,7 +90,7 @@ class Hooks {
         // Declare that this plugin supports WooCommerce HPOS.
         add_action( 'before_woocommerce_init', function() {
             if ( class_exists( \Automattic\WooCommerce\Utilities\FeaturesUtil::class ) ) {
-            \Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'custom_order_tables', __FILE__, true );
+            \Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'custom_order_tables', \Wpeventin::plugin_file(), true );
             }
         } );
         add_action( 'add_meta_boxes', [ $this, 'etn_order_page_metabox_init' ] );
@@ -513,11 +514,28 @@ class Hooks {
 
         $order = wc_get_order( $wc_order_id );
 
-        // Update meta data         
+        // Update meta data
         $order->update_meta_data( 'eventin_order_id', $event_order_id );
-        
+
         // Save
         $order->save();
+
+        // Link the WooCommerce-created customer back to the Eventin order.
+        // For guest checkouts paid via WooCommerce, Eventin defers account creation
+        // to WooCommerce (see Eventin\Order\OrderController::create_customer). Once
+        // WooCommerce has created/assigned the account during its checkout, attach it
+        // to the Eventin order here so the order has an owner and the buyer gets the
+        // Eventin customer role. Only fill it when the order has no customer yet, so we
+        // never override an account resolved at order-create time (logged-in buyers).
+        $event_order    = new OrderModel( $event_order_id );
+        $wc_customer_id = $order->get_customer_id();
+
+        if ( $wc_customer_id && empty( $event_order->customer_id ) ) {
+            $event_order->update( [ 'customer_id' => $wc_customer_id ] );
+
+            $customer = new CustomerModel( $wc_customer_id );
+            $customer->assign_role( $wc_customer_id, [ 'etn-customer' ] );
+        }
     }
 
     /**

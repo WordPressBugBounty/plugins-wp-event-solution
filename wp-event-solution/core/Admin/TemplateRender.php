@@ -19,6 +19,16 @@ class TemplateRender implements HookableInterface {
     }
 
     /**
+     * Oxygen (CT) uses its own template pipeline. If we return a hard-coded PHP template via template_include
+     */
+    private function is_oxygen_active(): bool {
+        return defined( 'CT_VERSION' )
+            || defined( 'OXYGEN_VSB_VERSION' )
+            || function_exists( 'ct_template_output' )
+            || function_exists( 'oxygen_vsb_output' );
+    }
+
+    /**
      * Render eventin checkout page template
      *
      * @return  void
@@ -27,6 +37,25 @@ class TemplateRender implements HookableInterface {
         $query_var = get_query_var('eventin-purchase');
 
         if ( $query_var === 'checkout' ) {
+            // Let Oxygen/theme keep control of the full template (header/footer), while we render checkout only where Oxygen outputs content.
+            if ( $this->is_oxygen_active() ) {
+                add_action( 'wp_enqueue_scripts', function() {
+                    wp_enqueue_script( 'etn-module-purchase' );
+                }, 10 );
+
+                add_filter( 'the_content', function( $content ) {
+                    static $done = false;
+                    if ( $done || get_query_var( 'eventin-purchase' ) !== 'checkout' ) {
+                        return $content;
+                    }
+                    $done = true;
+                    // Oxygen will output this only if the template includes "Inner Content".
+                    return $this->render_checkout_mount();
+                }, 999 );
+
+                return $template;
+            }
+
             $checkout_template = \Wpeventin::templates_dir() . 'checkout-template.php';
             if ( file_exists( $checkout_template ) ) {
                 return $checkout_template;
@@ -52,5 +81,9 @@ class TemplateRender implements HookableInterface {
             $classes[] = 'eventin-order-preview-page';
         }
         return $classes;
+    }
+
+    private function render_checkout_mount(): string {
+        return '<div id="eventin-checkout" style="width: 100%;"></div>';
     }
 }

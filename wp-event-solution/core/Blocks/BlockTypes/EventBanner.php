@@ -55,7 +55,10 @@ defined( 'ABSPATH' ) || exit;
 
             $event = new Event_Model($event_id);
 
-            $event_banner = $event->event_banner;
+            $event_banner    = $event->event_banner;
+            // Expose the attachment id so the banner template can emit a
+            // responsive, properly-sized <img> (srcset/width/height) for the LCP image.
+            $event_banner_id = $event->event_banner_id;
 
             ob_start();
         ?>

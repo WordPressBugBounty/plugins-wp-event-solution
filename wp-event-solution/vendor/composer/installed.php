@@ -3,7 +3,7 @@
         'name' => 'arraytics/eventin',
         'pretty_version' => 'dev-develop',
         'version' => 'dev-develop',
-        'reference' => 'c0160cb07b05ac6f3f8f141781d010f125804111',
+        'reference' => '0f5c30d0daa9b7a7198b69b55e8881a6bace21fc',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -13,7 +13,7 @@
         'arraytics/eventin' => array(
             'pretty_version' => 'dev-develop',
             'version' => 'dev-develop',
-            'reference' => 'c0160cb07b05ac6f3f8f141781d010f125804111',
+            'reference' => '0f5c30d0daa9b7a7198b69b55e8881a6bace21fc',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

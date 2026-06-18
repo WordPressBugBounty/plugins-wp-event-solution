@@ -60,9 +60,9 @@ class EventExporter implements PostExporterInterface {
 
         foreach ( $ids as $id ) {
             $categories = get_the_terms( $id, 'etn_category' );
-            $categories = $categories ? array_column( $categories, 'term_id' ) : [];
+            $categories = $categories ? array_column( $categories, 'name' ) : [];
             $tags       = get_the_terms( $id, 'etn_tags' );
-            $tags       = $tags ? array_column( $tags, 'term_id' ) : [];
+            $tags       = $tags ? array_column( $tags, 'name' ) : [];
             $post       = get_post( $id );
 
             $schedule_data = [
@@ -80,16 +80,18 @@ class EventExporter implements PostExporterInterface {
                 'meeting_link'            => get_post_meta( $id, 'meeting_link', true ),
                 'categories'              => $categories,
                 'tags'                    => $tags,
-                'speaker'                 => get_post_meta( $id, 'etn_event_speaker', true ),
+                'speaker'                 => $this->map_user_ids_to_emails( get_post_meta( $id, 'etn_event_speaker', true ) ),
                 'speaker_type'            => get_post_meta( $id, 'speaker_type', true ),
                 'speaker_groups'          => get_post_meta( $id, 'speaker_group', true ),
-                'organizer'               => get_post_meta( $id, 'etn_event_organizer', true ),
+                'organizer'               => $this->map_user_ids_to_emails( get_post_meta( $id, 'etn_event_organizer', true ) ),
                 'organizer_type'          => get_post_meta( $id, 'organizer_type', true ),
                 'organizer_groups'        => get_post_meta( $id, 'organizer_group', true ),
                 'schedules'               => get_post_meta( $id, 'etn_event_schedule', true ),
                 'ticket_availability'     => get_post_meta( $id, 'etn_ticket_availability', true ),
-                'event_logo'              => get_post_meta( $id, 'etn_event_logo', true ),
+                'event_logo'              => wp_get_attachment_url( get_post_meta( $id, 'etn_event_logo', true ) ),
+                'event_logo_id'           => get_post_meta( $id, 'event_logo_id', true ),
                 'event_banner'            => get_post_meta( $id, 'event_banner', true ),
+                'event_banner_id'         => get_post_meta( $id, 'event_banner_id', true ),
                 'event_layout'            => get_post_meta( $id, 'event_layout', true ),
                 'ticket_template'         => get_post_meta( $id, 'ticket_template', true ),
                 'certificate_template'    => get_post_meta( $id, 'certificate_template', true ),
@@ -125,6 +127,31 @@ class EventExporter implements PostExporterInterface {
     }
 
     /**
+     * Map user IDs to email addresses
+     *
+     * @param   mixed  $user_ids
+     *
+     * @return  array
+     */
+    private function map_user_ids_to_emails( $user_ids ) {
+        if ( empty( $user_ids ) || ! is_array( $user_ids ) ) {
+            return [];
+        }
+
+        $emails = [];
+
+        foreach ( $user_ids as $user_id ) {
+            $user = get_userdata( (int) $user_id );
+
+            if ( $user ) {
+                $emails[] = $user->user_email;
+            }
+        }
+
+        return $emails;
+    }
+
+    /**
      * Get columns
      *
      * @return  array
@@ -155,7 +182,9 @@ class EventExporter implements PostExporterInterface {
             'ticket_variations'       => __( 'Ticket Variations', 'eventin' ),
             'ticket_availability'     => __( 'Ticket Availability', 'eventin' ),
             'event_logo'              => __( 'Logo', 'eventin' ),
+            'event_logo_id'           => __( 'Logo Id', 'eventin' ),
             'event_banner'            => __( 'Banner', 'eventin' ),
+            'event_banner_id'         => __( 'Banner Id', 'eventin' ),
             'event_layout'            => __( 'Layout', 'eventin' ),
             'ticket_template'         => __( 'Ticket Template', 'eventin' ),
             'certificate_template'    => __( 'Certificate Template', 'eventin' ),

@@ -14,7 +14,75 @@ class Admin {
      */
     public function __construct() {
         add_action( 'admin_enqueue_scripts', [$this, 'enqueue_scripts'] );
+        add_action( 'admin_enqueue_scripts', [$this, 'dequeue_conflicting_google_maps'], 999 );
+        add_action( 'admin_head', [$this, 'print_google_maps_bootstrap'], 1 );
         add_action( 'elementor/frontend/before_enqueue_scripts', array( $this, 'elementor_js' ) );
+    }
+
+    /**
+     * Is the current admin screen the Eventin events SPA (where the venue map lives)?
+     *
+     * @return bool
+     */
+    private function is_eventin_map_screen() {
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- screen detection only; compared to a literal.
+        return isset( $_GET['page'] ) && 'eventin' === sanitize_key( wp_unslash( $_GET['page'] ) );
+    }
+
+    /**
+     * Print Google's keyed `importLibrary` bootstrap early in <head>.
+     *
+     * The Maps JS API uses the FIRST loader's API key for the whole page and
+     * refuses to re-key once initialized. Some themes (e.g. Enfold/Avia) load
+     * Maps without a key in the footer; if theirs wins, the Eventin venue map
+     * fails with ApiProjectMapError. Printing Eventin's keyed bootstrap in
+     * <head> makes `google.maps` initialize with Eventin's key first, so the
+     * map renders regardless of the active theme.
+     *
+     * @return void
+     */
+    public function print_google_maps_bootstrap() {
+        if ( ! $this->is_eventin_map_screen() ) {
+            return;
+        }
+
+        $api_key = etn_get_option( 'google_api_key' );
+        if ( empty( $api_key ) ) {
+            return;
+        }
+
+        $config = wp_json_encode( array( 'key' => $api_key, 'v' => 'weekly' ) );
+        ?>
+        <script id="eventin-google-maps-bootstrap">
+        (g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})(<?php echo $config; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- wp_json_encode output is safe inline JSON. ?>);
+        </script>
+        <?php
+    }
+
+    /**
+     * Dequeue any theme/plugin Google Maps script on the Eventin events screen.
+     *
+     * Eventin loads Maps itself (keyed, in <head>). A second Maps load from the
+     * active theme triggers the "included multiple times" conflict and, if it is
+     * keyless, breaks the map. The theme has no need to load Maps on Eventin's
+     * own admin SPA, so we strip any maps.googleapis.com script here.
+     *
+     * @return void
+     */
+    public function dequeue_conflicting_google_maps() {
+        if ( ! $this->is_eventin_map_screen() ) {
+            return;
+        }
+
+        $scripts = wp_scripts();
+        foreach ( $scripts->registered as $handle => $script ) {
+            if ( $handle === 'eventin-google-maps-bootstrap' ) {
+                continue;
+            }
+            if ( ! empty( $script->src ) && false !== strpos( $script->src, 'maps.googleapis.com' ) ) {
+                wp_dequeue_script( $handle );
+            }
+        }
     }
 
     public function i18n_loader() {

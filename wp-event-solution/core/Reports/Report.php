@@ -27,19 +27,24 @@ class Report {
 
         $dates = wp_parse_args( $dates, $defaults );
 
-        return [
-            'booking'               => OrderReport::get_total_order( $dates ),
-            'failed_booking'        => OrderReport::get_total_failed_order( $dates ),
-            'refunded_booking'      => OrderReport::get_total_refunded_order( $dates ),
-            'event'                 => EventReport::get_total_event( $dates ),
-            'attendee'              => AttendeeReport::get_total_attendee( $dates ),
-            'failed_attendees'      => AttendeeReport::get_total_failed_attendee( $dates ),
-            'successful_attendees'  => AttendeeReport::get_total_successful_attendee( $dates ),
-            'speaker'               => SpeakerReport::get_total_speaker( $dates ),
-            'revenue'               => RevenueReport::get_total_revenue( $dates ),
-            'refunded'              => RevenueReport::get_total_refunded_amount( $dates ),
-            'date_reports'          => self::get_report_by_date_range( $dates ), 
-        ];
+        return ReportCache::remember(
+            [ 'reports', $dates['start_date'], $dates['end_date'] ],
+            function () use ( $dates ) {
+                return [
+                    'booking'               => OrderReport::get_total_order( $dates ),
+                    'failed_booking'        => OrderReport::get_total_failed_order( $dates ),
+                    'refunded_booking'      => OrderReport::get_total_refunded_order( $dates ),
+                    'event'                 => EventReport::get_total_event( $dates ),
+                    'attendee'              => AttendeeReport::get_total_attendee( $dates ),
+                    'failed_attendees'      => AttendeeReport::get_total_failed_attendee( $dates ),
+                    'successful_attendees'  => AttendeeReport::get_total_successful_attendee( $dates ),
+                    'speaker'               => SpeakerReport::get_total_speaker( $dates ),
+                    'revenue'               => RevenueReport::get_total_revenue( $dates ),
+                    'refunded'              => RevenueReport::get_total_refunded_amount( $dates ),
+                    'date_reports'          => self::get_report_by_date_range( $dates ),
+                ];
+            }
+        );
     }
 
     /**
@@ -58,13 +63,18 @@ class Report {
 
         $data = wp_parse_args( $data, $defaults );
 
-        return [
-            'sold_tickets' => EventReport::get_reports( $data ),
-            'booking'      => OrderReport::get_reports_by_event( $data ),
-            'revenue'      => RevenueReport::get_reports_by_event( $data ),
-            'attendees'    => AttendeeReport::get_reports_by_event( $data ),
-            'date_reports' => self::get_report_by_date_range( $data ),
-        ];
+        return ReportCache::remember(
+            [ 'reports_by_event', $data['event_id'], $data['start_date'], $data['end_date'] ],
+            function () use ( $data ) {
+                return [
+                    'sold_tickets' => EventReport::get_reports( $data ),
+                    'booking'      => OrderReport::get_reports_by_event( $data ),
+                    'revenue'      => RevenueReport::get_reports_by_event( $data ),
+                    'attendees'    => AttendeeReport::get_reports_by_event( $data ),
+                    'date_reports' => self::get_report_by_date_range( $data ),
+                ];
+            }
+        );
     }
 
     /**

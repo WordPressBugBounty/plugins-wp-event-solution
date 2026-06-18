@@ -179,12 +179,14 @@ class EventDetailsParts {
 						<div class="etn-social">
 							<?php if ( is_array( $etn_event_socials ) ) : ?>
 								<?php foreach ( $etn_event_socials as $social ) : ?>
+									<?php if ( empty( $social['etn_social_url'] ) ) { continue; } ?>
 									<?php $etn_social_class = 'etn-' . str_replace( 'etn-icon fa-', '', $social['icon'] ); ?>
+									<?php $etn_social_label = ! empty( $social['etn_social_title'] ) ? $social['etn_social_title'] : $social['etn_social_url']; ?>
 									<a
 											href="<?php echo esc_url( $social['etn_social_url'] ); ?>"
 											target="_blank"
 											rel="noopener"
-											aria-label="<?php echo esc_attr( $social["etn_social_title"] ); ?>"
+											aria-label="<?php echo esc_attr( $etn_social_label ); ?>"
 									>
 										<i class="etn-icon <?php echo esc_attr( $social['icon'] ); ?>"></i>
 									</a>

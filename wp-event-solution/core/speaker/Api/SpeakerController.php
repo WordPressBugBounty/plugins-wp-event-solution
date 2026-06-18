@@ -274,26 +274,20 @@ class SpeakerController extends WP_REST_Controller {
             $post_data = $speaker->get_data( $user->ID );
 
             $speaker_groups = [];
+            $group_ids = is_array( $post_data['speaker_group'] )
+                ? $post_data['speaker_group']
+                : ( ! empty( $post_data['speaker_group'] ) ? [ intval( $post_data['speaker_group'] ) ] : [] );
 
-            // Check if speaker_group is an array (multiple categories)
-            if ( is_array( $post_data['speaker_group'] ) ) {
-                foreach ( $post_data['speaker_group'] as $group_id ) {
-                    $category = get_term_by( 'term_id', $group_id, 'etn_speaker_category' );
-                    if ( isset( $category->name ) && ! empty( $category->name ) ) {
-                        $speaker_groups[] = $category->name;
-                    }
-                }
-            } else { // If only a single category is provided
-                $category = get_term_by( 'term_id', $post_data['speaker_group'], 'etn_speaker_category' );
+            foreach ( $group_ids as $group_id ) {
+                $category = get_term_by( 'term_id', $group_id, 'etn_speaker_category' );
                 if ( isset( $category->name ) && ! empty( $category->name ) ) {
                     $speaker_groups[] = $category->name;
                 }
             }
-        
-            // Assign the names back to speaker_group
-            if ( ! empty( $speaker_groups ) ) {
-                $post_data['speaker_group'] = $speaker_groups;
-            }
+
+            // Keep speaker_group as IDs for form usage, add names for display
+            $post_data['speaker_group']        = $group_ids;
+            $post_data['speaker_group_names']  = $speaker_groups;
 
             $events[] = $this->prepare_response_for_collection( $post_data );
         }
@@ -688,8 +682,10 @@ class SpeakerController extends WP_REST_Controller {
             }
         }       
         
-        if ( ! empty( $input_data['speaker_group'] ) ) {
-            $prepared_data['etn_speaker_group'] =  $input_data['speaker_group'] ? json_encode($input_data['speaker_group']) : json_encode([]);
+        if ( isset( $input_data['speaker_group'] ) ) {
+            $prepared_data['etn_speaker_group'] = ! empty( $input_data['speaker_group'] )
+                ? json_encode( $input_data['speaker_group'] )
+                : json_encode( [] );
         }        
         
             

@@ -401,6 +401,10 @@ class Hooks {
         $calendar_show      = !empty( $attributes["calendar_show"] ) ? $attributes["calendar_show"] : 'left';
         $style              = !empty( $attributes["style"] ) ? $attributes["style"] : 'style-1';
 
+        $allowed_status     = ['', 'upcoming', 'ongoing', 'expire'];
+        $filter_with_status = isset( $attributes["filter_with_status"] ) ? sanitize_text_field( $attributes["filter_with_status"] ) : '';
+        $filter_with_status = in_array( $filter_with_status, $allowed_status, true ) ? $filter_with_status : '';
+
         if(is_array($event_cat)){
             $cats = $event_cat;
         }else{
@@ -432,8 +436,9 @@ class Hooks {
             'select_cat_text' => esc_html__('All Categories', 'eventin'),
             'show_desc' => $show_desc,
             'show_upcoming_event' => $show_upcoming_event,
-            'calendar_show' =>$calendar_show, 
-            'style' =>$style, 
+            'calendar_show' =>$calendar_show,
+            'style' =>$style,
+            'filter_with_status' => $filter_with_status,
             'selected_date_text' => esc_html__('Showing events for', 'eventin'),
             'event_notice' => esc_html__('No event found on the selected date. Please select another date or month.', 'eventin'),
             'post_parent' => $post_parent

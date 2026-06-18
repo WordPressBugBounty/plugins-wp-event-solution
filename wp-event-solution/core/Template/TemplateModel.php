@@ -347,6 +347,7 @@ class TemplateModel extends Post_Model {
         $content = $this->add_proxy_image( $this->get_content() );
         $content = do_blocks( $content ); // Process Gutenberg blocks
         $content = do_shortcode( $content ); // Process shortcodes
+        $content = $this->prioritize_lcp_image( $content ); // Hint the cover image as LCP
 
         $post = $original_post; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
         if ( $original_post ) {
@@ -637,6 +638,31 @@ class TemplateModel extends Post_Model {
         }
 
         return $content;
+    }
+
+    /**
+     * Mark the first image (the cover/banner) as the LCP element.
+     *
+     * Adds fetchpriority="high" so the browser discovers and loads the banner
+     * before lower-priority assets, and strips loading="lazy" off it so it is
+     * never deferred. Only the first <img> is touched; everything below the
+     * fold keeps default lazy behaviour.
+     *
+     * @param   string  $content
+     *
+     * @return  string
+     */
+    public function prioritize_lcp_image( $content ) {
+        return preg_replace_callback(
+            '/<img\b(?![^>]*\bfetchpriority=)([^>]*)>/i',
+            function ( $matches ) {
+                $attrs = preg_replace( '/\s*loading\s*=\s*(["\'])lazy\1/i', '', $matches[1] );
+
+                return '<img fetchpriority="high" decoding="async"' . $attrs . '>';
+            },
+            $content,
+            1
+        );
     }
 
     /**

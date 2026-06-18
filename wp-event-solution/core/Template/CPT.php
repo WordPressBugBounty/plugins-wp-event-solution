@@ -58,5 +58,36 @@ class CPT {
     
         // Register the post type.
         register_post_type( 'etn-template', $args );
+
+        $this->enable_elementor_support();
+    }
+
+    /**
+     * Ensure the etn-template post type is enabled for the Elementor editor.
+     *
+     * Elementor only opens `post.php?post=ID&action=elementor` for post types
+     * listed in its `elementor_cpt_support` option; otherwise it bounces back
+     * to the WordPress post list. Eventin previously registered the post type
+     * only while installing Elementor itself, so installs where Elementor was
+     * already active never got it. Run on every CPT registration, but write
+     * the option only when the value is missing (idempotent).
+     *
+     * @return void
+     */
+    private function enable_elementor_support() {
+        if ( ! class_exists( '\Elementor\Plugin' ) ) {
+            return;
+        }
+
+        $cpt_support = get_option( 'elementor_cpt_support', [] );
+
+        if ( ! is_array( $cpt_support ) ) {
+            $cpt_support = [];
+        }
+
+        if ( ! in_array( 'etn-template', $cpt_support, true ) ) {
+            $cpt_support[] = 'etn-template';
+            update_option( 'elementor_cpt_support', $cpt_support );
+        }
     }
 }

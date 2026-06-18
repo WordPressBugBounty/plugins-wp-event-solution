@@ -267,8 +267,8 @@ class Helper {
 			$event_end_date = $date->format('Y-m-d');
 		}
 
-		$event_end_date_time_string = strtotime( $event_end_date . ' ' . $event_end_time );
-		$is_registration_expried 	= time() > $event_end_date_time_string;
+		$timezone                = get_post_meta( $single_event_id, 'event_timezone', true ) ?: wp_timezone_string();
+		$is_registration_expried = etn_is_ticket_sale_end( $event_end_date . ' ' . $event_end_time, $timezone );
 
 		return $is_registration_expried;
 	}

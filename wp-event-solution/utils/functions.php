@@ -406,7 +406,8 @@ if ( ! function_exists( 'etn_is_ticket_sale_end' ) ) {
      *
      * @return  bool
      */
-    function etn_is_ticket_sale_end( $end_date_time, $timezone = 'Asia/Dhaka' ) {
+    function etn_is_ticket_sale_end( $end_date_time, $timezone = '' ) {
+        $timezone = $timezone ?: wp_timezone_string();
         try {
             $tz           = new DateTimeZone( $timezone );
             $event_end_dt = new DateTime( $end_date_time, $tz );
@@ -429,7 +430,8 @@ if ( ! function_exists( 'etn_is_ticket_sale_start' ) ) {
      *
      * @return  bool
      */
-    function etn_is_ticket_sale_start( $start_date_time, $timezone = 'Asia/Dhaka' ) {
+    function etn_is_ticket_sale_start( $start_date_time, $timezone = '' ) {
+        $timezone = $timezone ?: wp_timezone_string();
         try {
             $tz            = new DateTimeZone( $timezone );
             $event_date    = new DateTime( $start_date_time, $tz );

@@ -363,7 +363,7 @@ class Hooks {
     
         if ( $users ) {
             foreach ( $users as $user ) {
-                update_user_meta($user->ID, 'etn_speaker_group', $term_id, true);
+                update_user_meta($user->ID, 'etn_speaker_group', json_encode([intval($term_id)]), true);
             }
 
             // Determine the 'etn_speaker_category' value based on the user's role
@@ -539,7 +539,12 @@ class Hooks {
                 
                 header("Content-Type: $mimeType");
 
-                
+                // Cache proxied image aggressively. URL keys the content, so it is
+                // immutable for that URL; stops a fresh 1MB+ download on every page view.
+                header( 'Cache-Control: public, max-age=31536000, immutable' );
+                header( 'Expires: ' . gmdate( 'D, d M Y H:i:s', time() + YEAR_IN_SECONDS ) . ' GMT' );
+
+
                 $tempStream = fopen('php://temp', 'r+'); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen -- php://temp stream, WP_Filesystem cannot handle in-memory streams.
                 fwrite( $tempStream, $imageContent ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fwrite
                 rewind( $tempStream );

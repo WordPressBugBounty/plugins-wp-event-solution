@@ -179,7 +179,11 @@ class RsvpExporter implements PostExporterInterface {
 
         if ( $extra_fields ) {
             foreach ( $extra_fields as $index => $value ) {
-                $field_id          = ! empty( $value['id'] ) ? $value['id'] : ( $index + 1 );
+                // Front-end (extra-form-fields.jsx) saves the meta-key suffix as `item.id || index`,
+                // where index is the 0-based array position. Mirror that exactly: use $index (NOT
+                // $index + 1) for fields with no id, otherwise the lookup key is off by one and the
+                // value exports blank.
+                $field_id          = ! empty( $value['id'] ) ? $value['id'] : $index;
                 $slug              = $this->label_to_slug( $value['label'] );
                 $key               = substr( 'etn_attendee_extra_field_' . $slug . '_' . $field_id, 0, 255 );
                 $this->extra_fields[$key] = $value['label'];

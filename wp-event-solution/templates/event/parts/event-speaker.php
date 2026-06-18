@@ -18,7 +18,7 @@
                     ?>
                     <img src="<?php echo esc_url( $image ); ?>"
                         alt="<?php echo esc_attr( $speaker->get_speaker_title() ); ?>" width="150" height="150"
-                        style="object-fit: cover;">
+                        loading="lazy" decoding="async" style="object-fit: cover;">
                 </a>
             </div>
             <h4 class="etn-speaker-name">

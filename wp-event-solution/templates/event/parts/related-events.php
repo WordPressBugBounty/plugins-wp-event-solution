@@ -21,7 +21,7 @@
                             <img width="300" height="225"
                                 src="https://product.themewinter.com/eventin/wp-content/uploads/sites/2/2020/03/event3-300x225.jpg"
                                 class="attachment-medium size-medium wp-post-image" alt="Event Feature Image"
-                                decoding="async"
+                                loading="lazy" decoding="async"
                                 srcset="https://product.themewinter.com/eventin/wp-content/uploads/sites/2/2020/03/event3-300x225.jpg 300w, https://product.themewinter.com/eventin/wp-content/uploads/sites/2/2020/03/event3-768x576.jpg 768w, https://product.themewinter.com/eventin/wp-content/uploads/sites/2/2020/03/event3-600x450.jpg 600w, https://product.themewinter.com/eventin/wp-content/uploads/sites/2/2020/03/event3.jpg 780w"
                                 sizes="(max-width: 300px) 100vw, 300px"> </a>
                         <div class="etn-event-category">

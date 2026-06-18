@@ -7,23 +7,28 @@ if ( !empty( $show_child_event ) && 'yes' == $show_child_event ) {
     if ( !empty($has_child_events)) {
         foreach ( (array) $has_child_events as $key => $item ) {
             $recur_category   = Helper::cate_with_link($item->ID, 'etn_category');
+            $banner_image_url = get_post_meta($item->ID, 'event_banner', true);
             ?>
                 <div class="etn-col-md-6 etn-col-lg-<?php echo esc_attr($etn_event_col); ?>">
                     <div class="etn-event-item">
                         <!-- thumbnail -->
-                        <?php if ( get_the_post_thumbnail_url( $item->ID ) ) : ?>
-                            <div class="etn-event-thumb">
-                                <a
-                                    href="<?php echo esc_url(get_the_permalink($item->ID)); ?>"
-                                    aria-label="<?php echo esc_attr(get_the_title()); ?>"
-                                >
-                                        <?php echo get_the_post_thumbnail( $item->ID, 'large' );  ?>
-                                </a>
-                                <div class="etn-event-category">
-                                        <?php echo  Helper::kses($recur_category); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Helper::kses() wraps wp_kses() with an allowed tags list. ?>
-                                </div>
+                        <div class="etn-event-thumb">
+                            <a
+                                href="<?php echo esc_url(get_the_permalink($item->ID)); ?>"
+                                aria-label="<?php echo esc_attr(get_the_title()); ?>"
+                            >
+                                <?php if ( $banner_image_url ) : ?>
+                                    <img src="<?php echo esc_url($banner_image_url); ?>" alt="<?php echo esc_attr(get_the_title($item->ID)); ?>">
+                                <?php elseif ( get_the_post_thumbnail_url( $item->ID ) ) : ?>
+                                    <?php echo get_the_post_thumbnail( $item->ID, 'large' );  ?>
+                                <?php else: ?>
+                                    <img class="etn-event-placeholder" src="<?php echo esc_url(\Wpeventin::assets_url() . 'images/placeholder.jpg'); ?>" alt="<?php echo esc_attr__('Event placeholder image', 'eventin'); ?>">
+                                <?php endif; ?>
+                            </a>
+                            <div class="etn-event-category">
+                                    <?php echo  Helper::kses($recur_category); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Helper::kses() wraps wp_kses() with an allowed tags list. ?>
                             </div>
-                        <?php endif; ?>
+                        </div>
                         <!-- Thumbnail end -->
                         <!-- content start-->
                         <div class="etn-event-content">

@@ -502,69 +502,9 @@
 
             // Elementor::If select upcoming  event , filter out the upcoming events
             if ($post_type == "etn") {
-
-                if ($filter_with_status == 'upcoming') {
-
-                    $args['meta_query'] = [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
-                        [
-                            'key'     => 'etn_start_date',
-                            'value'   => gmdate('Y-m-d'),
-                            'compare' => '>=',
-                            'type'    => 'DATE',
-                        ],
-                    ];
-                }
-
-                if ($filter_with_status == 'expire') {
-
-                    $args['meta_query'] = [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
-                        'relation' => 'AND',
-                        [
-                            'relation' => 'OR',
-                            [
-                                'key'     => 'etn_end_date',
-                                'value'   => gmdate('Y-m-d'),
-                                'compare' => '<',
-                                'type'    => 'DATE',
-
-                            ],
-                            [
-                                'key'     => 'etn_end_date',
-                                'value'   => gmdate('Y-m-d'),
-                                'compare' => '=',
-                                'type'    => 'DATE',
-                            ],
-                            [
-                                'key'     => 'etn_end_date',
-                                'value'   => '',
-                                'compare' => '=',
-                            ],
-                        ],
-                        [
-                            'key'     => 'etn_start_date',
-                            'value'   => gmdate('Y-m-d'),
-                            'compare' => '<',
-                            'type'    => 'DATE',
-                        ],
-                    ];
-                }
-
-                if ('ongoing' === $filter_with_status) {
-                    $args['meta_query'] = [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
-                        'relation' => 'AND',
-                        [
-                            'key'     => 'etn_start_date',
-                            'value'   => gmdate('Y-m-d H:i:s'),
-                            'compare' => '<=',
-                            'type'    => 'DATETIME',
-                        ],
-                        [
-                            'key'     => 'etn_end_date',
-                            'value'   => gmdate('Y-m-d H:i:s'),
-                            'compare' => '>=',
-                            'type'    => 'DATETIME',
-                        ],
-                    ];
+                $status_clauses = self::get_status_meta_query($filter_with_status);
+                if (! empty($status_clauses)) {
+                    $args['meta_query'] = array_merge(['relation' => 'AND'], $status_clauses); // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
                 }
             }
 
@@ -2842,6 +2782,83 @@
             }
 
             /**
+             * Build the meta_query clauses for an event status filter.
+             *
+             * Single source of truth shared by the list query (post_data_query)
+             * and the calendar query (get_events_by_date) so the "upcoming /
+             * ongoing / expire" semantics never drift between the two paths.
+             * Returns a list of clauses (no top-level 'relation') so callers can
+             * merge them into their own meta_query under an AND relation.
+             *
+             * @param string $filter_with_status One of '' | upcoming | ongoing | expire.
+             *
+             * @return array List of meta_query clauses; empty array when no/unknown status.
+             */
+            public static function get_status_meta_query($filter_with_status)
+            {
+                if ('upcoming' === $filter_with_status) {
+                    return [
+                        [
+                            'key'     => 'etn_start_date',
+                            'value'   => gmdate('Y-m-d'),
+                            'compare' => '>=',
+                            'type'    => 'DATE',
+                        ],
+                    ];
+                }
+
+                if ('expire' === $filter_with_status) {
+                    return [
+                        [
+                            'relation' => 'OR',
+                            [
+                                'key'     => 'etn_end_date',
+                                'value'   => gmdate('Y-m-d'),
+                                'compare' => '<',
+                                'type'    => 'DATE',
+                            ],
+                            [
+                                'key'     => 'etn_end_date',
+                                'value'   => gmdate('Y-m-d'),
+                                'compare' => '=',
+                                'type'    => 'DATE',
+                            ],
+                            [
+                                'key'     => 'etn_end_date',
+                                'value'   => '',
+                                'compare' => '=',
+                            ],
+                        ],
+                        [
+                            'key'     => 'etn_start_date',
+                            'value'   => gmdate('Y-m-d'),
+                            'compare' => '<',
+                            'type'    => 'DATE',
+                        ],
+                    ];
+                }
+
+                if ('ongoing' === $filter_with_status) {
+                    return [
+                        [
+                            'key'     => 'etn_start_date',
+                            'value'   => gmdate('Y-m-d H:i:s'),
+                            'compare' => '<=',
+                            'type'    => 'DATETIME',
+                        ],
+                        [
+                            'key'     => 'etn_end_date',
+                            'value'   => gmdate('Y-m-d H:i:s'),
+                            'compare' => '>=',
+                            'type'    => 'DATETIME',
+                        ],
+                    ];
+                }
+
+                return [];
+            }
+
+            /**
              * shortcode builder style
              */
             public static function get_option_style($limit, $value_name, $option_name = "", $display_name = "")
@@ -3539,7 +3556,7 @@
                      *
                      * @return void
                      */
-                    public static function get_events_by_date($month, $year, $display, $endDate, $startTime, $start_date = '', $end_date = '', $post_parent = '0', $post_id = '0', $selected_cats = '')
+                    public static function get_events_by_date($month, $year, $display, $endDate, $startTime, $start_date = '', $end_date = '', $post_parent = '0', $post_id = '0', $selected_cats = '', $filter_with_status = '')
                     {
 
                         if (empty($month) || empty($year)) {
@@ -3579,6 +3596,20 @@
                                 ],
                             ],
                         ];
+
+                        // Layer the status filter (upcoming / ongoing / expire) on top of the
+                        // month date-range window using AND, reusing the same clauses as the
+                        // list query so calendar and list stay consistent.
+                        $status_clauses = self::get_status_meta_query($filter_with_status);
+                        if (! empty($status_clauses)) {
+                            $args['meta_query'] = array_merge(
+                                [
+                                    'relation' => 'AND',
+                                    $args['meta_query'],
+                                ],
+                                $status_clauses
+                            );
+                        }
 
                         if (empty($selected_cats)) {
                             // No category filter — show all posts by default

@@ -249,6 +249,14 @@ defined( 'ABSPATH' ) || exit;
 														</div>
 														<div class="etn-row">
 															<div class="etn-col-lg-6">
+																<div class="etn-field-wrap">
+																	<h3><?php echo esc_html__('Filter by status', 'eventin'); ?></h3>
+																	<?php Helper::get_event_status('filter_with_status'); ?>
+																</div>
+															</div>
+														</div>
+														<div class="etn-row">
+															<div class="etn-col-lg-6">
 															<button type="button" class="etn-btn shortcode-generate-btn"><?php echo esc_html__('Generate', 'eventin'); ?></button>
 
 															<?php if ( function_exists( 'wpeventin_pro' ) ): ?>

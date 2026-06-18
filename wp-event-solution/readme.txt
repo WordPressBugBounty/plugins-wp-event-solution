@@ -3,7 +3,7 @@ Contributors: arraytics, ehsanriyadh
 Tags: event calendar, event registration, event tickets, event booking, event management, event manager, event tickets, event scheduling, booking system, RSVP, event listing
 Requires at least: 6.2
 Tested up to: 7.0
-Stable tag: 4.1.14
+Stable tag: 4.1.15
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: [https://www.gnu.org/licenses/gpl-2.0.html](https://www.gnu.org/licenses/gpl-2.0.html)
@@ -283,6 +283,22 @@ Yes. Eventin is translation-ready and compatible with WPML and Loco Translate. I
 Please report security bugs found in the source code of the WP Event Solution plugin through the [Patchstack Vulnerability Disclosure Program](https://patchstack.com/database/vdp/5b5e63df-930d-4f15-9bf8-db51f5732488). The Patchstack team will assist you with verification, CVE assignment, and notify the developers of this plugin.
 
 == Changelog ==
+
+= 4.1.15 ( June 18, 2026 ) =
+New : Performance - Improved frontend page loading performance
+New : API - Optimized Event, Booking, and Attendee APIs for handling large datasets
+New : Event List - Added event sorting by date and title
+New : Checkout - Added automatic billing information prefill for logged-in users on the Eventin checkout page
+New : Calendar - Added event status filtering (Upcoming, Ongoing, All, Expired) for calendar shortcodes
+
+Tweak : Recurring Event - Added a confirmation modal displaying affected child events when updating the date of an existing recurring event
+Tweak : Export/Import - Enhanced event import/export support for category names and banner images
+
+Fix : Timezone - Fixed event booking inconsistencies across different timezones
+Fix : Waiting List - Fixed waiting list booking issues with local payment gateways
+Fix : Speaker - Fixed issues with assigning multiple categories to speakers
+Fix : WooCommerce - Fixed booking issues when guest checkout is disabled
+Fix : Waiting List - Fixed waiting list booking issues when using SureCart payments
 
 = 4.1.14 ( June 02, 2026 ) =
 New     : Pertial Refund - Integrated pertial refund system

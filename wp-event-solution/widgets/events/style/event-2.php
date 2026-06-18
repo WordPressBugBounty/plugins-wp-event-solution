@@ -56,8 +56,15 @@ $data  = Helper::post_data_query('etn', $posts_to_show, $order, $event_cat, 'etn
 											>
 												<?php echo get_the_post_thumbnail($value->ID, 'large');  ?>
 											</a>
+										<?php else: ?>
+											<a
+												href="<?php echo esc_url(get_the_permalink($value->ID)); ?>"
+												aria-label="<?php echo esc_attr(get_the_title()); ?>"
+											>
+												<img class="etn-event-placeholder" src="<?php echo esc_url(\Wpeventin::assets_url() . 'images/placeholder.jpg'); ?>" alt="<?php echo esc_attr__('Event placeholder image', 'eventin'); ?>">
+											</a>
 										<?php endif; ?>
-											
+
 											<div class="etn-event-category">
 												<?php echo  Helper::kses($category); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Helper::kses() wraps wp_kses() with an allowed tags list. ?>
 											</div>

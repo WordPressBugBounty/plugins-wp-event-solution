@@ -1,6 +1,9 @@
 <?php
-wp_enqueue_style('jquery-countdown');
-wp_enqueue_script('jquery-countdown');
+// NOTE: the 'jquery-countdown' handle was never registered in the free plugin
+// (only Pro registers 'etn-jquery-countdown'), so these enqueues were a silent
+// no-op. The countdown is driven by the custom ticker in event-manager-public.js
+// (handle 'etn-public'), already enqueued on every frontend page — no
+// jquery.countdown library is used. Dead enqueues removed.
 
 $timezone = $event->event_timezone;
 

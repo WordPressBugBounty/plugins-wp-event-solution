@@ -18,25 +18,32 @@ class FrontendAssets implements AssetsInterface {
      */
     public static function get_scripts() {
         $scripts = [
+            // PERF: PDF/canvas libs only fire on user action (ticket download), never
+            // during initial paint. 'defer' takes them off the render-blocking critical
+            // path while preserving load order + jQuery dependency.
             'etn-pdf-gen' => [
                 'src'       => \Wpeventin::plugin_url( 'assets/lib/js/jspdf.min.js'),
                 'deps'      => ['jquery'],
                 'in_footer' => false,
+                'strategy'  => 'defer',
             ],
             'etn-html-2-canvas' => [
                 'src'       => \Wpeventin::plugin_url( 'assets/lib/js/html2canvas.min.js' ),
                 'deps'      => ['jquery'],
                 'in_footer' => false,
+                'strategy'  => 'defer',
             ],
             'etn-dom-purify-pdf' => [
                 'src'       => \Wpeventin::plugin_url( 'assets/lib/js/purify.min.js' ),
                 'deps'      => ['jquery'],
                 'in_footer' => false,
+                'strategy'  => 'defer',
             ],
             'html-to-image' => [
                 'src'       => \Wpeventin::plugin_url( 'assets/lib/js/html-to-image.js' ),
                 'deps'      => ['jquery'],
                 'in_footer' => false,
+                'strategy'  => 'defer',
             ],
             'etn-public' => [
                 'src'       => \Wpeventin::plugin_url( 'build/js/event-manager-public.js' ),
@@ -53,6 +60,9 @@ class FrontendAssets implements AssetsInterface {
                 ),
                 'in_footer' => true,
             ],
+            // PERF: block frontend script enhances already-rendered block markup; it
+            // does not need to run before paint. 'defer' removes it from the
+            // render-blocking critical path on every event page using blocks.
             'eventin-block-js' => [
                 'src'       => \Wpeventin::plugin_url( 'build/js/gutenberg-blocks.js' ),
                 'deps'      => array_merge(
@@ -60,11 +70,29 @@ class FrontendAssets implements AssetsInterface {
                     ChunkManifest::vendor_deps_for( 'gutenberg-blocks' )
                 ),
                 'in_footer' => false,
+                'strategy'  => 'defer',
+            ],
+            // PERF: slim frontend federation host (build/js/packages-frontend.js). Exposes
+            // only the runtime shares + light form components frontend bundles need
+            // (window.eventin.{antd,antdIcons,icons,styled,theme,utils,components}), with
+            // NO admin SPA and NO Gutenberg editor stack. Frontend bundles (Pro module-rsvp)
+            // depend on this instead of 'etn-packages' so block-editor.min.js no longer loads.
+            // Head (in_footer:false) so window.eventin is set before footer consumers run.
+            'etn-packages-frontend' => [
+                'src'       => \Wpeventin::plugin_url( 'build/js/packages-frontend.js' ),
+                'deps'      => ChunkManifest::vendor_deps_for( 'packages-frontend' ),
+                'in_footer' => false,
             ],
             'etn-module-purchase' => [
                 'src'       => \Wpeventin::plugin_url( 'build/js/module-purchase.js' ),
+                // PERF: 'etn-packages' (the legacy packages.js shared bundle) was a dep
+                // here, but it carries the whole Gutenberg editor stack (block-editor
+                // ~1MB, registers core blocks at load) — needed by the admin dashboard,
+                // never by the public checkout. module-purchase.js self-declares its own
+                // wp-* deps via its .asset.php and references none of packages.js, so the
+                // dep only dragged ~MBs of editor JS onto every event page. Removed.
                 'deps'      => array_merge(
-                    ['etn-packages', 'underscore', 'wp-i18n'],
+                    ['underscore', 'wp-i18n'],
                     ChunkManifest::vendor_deps_for( 'module-purchase' )
                 ),
                 'in_footer' => true,

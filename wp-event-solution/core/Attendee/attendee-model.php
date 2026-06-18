@@ -107,6 +107,61 @@ class Attendee_Model extends Post_Model {
     }
 
     /**
+     * Batch version of get_attendees_by() for a list of order ids.
+     *
+     * Fetches every attendee for the given orders in ONE query (instead of one
+     * query per order, the booking-list N+1), primes their meta cache once, and
+     * returns a map of order_id => array of attendee data — each element built
+     * identically to get_attendees_by() so callers get the same shape.
+     *
+     * @param   int[]  $order_ids    Eventin order ids.
+     * @param   array  $post_status  Attendee statuses to include.
+     *
+     * @return  array  [ order_id => [ attendee_data, ... ] ]
+     */
+    public function get_attendees_grouped_by_order( array $order_ids, $post_status = ['publish', 'trash'] ) {
+        $order_ids = array_values( array_unique( array_filter( array_map( 'intval', $order_ids ) ) ) );
+
+        if ( empty( $order_ids ) ) {
+            return [];
+        }
+
+        $attendees = get_posts( [
+            'post_type'      => 'etn-attendee',
+            'post_status'    => $post_status,
+            'posts_per_page' => -1,
+            'meta_query'     => [
+                [
+                    'key'     => 'eventin_order_id',
+                    'value'   => $order_ids,
+                    'compare' => 'IN',
+                ],
+            ],
+        ] );
+
+        // Seed every requested order with an empty list so orders without
+        // attendees still return [] (matching the per-order call).
+        $grouped = array_fill_keys( $order_ids, [] );
+
+        if ( $attendees ) {
+            update_postmeta_cache( wp_list_pluck( $attendees, 'ID' ) );
+
+            foreach ( $attendees as $attendee ) {
+                $attendee_object               = new Attendee_Model( $attendee->ID );
+                $attendee_data                 = $attendee_object->get_data();
+                $attendee_data['extra_fields'] = $attendee_object->get_extra_fields();
+
+                $order_id = (int) $attendee_data['eventin_order_id'];
+                if ( isset( $grouped[ $order_id ] ) ) {
+                    $grouped[ $order_id ][] = $attendee_data;
+                }
+            }
+        }
+
+        return $grouped;
+    }
+
+    /**
      * Get attendee extra fields data
      *
      * @return  array  Extra fields data

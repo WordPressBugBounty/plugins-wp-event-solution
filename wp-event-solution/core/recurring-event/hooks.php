@@ -423,6 +423,148 @@ class Hooks {
     }
 
     /**
+     * Build the event-range structure the recurrence calculators expect from
+     * raw start/end date strings. Mirrors etn_event_range() but works on
+     * proposed dates that may not be saved to meta yet (orphan preview).
+     *
+     * @param string $start_date
+     * @param string $end_date
+     * @return array { start_date (ts), end_date (ts), etn_start_range }
+     */
+    public function build_event_range_from_dates( $start_date, $end_date ) {
+        $start_ts = ( new \DateTime( gmdate( 'Y-m-d H:i:s', strtotime( $start_date ) ) ) )->setTime( 0, 0, 0 )->getTimestamp();
+        $end_ts   = ( new \DateTime( gmdate( 'Y-m-d H:i:s', strtotime( $end_date ) ) ) )->setTime( 0, 0, 0 )->getTimestamp();
+
+        return [ 'start_date' => $start_ts, 'end_date' => $end_ts, 'etn_start_range' => $start_date ];
+    }
+
+    /**
+     * Compute the timestamps a recurrence rule produces for a given date range,
+     * without reading saved meta. Shared shape with check_recurring_rules() so
+     * the orphan-preview endpoint can evaluate a proposed (unsaved) rule.
+     *
+     * @param array $freq        Recurrence rule (etn_event_recurrence shape).
+     * @param array $event_range start_date/end_date timestamps + etn_start_range.
+     * @return array { is_recurring, recurrence_span?, matching_events? }
+     */
+    public function matching_events_for_rule( $freq, $event_range ) {
+        $result_arr = [ 'is_recurring' => false ];
+
+        if ( empty( $freq ) || ! is_array( $freq ) ) {
+            return $result_arr;
+        }
+
+        $frequency = ( ! empty( $freq['recurrence_freq'] ) && 'no' != $freq['recurrence_freq'] ) ? $freq['recurrence_freq'] : '';
+
+        if ( empty( $frequency ) ) {
+            return $result_arr;
+        }
+
+        $result_arr['is_recurring'] = true;
+
+        if ( ! empty( $freq['span_type'] ) && $freq['span_type'] == "single" ) {
+            $result_arr['recurrence_span'] = 0;
+        } else {
+            $result_arr['recurrence_span'] = ! empty( $freq['recurrence_span'] ) ? $freq['recurrence_span'] : 1;
+        }
+
+        switch ( $freq['recurrence_freq'] ) {
+        case 'day':
+            $daily_interval                = ! empty( $freq['recurrence_daily_interval'] ) ? intval( $freq['recurrence_daily_interval'] ) : 1;
+            $result_arr['matching_events'] = $this->daily_recurrence_calculation( $freq, $daily_interval, $event_range['start_date'], $event_range['end_date'], $event_range['etn_start_range'] );
+            break;
+
+        case 'week':
+            $recurrence_weekly_day         = ( isset( $freq['recurrence_weekly_day'] ) && is_array( $freq['recurrence_weekly_day'] ) ) ? $freq['recurrence_weekly_day'] : [];
+            $result_arr['matching_events'] = $this->weekly_recurrence_calculation( $freq, $recurrence_weekly_day, $event_range['start_date'], $event_range['end_date'], $event_range['etn_start_range'] );
+            break;
+
+        case 'month':
+            $monthly_date                  = ! empty( $freq['recurrence_monthly_date'] ) ? intval( $freq['recurrence_monthly_date'] ) : 1;
+            $result_arr['matching_events'] = $this->monthly_recurrence_calculation( $monthly_date, $event_range['start_date'], $event_range['end_date'], $event_range['etn_start_range'] );
+            break;
+
+        case 'month-advanced':
+            $monthly_advanced_interval     = ! empty( $freq['recurrence_monthly_advanced_interval'] ) ? intval( $freq['recurrence_monthly_advanced_interval'] ) : 1;
+            $monthly_advanced_week_no      = ! empty( $freq['recurrence_monthly_advanced_week_no'] ) ? intval( $freq['recurrence_monthly_advanced_week_no'] ) : 1;
+            $monthly_advanced_weekday_no   = ! empty( $freq['recurrence_monthly_advanced_weekday_no'] ) ? intval( $freq['recurrence_monthly_advanced_weekday_no'] ) : 0;
+            $result_arr['matching_events'] = $this->monthly_advanced_recurrence_calculation( $freq, $monthly_advanced_interval, $monthly_advanced_week_no, $monthly_advanced_weekday_no, $event_range['start_date'], $event_range['end_date'], $event_range['etn_start_range'] );
+            break;
+
+        case 'year':
+            $recurrence_yearly_month       = ! empty( $freq['recurrence_yearly_month'] ) ? $freq['recurrence_yearly_month'] : 1;
+            $recurrence_yearly_date        = ! empty( $freq['recurrence_yearly_date'] ) ? $freq['recurrence_yearly_date'] : 1;
+            $result_arr['matching_events'] = $this->yearly_recurrence_calculation( $freq, $recurrence_yearly_month, $recurrence_yearly_date, $event_range['start_date'], $event_range['end_date'], $event_range['etn_start_range'] );
+            break;
+
+        case 'custom':
+            $recurrence_custom             = ! empty( $freq['recurrence_custom'] ) ? $freq['recurrence_custom'] : 1;
+            $result_arr['matching_events'] = $this->custom_recurrence_calculation( $recurrence_custom );
+            break;
+
+        default:
+            break;
+        }
+
+        return $result_arr;
+    }
+
+    /**
+     * Preview which existing child events would be detached (converted to
+     * standalone) if the given proposed recurrence rule were saved. Does not
+     * mutate any data.
+     *
+     * @param int    $parent_post_id
+     * @param array  $recurrence         Proposed etn_event_recurrence rule.
+     * @param string $start_date         Proposed event start date.
+     * @param string $end_date           Proposed event end date.
+     * @param bool   $recurring_enabled  Whether recurrence stays enabled.
+     * @return array[] List of { id, title, date } for each orphaned child.
+     */
+    public function preview_orphan_children( $parent_post_id, $recurrence, $start_date, $end_date, $recurring_enabled = true ) {
+        $children = \Etn\Utils\Helper::get_child_events( $parent_post_id );
+
+        if ( ! is_array( $children ) || empty( $children ) ) {
+            return [];
+        }
+
+        // Recurrence turned off entirely -> the rule produces no dates, so every
+        // child is detached.
+        if ( ! $recurring_enabled ) {
+            $valid_dates = [];
+        } else {
+            $event_range = $this->build_event_range_from_dates( $start_date, $end_date );
+            $rules       = $this->matching_events_for_rule( $recurrence, $event_range );
+            $matching    = ( ! empty( $rules['matching_events'] ) && is_array( $rules['matching_events'] ) ) ? $rules['matching_events'] : [];
+            $valid_dates = array_map( function ( $ts ) {
+                return gmdate( 'Y-m-d', (int) $ts );
+            }, $matching );
+        }
+
+        $orphans = [];
+
+        foreach ( $children as $child ) {
+            $child_date = get_post_meta( $child->ID, 'etn_start_date', true );
+
+            if ( empty( $child_date ) ) {
+                continue;
+            }
+
+            if ( in_array( $child_date, $valid_dates, true ) ) {
+                continue;
+            }
+
+            $orphans[] = [
+                'id'    => (int) $child->ID,
+                'title' => get_the_title( $child->ID ),
+                'date'  => $child_date,
+            ];
+        }
+
+        return $orphans;
+    }
+
+    /**
      * Check recurring rules. Is it daily/weekly/monthly/yearly
      */
     public function check_recurring_rules( $post_id ) {

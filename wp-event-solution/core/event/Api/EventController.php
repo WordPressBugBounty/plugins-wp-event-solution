@@ -160,7 +160,27 @@ class EventController extends WP_REST_Controller {
                     'callback'            => array( $this, 'convert_elementor_to_wordpress' ),
                     'permission_callback' => array( $this, 'update_item_permissions_check' ),
                 ),
- 
+
+            ),
+        );
+
+        // Preview which child recurrences would become standalone events if a
+        // proposed recurrence rule were saved. Read-only; mutates nothing.
+        register_rest_route(
+            $this->namespace,
+            '/' . $this->rest_base . '/(?P<id>[\d]+)' . '/recurrence-orphan-preview',
+            array(
+                'args' => array(
+                    'id' => array(
+                        'description' => __( 'Unique identifier for the post.', 'eventin' ),
+                        'type'        => 'integer',
+                    ),
+                ),
+                array(
+                    'methods'             => WP_REST_Server::CREATABLE,
+                    'callback'            => array( $this, 'recurrence_orphan_preview' ),
+                    'permission_callback' => array( $this, 'update_item_permissions_check' ),
+                ),
             ),
         );
 
@@ -312,6 +332,13 @@ class EventController extends WP_REST_Controller {
      * @return WP_Error|WP_REST_Response
      */
     public function get_items( $request ) {
+        // Lightweight list for event-select dropdowns: id/title/status/dates only.
+        // Skips the per-event hydration (50+ meta reads, taxonomies, user-group
+        // queries and revenue map) that the full list performs for every event.
+        if ( 'compact' === ( ! empty( $request['fields'] ) ? sanitize_key( $request['fields'] ) : '' ) ) {
+            return $this->get_compact_event_list( $request );
+        }
+
         $per_page       = ! empty( $request['per_page'] ) ? intval( $request['per_page'] ) : -1;
         $paged          = ! empty( $request['paged'] ) ? intval( $request['paged'] ) : 1;
         $type           = ! empty( $request['type'] ) ? sanitize_text_field( $request['type'] ) : '';
@@ -337,6 +364,24 @@ class EventController extends WP_REST_Controller {
             'posts_per_page' => $per_page,
             'paged'          => $paged,
         ];
+
+        // Sorting (whitelisted orderby/order). Defaults to WP_Query defaults when no orderby is sent.
+        $orderby = ! empty( $request['orderby'] ) ? sanitize_key( $request['orderby'] ) : '';
+        $order   = ! empty( $request['order'] ) ? strtoupper( sanitize_text_field( $request['order'] ) ) : 'DESC';
+        $order   = in_array( $order, [ 'ASC', 'DESC' ], true ) ? $order : 'DESC';
+
+        switch ( $orderby ) {
+            case 'title':
+                $args['orderby'] = 'title';
+                $args['order']   = $order;
+                break;
+            case 'date':
+                $args['meta_key']  = 'etn_start_date'; // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+                $args['meta_type'] = 'DATETIME';
+                $args['orderby']   = 'meta_value';
+                $args['order']     = $order;
+                break;
+        }
 
         // Filter by parent event for recurring child events.
         if ( $parent !== null ) {
@@ -538,8 +583,74 @@ class EventController extends WP_REST_Controller {
             'items' => $events
         ];
 
-        $response = rest_ensure_response( $data );    
+        $response = rest_ensure_response( $data );
         $response->header( 'X-WP-Total', $total_posts );
+
+        return $response;
+    }
+
+    /**
+     * Get a compact event list for select/dropdown consumers.
+     *
+     * Returns only id/title/status/start_date/end_date with a single batched
+     * meta-cache prime, avoiding the heavy per-event prepare_item_for_response
+     * (userdata, taxonomies, user-group queries, sold-tickets, revenue map).
+     *
+     * @param   WP_REST_Request  $request
+     *
+     * @return  WP_REST_Response
+     */
+    protected function get_compact_event_list( $request ) {
+        $can_see_drafts = current_user_can( 'etn_manage_event' );
+        $search_keyword = ! empty( $request['search_keyword'] ) ? sanitize_text_field( $request['search_keyword'] ) : '';
+
+        $args = [
+            'post_type'              => 'etn',
+            'post_status'            => $can_see_drafts
+                ? [ 'publish', 'pending', 'future', 'private', 'inherit', 'draft' ]
+                : [ 'publish' ],
+            'posts_per_page'         => -1,
+            'post_parent'            => 0,
+            'orderby'                => 'date',
+            'order'                  => 'DESC',
+            'no_found_rows'          => true,
+            'update_post_term_cache' => false,
+        ];
+
+        // Non-admins only see their own events (mirrors the full list scoping).
+        if ( ! current_user_can( 'manage_options' ) ) {
+            $args['author'] = get_current_user_id();
+        }
+
+        if ( $search_keyword ) {
+            $args['s'] = $search_keyword;
+        }
+
+        $posts = ( new WP_Query( $args ) )->posts;
+
+        // One batched meta query for every event's start/end date instead of N.
+        update_meta_cache( 'post', wp_list_pluck( $posts, 'ID' ) );
+
+        $items = [];
+
+        foreach ( $posts as $post ) {
+            $event = new Event_Model( $post->ID );
+
+            $items[] = [
+                'id'         => $post->ID,
+                'title'      => $post->post_title,
+                'status'     => $event->get_status(),
+                'start_date' => get_post_meta( $post->ID, 'etn_start_date', true ),
+                'end_date'   => get_post_meta( $post->ID, 'etn_end_date', true ),
+            ];
+        }
+
+        $response = rest_ensure_response([
+            'total_items' => count( $items ),
+            'items'       => $items,
+        ]);
+
+        $response->header( 'X-WP-Total', count( $items ) );
 
         return $response;
     }
@@ -582,6 +693,8 @@ class EventController extends WP_REST_Controller {
                 'category'       => ! empty( $request['category'] ) ? $request['category'] : [],
                 'organizer'      => ! empty( $request['organizer'] ) ? $request['organizer'] : [],
                 'speaker'        => ! empty( $request['speaker'] ) ? $request['speaker'] : [],
+                'orderby'        => ! empty( $request['orderby'] ) ? $request['orderby'] : '',
+                'order'          => ! empty( $request['order'] ) ? $request['order'] : '',
             ];
 
             $child_response = $this->get_items( $child_request );
@@ -687,6 +800,53 @@ class EventController extends WP_REST_Controller {
      */
     public function create_item_permissions_check( $request ) {
         return current_user_can( 'etn_manage_event' );
+    }
+
+    /**
+     * Preview which child recurrences would be converted to standalone events
+     * if the proposed recurrence rule were saved. Read-only — nothing is
+     * mutated. Powers the "Recurring rule changed" confirmation modal so it
+     * only opens when at least one recurrence is actually orphaned.
+     *
+     * @param WP_REST_Request $request Full details about the request.
+     * @return WP_REST_Response
+     */
+    public function recurrence_orphan_preview( $request ) {
+        $id   = (int) $request['id'];
+        $body = json_decode( $request->get_body(), true );
+
+        if ( ! is_array( $body ) ) {
+            $body = array();
+        }
+
+        $recurrence = ( isset( $body['event_recurrence'] ) && is_array( $body['event_recurrence'] ) )
+            ? $body['event_recurrence']
+            : array();
+
+        $start_date = ! empty( $body['start_date'] )
+            ? sanitize_text_field( $body['start_date'] )
+            : get_post_meta( $id, 'etn_start_date', true );
+
+        $end_date = ! empty( $body['end_date'] )
+            ? sanitize_text_field( $body['end_date'] )
+            : get_post_meta( $id, 'etn_end_date', true );
+
+        $recurring_enabled = isset( $body['recurring_enabled'] )
+            ? in_array( $body['recurring_enabled'], array( 'yes', true, 'true' ), true )
+            : true;
+
+        $orphans = \Etn\Core\Recurring_Event\Hooks::instance()->preview_orphan_children(
+            $id,
+            $recurrence,
+            $start_date,
+            $end_date,
+            $recurring_enabled
+        );
+
+        return rest_ensure_response( array(
+            'orphans' => $orphans,
+            'count'   => count( $orphans ),
+        ) );
     }
 
     /**

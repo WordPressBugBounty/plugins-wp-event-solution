@@ -353,6 +353,8 @@ class TemplateController extends WP_REST_Controller {
      */
     private function get_template_edit_link( $post_id ) {
         if ( $this->should_use_elementor_editor( $post_id ) ) {
+            $this->maybe_enable_elementor_edit_mode( $post_id );
+
             return add_query_arg([
                 'post'   => absint( $post_id ),
                 'action' => 'elementor',
@@ -360,6 +362,25 @@ class TemplateController extends WP_REST_Controller {
         }
 
         return get_edit_post_link( $post_id, 'raw' );
+    }
+
+    /**
+     * Ensure the post carries Elementor's builder edit-mode meta.
+     *
+     * Without `_elementor_edit_mode = builder`, opening
+     * `post.php?post=ID&action=elementor` bounces back to the WordPress
+     * post editor instead of the Elementor editor. Idempotent and only
+     * applied to Elementor-built templates.
+     *
+     * @param  int $post_id
+     * @return void
+     */
+    private function maybe_enable_elementor_edit_mode( $post_id ) {
+        if ( 'builder' === get_post_meta( $post_id, '_elementor_edit_mode', true ) ) {
+            return;
+        }
+
+        update_post_meta( $post_id, '_elementor_edit_mode', 'builder' );
     }
 
     /**
@@ -499,6 +520,10 @@ class TemplateController extends WP_REST_Controller {
 
         if ( ! $template_created ) {
             return new WP_Error( 'template_create_error', __( 'Couldn\'t create template. Please try again.', 'eventin' ), ['status' => 422] );
+        }
+
+        if ( $this->should_use_elementor_editor( $template->id ) ) {
+            $this->maybe_enable_elementor_edit_mode( $template->id );
         }
 
         $response = $this->prepare_item_for_response( $template, $request );

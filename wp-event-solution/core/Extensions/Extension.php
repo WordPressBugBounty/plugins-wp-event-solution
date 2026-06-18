@@ -172,6 +172,10 @@ class Extension {
                 }
             }
 
+            if ( $is_user_off && in_array( $extension['type'], [ 'module', 'addon' ], true ) ) {
+                $extension['status'] = 'off';
+            }
+
             return $extension;
             
         }, $extensions );
@@ -291,16 +295,18 @@ class Extension {
             }
         }
 
-        // if ( 'addon' === $extension['type'] && 'off' === $status ) {
+        if ( 'addon' === $extension['type'] && 'off' === $status ) {
+            if ( ! $slug ) {
+                return false;
+            }
 
-        //     if ( ! $slug ) {
-        //         return false;
-        //     }
-
-        //     if ( PluginManager::is_activated( $slug ) ) {
-        //         $result = PluginManager::deactivate_plugin( $slug );
-        //     }
-        // }
+            if ( PluginManager::is_activated( $slug ) ) {
+                $result = PluginManager::deactivate_plugin( $slug );
+                if ( ! $result || is_wp_error( $result ) ) {
+                    return $result ?: false;
+                }
+            }
+        }
 
         if ( 'module' === $extension['type']  && ! empty( $extension['deps'] ) ) {
             $dependency = $extension['deps'][0];
@@ -579,7 +585,7 @@ class Extension {
                 'name'          => 'automation',
                 'slug'          => 'automation',
                 'type'          => 'module',
-                'status'        => 'off',
+                'status'        => 'on',
                 'is_pro'        => false,
                 'title'         => __('Automation', 'eventin'),
                 'description'   => __('Skip the manual steps — Enable the Eventin’s automation to send emails for event creation, booking confirmation, reminders, and RSVP updates.', 'eventin'),

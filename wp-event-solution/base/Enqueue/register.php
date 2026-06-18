@@ -50,7 +50,14 @@ class Register {
                 $deps[] = 'eventin-i18n';
             }
 
-            wp_register_script( $handle, $script['src'], $deps, $version, $in_footer );
+            // When a 'strategy' (defer/async) is set, pass the WP 6.3+ array form so
+            // the script is non-render-blocking. On WP < 6.3 the array is treated as
+            // truthy in_footer, so it still loads safely (just without the strategy).
+            $register_args = isset( $script['strategy'] )
+                ? [ 'in_footer' => $in_footer, 'strategy' => $script['strategy'] ]
+                : $in_footer;
+
+            wp_register_script( $handle, $script['src'], $deps, $version, $register_args );
 
             // Set localize data.
             $this->set_localize( $handle );

@@ -143,7 +143,7 @@ class Event_Model extends Post_Model {
         $end_date   = $this->etn_end_date;
         $end_time   = $this->etn_end_time;
         $status     = get_post_status($this->id);
-        $timezone   = $this->event_timezone ? etn_create_date_timezone($this->event_timezone) : 'Asia/Dhaka';
+        $timezone   = $this->event_timezone ? etn_create_date_timezone($this->event_timezone) : wp_timezone_string();
 
         $start_date_time = str_replace(',', '', $start_date . ' ' . $start_time);
         $end_date_time   = str_replace(',', '', $end_date . ' ' . $end_time);
@@ -292,7 +292,7 @@ class Event_Model extends Post_Model {
      * @return  string
      */
     public function get_timezone() {
-        $timezone   = $this->event_timezone ? etn_create_date_timezone( $this->event_timezone ) : 'Asia/Dhaka';
+        $timezone   = $this->event_timezone ? etn_create_date_timezone( $this->event_timezone ) : wp_timezone_string();
 
         return $timezone;
     }
@@ -315,7 +315,7 @@ class Event_Model extends Post_Model {
      * @return  bool
      */
     public function is_expaired() {
-        return time() > strtotime( $this->get_end_datetime() );
+        return etn_is_ticket_sale_end( $this->get_end_datetime(), $this->get_timezone() );
     }
 
     /**

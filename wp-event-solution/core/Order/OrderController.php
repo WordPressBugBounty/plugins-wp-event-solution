@@ -11,6 +11,7 @@ use Eventin\Customer\CustomerModel;
 use Eventin\Input;
 use Eventin\Emails\AdminOrderEmail;
 use Eventin\Emails\AttendeeOrderEmail;
+use Eventin\Emails\WaitingListConfirmationEmail;
 use Eventin\Emails\WaitingListPaymentEmail;
 use Eventin\Integrations\Webhook\FluentCRM;
 use Eventin\Mails\Mail;
@@ -348,16 +349,28 @@ class OrderController extends WP_REST_Controller {
         $total_posts  = $post_query->found_posts;
         $orders = [];
 
+        $order_ids = wp_list_pluck( $query_result, 'ID' );
+
         if ( $query_result ) {
             // Prime the WordPress meta cache for all orders in a single DB query,
             // so every subsequent get_post_meta() call in the loop is a cache hit.
-            update_meta_cache( 'post', wp_list_pluck( $query_result, 'ID' ) );
+            update_meta_cache( 'post', $order_ids );
         }
+
+        // Batch-load the two per-order lookups that were previously N+1
+        // (one query per row): every order's attendees, and the matching
+        // WooCommerce order id. Both are resolved here in a single query each
+        // and handed to prepare_item_for_response() as preloaded data.
+        $attendee_map = ( new Attendee_Model() )->get_attendees_grouped_by_order( $order_ids );
+        $wc_order_map = $this->get_wc_order_id_map( $order_ids );
 
         foreach ( $query_result as $post ) {
             $order     = new OrderModel( $post->ID );
-            $post_data = $this->prepare_item_for_response( $order, $request );
-    
+            $post_data = $this->prepare_item_for_response( $order, $request, [
+                'attendees'   => isset( $attendee_map[ (int) $post->ID ] ) ? $attendee_map[ (int) $post->ID ] : [],
+                'wc_order_id' => array_key_exists( (int) $post->ID, $wc_order_map ) ? $wc_order_map[ (int) $post->ID ] : null,
+            ] );
+
             $orders[] = $this->prepare_response_for_collection( $post_data );
         }
     
@@ -595,6 +608,8 @@ class OrderController extends WP_REST_Controller {
 
         $this->create_attendees( $attendees );
 
+        $this->send_waiting_list_confirmation( $order );
+
         $this->create_customer( $order, $request );
 
         $access_token = bin2hex( random_bytes( 16 ) );
@@ -660,6 +675,44 @@ class OrderController extends WP_REST_Controller {
         }
 
         return $attendee_data;
+    }
+
+    /**
+     * Send a waiting-list confirmation email to the purchaser and each attendee.
+     *
+     * Deduplicates by email so a buyer purchasing for themselves (purchaser
+     * email == attendee email) receives a single message.
+     *
+     * @param   OrderModel  $order  The waiting-list order just created.
+     *
+     * @return  void
+     */
+    protected function send_waiting_list_confirmation( $order ) {
+        $event = new Event_Model( $order->event_id );
+        $from  = etn_get_email_settings( 'purchase_email' )['from'];
+        $sent  = [];
+
+        // Purchaser.
+        if ( $order->customer_email ) {
+            Mail::to( $order->customer_email )->from( $from )->send( new WaitingListConfirmationEmail( $event, $order->customer_fname ) );
+            $sent[] = strtolower( $order->customer_email );
+        }
+
+        // Attendees (skip any address already mailed).
+        $attendees = $order->get_attendees();
+
+        if ( ! empty( $attendees ) ) {
+            foreach ( $attendees as $attendee ) {
+                $attendee = new Attendee_Model( $attendee['id'] );
+
+                if ( ! $attendee->etn_email || in_array( strtolower( $attendee->etn_email ), $sent, true ) ) {
+                    continue;
+                }
+
+                Mail::to( $attendee->etn_email )->from( $from )->send( new WaitingListConfirmationEmail( $event, $attendee->etn_name ) );
+                $sent[] = strtolower( $attendee->etn_email );
+            }
+        }
     }
 
     /**
@@ -731,7 +784,7 @@ class OrderController extends WP_REST_Controller {
                     }
                 }
                 else{
-                    $validate_tickets = etn_validate_event_tickets( $event_id, $tickets );
+                    $validate_tickets = etn_validate_event_tickets( $event_id, $tickets, true );
                     if (is_wp_error($validate_tickets)) {
                         return $validate_tickets;
                     }
@@ -1048,14 +1101,17 @@ class OrderController extends WP_REST_Controller {
      * @param WP_REST_Request $request Request object.
      * @return WP_REST_Response $response
      */
-    public function prepare_item_for_response( $item, $request ) {
+    public function prepare_item_for_response( $item, $request, $preloaded = null ) {
         $order = $item instanceof OrderModel ? $item : new OrderModel( $item );
         $event = get_post( $order->event_id );
 
-        $wc_order = null;
-
-        if( function_exists( 'WC' ) ){
-    	    $wc_order = $order->findWCOrderByEventinOrder();
+        // When the caller (list endpoint) has batch-resolved the WooCommerce order
+        // id, use it instead of running findWCOrderByEventinOrder() per row.
+        if ( is_array( $preloaded ) && array_key_exists( 'wc_order_id', $preloaded ) ) {
+            $wc_order_id = $preloaded['wc_order_id'];
+        } else {
+            $wc_order    = function_exists( 'WC' ) ? $order->findWCOrderByEventinOrder() : null;
+            $wc_order_id = $wc_order ? $wc_order->get_id() : null;
         }
 		
         // Display values for `total_price` and `total_ticket` shift with refund state:
@@ -1105,11 +1161,13 @@ class OrderController extends WP_REST_Controller {
             'total_ticket'          => $display_total_ticket,
             'original_total_ticket' => $original_total_ticket,
             'ticket_items'      => $order->get_tickets(),
-            'attendees'         => $order->get_attendees(),
+            'attendees'         => ( is_array( $preloaded ) && array_key_exists( 'attendees', $preloaded ) )
+                                        ? $preloaded['attendees']
+                                        : $order->get_attendees(),
             'seat_ids'          => $order->seat_ids,
             'attendee_seats'    => $order->attendee_seats,
             'customer'          => $order->get_customer(),
-	        'wc_order_id'       => $wc_order ? $wc_order->get_id() : null,
+	        'wc_order_id'       => $wc_order_id,
             'extra_fields'      => ( $order->extra_fields == "" || $order->extra_fields == null )  ? new \stdClass() : $order->extra_fields,
             'extra_fields_files' => $order->get_extra_field_files(),
             'currency'          => $order->currency?$order->currency:etn_currency(),
@@ -1117,6 +1175,60 @@ class OrderController extends WP_REST_Controller {
         ];
 
         return $order_data;
+    }
+
+    /**
+     * Batch-resolve the WooCommerce order id for a list of Eventin order ids.
+     *
+     * Replaces the per-row OrderModel::findWCOrderByEventinOrder() lookup (an
+     * N+1 meta_query over shop_order posts) with a single query for the whole
+     * page. Returns [ eventin_order_id => wc_order_id ]; orders with no linked
+     * WC order are simply absent (callers treat that as null), matching the
+     * previous behaviour where get_id() was only read on a found order.
+     *
+     * @param   int[]  $order_ids  Eventin order ids on the current page.
+     *
+     * @return  array  [ eventin_order_id => wc_order_id ]
+     */
+    protected function get_wc_order_id_map( $order_ids ) {
+        $order_ids = array_values( array_filter( array_map( 'intval', (array) $order_ids ) ) );
+
+        if ( empty( $order_ids ) || ! function_exists( 'WC' ) ) {
+            return [];
+        }
+
+        $post_type = etn_is_enable_wc_synchronize_order() ? 'shop_order' : 'shop_order_placehold';
+
+        $wc_post_ids = get_posts( [
+            'post_type'      => $post_type,
+            'post_status'    => 'any',
+            'posts_per_page' => -1,
+            'fields'         => 'ids',
+            'meta_query'     => [
+                [
+                    'key'     => 'eventin_order_id',
+                    'value'   => $order_ids,
+                    'compare' => 'IN',
+                ],
+            ],
+        ] );
+
+        if ( empty( $wc_post_ids ) ) {
+            return [];
+        }
+
+        // Prime meta in one query so the eventin_order_id reads below are cache hits.
+        update_meta_cache( 'post', $wc_post_ids );
+
+        $map = [];
+        foreach ( $wc_post_ids as $wc_post_id ) {
+            $eventin_order_id = (int) get_post_meta( $wc_post_id, 'eventin_order_id', true );
+            if ( $eventin_order_id ) {
+                $map[ $eventin_order_id ] = (int) $wc_post_id;
+            }
+        }
+
+        return $map;
     }
 
     /**
@@ -1701,7 +1813,20 @@ class OrderController extends WP_REST_Controller {
     public function create_customer( $order, $data ) {
         $input = new Input( $data );
 
-        $email = $input->get('customer_email');
+        $email          = $input->get('customer_email');
+        $payment_method = $input->get('payment_method');
+
+        // Defer account creation to WooCommerce for guest checkouts paid via WooCommerce.
+        // The store may disallow guest checkout / force account creation during its own
+        // checkout. Creating the WP user here would pre-occupy the email, so WooCommerce
+        // then rejects the purchase with "An account is already registered with your email
+        // address. Please log in." for every buyer. Letting WooCommerce create the account
+        // also honors "no account without a completed purchase". The WooCommerce-created
+        // customer is linked back to this order on `woocommerce_new_order`
+        // (see Etn\Core\Woocommerce\Hooks::attatch_eventin_order_id()).
+        if ( ! is_user_logged_in() && 'wc' === $payment_method ) {
+            return;
+        }
 
         if ( email_exists( $email ) ) {
             $user_data = get_user_by( 'email', $email );
