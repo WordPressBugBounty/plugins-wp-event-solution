@@ -3,7 +3,7 @@ Contributors: arraytics, ehsanriyadh
 Tags: event calendar, event registration, event tickets, event booking, event management, event manager, event tickets, event scheduling, booking system, RSVP, event listing
 Requires at least: 6.2
 Tested up to: 7.0
-Stable tag: 4.1.15
+Stable tag: 4.1.16
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: [https://www.gnu.org/licenses/gpl-2.0.html](https://www.gnu.org/licenses/gpl-2.0.html)
@@ -283,6 +283,22 @@ Yes. Eventin is translation-ready and compatible with WPML and Loco Translate. I
 Please report security bugs found in the source code of the WP Event Solution plugin through the [Patchstack Vulnerability Disclosure Program](https://patchstack.com/database/vdp/5b5e63df-930d-4f15-9bf8-db51f5732488). The Patchstack team will assist you with verification, CVE assignment, and notify the developers of this plugin.
 
 == Changelog ==
+
+= 4.1.16 ( Jul 9, 2026 ) =
+New: Tax - Added native Tax & VAT support
+New: Optiontics - Added Optiontics support for Eventin
+New: MailPoet - Added MailPoet integration for Eventin
+
+Tweak: Spaker - Updated the Speaker Bio textarea and converted it into a rich text editor
+Tweak: Template Builder - Updated the Template Builder user experience
+
+Fix: Event Template One - Resolved an issue where Event Template One did not display more than five schedules
+Fix: Recurring events - Resolved recurring event filtering issue
+Fix: Timezone - Resolved timezone conflict issue
+Fix: Related events - Resolved related event not showing issue
+Fix: Email - Resolved an issue where images in email bodies were not delivered to recipients' inboxes
+Fix: WooCommerce - Resolved an issue where the WooCommerce order status was not updated after an Eventin booking refund
+Fix: Zoom - Resolved Zoom integration issue
 
 = 4.1.15 ( June 18, 2026 ) =
 New : Performance - Improved frontend page loading performance

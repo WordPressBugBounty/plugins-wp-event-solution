@@ -45,10 +45,20 @@ class FrontendAssets implements AssetsInterface {
                 'in_footer' => false,
                 'strategy'  => 'defer',
             ],
+            // jQuery countdown plugin — powers the single-event countdown on event
+            // layouts two & three (ported from Pro so those layouts work without Pro).
+            'etn-jquery-countdown' => [
+                'src'       => \Wpeventin::plugin_url( 'assets/js/jquery.countdown.min.js' ),
+                'deps'      => ['jquery'],
+                'in_footer' => true,
+                'strategy'  => 'defer',
+            ],
             'etn-public' => [
                 'src'       => \Wpeventin::plugin_url( 'build/js/event-manager-public.js' ),
+                // etn-jquery-countdown must load before the public bundle initialises
+                // the layout two/three countdown via jQuery's .countdown().
                 'deps'      => array_merge(
-                    ['jquery'],
+                    ['jquery', 'etn-jquery-countdown'],
                     ChunkManifest::vendor_deps_for( 'event-manager-public' )
                 )
             ],
@@ -118,8 +128,12 @@ class FrontendAssets implements AssetsInterface {
             'etn-icon' => [
                 'src' => \Wpeventin::plugin_url( 'assets/css/etn-icon.css' )
             ],
+            // Countdown plugin styles for event layouts two & three (ported from Pro).
+            'etn-jquery-countdown' => [
+                'src' => \Wpeventin::plugin_url( 'assets/css/jquery.countdown.css' ),
+            ],
         ];
-        
+
         return apply_filters( 'etn_frontend_register_styles', $styles );
     }
 }

@@ -1,9 +1,9 @@
 <?php
 
-namespace Ens\Base;
+namespace Eventin\Vendor\Ens\Base;
 
 use BadMethodCallException;
-use Ens\Base\PostModel;
+use Eventin\Vendor\Ens\Base\PostModel;
 
 /**
  * ForwardCalls Trait

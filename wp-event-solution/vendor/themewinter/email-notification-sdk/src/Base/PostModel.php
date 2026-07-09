@@ -1,9 +1,9 @@
 <?php
 
-namespace Ens\Base;
+namespace Eventin\Vendor\Ens\Base;
 
-use Ens\Base\ForwardCalls;
-use Ens\Config;
+use Eventin\Vendor\Ens\Base\ForwardCalls;
+use Eventin\Vendor\Ens\Config;
 
 /**
  * Post Model Class

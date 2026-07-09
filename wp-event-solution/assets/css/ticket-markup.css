@@ -102,6 +102,40 @@
   flex: 0 0 100%;
 }
 
+/* Two-column layout: ticket info on the left, price breakdown aside on the right */
+.etn-ticket-body-top--with-aside {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.etn-ticket-body-top--with-aside .etn-ticket-body-top-ul-wrapper {
+  flex: 0 0 55%;
+  max-width: 55%;
+  padding-right: 20px;
+  box-sizing: border-box;
+}
+
+.etn-ticket-body-top--with-aside .etn-ticket-price-aside {
+  flex: 0 0 42%;
+  max-width: 42%;
+  box-sizing: border-box;
+}
+
+.etn-ticket-price-aside .etn-ticket-body-top-li {
+  flex: 0 0 100%;
+}
+
+@media (max-width: 575px) {
+  .etn-ticket-body-top--with-aside .etn-ticket-body-top-ul-wrapper,
+  .etn-ticket-body-top--with-aside .etn-ticket-price-aside {
+    flex: 0 0 100%;
+    max-width: 100%;
+    padding-right: 0;
+  }
+}
+
 .etn-ticket-body-top-li p {
   font-size: 15px;
   font-weight: 400;

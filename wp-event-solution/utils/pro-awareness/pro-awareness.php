@@ -285,7 +285,7 @@ if(!class_exists('\Wpmet\Libs\Pro_Awareness')) :
 												<?php echo esc_html__('How to upgrade to Eventin PRO?', 'eventin'); ?>
 											</h3>
 											<div class="tw-accordion-cotent">
-												<p><?php echo  Helper::kses('If you buy the plugin from CodeCanyon then you do not need license key activation. Just use the Envato Marketplace plugin to get regular updates. If you buy the plugin from <a href="https://themewinter.com/eventin/" target="_blank">Themewinter website</a> then follow our <a href="https://support.themewinter.com/docs/plugins/plugin-docs/general-settings-eventin/license/" target="_blank">documentation here</a> for activating the PRO license.', 'eventin'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Helper::kses() wraps wp_kses() with an allowed tags list. ?></p>
+												<p><?php echo  Helper::kses('If you buy the plugin from CodeCanyon then you do not need license key activation. Just use the Envato Marketplace plugin to get regular updates. If you buy the plugin from <a href="https://themewinter.com/eventin/" target="_blank">Themewinter website</a> then follow our <a href="https://themewinter.com/docs/plugins/plugin-docs/gettings-started/license/" target="_blank">documentation here</a> for activating the PRO license.', 'eventin'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Helper::kses() wraps wp_kses() with an allowed tags list. ?></p>
 											</div>
 										</div>
 									</div>

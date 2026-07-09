@@ -1,9 +1,9 @@
 <?php
-namespace Ens\Hook;
+namespace Eventin\Vendor\Ens\Hook;
 
-use Ens\Config;
-use Ens\Flow\FlowManager;
-use Ens\Utils\Helpers;
+use Eventin\Vendor\Ens\Config;
+use Eventin\Vendor\Ens\Flow\FlowManager;
+use Eventin\Vendor\Ens\Utils\Helpers;
 
 class ActionListener {
 

@@ -193,6 +193,15 @@ class ScheduleController extends WP_REST_Controller {
             $args['author'] = get_current_user_id(); 
         }
 
+        // Hide the preview-placeholder event's schedules from the schedules list.
+        $placeholder_schedule_ids = \Eventin\PreviewPlaceholder\PreviewPlaceholder::schedule_ids();
+        if ( $placeholder_schedule_ids && \Eventin\PreviewPlaceholder\PreviewPlaceholder::event_exists() ) {
+            $args['post__not_in'] = array_merge(
+                isset( $args['post__not_in'] ) ? (array) $args['post__not_in'] : [],
+                $placeholder_schedule_ids
+            );
+        }
+
         $events = [];
 
         $post_query   = new WP_Query();

@@ -1,5 +1,5 @@
 <?php
-namespace Ens\Utils;
+namespace Eventin\Vendor\Ens\Utils;
 
 class Helpers {
 

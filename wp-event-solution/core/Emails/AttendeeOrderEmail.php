@@ -104,7 +104,8 @@ class AttendeeOrderEmail extends Mailable {
             '{%event_time%}' 	 => $start_time,
             '{%event_location%}' => $address,
             '{%customer_name%}'  => $attendee_name,
-            '{%customer_email%}' => $attendee_email
+            '{%customer_email%}' => $attendee_email,
+            '{%add_ons%}'        => $this->format_add_ons(),
         ];
 
         $order_email_message = $this->email_settings['body'];
@@ -112,5 +113,33 @@ class AttendeeOrderEmail extends Mailable {
         $order_email_message = strtr( $order_email_message, $placeholder );
 
         return $order_email_message;
+    }
+
+    /**
+     * Format this attendee's order add-ons for the {%add_ons%} placeholder.
+     *
+     * @return  string  Empty string when there are no add-ons.
+     */
+    private function format_add_ons() {
+        // Each attendee's own selections (independent per attendee).
+        $rows = $this->attendee->etn_option_selections;
+        $rows = is_array( $rows ) ? $rows : [];
+
+        if ( ! $rows ) {
+            return '';
+        }
+
+        $lines = [];
+        foreach ( $rows as $row ) {
+            $lines[] = sprintf(
+                '%s: %s &times; %s &mdash; %s',
+                esc_html( $row['field_label'] ?? '' ),
+                esc_html( $row['choice_value'] ?? '' ),
+                (int) ( $row['qty'] ?? 1 ),
+                esc_html( $row['line_total'] ?? '' )
+            );
+        }
+
+        return implode( '<br />', $lines );
     }
 }

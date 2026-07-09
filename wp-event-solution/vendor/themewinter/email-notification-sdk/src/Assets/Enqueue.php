@@ -1,9 +1,9 @@
 <?php
 
-namespace Ens\Assets;
+namespace Eventin\Vendor\Ens\Assets;
 
-use Ens\Config;
-use Ens\Utils\Helpers;
+use Eventin\Vendor\Ens\Config;
+use Eventin\Vendor\Ens\Utils\Helpers;
 
 /**
  * Class Enqueue

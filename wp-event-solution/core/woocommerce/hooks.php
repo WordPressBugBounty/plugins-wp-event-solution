@@ -39,6 +39,9 @@ class Hooks {
         add_action( 'woocommerce_thankyou', [ $this, 'redirect_success_page' ] );
 
         add_action( 'woocommerce_order_status_changed', [ $this, 'eventin_order_update' ], 10, 4 );
+
+        // Mirror Eventin refunds into the linked WooCommerce order as record-only refunds.
+        add_action( 'eventin/refund/created', [ new \Eventin\Integrations\WC\WCRefundSync(), 'handle' ], 10, 2 );
         // Handle payment completion for Eventin orders
         add_action( 'woocommerce_payment_complete', [ $this, 'eventin_payment_complete' ], 10, 1 );
 
@@ -391,6 +394,9 @@ class Hooks {
 
         do_action('eventin_order_completed', $event_order);
 
+        // Persist the WC tax/discount before the email goes out (see sync_wc_order_totals).
+        $this->sync_wc_order_totals( $event_order, $order );
+
         $event_order->send_email();
     }
 
@@ -434,17 +440,27 @@ class Hooks {
 				$event_order->update([
 					'status' => 'completed'
 				]);
-				
+
 				do_action( 'eventin_order_completed', $event_order );
-				
+
+				// Persist the WC tax/discount before the email goes out (see sync_wc_order_totals).
+				$this->sync_wc_order_totals( $event_order, $order );
+
 				$event_order->send_email();
 				break;
 			
 			case "refunded":
+				// Already refunded (e.g. the refund was initiated inside Eventin,
+				// which set this status before pushing it to WooCommerce): bail so
+				// the refund cascade and its side effects don't run a second time.
+				if ( 'refunded' === $event_order->status ) {
+					return;
+				}
+
 				$event_order->update([
 					'status' => 'refunded',
 				]);
-				
+
 				do_action( 'eventin_order_refund', $event_order );
 				break;
 			default:
@@ -489,10 +505,13 @@ class Hooks {
         $event_order->update([
             'status' => 'completed'
         ]);
-        
+
         // Trigger action for completed event order
         do_action( 'eventin_order_completed', $event_order );
-        
+
+        // Persist the WC tax/discount before the email goes out (see sync_wc_order_totals).
+        $this->sync_wc_order_totals( $event_order, $order );
+
         // Send email notification
         $event_order->send_email();
     }
@@ -660,9 +679,47 @@ class Hooks {
                 $value['data']->set_regular_price($event_total_price);
                 $value['data']->set_sale_price($event_total_price);
                 $value['data']->set_sold_individually('yes');
+
+                // Refresh the cart item's tax status from the live event meta.
+                // WooCommerce snapshots the product (incl. tax_status) into the
+                // cart session at add-to-cart time, so an item added while the
+                // event was taxable keeps taxing even after the per-event Tax
+                // Status toggle is set to disable it. Re-sync it here, alongside
+                // the dynamic price, so the cart always reflects the current
+                // setting. Values match WooCommerce's native 'taxable'/'none'.
+                $event_tax_status = get_post_meta( $value['event_id'], '_tax_status', true );
+                $value['data']->set_tax_status( 'none' === $event_tax_status ? 'none' : 'taxable' );
+
                 $value['data']->get_price();
             }
         }
+    }
+
+    /**
+     * Sync WooCommerce order totals (tax + discount) onto the Eventin order.
+     *
+     * An Eventin order is created with creation-time totals (tax_total defaults to 0);
+     * the real tax/discount are only known once WooCommerce has calculated the order.
+     * The completion email can be dispatched from several WC hooks (payment_complete,
+     * order status change, thankyou) — whichever fires first MUST persist the WC totals
+     * before send_email(), otherwise the email renders with tax_total = 0 (no tax line
+     * and no "(includes … Tax)" note) even though the live order later shows the correct
+     * tax once redirect_success_page runs.
+     *
+     * @param   OrderModel  $event_order  Eventin order model.
+     * @param   \WC_Order   $wc_order     WooCommerce order.
+     *
+     * @return  void
+     */
+    private function sync_wc_order_totals( $event_order, $wc_order ) {
+        if ( ! $wc_order instanceof \WC_Order ) {
+            return;
+        }
+
+        $event_order->update([
+            'discount_total' => $wc_order->get_data()['discount_total'],
+            'tax_total'      => $wc_order->get_data()['total_tax'],
+        ]);
     }
 
     /**
@@ -696,15 +753,9 @@ class Hooks {
 		    exit();
         }
      
-        $wc_order_discount_total_price = $wc_order->get_data()["discount_total"];
-        $wc_order_tax_total_price = $wc_order->get_data()["total_tax"];
-
-        // $wc_order_total_price = $wc_order->get_data()["total"];
-        $eventin_order->update([
-                "discount_total" => $wc_order_discount_total_price,
-                "tax_total" => $wc_order_tax_total_price,
-                // "total_price" => $wc_order_total_price
-        ]);
+        // Persist the WC tax/discount onto the Eventin order. Note total_price is
+        // intentionally left as the ticket subtotal (see sync_wc_order_totals).
+        $this->sync_wc_order_totals( $eventin_order, $wc_order );
 
 		if ( $thankyou_redirect === 'woo_thankyou' ) {
             if ( $eventin_order->status !== 'completed' ) {

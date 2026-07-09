@@ -1105,6 +1105,11 @@ class OrderController extends WP_REST_Controller {
         $order = $item instanceof OrderModel ? $item : new OrderModel( $item );
         $event = get_post( $order->event_id );
 
+        // Recurring child events (post_parent !== 0) share the parent's title,
+        // so expose the occurrence date to disambiguate which occurrence was
+        // booked. Empty for non-recurring events — the frontend hides it then.
+        $event_date = ( $event && $event->post_parent ) ? get_post_meta( $event->ID, 'etn_start_date', true ) : '';
+
         // When the caller (list endpoint) has batch-resolved the WooCommerce order
         // id, use it instead of running findWCOrderByEventinOrder() per row.
         if ( is_array( $preloaded ) && array_key_exists( 'wc_order_id', $preloaded ) ) {
@@ -1147,9 +1152,14 @@ class OrderController extends WP_REST_Controller {
             'customer_lname'    => $order->customer_lname,
             'customer_email'    => $order->customer_email,
             'customer_phone'    => $order->customer_phone,
+            'customer_country'  => $order->customer_country,
+            'customer_state'    => $order->customer_state,
+            'customer_city'     => $order->customer_city,
+            'customer_zip'      => $order->customer_zip,
             'date_time'         => $order->date_time,
             'event_id'          => $order->event_id,
             'event_name'        => $event ? $event->post_title : '',
+            'event_date'        => $event_date,
             'payment_method'    => $order->payment_method,
             'status'            => $order->status,
             'total_price'           => $display_total_price,
@@ -1158,6 +1168,10 @@ class OrderController extends WP_REST_Controller {
             'discount_total'        => $order->discount_total,
             'tax_total'             => $order->tax_total,
             'tax_display_mode'      => $order->tax_display_mode,
+            // Add-on (Optiontics) breakdown: aggregate total for the pricing panel
+            // and the per-line rows for the success-page itemisation.
+            'options_total'         => $order->options_total,
+            'option_selections'     => is_array( $order->option_selections ) ? $order->option_selections : [],
             'total_ticket'          => $display_total_ticket,
             'original_total_ticket' => $original_total_ticket,
             'ticket_items'      => $order->get_tickets(),
@@ -1316,13 +1330,42 @@ class OrderController extends WP_REST_Controller {
             $order_data['customer_phone'] = $input_data['customer_phone'];
         }
 
+        // Tax address (used by native tax geo-matching at payment time).
+        if ( isset( $input_data['customer_country'] ) ) {
+            $order_data['customer_country'] = sanitize_text_field( $input_data['customer_country'] );
+        }
+
+        if ( isset( $input_data['customer_state'] ) ) {
+            $order_data['customer_state'] = sanitize_text_field( $input_data['customer_state'] );
+        }
+
+        if ( isset( $input_data['customer_city'] ) ) {
+            $order_data['customer_city'] = sanitize_text_field( $input_data['customer_city'] );
+        }
+
+        if ( isset( $input_data['customer_zip'] ) ) {
+            $order_data['customer_zip'] = sanitize_text_field( $input_data['customer_zip'] );
+        }
+
         $temporary_status = 'failed';
         $is_enable_payment_timer = etn_get_option( 'ticket_purchase_timer_enable', 'off' );
         if ( $is_enable_payment_timer == 'on' ) {
             $temporary_status = 'pending';
         }
         
-        $order_data['status'] = isset( $input_data['status'] ) ? $input_data['status'] : $temporary_status;
+        // Only privileged users (order/event managers) may set an explicit order
+        // status. Unauthenticated/guest checkout always starts at the safe temporary
+        // status so a forged 'completed' status cannot bypass payment and exhaust
+        // inventory. A completed order is reached afterwards only through the payment
+        // flow (paymentComplete/webhook), which verifies payment. See CVE-2026-12956.
+        $allowed_statuses = [ 'pending', 'failed', 'completed', 'cancelled', 'refunded', 'partially_refunded', 'waiting' ];
+        $can_set_status   = current_user_can( 'manage_options' ) || current_user_can( 'etn_manage_order' );
+
+        if ( $can_set_status && isset( $input_data['status'] ) && in_array( $input_data['status'], $allowed_statuses, true ) ) {
+            $order_data['status'] = $input_data['status'];
+        } else {
+            $order_data['status'] = $temporary_status;
+        }
 
         // Prepare event data
         if ( isset( $input_data['event_id'] ) ) {
@@ -1330,7 +1373,15 @@ class OrderController extends WP_REST_Controller {
         }
 
         if ( isset( $input_data['tickets'] ) ) {
-            $order_data['tickets'] = $input_data['tickets'];
+            // Selections live in their own meta (option_selections); keep the stored
+            // tickets array free of them so the price isn't double-kept.
+            $order_data['tickets'] = array_map(
+                function ( $ticket ) {
+                    unset( $ticket['option_selections'] );
+                    return $ticket;
+                },
+                $input_data['tickets']
+            );
         }
 
         // Prepare attendee data
@@ -1347,10 +1398,6 @@ class OrderController extends WP_REST_Controller {
             $order_data['attendee_seats'] = $input_data['attendee_seats'];
         }
 
-        if ( isset( $input_data['status'] ) ) {
-            $order_data['status'] = $input_data['status'];
-        }
-
         if ( isset( $input_data['remaining_time_to_pay'] ) ) {
             $order_data['remaining_time_to_pay'] = $input_data['remaining_time_to_pay'];
         }
@@ -1362,12 +1409,105 @@ class OrderController extends WP_REST_Controller {
             $order_data['extra_fields'] = $input_data['extra_fields'];
         }
 
-        $tax_display_mode = get_option( 'woocommerce_tax_display_shop' );
-        $order_data['tax_display_mode'] = $tax_display_mode;
+        // Whether the ticket subtotal already includes tax depends on how WooCommerce
+        // prices are ENTERED, not how they're DISPLAYED. woocommerce_tax_display_shop is
+        // only a display preference and must NOT be used here. woocommerce_prices_include_tax
+        // = 'yes' means the ticket price (and therefore total_price, the subtotal) is already
+        // tax-inclusive, so tax must be presented as "included" rather than added on top.
+        // Native gateways (Stripe/PayPal/local/free) overwrite this with 'incl' in
+        // PaymentController::apply_native_tax(), so this value only sticks for WooCommerce orders.
+        $prices_include_tax             = ( 'yes' === get_option( 'woocommerce_prices_include_tax' ) );
+        $order_data['tax_display_mode'] = $prices_include_tax ? 'incl' : 'excl';
 
-        $order_data['total_price'] = $this->total_price($order_data['event_id'], $order_data['tickets']);
+        // Reprice add-on selections per attendee, server-authoritatively (client prices ignored).
+        $order_attendees = isset( $input_data['attendees'] ) ? $input_data['attendees'] : [];
+        list( $attendees_with_rows, $option_rows, $options_total ) =
+            $this->build_attendee_option_selections( $order_data['event_id'], $order_attendees );
+
+        $order_data['attendees']         = $attendees_with_rows;
+        $order_data['option_selections'] = $option_rows;
+        $order_data['options_total']     = $options_total;
+
+        $order_data['total_price'] = $this->total_price( $order_data['event_id'], $order_data['tickets'] ) + $options_total;
 
         return $order_data;
+    }
+
+    /**
+     * Reprice add-on selections carried on each attendee, server-side, qty 1 each.
+     *
+     * Returns the attendees array with a transient `_option_rows` per attendee, the
+     * order-level aggregate rows (each tagged with attendee_index/attendee_name), and
+     * the grand total. No-op when Optiontics is inactive or there are no attendees.
+     *
+     * @param   int    $event_id   Event id.
+     * @param   array  $attendees  Submitted attendees (each may carry option_selections).
+     *
+     * @return  array  [ attendees_with_rows[], aggregate_rows[], options_total ]
+     */
+    protected function build_attendee_option_selections( $event_id, $attendees ) {
+        $adapter = new \Eventin\Integrations\Optiontics\OptionticsAddons();
+
+        if ( ! is_array( $attendees ) || ! $attendees || ! $adapter->is_available() || ! $adapter->integration_enabled() || ! $adapter->addons_enabled( $event_id ) ) {
+            return [ (array) $attendees, [], 0.0 ];
+        }
+
+        $event           = new Event_Model( $event_id );
+        $event_block_ids = $adapter->event_block_ids( $event_id );
+        $aggregate       = [];
+
+        foreach ( $attendees as $index => $attendee ) {
+            $slug = isset( $attendee['ticket_slug'] ) ? $attendee['ticket_slug'] : '';
+            $subs = isset( $attendee['option_selections'] ) ? $attendee['option_selections'] : [];
+
+            $attendees[ $index ]['_option_rows'] = [];
+
+            if ( ! $slug || ! is_array( $subs ) || ! $subs ) {
+                continue;
+            }
+
+            $variation = $event->get_ticket( $slug );
+            $base      = (float) ( $variation['etn_ticket_price'] ?? 0 );
+            $selected  = array_map( 'absint', (array) ( $variation['optiontics_block_ids'] ?? [] ) );
+            // Mirror the checkout endpoint: only blocks selected for this ticket AND
+            // still assigned to the event are valid. Drops blanket/de-targeted blocks.
+            $allowed   = array_values( array_intersect( $selected, $event_block_ids ) );
+
+            // Authorization: drop selections whose block isn't assigned to this ticket type.
+            $subs = array_values(
+                array_filter(
+                    $subs,
+                    function ( $selection ) use ( $allowed ) {
+                        return in_array( (int) ( $selection['block_id'] ?? 0 ), $allowed, true );
+                    }
+                )
+            );
+
+            // Per attendee: each selection counts once.
+            $subs = array_map(
+                function ( $selection ) {
+                    $selection['qty'] = 1;
+                    return $selection;
+                },
+                $subs
+            );
+
+            if ( ! $subs ) {
+                continue;
+            }
+
+            $rows = $adapter->reprice( $subs, $base, $slug );
+
+            $attendees[ $index ]['_option_rows'] = $rows;
+
+            foreach ( $rows as $row ) {
+                $row['attendee_index'] = (int) $index;
+                $row['attendee_name']  = isset( $attendee['name'] ) ? $attendee['name'] : '';
+                $aggregate[]           = $row;
+            }
+        }
+
+        return [ $attendees, $aggregate, $adapter->options_total( $aggregate ) ];
     }
 
     /**
@@ -1405,7 +1545,7 @@ class OrderController extends WP_REST_Controller {
                     'etn_unique_ticket_id' => substr(md5($ticket['etn_ticket_price']), 0, 10),
                     'eventin_order_id'     => $order_id,
                     'post_status'          => 'publish',
-
+                    'etn_option_selections' => isset( $attendee['_option_rows'] ) && is_array( $attendee['_option_rows'] ) ? $attendee['_option_rows'] : [],
                 ];
 
                 $extra_fields = isset( $attendee['extra_fields'] ) ? $this->prepare_attendee_extra_fields( $attendee['extra_fields'] ) : [];

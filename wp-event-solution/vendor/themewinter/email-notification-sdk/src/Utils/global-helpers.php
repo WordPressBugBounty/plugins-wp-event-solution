@@ -1,6 +1,6 @@
 <?php
 
-use ENS\Config;
+use Eventin\Vendor\Ens\Config;
 
 defined( 'ABSPATH' ) || exit;
 

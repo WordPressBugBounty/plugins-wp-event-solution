@@ -175,7 +175,8 @@ class EventDetailsPartsPro {
 																		$etn_schedule_objective     = (isset($topic['etn_shedule_objective']) ? $topic['etn_shedule_objective'] : '');
 																		$etn_schedule_speaker       = (isset($topic['speakers']) ? (array) $topic['speakers'] : []);
 																		$dash_sign	                = ( !empty( $etn_schedule_start_time ) && !empty( $etn_schedule_end_time ) ) ? " - " : " ";
-																		$is_active					= $topic['is_active'];
+																		// Treat a missing is_active key as visible; only an explicit 0/false hides a topic.
+																		$is_active					= ! isset( $topic['is_active'] ) || $topic['is_active'] != 0;
 
 																	 	if($is_active){
 																	?>

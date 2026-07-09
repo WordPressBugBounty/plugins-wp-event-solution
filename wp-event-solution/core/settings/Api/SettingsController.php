@@ -235,6 +235,9 @@ class SettingsController extends WP_REST_Controller {
             'require_phone_number'     => etn_get_option( 'require_phone_number', false ),
             'ticket_purchase_timer'    => etn_get_option( 'ticket_purchase_timer', 10 ),
             'ticket_purchase_timer_enable'   => etn_get_option( 'ticket_purchase_timer_enable', 'off' ),
+            'enable_tax'               => etn_get_option( 'enable_tax' ),
+            'tax_type'                 => etn_get_option( 'tax_type', 'exclusive' ),
+            'tax_rates'                => etn_get_option( 'tax_rates', [] ),
         ];
 
         if ( function_exists( 'WC' ) ) {

@@ -237,8 +237,12 @@ class RefundService {
      */
     protected function recompute_order_status( $order ) {
         $refunded_total = $this->model->refunded_total( $order->id );
-        $order_total    = (float) $order->total_price;
-        $new_status     = ( $refunded_total >= ( $order_total - 0.01 ) ) ? 'refunded' : 'partially_refunded';
+        // Compare against the customer's actual paid amount (post-discount, +tax if
+        // tax-exclusive) — the same basis the refund cap uses in create(). Using raw
+        // total_price here marks the order "refunded" while tax remained unrefunded,
+        // e.g. paid 92 (80 + 12 tax), refunded 90, 2 left, yet flagged fully refunded.
+        $final_amount   = $this->final_amount_for_order( $order );
+        $new_status     = ( $refunded_total >= ( $final_amount - 0.01 ) ) ? 'refunded' : 'partially_refunded';
         $order->update( [ 'status' => $new_status ] );
 
         // Amount-type refunds never touch attendee status; once cumulative refunds

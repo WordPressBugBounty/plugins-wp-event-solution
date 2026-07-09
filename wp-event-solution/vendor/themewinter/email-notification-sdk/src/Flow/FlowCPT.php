@@ -1,8 +1,8 @@
 <?php
-namespace Ens\Flow;
+namespace Eventin\Vendor\Ens\Flow;
 
-use Ens\Config;
-use Ens\Utils\Helpers;
+use Eventin\Vendor\Ens\Config;
+use Eventin\Vendor\Ens\Utils\Helpers;
 
 /**
  * Class FlowCPT

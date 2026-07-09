@@ -5,14 +5,12 @@ namespace Eventin\Template;
 defined( 'ABSPATH' ) || exit;
 
 use Eventin\Abstracts\Provider;
-use Eventin\Template\TemplateLimitHooks;
 use Eventin\Template\TemplateBlockAssets;
 use Eventin\Template\EtnHomepageHooks;
 use Eventin\Template\TemplateLoader;
 
 class TemplateProvider extends Provider {
     protected $services = [
-        TemplateLimitHooks::class,
         EtnHomepageHooks::class,
         TemplateLoader::class,
     ];

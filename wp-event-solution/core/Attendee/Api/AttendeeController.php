@@ -684,6 +684,12 @@ class AttendeeController extends WP_REST_Controller {
 
         $data['event_extra_field'] = !empty($event_extra_field) ? $event_extra_field : $settings_extra_field;
 
+        // This attendee's own add-on selections. Each attendee selects independently, so
+        // read the per-attendee meta rather than the order-level aggregate — otherwise two
+        // attendees sharing a ticket variant would each show both attendees' selections.
+        $selections = $item->etn_option_selections;
+        $data['option_selections'] = is_array( $selections ) ? array_values( $selections ) : [];
+
         return $data;
     }
 
@@ -1047,19 +1053,99 @@ class AttendeeController extends WP_REST_Controller {
 
         $attendee = new Attendee_Model( $id );
         $event    = new Event_Model( $attendee->etn_event_id );
-        $from      = etn_get_email_settings( 'purchase_email' )['from'];
 
         if ( ! is_email( $attendee->etn_email ) ) {
             return new WP_Error( 'email_error', __( 'The attendee doesn\'t have valid email', 'eventin' ), ['status' => 422] );
         }
 
-        Mail::to( $attendee->etn_email )->from( $from )->send( new AttendeeCertificateEmail( $event, $attendee ) );
+        // When the Automation module is off the notification SDK isn't loaded, so
+        // firing the automation hook would send nothing. Fall back to the direct
+        // certificate email, exactly as this action behaved before automation
+        // routing was added.
+        $etn_addons_options      = get_option( 'etn_addons_options' );
+        $is_automation_module_on = is_array( $etn_addons_options ) && ( $etn_addons_options['automation'] ?? 'off' ) === 'on';
+
+        if ( ! $is_automation_module_on ) {
+            $from = etn_get_email_settings( 'purchase_email' )['from'];
+
+            Mail::to( $attendee->etn_email )->from( $from )->send( new AttendeeCertificateEmail( $event, $attendee ) );
+
+            return rest_ensure_response( [
+                'message' => __( 'Successfully send certificate email', 'eventin' ),
+            ] );
+        }
+
+        // No certificate_template gate here: the download handler
+        // (eventin-pro/core/attendee/hooks.php) falls back to the default
+        // certificate template when the event has none assigned, so a
+        // certificate is always produceable. Requiring per-event template here
+        // wrongly blocked attendees on recurring/cloned occurrences whose child
+        // post doesn't carry the parent's certificate_template meta.
+        $date_format = get_option( 'date_format' );
+
+        // Route through the "Send Certificate" automation for consistency with the
+        // event-level send, but scoped to just this attendee: the explicit
+        // attendee_id/attendee_email arrays tell EnsHooks to target only this
+        // recipient instead of re-querying every success attendee of the event.
+        // Payload mirrors EventReminder::register_automated_schedule() so the flow
+        // has every trigger variable (incl. event_end_date_timestamp for any
+        // "after event end" delay node).
+        do_action( 'global_notification_hook', 'send_certificate', [
+            'site_name'                  => get_bloginfo( 'name' ),
+            'site_link'                  => get_site_url(),
+            'event_title'                => $event->get_title(),
+            'event_date'                 => $event->get_end_date( $date_format ),
+            'event_time'                 => $event->get_end_time(),
+            // Both timestamps so the flow's delay node can key off event start OR end.
+            'event_start_date_timestamp' => $this->get_event_date_timestamp( $event->get_start_date(), $event->get_start_time() ),
+            'event_end_date_timestamp'   => $this->get_event_date_timestamp( $event->get_end_date(), $event->get_end_time() ),
+            'event_location'             => $event->get_address(),
+            'attendee_id'                => [ $attendee->id ],
+            'attendee_email'             => [ $attendee->etn_email ],
+            'event_id'                   => $event->id,
+            'post_id'                    => $event->id,
+            'session_id'                 => uniqid(),
+        ] );
 
         $response = [
-            'message'   => __( 'Successfully send certificate email', 'eventin' ),
+            'message'   => __( 'Successfully send certificate', 'eventin' ),
         ];
 
         return rest_ensure_response( $response );
+    }
+
+    /**
+     * Convert an event date + time (stored in site-local timezone) to a UTC timestamp.
+     *
+     * Mirrors EventReminder::get_event_date_timestamp() so the automation flow's
+     * delay node resolves the same instant regardless of which handler fired it.
+     *
+     * @param   string  $date
+     * @param   string  $time
+     * @return  int
+     */
+    private function get_event_date_timestamp( $date, $time ) {
+        $time = is_string( $time ) ? trim( $time ) : '';
+
+        // Normalize any "digits + separator + digits" shape (e.g. "6h45", "6.45", "6 45") to "06:45".
+        if ( $time && preg_match( '/^(\d{1,2})\D+(\d{1,2})/', $time, $m ) ) {
+            $time = sprintf( '%02d:%02d', (int) $m[1], (int) $m[2] );
+        }
+
+        $formatted = '00:00:00';
+        if ( $time ) {
+            try {
+                $formatted = ( new \DateTime( $time ) )->format( 'H:i:s' );
+            } catch ( \Exception $e ) {
+                // Unparseable time → fall back to midnight rather than fataling.
+            }
+        }
+
+        try {
+            return ( new \DateTime( $date . ' ' . $formatted, wp_timezone() ) )->getTimestamp();
+        } catch ( \Exception $e ) {
+            return 0;
+        }
     }
 
     /**

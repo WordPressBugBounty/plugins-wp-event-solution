@@ -263,6 +263,15 @@ class SpeakerController extends WP_REST_Controller {
             }
         }
         
+        // Hide the preview-placeholder speaker/organizer users from the list.
+        $placeholder_user_ids = \Eventin\PreviewPlaceholder\PreviewPlaceholder::user_ids();
+        if ( $placeholder_user_ids && \Eventin\PreviewPlaceholder\PreviewPlaceholder::event_exists() ) {
+            $args['exclude'] = array_merge(
+                isset( $args['exclude'] ) ? (array) $args['exclude'] : [],
+                $placeholder_user_ids
+            );
+        }
+
         $events = [];
 
         $item_query   = new WP_User_Query( $args );
@@ -663,7 +672,7 @@ class SpeakerController extends WP_REST_Controller {
         }
         
         if ( ! empty( $input_data['organizer_bio'] ) ) {
-            $prepared_data['organizer_bio'] = sanitize_text_field($input_data['organizer_bio']);
+            $prepared_data['organizer_bio'] = wp_kses_post($input_data['organizer_bio']);
         }
         
         if ( ! empty( $input_data['phone'] ) ) {
@@ -690,15 +699,15 @@ class SpeakerController extends WP_REST_Controller {
         
             
         //non mandatory field
-        $prepared_data['date']                      =  $input_data['date'] ? $input_data['date'] : gmdate("Y-m-d H:i:s");
+        $prepared_data['date']                      = ! empty( $input_data['date'] ) ? $input_data['date'] : gmdate("Y-m-d H:i:s");
         $prepared_data['etn_speaker_designation']   = ! empty( $input_data['designation'] ) ? sanitize_text_field( $input_data['designation'] ) : '';
         $prepared_data['etn_company_name']          = ! empty( $input_data['company_name'] ) ? sanitize_text_field( $input_data['company_name'] ) : '';
         $prepared_data['etn_speaker_url']           = ! empty( $input_data['company_url'] ) ? sanitize_url( $input_data['company_url'] ) : '';
         $prepared_data['etn_speaker_summery']       = ! empty( $input_data['summary'] ) ? wp_kses_post( $input_data['summary'] ) : '';
         $prepared_data['image']                     = ! empty( $input_data['image'] ) ? sanitize_url( $input_data['image'] ) : '';
-        $prepared_data['image_id']                  = ! empty( $input_data['image_id'] ) ? intval( $input_data['image_id'] ) : attachment_url_to_postid( $input_data['image'] );
+        $prepared_data['image_id']                  = ! empty( $input_data['image_id'] ) ? intval( $input_data['image_id'] ) : ( ! empty( $input_data['image'] ) ? attachment_url_to_postid( $input_data['image'] ) : 0 );
         $prepared_data['etn_speaker_company_logo']  = ! empty( $input_data['company_logo'] ) ? sanitize_url( $input_data['company_logo'] ) : '';
-        $prepared_data['etn_company_logo_id']       = ! empty( $input_data['company_logo_id'] ) ? intval( $input_data['company_logo_id'] ): attachment_url_to_postid( $input_data['company_logo'] );
+        $prepared_data['etn_company_logo_id']       = ! empty( $input_data['company_logo_id'] ) ? intval( $input_data['company_logo_id'] ) : ( ! empty( $input_data['company_logo'] ) ? attachment_url_to_postid( $input_data['company_logo'] ) : 0 );
 
 
         if ( isset( $input_data['hide_user'] ) ) {

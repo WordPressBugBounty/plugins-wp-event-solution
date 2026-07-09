@@ -8,6 +8,7 @@ namespace Eventin\Integrations;
 defined( 'ABSPATH' ) || exit;
 
 use Eventin\Integrations\Zoom\Zoom;
+use Eventin\Integrations\Zoom\ZoomCredential;
 use Eventin\Integrations\Zoom\ZoomToken;
 use Eventin\Interfaces\HookableInterface;
 
@@ -51,13 +52,13 @@ class Integration implements HookableInterface {
             wp_die( esc_html__( 'You do not have permission to authorize integrations.', 'eventin' ), '', [ 'response' => 403 ] );
         }
 
-        $stored_state = get_transient( 'eventin_oauth_state_' . $user_id );
+        $stored_state = get_transient( ZoomCredential::STATE_TRANSIENT_KEY . $user_id );
 
         if ( ! $state || ! $stored_state || ! hash_equals( (string) $stored_state, $state ) ) {
             wp_die( esc_html__( 'Invalid OAuth state — authorization rejected.', 'eventin' ), '', [ 'response' => 403 ] );
         }
 
-        delete_transient( 'eventin_oauth_state_' . $user_id );
+        delete_transient( ZoomCredential::STATE_TRANSIENT_KEY . $user_id );
 
         switch ( $query_var ) {
         case 'zoom-auth':

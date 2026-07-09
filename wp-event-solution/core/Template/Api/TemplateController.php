@@ -153,8 +153,8 @@ class TemplateController extends WP_REST_Controller {
                         'type' => array(
                             'required'    => true,
                             'type'        => 'string',
-                            'description' => __( 'Template type (event or ticket)', 'eventin' ),
-                            'enum'        => array( 'event', 'ticket', 'speaker' ),
+                            'description' => __( 'Template type (event, ticket, certificate or speaker)', 'eventin' ),
+                            'enum'        => array( 'event', 'ticket', 'certificate', 'speaker' ),
                         ),
                     ),
                 ],
@@ -304,6 +304,7 @@ class TemplateController extends WP_REST_Controller {
             'edit_with_elementor' => $is_static ? false : $this->check_post_edit_with_elementor( $item->id ),
             'is_default'    => $this->is_default_template( $item , $is_static),
             'is_custom'     => $is_static ? false : (bool) get_post_meta( $post_id, 'is_custom', true ),
+            'remote_template_id' => $is_static ? '' : get_post_meta( $post_id, 'remote_template_id', true ),
         ];
 
         if ( $is_static ) {
@@ -327,7 +328,11 @@ class TemplateController extends WP_REST_Controller {
         }
 
         if ( $item_type == 'speaker' ) {
-            return $item_id == etn_get_option( 'speaker_template' );    
+            return $item_id == etn_get_option( 'speaker_template' );
+        }
+
+        if ( $item_type == 'certificate' ) {
+            return $item_id == etn_get_option( 'certificate_template' );
         }
     }
     /**
@@ -503,7 +508,20 @@ class TemplateController extends WP_REST_Controller {
         $input = new Input( $input_data );
 
         if(!empty($input->get('id')) && !empty($input->get('is_static'))){
-            etn_update_option( 'eventin_template_' . $input->get('id'), true );
+            $static_id   = $input->get('id');
+            $static_type = $input->get('type') ?: '';
+
+            // Pro starter templates cannot be imported while Eventin Pro is inactive.
+            // The free/pro status of each template lives in StaticTemplateConfig.
+            if ( ! class_exists( 'Wpeventin_Pro' ) && \Eventin\Template\StaticTemplateConfig::requires_pro( $static_id, $static_type ) ) {
+                return new WP_Error(
+                    'template_requires_pro',
+                    __( 'This template is available in Eventin Pro. Activate Eventin Pro to import it.', 'eventin' ),
+                    [ 'status' => 403 ]
+                );
+            }
+
+            etn_update_option( 'eventin_template_' . $static_id, true );
 
             return rest_ensure_response( [
                 'success' => true,
@@ -803,6 +821,7 @@ class TemplateController extends WP_REST_Controller {
             'is_custom'     => (bool) $input->get('isCustom'),
             'template_builder' => $input->get('template_builder') ?? etn_get_selected_template_builder(),
             'preview_event_id' => $input->get('preview_event_id'),
+            'remote_template_id' => sanitize_text_field( (string) ( $input->get('remote_template_id') ?? '' ) ),
         ];
 
         return $template_data;
@@ -1112,8 +1131,9 @@ class TemplateController extends WP_REST_Controller {
      */
     private function get_event_meta_key( $template_type ) {
         $meta_keys = [
-            'event'  => 'event_layout',
-            'ticket' => 'ticket_template',
+            'event'       => 'event_layout',
+            'ticket'      => 'ticket_template',
+            'certificate' => 'certificate_template',
         ];
 
         return isset( $meta_keys[$template_type] ) ? $meta_keys[$template_type] : '';
@@ -1201,11 +1221,11 @@ class TemplateController extends WP_REST_Controller {
             );
         }
 
-        $allowed_types = ['event', 'ticket', 'speaker'];
+        $allowed_types = ['event', 'ticket', 'certificate', 'speaker'];
         if ( ! in_array( $type, $allowed_types ) ) {
             return new WP_Error(
                 'invalid_type',
-                __( 'Template type must be either "event" or "ticket"', 'eventin' ),
+                __( 'Template type must be one of: event, ticket, certificate, speaker', 'eventin' ),
                 ['status' => 422]
             );
         }
@@ -1244,15 +1264,14 @@ class TemplateController extends WP_REST_Controller {
         }
 
         // Set the template as default using etn_update_option based on type
-        if ( 'event' === $type ) {
-            $update_result = etn_update_option( 'event_layout', $id );
-        } elseif ( 'ticket' === $type ) {
-            $update_result = etn_update_option( 'attendee_ticket_style', $id );
-        } elseif ( 'speaker' === $type ) {
-            $update_result = etn_update_option( 'speaker_template', $id );
-        }
+        $option_key    = $this->get_settings_key_for( $type );
+        $update_result = etn_update_option( $option_key, $id );
 
-        if ( false === $update_result ) {
+        // update_option() returns false when the value is unchanged, i.e. this
+        // template is already the current default. That is not a failure — only
+        // treat it as an error when the stored value does not match the id we
+        // just tried to write. (Mirrors assign_template_as_default_template().)
+        if ( false === $update_result && etn_get_option( $option_key ) != $id ) {
             return new WP_Error(
                 'update_failed',
                 __( 'Failed to set default template. Please try again.', 'eventin' ),

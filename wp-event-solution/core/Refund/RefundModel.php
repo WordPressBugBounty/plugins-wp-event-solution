@@ -69,6 +69,50 @@ class RefundModel {
     }
 
     /**
+     * Set the gateway refund id on an existing refund row.
+     *
+     * Runs under the same short-lived lock as create() so a concurrent
+     * refund append cannot clobber the write. Safe to call from the
+     * eventin/refund/created listener: create() has already released the
+     * lock by the time that action fires.
+     *
+     * @param int    $order_id
+     * @param int    $refund_id
+     * @param string $value
+     * @return bool True if a matching row was found and updated.
+     */
+    public function set_gateway_refund_id( $order_id, $refund_id, $value ) {
+        $order_id  = (int) $order_id;
+        $refund_id = (int) $refund_id;
+
+        if ( ! $this->acquire_lock( $order_id ) ) {
+            return false;
+        }
+
+        try {
+            $rows    = $this->find_by_order( $order_id );
+            $updated = false;
+
+            foreach ( $rows as &$row ) {
+                if ( isset( $row['id'] ) && (int) $row['id'] === $refund_id ) {
+                    $row['gateway_refund_id'] = sanitize_text_field( (string) $value );
+                    $updated                  = true;
+                    break;
+                }
+            }
+            unset( $row );
+
+            if ( $updated ) {
+                update_post_meta( $order_id, self::META_KEY, wp_json_encode( $rows ) );
+            }
+
+            return $updated;
+        } finally {
+            $this->release_lock( $order_id );
+        }
+    }
+
+    /**
      * @param int $order_id
      * @return array<int,array> Refunds in insertion order.
      */

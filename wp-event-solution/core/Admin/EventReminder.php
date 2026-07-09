@@ -172,6 +172,9 @@ class EventReminder implements HookableInterface {
             'event_date'           => $event->get_start_date($date_format),
             'event_time'           => $event->get_start_time(),
             'event_date_timestamp' => $this->get_event_date_timestamp( $event->get_start_date(), $event->get_start_time() ),
+            // Both timestamps so the flow's delay node can key off event start OR end.
+            'event_start_date_timestamp' => $this->get_event_date_timestamp( $event->get_start_date(), $event->get_start_time() ),
+            'event_end_date_timestamp'   => $this->get_event_date_timestamp( $event->get_end_date(), $event->get_end_time() ),
             'previous_event_date'  => $this->get_event_date_timestamp( $event->get_start_date(), $event->get_start_time() ),
             'event_location'       => $event->get_address(),
             'attendee_id'          => [],
@@ -179,6 +182,27 @@ class EventReminder implements HookableInterface {
             'event_id'             => $event->id,
             'post_id'              => $event->id,
             'session_id'           => uniqid(),
+        ] );
+
+        // Send certificate automation: fire once at event creation; the SDK
+        // schedules the actual send relative to `event_end_date_timestamp`
+        // (delay dependency `after_event_end_date`). Recipients resolve at
+        // send time via EnsHooks::get_to_attendee_emails().
+        do_action( 'global_notification_hook', 'send_certificate', [
+            'site_name'                => get_bloginfo( 'name' ),
+            'site_link'                => get_site_url(),
+            'event_title'              => $event->get_title(),
+            'event_date'               => $event->get_end_date( $date_format ),
+            'event_time'               => $event->get_end_time(),
+            // Both timestamps so the flow's delay node can key off event start OR end.
+            'event_start_date_timestamp' => $this->get_event_date_timestamp( $event->get_start_date(), $event->get_start_time() ),
+            'event_end_date_timestamp' => $this->get_event_date_timestamp( $event->get_end_date(), $event->get_end_time() ),
+            'event_location'           => $event->get_address(),
+            'attendee_id'              => [],
+            'attendee_email'           => [],
+            'event_id'                 => $event->id,
+            'post_id'                  => $event->id,
+            'session_id'               => uniqid(),
         ] );
     }
 
@@ -205,6 +229,9 @@ class EventReminder implements HookableInterface {
                 'event_date'                    => $event->get_start_date($date_format),
                 'event_time'                    => $event->get_start_time(),
                 'event_date_timestamp'          => $current_event_date,
+                // Both timestamps so the flow's delay node can key off event start OR end.
+                'event_start_date_timestamp'    => $current_event_date,
+                'event_end_date_timestamp'      => $this->get_event_date_timestamp( $event->get_end_date(), $event->get_end_time() ),
                 'previous_event_date_timestamp' => $previous_event_date,
                 'event_location'                => $event->get_address(),
                 'attendee_id'                   => [],

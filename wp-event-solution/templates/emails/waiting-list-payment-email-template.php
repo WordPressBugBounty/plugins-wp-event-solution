@@ -55,6 +55,23 @@ defined( 'ABSPATH' ) || exit;
             </td>
         </tr>
         <?php endforeach; ?>
+        <?php if ( ! empty( $order->option_selections ) && is_array( $order->option_selections ) ) : ?>
+            <?php foreach ( $order->option_selections as $addon ) : ?>
+            <tr>
+                <td style="padding:8px 0;font-size:14px;color:#334155;">
+                    <?php printf( '%s: %s &times; %s', esc_html( $addon['field_label'] ?? '' ), esc_html( $addon['choice_value'] ?? '' ), esc_html( $addon['qty'] ?? 1 ) ); ?>
+                </td>
+                <td style="padding:8px 0;text-align:right;font-size:14px;color:#334155;">
+                    <?php
+                    echo esc_html( \Etn\Core\Event\Helper::instance()->currency_with_position(
+                        number_format( (float) ( $addon['line_total'] ?? 0 ), 2 ),
+                        $order
+                    ) );
+                    ?>
+                </td>
+            </tr>
+            <?php endforeach; ?>
+        <?php endif; ?>
         <tr>
             <td style="padding:8px 0;font-size:14px;font-weight:700;color:#334155;border-top:1px solid #e2e8f0;">
                 <?php esc_html_e( 'Total:', 'eventin' ); ?>

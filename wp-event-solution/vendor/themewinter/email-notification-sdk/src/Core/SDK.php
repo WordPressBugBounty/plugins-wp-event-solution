@@ -1,10 +1,10 @@
 <?php
-namespace Ens\Core;
+namespace Eventin\Vendor\Ens\Core;
 
-use Ens\Assets\Enqueue;
-use Ens\Flow\FlowAPI;
-use Ens\Flow\FlowCPT;
-use Ens\Hook\ActionListener;
+use Eventin\Vendor\Ens\Assets\Enqueue;
+use Eventin\Vendor\Ens\Flow\FlowAPI;
+use Eventin\Vendor\Ens\Flow\FlowCPT;
+use Eventin\Vendor\Ens\Hook\ActionListener;
 
 /**
  * Class SDK

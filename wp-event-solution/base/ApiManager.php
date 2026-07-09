@@ -21,7 +21,9 @@ use Eventin\Extensions\Api\TutorLmsSettingsController;
 use Eventin\SetupNotification\Api\SetupNotification;
 use Eventin\Template\Api\TemplateController;
 use Eventin\Template\Api\TemplateBuilderController;
+use Eventin\Integrations\MailPoet\Api\MailPoetListController;
 use WP_REST_Controller;
+use Eventin\Integrations\Optiontics\TicketAddonsController;
 
 /**
  * Api Manager class
@@ -44,6 +46,7 @@ class ApiManager {
         EventTagController::class,
         TransactionController::class,
         OrderController::class,
+        TicketAddonsController::class,
         PaymentController::class,
         RefundController::class,
         CustomerController::class,
@@ -53,6 +56,7 @@ class ApiManager {
         TemplateController::class,
         SetupNotification::class,
         TemplateBuilderController::class,
+        MailPoetListController::class,
     ];
 
     /**

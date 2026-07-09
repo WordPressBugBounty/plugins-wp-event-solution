@@ -23,7 +23,7 @@
                     <p class="etn-faq-content-text">
                         <?php
                             if (has_blocks($faq["etn_faq_content"])) {
-                                        echo do_blocks($faq["etn_faq_content"]); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+                                        echo wp_kses_post( do_blocks($faq["etn_faq_content"]) );
                                     } else {
                                         echo esc_html($faq["etn_faq_content"]);
                                     }

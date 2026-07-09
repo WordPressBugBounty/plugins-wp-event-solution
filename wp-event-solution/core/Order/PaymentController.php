@@ -115,6 +115,14 @@ class PaymentController extends WP_REST_Controller
 			return new WP_Error('payment_error', $validate_ticket->get_error_message());
 		}
 
+		// Native tax: compute geo-matched tax and bake it into total_price BEFORE
+		// the gateway reads $order->total_price to build its charge. WooCommerce
+		// never reaches here; sure_cart/fluentcart are excluded by name.
+		$native_methods = ['stripe', 'paypal', 'free-ticket', 'local_payment'];
+		if (in_array($payment_method, $native_methods, true)) {
+			$this->apply_native_tax($order);
+		}
+
 		$response = $payment->create_payment($order);
 
 		if (is_wp_error($response)) {
@@ -131,6 +139,85 @@ class PaymentController extends WP_REST_Controller
 		]);
 
 		return rest_ensure_response($response);
+	}
+
+	/**
+	 * Compute geo-matched tax for a native order and bake it into total_price.
+	 *
+	 * Stores the uniform native contract:
+	 *  - total_price      = grand total charged (subtotal + tax for exclusive;
+	 *                       unchanged for inclusive, where tax is already inside)
+	 *  - tax_total        = the tax amount (for the itemized line)
+	 *  - tax_display_mode = 'incl' (tax is contained in total_price)
+	 *
+	 * Recomputes the subtotal from live event prices so it is idempotent across
+	 * payment retries (never taxes an already-taxed total).
+	 *
+	 * @param OrderModel $order
+	 * @return void
+	 */
+	private function apply_native_tax($order) {
+		$subtotal = $this->native_subtotal($order);
+
+		$settings = [
+			'enable_tax' => etn_get_option('enable_tax'),
+			'tax_type'   => etn_get_option('tax_type', 'exclusive'),
+			'tax_rates'  => etn_get_option('tax_rates', []),
+		];
+
+		$event_tax_status = get_post_meta($order->event_id, '_tax_status', true);
+		if (! $event_tax_status) {
+			$event_tax_status = 'taxable';
+		}
+
+		$customer = [
+			'country'  => $order->customer_country,
+			'state'    => $order->customer_state,
+			'postcode' => $order->customer_zip,
+			'city'     => $order->customer_city,
+		];
+
+		$result       = \Eventin\Order\TaxCalculator::calculate($subtotal, $settings, $event_tax_status, $customer);
+		$tax_amount   = floatval($result['taxAmount']);
+		$is_inclusive = (isset($settings['tax_type']) ? $settings['tax_type'] : 'exclusive') === 'inclusive';
+		$grand_total  = $is_inclusive ? $subtotal : $subtotal + $tax_amount;
+
+		$order->update([
+			'total_price'      => $grand_total,
+			'tax_total'        => $tax_amount,
+			'tax_display_mode' => 'incl',
+		]);
+	}
+
+	/**
+	 * Recompute the pre-tax subtotal: live ticket prices plus the order's stored
+	 * add-on (Optiontics) total. Tax is charged on ticket price + option price.
+	 *
+	 * Ticket prices are re-read from the event for idempotency across payment
+	 * retries; options_total is the pre-tax figure frozen at order creation and is
+	 * never mutated by {@see apply_native_tax()}, so adding it stays idempotent.
+	 *
+	 * @param OrderModel $order
+	 * @return float
+	 */
+	private function native_subtotal($order) {
+		$event    = new \Etn\Core\Event\Event_Model($order->event_id);
+		$subtotal = 0;
+		$tickets  = is_array($order->tickets) ? $order->tickets : [];
+
+		foreach ($tickets as $ticket) {
+			if (empty($ticket['ticket_slug'])) {
+				continue;
+			}
+			$event_ticket = $event->get_ticket($ticket['ticket_slug']);
+			$price        = isset($event_ticket['etn_ticket_price']) ? floatval($event_ticket['etn_ticket_price']) : 0;
+			$qty          = isset($ticket['ticket_quantity']) ? intval($ticket['ticket_quantity']) : 0;
+			$subtotal    += $price * $qty;
+		}
+
+		$subtotal += floatval($order->options_total);
+
+		return $subtotal;
 	}
 
 	/**
@@ -211,7 +298,7 @@ class PaymentController extends WP_REST_Controller
 			// if payment_method sure_cart
 			if ('sure_cart' === $data['payment_method']) {
 				$surecart_checkout_id = !empty($data['surecart_checkout_id']) ? $data['surecart_checkout_id'] : '';
-				$validation = $this->handle_surecart_validation($surecart_checkout_id, $temporary_status);
+				$validation = $this->handle_surecart_validation($surecart_checkout_id, $temporary_status, $order);
 
 				if (is_wp_error($validation)) {
 					return rest_ensure_response([
@@ -223,7 +310,7 @@ class PaymentController extends WP_REST_Controller
 			// if payment_method fluentcart
 			if ('fluentcart' === $data['payment_method']) {
 				$fluentcart_cart_hash = !empty($data['fluentcart_cart_hash']) ? $data['fluentcart_cart_hash'] : '';
-				$validation = $this->handle_fluentcart_validation($fluentcart_cart_hash, $temporary_status);
+				$validation = $this->handle_fluentcart_validation($fluentcart_cart_hash, $temporary_status, $order);
 
 				if (is_wp_error($validation)) {
 					return rest_ensure_response([
@@ -239,6 +326,14 @@ class PaymentController extends WP_REST_Controller
 
 		// if payment_method is local_payment
 		if ('local_payment' === $payment_method) {
+			// Native geo-matched tax: local_payment finalizes through this
+			// endpoint (the front-end never calls create_payment for it), so the
+			// tax that create_payment bakes in for stripe/paypal would otherwise
+			// be skipped here — leaving total_price/tax_total untaxed. Apply it
+			// now. apply_native_tax recomputes the subtotal from live prices, so
+			// it stays correct across retries.
+			$this->apply_native_tax($order);
+
 			$order->update([
 				'payment_method' => $payment_method,
 				'status'         => 'pending',
@@ -442,11 +537,22 @@ class PaymentController extends WP_REST_Controller
 	/**
 	 * Validate SureCart payment
 	 *
-	 * @param string $surecart_checkout_id The SureCart checkout ID
-	 * @param string $temporary_status The temporary status
+	 * Fails closed: the checkout must be confirmed *paid* by the SureCart API and
+	 * must belong to the order being completed. Mirrors handle_stripe_validation()/
+	 * handle_paypal_validation(), which retrieve the transaction from the gateway
+	 * before trusting a client-supplied identifier.
+	 *
+	 * This endpoint is nonce-only (guest checkout), so without an upstream check any
+	 * visitor could mark an unpaid order completed by posting a fabricated checkout
+	 * id (CVE-2026-13039). The local duplicate check alone is not payment proof — it
+	 * only blocks reusing the same id twice.
+	 *
+	 * @param string     $surecart_checkout_id The SureCart checkout ID
+	 * @param string     $temporary_status     The temporary status
+	 * @param OrderModel $order                The order being completed
 	 * @return bool|WP_Error True if valid, WP_Error on failure
 	 */
-	private function handle_surecart_validation($surecart_checkout_id, $temporary_status)
+	private function handle_surecart_validation($surecart_checkout_id, $temporary_status, $order)
 	{
 		if (empty($surecart_checkout_id)) {
 			return new WP_Error('missing_checkout_id', __('SureCart checkout ID is required', 'eventin'));
@@ -458,16 +564,47 @@ class PaymentController extends WP_REST_Controller
 			return $validation;
 		}
 
+		// Can't reach the gateway to verify → refuse to complete the order.
+		if (! class_exists(SureCart::class) || ! class_exists('SureCart\Models\ApiToken')) {
+			return new WP_Error('payment_unverified', __('Unable to verify SureCart payment', 'eventin'));
+		}
+
+		$checkout = ( new SureCart() )->get_checkout_status($surecart_checkout_id);
+
+		if (is_wp_error($checkout) || ! is_array($checkout)) {
+			return new WP_Error('payment_unverified', __('Unable to verify SureCart payment', 'eventin'));
+		}
+
+		// The checkout must actually be paid (same signal SureCartWebhook trusts).
+		$status = isset($checkout['status']) ? $checkout['status'] : '';
+		if ('paid' !== $status) {
+			return new WP_Error('payment_failed', __('Payment Update Failed..', 'eventin'));
+		}
+
+		// And it must be the checkout we created for THIS order (metadata is stamped
+		// by create_payment), so a real checkout from another/cheaper order can't be
+		// replayed to complete this one.
+		$checkout_order_id = isset($checkout['metadata']['eventin_order_id']) ? intval($checkout['metadata']['eventin_order_id']) : 0;
+		if (! $checkout_order_id || $checkout_order_id !== intval($order->id)) {
+			return new WP_Error('payment_mismatch', __('Payment does not match this order', 'eventin'));
+		}
+
 		return true;
 	}
 	/**
 	 * Validate FluentCart payment
 	 *
-	 * @param string $fluentcart_cart_hash The FluentCart cart hash
-	 * @param string $temporary_status The temporary status
+	 * Fails closed: the cart hash must resolve to a FluentCart order whose payment
+	 * status is a success status, and that order must reference the Eventin order
+	 * being completed. Mirrors the Stripe/PayPal validators — the local duplicate
+	 * check alone is not payment proof (CVE-2026-13039).
+	 *
+	 * @param string     $fluentcart_cart_hash The FluentCart cart hash
+	 * @param string     $temporary_status     The temporary status
+	 * @param OrderModel $order                The order being completed
 	 * @return bool|WP_Error True if valid, WP_Error on failure
 	 */
-	private function handle_fluentcart_validation($fluentcart_cart_hash, $temporary_status)
+	private function handle_fluentcart_validation($fluentcart_cart_hash, $temporary_status, $order)
 	{
 		if (empty($fluentcart_cart_hash)) {
 			return new WP_Error('missing_cart_hash', __('FluentCart cart hash is required', 'eventin'));
@@ -477,6 +614,45 @@ class PaymentController extends WP_REST_Controller
 
 		if (is_wp_error($validation)) {
 			return $validation;
+		}
+
+		// Can't reach FluentCart to verify → refuse to complete the order.
+		if (! class_exists('FluentCart\App\Models\Cart') || ! class_exists('FluentCart\App\Helpers\Status')) {
+			return new WP_Error('payment_unverified', __('Unable to verify FluentCart payment', 'eventin'));
+		}
+
+		$cart = \FluentCart\App\Models\Cart::with('order')->find($fluentcart_cart_hash);
+		$fc_order = ($cart && $cart->order) ? $cart->order : null;
+
+		if (! $fc_order) {
+			return new WP_Error('payment_unverified', __('Unable to verify FluentCart payment', 'eventin'));
+		}
+
+		// The FluentCart order must be paid.
+		$success_statuses = \FluentCart\App\Helpers\Status::getOrderPaymentSuccessStatuses();
+		if (! in_array($fc_order->payment_status, $success_statuses, true)) {
+			return new WP_Error('payment_failed', __('Payment Update Failed..', 'eventin'));
+		}
+
+		// And it must be the FluentCart order created for THIS Eventin order — the
+		// eventin_order_id is stamped onto every line item's other_info at checkout —
+		// so a real paid cart from another/cheaper order can't be replayed here.
+		$belongs_to_order = false;
+		if (class_exists('FluentCart\App\Models\Order')) {
+			$fc_order = \FluentCart\App\Models\Order::with('order_items')->find($fc_order->id);
+			if ($fc_order && $fc_order->order_items) {
+				foreach ($fc_order->order_items as $item) {
+					if (is_array($item->other_info) && isset($item->other_info['eventin_order_id'])
+						&& intval($item->other_info['eventin_order_id']) === intval($order->id)) {
+						$belongs_to_order = true;
+						break;
+					}
+				}
+			}
+		}
+
+		if (! $belongs_to_order) {
+			return new WP_Error('payment_mismatch', __('Payment does not match this order', 'eventin'));
 		}
 
 		return true;

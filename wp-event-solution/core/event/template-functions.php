@@ -102,7 +102,7 @@ if ( ! function_exists( 'etn_after_single_event_container_related_events' ) ) {
 			$single_event_id = ! empty( $single_event_id ) ? $single_event_id : get_the_ID();
 			$event_options   = get_option( "etn_event_options" );
 
-			if ( ! isset( $event_options["hide_related_event_from_details"] ) ) {
+			if ( empty( $event_options["hide_related_event_from_details"] ) ) {
 
 				// related events start
 				Helper::related_events_widget( $single_event_id );
@@ -451,10 +451,10 @@ if ( ! function_exists( 'etn_single_event_template_select' ) ) {
 					$single_template_path = \Wpeventin::templates_dir() . "event-one.php";
 					break;
 				case ETN_EVENT_TEMPLATE_TWO_ID:
-					$single_template_path = class_exists('Wpeventin_Pro') ? \Wpeventin_Pro::templates_dir() . "event-two.php" : \Wpeventin::templates_dir() . "event-one.php";
+					$single_template_path = \Wpeventin::templates_dir() . "event-two.php";
 					break;
 				case ETN_EVENT_TEMPLATE_THREE_ID:
-					$single_template_path = class_exists('Wpeventin_Pro') ? \Wpeventin_Pro::templates_dir() . "event-three.php" : \Wpeventin::templates_dir() . "event-one.php";
+					$single_template_path = \Wpeventin::templates_dir() . "event-three.php";
 					break;
 				default:
 					$single_template_path = \Etn\Utils\Helper::prepare_event_template_path( $default_template_name, $template_name );
@@ -785,4 +785,511 @@ if ( ! function_exists( "eventin_rich_result_support" ) ) {
 		// Convert schema array into ld+json file and add into the DOM
 		echo '<script type="application/ld+json">' . wp_json_encode( $event_data ) . '</script>';
 	}
+}
+
+/**
+ * ============================================================================
+ * Event template two & three callbacks — ported from Eventin Pro.
+ *
+ * These render layouts two & three (banner, categories, tags, location, schedule,
+ * organizers, speaker, meta, external link, related events, countdown) so the
+ * layouts work with the free plugin alone. All are function_exists-guarded and
+ * resolve Helper to \Etn\Utils\Helper via the file-level `use` above.
+ * ============================================================================
+ */
+// Start - functions required for both event template-two and template-three
+
+if ( !function_exists( 'etn_pro_before_single_event_content_title_show_categories' ) ) {
+
+    /**
+     * Show category list before single event content
+     *
+     * @param [type] $single_event_id
+     * @return void
+     */
+    function etn_pro_before_single_event_content_title_show_categories( $single_event_id ) {
+
+        if( ( ETN_DEMO_SITE === false ) || ( ETN_DEMO_SITE == true && ( ETN_EVENT_TEMPLATE_TWO_ID == get_the_ID(  ) || ETN_EVENT_TEMPLATE_THREE_ID == get_the_ID(  ) )) ){
+            $single_event_id = !empty( $single_event_id ) ? $single_event_id : get_the_ID();
+    
+            if ( file_exists( get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'event/event-two-category-list.php' ) ) {
+                require_once get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'event/event-two-category-list.php';
+            } else if ( file_exists( get_template_directory() . \Wpeventin::theme_templates_dir() . 'event/event-two-category-list.php' ) ) {
+                require_once get_template_directory() . \Wpeventin::theme_templates_dir() . 'event/event-two-category-list.php';
+            } else {
+                require_once \Wpeventin::templates_dir() . 'event/event-two-category-list.php';
+            }
+        }
+
+    }
+
+}
+if ( !function_exists( 'etn_pro_after_single_event_content_body_show_schedules' ) ) {
+
+    /**
+     * Show schedule tabs after single event content
+     *
+     * @param [type] $single_event_id
+     * @return void
+     */
+    function etn_pro_after_single_event_content_body_show_schedules( $single_event_id ) {
+
+        if( ( ETN_DEMO_SITE === false ) || ( ETN_DEMO_SITE == true && ( ETN_EVENT_TEMPLATE_TWO_ID == get_the_ID(  ) || ETN_EVENT_TEMPLATE_THREE_ID == get_the_ID(  ) )) ){
+            $single_event_id = !empty( $single_event_id ) ? $single_event_id : get_the_ID();
+    
+            if ( file_exists( get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'event/event-pro-schedule-tabs.php' ) ) {
+                require_once get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'event/event-pro-schedule-tabs.php';
+            } else if ( file_exists( get_template_directory() . \Wpeventin::theme_templates_dir() . 'event/event-pro-schedule-tabs.php' ) ) {
+                require_once get_template_directory() . \Wpeventin::theme_templates_dir() . 'event/event-pro-schedule-tabs.php';
+            } else {
+                require_once \Wpeventin::templates_dir() . 'event/event-pro-schedule-tabs.php';
+            }
+        }
+
+    }
+
+}
+if ( !function_exists( 'etn_pro_after_single_event_meta_related_events' ) ) {
+
+    /**
+     * Show related events on single event page
+     *
+     * @param [type] $single_event_id
+     * @return void
+     */
+    function etn_pro_after_single_event_meta_related_events( $single_event_id ) {
+
+        if( ( ETN_DEMO_SITE === false ) || ( ETN_DEMO_SITE == true && ( ETN_EVENT_TEMPLATE_TWO_ID == get_the_ID(  ) || ETN_EVENT_TEMPLATE_THREE_ID == get_the_ID(  ) )) ){
+            $event_options = get_option( "etn_event_options" );
+    
+            $single_event_id = !empty( $single_event_id ) ? $single_event_id : get_the_ID();
+    
+            // related post start
+            if ( !isset( $event_options["hide_related_event_from_details"] ) ) {
+    
+                if ( file_exists( get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'event/event-pro-related-events.php' ) ) {
+                    require_once get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'event/event-pro-related-events.php';
+                } else if ( file_exists( get_template_directory() . \Wpeventin::theme_templates_dir() . 'event/event-pro-related-events.php' ) ) {
+                    require_once get_template_directory() . \Wpeventin::theme_templates_dir() . 'event/event-pro-related-events.php';
+                } else {
+                    require_once \Wpeventin::templates_dir() . 'event/event-pro-related-events.php';
+                }
+    
+            }
+    
+            // related events end
+        }
+    }
+
+}
+if ( !function_exists( 'etn_pro_single_event_meta_external_link' ) ) {
+
+    /**
+     * Show single event external link meta 
+     *
+     * @param [type] $single_event_id
+     * @return void
+     */
+    function etn_pro_single_event_meta_external_link( $single_event_id ) {
+
+        if( ( ETN_DEMO_SITE === false ) || ( ETN_DEMO_SITE == true && ( ETN_EVENT_TEMPLATE_TWO_ID == get_the_ID(  ) || ETN_EVENT_TEMPLATE_THREE_ID == get_the_ID(  ) )) ){
+            $single_event_id = !empty( $single_event_id ) ? $single_event_id : get_the_ID();
+            $event_options   = get_option( "etn_event_options" );
+            $data            = \Etn\Utils\Helper::single_template_options( $single_event_id );
+    
+            if ( file_exists( get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'event/event-pro-meta-external-link.php' ) ) {
+                require_once get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'event/event-pro-meta-external-link.php';
+            } else if ( file_exists( get_template_directory() . \Wpeventin::theme_templates_dir() . 'event/event-pro-meta-external-link.php' ) ) {
+                require_once get_template_directory() . \Wpeventin::theme_templates_dir() . 'event/event-pro-meta-external-link.php';
+            } else {
+                require_once \Wpeventin::templates_dir() . 'event/event-pro-meta-external-link.php';
+            }
+        }
+
+    }
+
+}
+if ( !function_exists( 'etn_pro_single_event_meta_details' ) ) {
+
+    /**
+     * Show single event meta details
+     *
+     * @param [type] $single_event_id
+     * @return void
+     */
+    function etn_pro_single_event_meta_details( $single_event_id ) {
+
+        if( ( ETN_DEMO_SITE === false ) || ( ETN_DEMO_SITE == true && ( ETN_EVENT_TEMPLATE_TWO_ID == get_the_ID(  ) || ETN_EVENT_TEMPLATE_THREE_ID == get_the_ID(  ) )) ){
+            $single_event_id = !empty( $single_event_id ) ? $single_event_id : get_the_ID();
+            $event_options   = get_option( "etn_event_options" );
+            $data            = Helper::single_template_options( $single_event_id );
+    
+            if ( file_exists( get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'event/event-pro-meta-details.php' ) ) {
+                require_once get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'event/event-pro-meta-details.php';
+            } else if ( file_exists( get_template_directory() . \Wpeventin::theme_templates_dir() . 'event/event-pro-meta-details.php' ) ) {
+                require_once get_template_directory() . \Wpeventin::theme_templates_dir() . 'event/event-pro-meta-details.php';
+            } else {
+                require_once \Wpeventin::templates_dir() . 'event/event-pro-meta-details.php';
+            }
+        }
+
+    }
+
+}
+if ( !function_exists( 'etn_pro_after_single_event_content_body_show_tags' ) ) {
+
+    /**
+     * Show tag list after single event content
+     *
+     * @param [type] $single_event_id
+     * @return void
+     */
+    function etn_pro_after_single_event_content_body_show_tags( $single_event_id ) {
+
+        if( ( ETN_DEMO_SITE === false ) || ( ETN_DEMO_SITE == true && ( ETN_EVENT_TEMPLATE_TWO_ID == get_the_ID(  ) || ETN_EVENT_TEMPLATE_THREE_ID == get_the_ID(  ) )) ){
+            $single_event_id = !empty( $single_event_id ) ? $single_event_id : get_the_ID();
+    
+            if ( file_exists( get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'event/event-two-tag-list.php' ) ) {
+                require_once get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'event/event-two-tag-list.php';
+            } else if ( file_exists( get_template_directory() . \Wpeventin::theme_templates_dir() . 'event/event-two-tag-list.php' ) ) {
+                require_once get_template_directory() . \Wpeventin::theme_templates_dir() . 'event/event-two-tag-list.php';
+            } else {
+                require_once \Wpeventin::templates_dir() . 'event/event-two-tag-list.php';
+            }
+        }
+
+    }
+
+}
+// End - functions required for both event template-two and template-three
+
+if ( !function_exists( 'etn_pro_after_single_event_content_body_show_locations' ) ) {
+
+    /**
+     * Show locations after single event content
+     *
+     * @param [type] $single_event_id
+     * @return void
+     */
+    function etn_pro_after_single_event_content_body_show_locations( $single_event_id ) {
+
+        if( ( ETN_DEMO_SITE === false ) || ( ETN_DEMO_SITE == true && ( ETN_EVENT_TEMPLATE_TWO_ID == get_the_ID(  ) || ETN_EVENT_TEMPLATE_THREE_ID == get_the_ID(  ) )) ){
+            $single_event_id = !empty( $single_event_id ) ? $single_event_id : get_the_ID();
+
+            $etn_googlemap_api = etn_get_option( 'etn_googlemap_api' ) ? 'checked' : '';
+
+            if ( file_exists( get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'event/event-two-location-map.php' ) ) {
+                require_once get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'event/event-two-location-map.php';
+            } else if ( file_exists( get_template_directory() . \Wpeventin::theme_templates_dir() . 'event/event-two-location-map.php' ) ) {
+                require_once get_template_directory() . \Wpeventin::theme_templates_dir() . 'event/event-two-location-map.php';
+            } else {
+                require_once \Wpeventin::templates_dir() . 'event/event-two-location-map.php';
+            }
+        }
+
+    }
+
+}
+// End - functions required for both event template-two and template-three
+
+
+// Start - functions required for event template-two
+if ( !function_exists( 'etn_pro_before_single_event_two_details_show_banner_module' ) ) {
+
+
+    /**
+     * Show banner module before single event content
+     *
+     * @param [type] $single_event_id
+     * @return void
+     */
+    function etn_pro_before_single_event_two_details_show_banner_module( $single_event_id ) {
+
+        if( ( ETN_DEMO_SITE === false ) || ( ETN_DEMO_SITE == true && ETN_EVENT_TEMPLATE_TWO_ID == get_the_ID(  ) ) ){
+            $single_event_id = !empty( $single_event_id ) ? $single_event_id : get_the_ID();
+    
+            if ( file_exists( get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'event/event-two-banner-module.php' ) ) {
+                require_once get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'event/event-two-banner-module.php';
+            } else if ( file_exists( get_template_directory() . \Wpeventin::theme_templates_dir() . 'event/event-two-banner-module.php' ) ) {
+                require_once get_template_directory() . \Wpeventin::theme_templates_dir() . 'event/event-two-banner-module.php';
+            }  else {
+                require_once \Wpeventin::templates_dir() . 'event/event-two-banner-module.php';
+            }
+        }
+
+    }
+
+}
+if ( !function_exists( 'etn_pro_before_single_event_two_details_show_location_and_counter' ) ) {
+
+    /**
+     * Show location and counter before single event template two
+     *
+     * @param [type] $single_event_id
+     * @return void
+     */
+    function etn_pro_before_single_event_two_details_show_location_and_counter( $single_event_id ) {
+
+        if( ( ETN_DEMO_SITE === false ) || ( ETN_DEMO_SITE == true && ETN_EVENT_TEMPLATE_TWO_ID == get_the_ID(  ) ) ){
+    
+            $single_event_id = !empty( $single_event_id ) ? $single_event_id : get_the_ID();
+            $event_options      = get_option( "etn_event_options" );
+            $data               = Helper::single_template_options( $single_event_id );
+            $event_start_date   = isset( $data['event_start_date'] ) ? $data['event_start_date'] : '';
+            $event_end_date     = isset( $data['event_end_date'] ) ? $data['event_end_date'] : '';
+            $event_start_time   = isset( $data['event_start_time'] ) ? $data['event_start_time'] : '';
+            $etn_event_location = isset( $data['etn_event_location'] ) ? $data['etn_event_location'] : '';
+            $etn_timezone = get_post_meta( $single_event_id, 'event_timezone', true );
+            ?>
+            <!-- counter area -->
+            <div class="etn-event-header etn-event-single2">
+                <div class="etn-container">
+                    <div class="etn-row">
+                        <div class="etn-col-lg-7 etn-align-self-center">
+                            <?php
+
+                                if ( file_exists( get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'event/event-two-location-details.php' ) ) {
+                                    require_once get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'event/event-two-location-details.php';
+                                } else if ( file_exists( get_template_directory() . \Wpeventin::theme_templates_dir() . 'event/event-two-location-details.php' ) ) {
+                                    require_once get_template_directory() . \Wpeventin::theme_templates_dir() . 'event/event-two-location-details.php';
+                                } else {
+                                    require_once \Wpeventin::templates_dir() . 'event/event-two-location-details.php';
+                                }
+
+                                ?>
+                        </div>
+                        <div class="etn-col-lg-5">
+                            <?php
+
+                                if ( empty( $event_options["checked_hide_countdown_from_details"] ) ) {
+                                    Helper::countdown_markup( get_post_meta( $single_event_id, 'etn_start_date', true ), $event_start_time, $etn_timezone );
+                                }
+
+                            ?>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <?php
+        }
+    }
+
+}
+if ( !function_exists( 'etn_pro_after_single_event_two_content_organizer' ) ) {
+
+    /**
+     * Show organizer after single event content
+     *
+     * @param [type] $single_event_id
+     * @return void
+     */
+    function etn_pro_after_single_event_two_content_organizer( $single_event_id ) {
+
+        if( ( ETN_DEMO_SITE === false ) || ( ETN_DEMO_SITE == true && ETN_EVENT_TEMPLATE_TWO_ID == get_the_ID(  ) ) ){
+
+            // etn-organizer start
+            $single_event_id = !empty( $single_event_id ) ? $single_event_id : get_the_ID();
+            $event_options   = get_option( "etn_event_options" );
+    
+            if ( !isset( $event_options["etn_hide_organizers_from_details"] ) ) {
+    
+                $etn_organizer_events = get_post_meta( $single_event_id, 'etn_event_organizer', true );
+                $etn_organizer_events = !empty( $etn_organizer_events ) ? $etn_organizer_events : '';
+    
+                if ( file_exists( get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'event/event-pro-organizers.php' ) ) {
+                    require_once get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'event/event-pro-organizers.php';
+                } else if ( file_exists( get_template_directory() . \Wpeventin::theme_templates_dir() . 'event/event-pro-organizers.php' ) ) {
+                    require_once get_template_directory() . \Wpeventin::theme_templates_dir() . 'event/event-pro-organizers.php';
+                } else {
+                    echo Helper::single_template_organizer( $etn_organizer_events );
+                }
+    
+            }
+    
+            // etn-organizer end
+        }
+
+    }
+
+}
+// End - functions required for event template-two
+
+
+// Include template for speaker block in single event
+if ( !function_exists( 'etn_after_single_event_meta_speaker' ) ) {
+    /**
+     * Show data after event meta section
+     *
+     * @param [type] $single_event_id
+     * @return void
+     */
+    function etn_after_single_event_meta_speaker( $single_event_id ) {
+        $single_event_id      = !empty( $single_event_id ) ? $single_event_id : get_the_ID();
+        $event_options        = get_option( "etn_event_options" );
+        $etn_speaker_events   = get_post_meta( $single_event_id, 'etn_event_speaker', true );
+        if (  ( ETN_DEMO_SITE === false ) || ( ETN_DEMO_SITE == true && ETN_EVENT_TEMPLATE_TWO_ID != get_the_ID() && ETN_EVENT_TEMPLATE_THREE_ID != get_the_ID() ) ) {
+            if ( empty( $event_options["etn_hide_speaker_from_details"] ) ) {
+                if ( file_exists( get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'event/event-pro-speaker.php' ) ) {
+                    require_once get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'event/event-pro-speaker.php';
+                } else if ( file_exists( get_template_directory() . \Wpeventin::theme_templates_dir() . 'event/event-pro-speaker.php' ) ) {
+                    require_once get_template_directory() . \Wpeventin::theme_templates_dir() . 'event/event-pro-speaker.php';
+                } else {
+                    echo Helper::single_template_speaker( $etn_speaker_events );
+                }
+            }
+        }
+    }
+}
+
+// Start - functions required for event template-three
+if ( !function_exists( 'etn_pro_before_single_event_three_details_show_banner_module' ) ) {
+
+    /**
+     * Show banner module on single event template three
+     *
+     * @param [type] $single_event_id
+     * @return void
+     */
+    function etn_pro_before_single_event_three_details_show_banner_module( $single_event_id ) {
+
+        if( ( ETN_DEMO_SITE === false ) || ( ETN_DEMO_SITE == true && ETN_EVENT_TEMPLATE_THREE_ID == get_the_ID(  ) ) ){
+    
+            $single_event_id = !empty( $single_event_id ) ? $single_event_id : get_the_ID();
+    
+            if ( file_exists( get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'event/event-three-banner-module.php' ) ) {
+                require_once get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'event/event-three-banner-module.php';
+            } else if ( file_exists( get_template_directory() . \Wpeventin::theme_templates_dir() . 'event/event-three-banner-module.php' ) ) {
+                require_once get_template_directory() . \Wpeventin::theme_templates_dir() . 'event/event-three-banner-module.php';
+            } else {
+                require_once \Wpeventin::templates_dir() . 'event/event-three-banner-module.php';
+            }
+        }
+
+    }
+
+}
+if ( !function_exists( 'etn_pro_after_single_event_three_content_title_show_counter' ) ) {
+
+    /**
+     * Show counter after event title on single event template three
+     *
+     * @param [type] $single_event_id
+     * @return void
+     */
+    function etn_pro_after_single_event_three_content_title_show_counter( $single_event_id ) {
+
+        if( ( ETN_DEMO_SITE === false ) || ( ETN_DEMO_SITE == true && ETN_EVENT_TEMPLATE_THREE_ID == get_the_ID(  ) ) ){
+    
+            $single_event_id = !empty( $single_event_id ) ? $single_event_id : get_the_ID();
+            $event_options   = get_option( "etn_event_options" );
+    
+            $data             = Helper::single_template_options( $single_event_id );
+            $event_start_time = isset( $data['event_start_time'] ) ? $data['event_start_time'] : '';
+            $etn_timezone = get_post_meta( $single_event_id, 'event_timezone', true );
+    
+            if ( empty( $event_options["checked_hide_countdown_from_details"] ) ) {
+                Helper::countdown_markup( get_post_meta( $single_event_id, 'etn_start_date', true ), $event_start_time, $etn_timezone );
+            }
+        }
+
+    }
+
+}
+if ( !function_exists( 'etn_pro_after_single_event_three_content_title_show_meta' ) ) {
+
+    /**
+     * Show event location details after event title
+     *
+     * @param [type] $single_event_id
+     * @return void
+     */
+    function etn_pro_after_single_event_three_content_title_show_meta( $single_event_id ) {
+
+        if( ( ETN_DEMO_SITE === false ) || ( ETN_DEMO_SITE == true && ETN_EVENT_TEMPLATE_THREE_ID == get_the_ID(  ) ) ){
+            $single_event_id = !empty( $single_event_id ) ? $single_event_id : get_the_ID();
+    
+            if ( file_exists( get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'event/event-three-location-details.php' ) ) {
+                require_once get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'event/event-three-location-details.php';
+            } else if ( file_exists( get_template_directory() . \Wpeventin::theme_templates_dir() . 'event/event-three-location-details.php' ) ) {
+                require_once get_template_directory() . \Wpeventin::theme_templates_dir() . 'event/event-three-location-details.php';
+            } else {
+                require_once \Wpeventin::templates_dir() . 'event/event-three-location-details.php';
+            }
+        }
+
+    }
+
+}
+if ( !function_exists( 'etn_pro_after_single_event_three_content_organizer' ) ) {
+
+    /**
+     * Show organizer after single event content
+     *
+     * @param [type] $single_event_id
+     * @return void
+     */
+    function etn_pro_after_single_event_three_content_organizer( $single_event_id ) {
+
+        if( ( ETN_DEMO_SITE === false ) || ( ETN_DEMO_SITE == true && ETN_EVENT_TEMPLATE_THREE_ID == get_the_ID(  ) ) ){
+
+            // etn-organizer start
+            $single_event_id = !empty( $single_event_id ) ? $single_event_id : get_the_ID();
+            $event_options   = get_option( "etn_event_options" );
+    
+            if ( !isset( $event_options["etn_hide_organizers_from_details"] ) ) {
+    
+                $etn_organizer_events = get_post_meta( $single_event_id, 'etn_event_organizer', true );
+                $etn_organizer_events = !empty( $etn_organizer_events ) ? $etn_organizer_events : '';
+    
+                if ( file_exists( get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'event/event-pro-organizers.php' ) ) {
+                    require_once get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'event/event-pro-organizers.php';
+                } else if ( file_exists( get_template_directory() . \Wpeventin::theme_templates_dir() . 'event/event-pro-organizers.php' ) ) {
+                    require_once get_template_directory() . \Wpeventin::theme_templates_dir() . 'event/event-pro-organizers.php';
+                } else {
+                    echo Helper::single_template_organizer( $etn_organizer_events );
+                }
+    
+            }
+    
+            // etn-organizer end
+        }
+
+    }
+
+}
+// End - functions required for event template-three
+
+if ( !function_exists( 'etn_pro_single_event_locations_map' ) ) {
+
+    /**
+     * Show single event meta details
+     *
+     * @param [type] $single_event_id
+     * @return void
+     */
+    function etn_pro_single_event_locations_map( $single_event_id ) {
+
+        if( ( ETN_DEMO_SITE === false ) || ( ETN_DEMO_SITE == true && ( ETN_EVENT_TEMPLATE_ONE_ID == get_the_ID(  ) )) ){
+            $single_event_id = !empty( $single_event_id ) ? $single_event_id : get_the_ID();
+            $event_options   = get_option( "etn_event_options" );
+            $data            = \Etn\Utils\Helper::single_template_options( $single_event_id );
+            $settings = etn_get_option();
+            // Honor the Google Map addon toggle by VALUE, not existence: turning the addon
+            // off stores etn_googlemap_api = 'off' (the key is not deleted), so isset() was
+            // always true and the map loaded even when disabled.
+            $etn_googlemap_api = ( ! empty( $settings['etn_googlemap_api'] ) && 'on' === $settings['etn_googlemap_api'] ) ? 'checked' : '';
+
+            if(get_post_meta($single_event_id, "etn_event_location_type", true) == 'new_location' && $etn_googlemap_api == 'checked'){
+                if ( file_exists( get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'event/event-pro-sidebar-location-map.php' ) ) {
+                    require_once get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'event/event-pro-sidebar-location-map.php';
+                } else if ( file_exists( get_template_directory() . \Wpeventin::theme_templates_dir() . 'event/event-pro-sidebar-location-map.php' ) ) {
+                    require_once get_template_directory() . \Wpeventin::theme_templates_dir() . 'event/event-pro-sidebar-location-map.php';
+                } else {
+                    require_once \Wpeventin::templates_dir() . 'event/event-pro-sidebar-location-map.php';
+                }
+            }
+        }
+
+    }
+
 }

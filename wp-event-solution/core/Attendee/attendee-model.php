@@ -38,6 +38,7 @@ class Attendee_Model extends Post_Model {
         'etn_info_edit_token'         => '',
         'extra_fields'                => '',
         'attendee_seat'               => '',
+        'etn_option_selections'       => [],
     ];
 
     /**
@@ -460,9 +461,16 @@ class Attendee_Model extends Post_Model {
     public function get_data() {
         $event_id = get_post_meta( $this->id, 'etn_event_id', true );
         $event = get_post( intval($event_id) );
+
+        // Recurring child events (post_parent !== 0) share the parent's title,
+        // so expose the occurrence date to disambiguate which occurrence the
+        // attendee booked. Empty for non-recurring events.
+        $event_date = ( $event && $event->post_parent ) ? get_post_meta( $event->ID, 'etn_start_date', true ) : '';
+
         $response_data = [
             'id'         => $this->id,
             'event_name' => $event ? $event->post_title : '',
+            'event_date' => $event_date,
             'attendee_post_status' => get_post_status( $this->id ),
         ];
 

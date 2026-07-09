@@ -387,7 +387,10 @@ class EventController extends WP_REST_Controller {
         if ( $parent !== null ) {
             $args['post_parent'] = $parent;
         }
-        else{
+        elseif ( ! in_array( $status, [ 'upcoming', 'past', 'ongoing' ], true ) ) {
+            // Default list shows only top-level events. When a status filter is
+            // active we drop this restriction so matching recurring child
+            // occurrences also surface as their own rows alongside parents.
             $args['post_parent'] = 0;
         }
 
@@ -488,7 +491,16 @@ class EventController extends WP_REST_Controller {
         }
     
         if ( ! empty( $meta_query ) ) {
-            $args['meta_query'] = $meta_query; // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query   
+            $args['meta_query'] = $meta_query; // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+        }
+
+        // Hide the shipped preview-placeholder event from the events list.
+        $placeholder_ids = \Eventin\PreviewPlaceholder\PreviewPlaceholder::excluded_post_ids();
+        if ( $placeholder_ids ) {
+            $args['post__not_in'] = array_merge(
+                isset( $args['post__not_in'] ) ? (array) $args['post__not_in'] : [],
+                $placeholder_ids
+            );
         }
 
         if ( $meta_query || $search_keyword || $status || $category || $organizer || $speaker || $parent !== null ) {
@@ -1390,7 +1402,11 @@ class EventController extends WP_REST_Controller {
             'zoho_crm_webhook'        => get_post_meta( $id, 'zoho_crm_webhook', true ),
             'mail_mint'               => get_post_meta( $id, 'mail_mint', true ),
             'mail_mint_webhook'       => get_post_meta( $id, 'mail_mint_webhook', true ),
+            'optiontics_addons'       => (bool) get_post_meta( $id, 'optiontics_addons', true ),
             'mail_mint_send_to'       => get_post_meta( $id, 'mail_mint_send_to', true ) ?: [ 'purchaser', 'attendee' ],
+            'mailpoet'                => get_post_meta( $id, 'mailpoet', true ),
+            'mailpoet_list_ids'       => get_post_meta( $id, 'mailpoet_list_ids', true ) ?: [],
+            'mailpoet_send_to'        => get_post_meta( $id, 'mailpoet_send_to', true ) ?: [ 'purchaser', 'attendee' ],
             'funnel_kit'              => get_post_meta( $id, 'funnel_kit', true ),
             'funnel_kit_webhook'      => get_post_meta( $id, 'funnel_kit_webhook', true ),
             'funnel_kit_send_to'      => get_post_meta( $id, 'funnel_kit_send_to', true ) ?: [ 'purchaser', 'attendee' ],
@@ -1985,6 +2001,10 @@ class EventController extends WP_REST_Controller {
             $event_data['mail_mint'] = $input_data['mail_mint'];
         }
 
+        if ( isset( $input_data['optiontics_addons'] ) ) {
+            $event_data['optiontics_addons'] = ! empty( $input_data['optiontics_addons'] ) ? '1' : '';
+        }
+
         if ( isset( $input_data['zoho_crm'] ) ) {
             $event_data['zoho_crm'] = $input_data['zoho_crm'];
         }
@@ -1992,6 +2012,19 @@ class EventController extends WP_REST_Controller {
         if ( isset( $input_data['mail_mint_send_to'] ) && is_array( $input_data['mail_mint_send_to'] ) ) {
             $allowed                          = [ 'purchaser', 'attendee' ];
             $event_data['mail_mint_send_to']  = array_values( array_intersect( $allowed, array_map( 'sanitize_key', $input_data['mail_mint_send_to'] ) ) );
+        }
+
+        if ( isset( $input_data['mailpoet'] ) ) {
+            $event_data['mailpoet'] = $input_data['mailpoet'];
+        }
+
+        if ( isset( $input_data['mailpoet_list_ids'] ) && is_array( $input_data['mailpoet_list_ids'] ) ) {
+            $event_data['mailpoet_list_ids'] = array_values( array_filter( array_map( 'sanitize_text_field', $input_data['mailpoet_list_ids'] ) ) );
+        }
+
+        if ( isset( $input_data['mailpoet_send_to'] ) && is_array( $input_data['mailpoet_send_to'] ) ) {
+            $allowed                         = [ 'purchaser', 'attendee' ];
+            $event_data['mailpoet_send_to']  = array_values( array_intersect( $allowed, array_map( 'sanitize_key', $input_data['mailpoet_send_to'] ) ) );
         }
 
         if ( isset( $input_data['funnel_kit'] ) ) {
@@ -2024,7 +2057,10 @@ class EventController extends WP_REST_Controller {
         }
 
         if ( isset( $input_data['faq'] ) ) {
-            $event_data['etn_event_faq'] = etn_sanitize_array_input( $input_data['faq'] );
+            // Sanitize FAQ content on input (wp_kses_post per item) so stored
+            // markup can't carry scripts/event-handlers into any render context.
+            // See CVE-2026-12924.
+            $event_data['etn_event_faq'] = etn_sanitize_faq_array( $input_data['faq'] );
         }
 
         if ( isset( $input_data['extra_fields'] ) ) {
@@ -2180,6 +2216,9 @@ class EventController extends WP_REST_Controller {
         foreach ( $event_data['etn_ticket_variations'] as &$ticket ) {
             $ticket['etn_sold_tickets']       = ! empty( $sold_tickets[ $ticket['etn_ticket_slug'] ] ) ? $sold_tickets[ $ticket['etn_ticket_slug'] ] : 0;
             $ticket['etn_avaiilable_tickets'] = (int) $ticket['etn_avaiilable_tickets'];
+            $ticket['optiontics_block_ids']   = isset( $ticket['optiontics_block_ids'] )
+                ? array_values( array_map( 'absint', (array) $ticket['optiontics_block_ids'] ) )
+                : [];
         }
         unset( $ticket );
 

@@ -60,6 +60,42 @@ class CPT {
         register_post_type( 'etn-template', $args );
 
         $this->enable_elementor_support();
+
+        $this->register_template_meta();
+    }
+
+    /**
+     * Register template post meta so the block editor can persist starter-template
+     * data (imported CSS + remote dedup id) via editPost({ meta }).
+     *
+     * These keys mirror the meta that TemplateModel reads back on render.
+     *
+     * @return void
+     */
+    private function register_template_meta() {
+        register_post_meta( 'etn-template', 'template_css', [
+            'show_in_rest'      => true,
+            'single'            => true,
+            'type'              => 'string',
+            'sanitize_callback' => function ( $value ) {
+                // Preserve CSS/markup — strip only invalid bytes, do not run
+                // sanitize_text_field (which would corrupt the stylesheet).
+                return is_string( $value ) ? wp_check_invalid_utf8( $value ) : '';
+            },
+            'auth_callback'     => function () {
+                return current_user_can( 'etn_manage_template' );
+            },
+        ] );
+
+        register_post_meta( 'etn-template', 'remote_template_id', [
+            'show_in_rest'      => true,
+            'single'            => true,
+            'type'              => 'string',
+            'sanitize_callback' => 'sanitize_text_field',
+            'auth_callback'     => function () {
+                return current_user_can( 'etn_manage_template' );
+            },
+        ] );
     }
 
     /**

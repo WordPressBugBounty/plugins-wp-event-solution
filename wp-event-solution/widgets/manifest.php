@@ -27,7 +27,8 @@ class Manifest {
             'advanced-search',
             'upcoming-event-tab',
             'event-calendar',
-            'event-meta-info'
+            'event-meta-info',
+            'ticket-qrcode'
         ];
     }
 

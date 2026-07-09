@@ -913,7 +913,7 @@ class Hooks {
             ->set_plugin_file( 'wp-event-solution/eventin.php' )
             // ->set_pro_link( $this->has_pro ? '' : 'https://themewinter.com/eventin/' )
             ->set_default_grid_thumbnail( \Wpeventin::plugin_url() . '/utils/pro-awareness/assets/document.png' )
-            ->set_default_grid_link( 'https://support.themewinter.com/docs/plugins/docs-category/eventin/' )
+            ->set_default_grid_link( 'https://themewinter.com/docs/plugins/docs-category/eventin/' )
             ->set_default_grid_desc( esc_html__( 'Learn More', 'eventin' ) )
             ->set_page_grid(
                 array(
@@ -939,7 +939,7 @@ class Hooks {
                     'description' => esc_html__( 'Learn More', 'eventin' ),
                 )
             )
-            ->set_plugin_row_meta( 'Documentation', 'https://support.themewinter.com/docs/plugins/docs-category/eventin/', array( 'target' => '_blank' ) )
+            ->set_plugin_row_meta( 'Documentation', 'https://themewinter.com/docs/plugins/docs-category/eventin/', array( 'target' => '_blank' ) )
             ->set_plugin_row_meta( 'Facebook Community', 'https://www.facebook.com/groups/themewinter', array( 'target' => '_blank' ) )
             ->set_plugin_action_link( 'Settings', admin_url() . 'admin.php?page=eventin#/settings/event-settings/event-details' )
             ->set_plugin_action_link(

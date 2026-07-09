@@ -53,8 +53,9 @@ class TemplateModel extends Post_Model {
         'template_css'  => '',
         'template_builder' => '',
         'preview_event_id' => '',
-        'width'        => '',
-        'height'       => '',
+        'width'         => '',
+        'height'        => '',
+        'remote_template_id' => '',
     ];
 
     /**
@@ -153,6 +154,72 @@ class TemplateModel extends Post_Model {
      *
      * @return  array
      */
+    /**
+     * This attendee's own add-on selections (each attendee chooses independently).
+     *
+     * @param Attendee_Model $attendee Attendee.
+     * @return array<int, array<string, mixed>>
+     */
+    protected function get_add_ons_rows( $attendee ) {
+        $selections = $attendee->etn_option_selections;
+
+        return is_array( $selections ) ? array_values( $selections ) : [];
+    }
+
+    /**
+     * Render add-ons as an HTML list for the {{add_ons}} placeholder.
+     *
+     * @param Attendee_Model $attendee Attendee.
+     * @return string
+     */
+    protected function get_add_ons_content( $attendee ) {
+        $rows = $this->get_add_ons_rows( $attendee );
+
+        if ( ! $rows ) {
+            return '';
+        }
+
+        $items = '';
+        foreach ( $rows as $row ) {
+            $items .= sprintf(
+                '<div class="wp-block-group ticket-row" style="display:flex;justify-content:space-between;width:100%%;">'
+                    . '<p style="font-size:16px;font-weight:500;color:#2d3748;margin-bottom:0px;">%1$s: %2$s &times; %3$d</p>'
+                    . '<p style="font-size:16px;font-weight:400;color:#4a5568;margin-bottom:0px;">%4$s</p>'
+                    . '</div>',
+                esc_html( $row['field_label'] ?? '' ),
+                esc_html( $row['choice_value'] ?? '' ),
+                (int) ( $row['qty'] ?? 1 ),
+                esc_html( $row['line_total'] ?? '' )
+            );
+        }
+
+        return '<div class="etn-ticket-add-ons">' . $items . '</div>';
+    }
+
+    /**
+     * Render add-ons as an inline comma-separated string for {{add_ons_inline}}.
+     *
+     * @param Attendee_Model $attendee Attendee.
+     * @return string
+     */
+    protected function get_add_ons_inline( $attendee ) {
+        $rows = $this->get_add_ons_rows( $attendee );
+
+        $parts = array_map(
+            function ( $row ) {
+                return sprintf(
+                    '%s: %s (x%d)',
+                    $row['field_label'] ?? '',
+                    $row['choice_value'] ?? '',
+                    (int) ( $row['qty'] ?? 1 )
+                );
+            },
+            $rows
+        );
+
+        return implode( ', ', $parts );
+    }
+
     public function get_place_holder( $attendee_id ) {
         $attendee = new Attendee_Model( $attendee_id );
         $event    = new Event_Model( $attendee->etn_event_id );
@@ -189,6 +256,8 @@ class TemplateModel extends Post_Model {
             '{{attendee_phone}}'      => esc_html( $attendee->etn_phone ),
             '{{extra_fields}}'        => wp_kses_post( $attendee->get_extra_fields_content() ),
             '{{extra_fields_inline}}' => esc_html( $attendee->get_extra_fields_inline() ),
+            '{{add_ons}}'             => wp_kses_post( $this->get_add_ons_content( $attendee ) ),
+            '{{add_ons_inline}}'      => esc_html( $this->get_add_ons_inline( $attendee ) ),
             // '{{qr_code}}',
         ];
 
@@ -412,11 +481,21 @@ class TemplateModel extends Post_Model {
         return 0;
     }
     /**
-     * Retrieves the first availble ( event with status publish) events id
-     * 
+     * Retrieves the fallback event id used when a template has no selected
+     * preview event.
+     *
+     * Prefers the shipped "preview placeholder" event so every template previews
+     * against consistent, fully-populated data; falls back to the first published
+     * event (lowest id) if the placeholder is missing (e.g. deleted by the site owner).
+     *
      * @return int $event_id
      */
     private function get_available_event_id() {
+        // Prefer the shipped preview placeholder event when present.
+        if ( \Eventin\PreviewPlaceholder\PreviewPlaceholder::event_exists() ) {
+            return \Eventin\PreviewPlaceholder\PreviewPlaceholder::event_id();
+        }
+
         $args = array(
             'post_type'      => 'etn',
             'post_status'    => 'publish',
@@ -425,13 +504,13 @@ class TemplateModel extends Post_Model {
             'orderby'        => 'ID',
             'order'          => 'ASC',
         );
-    
+
         $query = new \WP_Query( $args );
-    
+
         if ( $query->have_posts() ) {
             return (int) $query->posts[0];
         }
-    
+
         return 0;
     }
 
@@ -449,10 +528,24 @@ class TemplateModel extends Post_Model {
 
         $placeholder = $this->get_place_holder( $attendee_id );
 
-        $content = strtr( $this->get_rendered_content(), $placeholder );
+        $rendered = $this->get_rendered_content();
+        $content  = strtr( $rendered, $placeholder );
 
         // Remove any extra_field tokens that had no matching attendee data.
         $content = preg_replace( '/\{\{extra_field_[^}]+\}\}/', '', $content );
+
+        // Fallback for templates saved before the add-ons feature: they have no
+        // {{add_ons}} token, which would silently drop an attendee's purchased
+        // add-ons. When the token is absent but this attendee has selections,
+        // append the add-ons block so paid add-ons are never lost. Templates that
+        // already position {{add_ons}} are untouched (it was substituted above).
+        if ( false === strpos( (string) $rendered, '{{add_ons}}' ) ) {
+            $add_ons = $this->get_add_ons_content( new Attendee_Model( $attendee_id ) );
+
+            if ( '' !== $add_ons ) {
+                $content .= wp_kses_post( $add_ons );
+            }
+        }
 
         return $content;
     }
@@ -598,6 +691,8 @@ class TemplateModel extends Post_Model {
             '{{extra_fields}}'        => '<strong>Company:</strong> Acme Corp<br><strong>Job Title:</strong> Developer<br><strong>Phone:</strong> +1 555 1234',
             '{{extra_fields_inline}}' => 'Company: Acme Corp, Job Title: Developer',
             '{{extra_field_etn_phone}}' => '995571089087',
+            '{{add_ons}}'             => '<div class="etn-ticket-add-ons"><div class="wp-block-group ticket-row" style="display:flex;justify-content:space-between;width:100%;"><p style="font-size:16px;font-weight:500;color:#2d3748;margin-bottom:0px;">Dinner: Veg &times; 2</p><p style="font-size:16px;font-weight:400;color:#4a5568;margin-bottom:0px;">40</p></div></div>',
+            '{{add_ons_inline}}'      => 'Dinner: Veg (x2)',
             // '{{qr_code}}',
         ];
     }

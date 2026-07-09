@@ -113,7 +113,7 @@ class EventImporter implements PostImporterInterface {
                 $args['etn_ticket_variations'] = $this->format_tickets( $ticket_variations );
                 $args['etn_event_socials']     = etn_csv_column_multi_dimension_array( $event_socials );
                 $args['etn_event_schedule']    = etn_csv_column_array( $event_schedule );
-                $args['etn_event_faq']         = etn_csv_column_multi_dimension_array( $event_faq );
+                $args['etn_event_faq']         = etn_sanitize_faq_array( etn_csv_column_multi_dimension_array( $event_faq ) );
                 $args['attendee_extra_fields'] = etn_csv_column_multi_dimension_array( $attendee_extra_fields );
                 $args['etn_event_speaker']     = etn_csv_column_array( $speaker );
                 $args['speaker_group']         = etn_csv_column_array( $speaker_group );

@@ -1,5 +1,5 @@
 <?php
-namespace Ens\Email;
+namespace Eventin\Vendor\Ens\Email;
 
 /**
  * Class EmailSender

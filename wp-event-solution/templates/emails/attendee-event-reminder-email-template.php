@@ -12,6 +12,7 @@
 <div
     style="margin: 30px 0; background-color: #c9c9c9; height: 1px"></div>
 
+<?php if ( ! empty( $event ) ) : ?>
 <!-- Event Details Area -->
 <div style="margin-top: 20px">
     <h3
@@ -97,3 +98,4 @@
         </div>
     </div>
 </div>
+<?php endif; ?>

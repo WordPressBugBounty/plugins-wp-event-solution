@@ -9,7 +9,7 @@ namespace Eventin\Extensions;
 
 defined( 'ABSPATH' ) || exit;
 
-use Ens\Flow\Flow;
+use Eventin\Vendor\Ens\Flow\Flow;
 use Exception;
 
 /**
@@ -507,10 +507,11 @@ class ImportAutomation {
                     ],
                 ],
                 'status' => 'draft',
-            ]
+            ],
+            self::send_certificate_flow_definition(),
         ];
         try {
-            foreach ( $automation_flows as $key => $automation_flow ) {                
+            foreach ( $automation_flows as $key => $automation_flow ) {
                 $flow = new Flow( 'eve',0 );
                 $flow->set_props( $automation_flow );
                 $flow_id = $flow->save();
@@ -519,7 +520,138 @@ class ImportAutomation {
                 }
             }
 
-            update_option( 'etn_email_automation_migrated', true );           
+            update_option( 'etn_email_automation_migrated', true );
+            // Send Certificate is part of this seed, so mark its dedicated guard too
+            // to keep the update back-fill (V_4_1_16) a no-op for new customers.
+            update_option( 'etn_send_certificate_automation_migrated', true );
+        } catch ( Exception $e ) {
+            $result['errors'][] = 'Failed to create service: ' . $e->getMessage();
+        }
+
+        return $result;
+    }
+
+    /**
+     * Default "Send Certificate" automation flow definition.
+     *
+     * Shared single source of truth used by both the toggle-on seeder
+     * ( create_automation_flows() ) and the update back-fill
+     * ( create_send_certificate_flow(), called from the V_4_1_16 upgrader ).
+     *
+     * Contains exactly the four keys the Flow model persists
+     * ( name, trigger, flow_config, status ) — any extra key would be written
+     * as junk post-meta by Flow::save_metadata().
+     *
+     * @return array
+     */
+    private static function send_certificate_flow_definition() {
+        return [
+            'name'        => 'Send Certificate',
+            'trigger'     => 'send_certificate',
+            'flow_config' => [
+                'nodes' => [
+                    [
+                        'id'       => 'node_1',
+                        'type'     => 'trigger',
+                        'name'     => 'trigger',
+                        'data'     => [
+                            'label'        => 'trigger: send_certificate',
+                            'subtitle'     => 'On "Send Certificate" event fires',
+                            'triggerValue' => 'send_certificate',
+                        ],
+                        'position' => [
+                            'x' => 300,
+                            'y' => 100,
+                        ],
+                    ],
+                    [
+                        'id'       => 'end_1',
+                        'type'     => 'end',
+                        'name'     => 'end',
+                        'data'     => [
+                            'label'    => 'end_flow',
+                            'subtitle' => 'Automation stops here',
+                        ],
+                        'position' => [
+                            'x' => 318.38084617295419,
+                            'y' => 460,
+                        ],
+                    ],
+                    [
+                        'id'       => 'node_3',
+                        'type'     => 'action',
+                        'name'     => 'email',
+                        'data'     => [
+                            'actionType'            => 'send_email',
+                            'label'                 => 'send_email',
+                            'subtitle'              => 'Send certificate email to attendee',
+                            'operator'              => '=',
+                            'value'                 => '',
+                            'receiverType'          => 'attendee_email',
+                            'from'                  => '',
+                            'subject'               => 'Please collect your event certificate ',
+                            'body'                  => '<p><br></p>',
+                            'processed_session_ids' => [],
+                        ],
+                        'position' => [
+                            'x' => 309.1904230864771,
+                            'y' => 280,
+                        ],
+                    ],
+                ],
+                'edges' => [
+                    [
+                        'id'        => 'edge_node_1-node_3',
+                        'type'      => 'smoothstep',
+                        'markerEnd' => [
+                            'type' => 'arrowclosed',
+                        ],
+                        'source'    => 'node_1',
+                        'target'    => 'node_3',
+                        'data'      => [
+                            'animated' => false,
+                        ],
+                    ],
+                    [
+                        'id'        => 'edge_node_3-end_1',
+                        'type'      => 'smoothstep',
+                        'markerEnd' => [
+                            'type' => 'arrowclosed',
+                        ],
+                        'source'    => 'node_3',
+                        'target'    => 'end_1',
+                        'data'      => [
+                            'animated' => false,
+                        ],
+                    ],
+                ],
+            ],
+            'status'      => 'publish',
+        ];
+    }
+
+    /**
+     * Create only the "Send Certificate" flow.
+     *
+     * Used by the V_4_1_16 upgrader to back-fill existing customers who already
+     * ran the full seeder ( create_automation_flows() ) before this flow existed.
+     *
+     * @return array { flow_ids: int[], errors: string[] }
+     */
+    public static function create_send_certificate_flow() {
+        $result = array(
+            'flow_ids' => array(),
+            'errors'   => array(),
+        );
+
+        try {
+            $flow = new Flow( 'eve', 0 );
+            $flow->set_props( self::send_certificate_flow_definition() );
+            $flow_id = $flow->save();
+
+            if ( $flow_id ) {
+                $result['flow_ids'][] = $flow_id;
+            }
         } catch ( Exception $e ) {
             $result['errors'][] = 'Failed to create service: ' . $e->getMessage();
         }

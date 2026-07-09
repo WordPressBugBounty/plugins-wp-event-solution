@@ -147,6 +147,10 @@ class ExtensionController extends WP_REST_Controller {
             etn_update_option( 'mail_mint_api', $status ?? null );
         }
 
+        if ( $name == 'mailpoet' ) {
+            etn_update_option( 'mailpoet_api', $status ?? null );
+        }
+
         if ( $name == 'funnel_kit' ) {
             etn_update_option( 'funnel_kit_api', $status ?? null );
         }

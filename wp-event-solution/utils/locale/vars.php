@@ -46,6 +46,15 @@ $data = [
     'currency_position'           => etn_get_currency_position(),
     'elementor_supported'         => class_exists( '\Elementor\Plugin' ) && in_array( 'etn-template', $elementor_post_types ),
     'selected_template_builder'   => etn_get_selected_template_builder(),
+    // Ids of the free starter templates, from \Eventin\Template\StaticTemplateConfig.
+    // The Template Builder decides lock state from this list (anything not here is
+    // treated as pro), instead of trusting the remote server's is_pro flag.
+    'eventin_free_template_ids'   => \Eventin\Template\StaticTemplateConfig::free_ids(),
+    // Default (static) starter templates, from the local single source of truth.
+    // The Template Builder renders its "Default" cards from this list instead of
+    // the remote template server, so every configured default (e.g. certificate)
+    // shows and stays in sync with \Eventin\Template\StaticTemplateConfig.
+    'eventin_static_templates'    => \Eventin\Template\StaticTemplateConfig::localized(),
     'is_custom_template'          => (bool) get_post_meta( get_the_ID(), 'is_custom', true ),
     'is_dokan_enabled'            => ( \Etn\Core\Addons\Helper::instance()->check_active_module( 'dokan' ) ) ? true : false,
     'seat_map'                    => ( \Etn\Core\Addons\Helper::instance()->check_active_module( 'seat_map' ) ) ? true : false,

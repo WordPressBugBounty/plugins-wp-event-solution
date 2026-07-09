@@ -113,6 +113,7 @@ class AdminOrderEmail extends Mailable {
 			'{%event_location%}' => $address,
 			'{%customer_name%}'  => $customer_fname,
 			'{%customer_email%}' => $customer_email,
+			'{%add_ons%}'        => $this->format_add_ons( $this->order->option_selections ),
 		];
 
         $order_email_message = $this->email_settings['body'];
@@ -120,5 +121,30 @@ class AdminOrderEmail extends Mailable {
         $order_email_message = strtr( $order_email_message, $placeholder );
 
         return $order_email_message;
+    }
+
+    /**
+     * Format add-on selections as an HTML list for the {%add_ons%} placeholder.
+     *
+     * @param   mixed  $rows  option_selections meta.
+     * @return  string  Empty string when there are no add-ons.
+     */
+    private function format_add_ons( $rows ) {
+        if ( ! is_array( $rows ) || ! $rows ) {
+            return '';
+        }
+
+        $lines = [];
+        foreach ( $rows as $row ) {
+            $lines[] = sprintf(
+                '%s: %s &times; %s &mdash; %s',
+                esc_html( $row['field_label'] ?? '' ),
+                esc_html( $row['choice_value'] ?? '' ),
+                (int) ( $row['qty'] ?? 1 ),
+                esc_html( $row['line_total'] ?? '' )
+            );
+        }
+
+        return implode( '<br />', $lines );
     }
 }

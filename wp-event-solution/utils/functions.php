@@ -59,6 +59,51 @@ if ( ! function_exists( 'etn_sanitize_array_input' ) ) {
     }
 }
 
+if ( ! function_exists( 'etn_sanitize_faq_array' ) ) {
+    /**
+     * Sanitize an array of event FAQ items at input/save time.
+     *
+     * Each FAQ item carries a plain-text title, rich-text content, and an
+     * enabled flag. Titles are reduced to plain text, content is passed through
+     * wp_kses_post() so that scripts and event-handler attributes (e.g.
+     * onerror=) are stripped before storage, and the enabled flag is cast to a
+     * boolean. This neutralizes stored XSS at the source rather than relying on
+     * every downstream render context to escape (CVE-2026-12924).
+     *
+     * @since 4.1.17
+     * @param mixed $faqs The raw FAQ input (expected: array of FAQ items).
+     * @return array The sanitized FAQ array (empty array for non-array input).
+     */
+    function etn_sanitize_faq_array( $faqs ) {
+        if ( ! is_array( $faqs ) ) {
+            return [];
+        }
+
+        return array_map(
+            function ( $faq ) {
+                if ( ! is_array( $faq ) ) {
+                    return is_string( $faq ) ? wp_kses_post( $faq ) : '';
+                }
+
+                if ( isset( $faq['etn_faq_title'] ) ) {
+                    $faq['etn_faq_title'] = sanitize_text_field( $faq['etn_faq_title'] );
+                }
+
+                if ( isset( $faq['etn_faq_content'] ) ) {
+                    $faq['etn_faq_content'] = wp_kses_post( $faq['etn_faq_content'] );
+                }
+
+                if ( array_key_exists( 'etn_faq_enabled', $faq ) ) {
+                    $faq['etn_faq_enabled'] = filter_var( $faq['etn_faq_enabled'], FILTER_VALIDATE_BOOLEAN );
+                }
+
+                return $faq;
+            },
+            $faqs
+        );
+    }
+}
+
 if ( ! function_exists( 'etn_array_csv_column' ) ) {
     /**
      * Convert array to CSV column
@@ -1698,226 +1743,62 @@ if ( ! function_exists( 'etn_get_selected_template_builder' ) ) {
     }
 }
 
-if ( ! function_exists('etn_get_static_event_templates') ) {
+if ( ! function_exists( 'etn_get_static_event_templates' ) ) {
     /**
-     * Returns list of static event templates
-     * 
-     * @return array containing data form the templates.
+     * Returns list of static event (landing page) templates.
+     *
+     * @return array
      */
     function etn_get_static_event_templates() {
-        return [
-            [
-                'id'                    => 'event-one',
-                'name'                  => __( 'Event Template One', 'eventin' ),
-                'status'                => 'publish',
-                'type'                  => 'event',
-                'orientation'           => 'portrait',
-                'thumbnail'             => \Wpeventin::plugin_url() . 'assets/images/landing_template_1.webp',
-                'content'               => '',
-                'is_clone'              => false,
-                'is_pro'                => false,
-                'template_css'          => '',
-                'edit_link'             => '',
-                'preview_link'          => 'https://product.themewinter.com/eventin/event/event-details-1/',
-                'preview_event_id'      => null,
-                'template_builder'      => 'gutenberg',
-                'edit_with_elementor'   => false,
-                'isStatic'              => true,
-            ],
-            [
-                'id'                    => 'event-two',
-                'name'                  => __( 'Event Template Two', 'eventin' ),
-                'status'                => 'publish',
-                'type'                  => 'event',
-                'orientation'           => 'portrait',
-                'thumbnail'             => \Wpeventin::plugin_url() . 'assets/images/landing_template_2.webp',
-                'content'               => '',
-                'is_clone'              => false,
-                'is_pro'                => true,
-                'template_css'          => '',
-                'edit_link'             => '',
-                'preview_link'          => 'https://product.themewinter.com/eventin/event/event-details-2/',
-                'preview_event_id'      => null,
-                'template_builder'      => 'gutenberg',
-                'edit_with_elementor'   => false,
-                'isStatic'              => true,
-            ],
-            [
-                'id'                    => 'event-three',
-                'name'                  => __( 'Event Template Three', 'eventin' ),
-                'status'                => 'publish',
-                'type'                  => 'event',
-                'orientation'           => 'portrait',
-                'thumbnail'             => \Wpeventin::plugin_url() . 'assets/images/landing_template_3.webp',
-                'content'               => '',
-                'is_clone'              => false,
-                'is_pro'                => true,
-                'template_css'          => '',
-                'edit_link'             => '',
-                'preview_link'          => 'https://product.themewinter.com/eventin/event/event-details-3/',
-                'preview_event_id'      => null,
-                'template_builder'      => 'gutenberg',
-                'edit_with_elementor'   => false,
-                'isStatic'              => true,
-            ],
-        ];
+        return \Eventin\Template\StaticTemplateConfig::by_type( 'event' );
     }
 }
 
-if ( ! function_exists('etn_get_static_ticket_templates') ) {
+if ( ! function_exists( 'etn_get_static_ticket_templates' ) ) {
     /**
-     * Returns data for static ticket templates
-     * 
+     * Returns list of static ticket templates.
+     *
      * @return array
      */
     function etn_get_static_ticket_templates() {
-        return [
-            [
-                'id'                    => 'style-1',
-                'name'                  => __( 'Template One', 'eventin' ),
-                'status'                => 'publish',
-                'type'                  => 'ticket',
-                'orientation'           => 'landscape',
-                'thumbnail'             => \Wpeventin::plugin_url() . 'assets/images/ticket_template_1.webp',
-                'content'               => '',
-                'is_clone'              => false,
-                'is_pro'                => false,
-                'template_css'          => '',
-                'edit_link'             => '',
-                'preview_link'          => 'https://product.themewinter.com/eventin/ticket-template-one/',
-                'preview_event_id'      => null,
-                'template_builder'      => 'gutenberg',
-                'edit_with_elementor'   => false,
-                'isStatic'              => true,
-            ],
-            [
-                'id'                    => 'style-2',
-                'name'                  => __( 'Template Two', 'eventin' ),
-                'status'                => 'publish',
-                'type'                  => 'ticket',
-                'orientation'           => 'landscape',
-                'thumbnail'             => \Wpeventin::plugin_url() . 'assets/images/ticket_template_2.webp',
-                'content'               => '',
-                'is_clone'              => false,
-                'is_pro'                => true,
-                'template_css'          => '',
-                'edit_link'             => '',
-                'preview_link'          => 'https://product.themewinter.com/eventin/ticket-template-two/',
-                'preview_event_id'      => null,
-                'template_builder'      => 'gutenberg',
-                'edit_with_elementor'   => false,
-                'isStatic'              => true,
-            ],
-        ];
+        return \Eventin\Template\StaticTemplateConfig::by_type( 'ticket' );
     }
 }
 
-if ( ! function_exists('etn_get_static_speaker_templates') ) {
+if ( ! function_exists( 'etn_get_static_certificate_templates' ) ) {
     /**
-     * Returns data for static speaker templates
-     * 
+     * Returns list of static certificate templates.
+     *
+     * @return array
+     */
+    function etn_get_static_certificate_templates() {
+        return \Eventin\Template\StaticTemplateConfig::by_type( 'certificate' );
+    }
+}
+
+if ( ! function_exists( 'etn_get_static_speaker_templates' ) ) {
+    /**
+     * Returns list of static speaker templates.
+     *
      * @return array
      */
     function etn_get_static_speaker_templates() {
-        return [
-            [
-                'id'                    => 'speaker-one',
-                'name'                  => __( 'Template One', 'eventin' ),
-                'status'                => 'publish',
-                'type'                  => 'speaker',
-                'orientation'           => 'portrait',
-                'thumbnail'             => \Wpeventin::plugin_url() . 'assets/images/speaker_template_1.webp',
-                'content'               => '',
-                'is_clone'              => false,
-                'is_pro'                => false,
-                'template_css'          => '',
-                'edit_link'             => '',
-                'preview_link'          => 'https://product.themewinter.com/eventin/admin/james/',
-                'preview_event_id'      => null,
-                'template_builder'      => 'gutenberg',
-                'edit_with_elementor'   => false,
-                'isStatic'              => true,
-            ],
-            [
-                'id'                    => 'speaker-two-lite',
-                'name'                  => __( 'Template Two', 'eventin' ),
-                'status'                => 'publish',
-                'type'                  => 'speaker',
-                'orientation'           => 'portrait',
-                'thumbnail'             => \Wpeventin::plugin_url() . 'assets/images/speaker_template_2.webp',
-                'content'               => '',
-                'is_clone'              => false,
-                'is_pro'                => false,
-                'template_css'          => '',
-                'edit_link'             => '',
-                'preview_link'          => 'https://product.themewinter.com/eventin/admin/henri/',
-                'preview_event_id'      => null,
-                'template_builder'      => 'gutenberg',
-                'edit_with_elementor'   => false,
-                'isStatic'              => true,
-            ],
-            [
-                'id'                    => 'speaker-two',
-                'name'                  => __( 'Template Three', 'eventin' ),
-                'status'                => 'publish',
-                'type'                  => 'speaker',
-                'orientation'           => 'portrait',
-                'thumbnail'             => \Wpeventin::plugin_url() . 'assets/images/speaker_template_3.webp',
-                'content'               => '',
-                'is_clone'              => false,
-                'is_pro'                => true,
-                'template_css'          => '',
-                'edit_link'             => '',
-                'preview_link'          => 'https://product.themewinter.com/eventin/admin/jim/',
-                'preview_event_id'      => null,
-                'template_builder'      => 'gutenberg',
-                'edit_with_elementor'   => false,
-                'isStatic'              => true,
-            ],
-            [
-                'id'                    => 'speaker-three',
-                'name'                  => __( 'Template Four', 'eventin' ),
-                'status'                => 'publish',
-                'type'                  => 'speaker',
-                'orientation'           => 'portrait',
-                'thumbnail'             => \Wpeventin::plugin_url() . 'assets/images/speaker_template_4.webp',
-                'content'               => '',
-                'is_clone'              => false,
-                'is_pro'                => true,
-                'template_css'          => '',
-                'edit_link'             => '',
-                'preview_link'          => 'https://product.themewinter.com/eventin/admin/laura-bryant/',
-                'preview_event_id'      => null,
-                'template_builder'      => 'gutenberg',
-                'edit_with_elementor'   => false,
-                'isStatic'              => true,
-            ],
-        ];
+        return \Eventin\Template\StaticTemplateConfig::by_type( 'speaker' );
     }
 }
 
-if ( ! function_exists('etn_get_static_templates_by_type') ) {
+if ( ! function_exists( 'etn_get_static_templates_by_type' ) ) {
     /**
-     * Returns list of static templates by type or all templates if no type specified
+     * Returns static templates for a given type, or every type when empty.
      *
-     * @param string $type Template type ('event', 'ticket', 'speaker') or empty for all
-     * @return array containing data from the templates
+     * Backed by \Eventin\Template\StaticTemplateConfig — edit that config to
+     * change the starter template list or its free/pro flags.
+     *
+     * @param string $type
+     *
+     * @return array
      */
     function etn_get_static_templates_by_type( $type = '' ) {
-        $static_templates = [];
-
-        if ( empty( $type ) || $type === 'event' ) {
-            $static_templates = array_merge( $static_templates, etn_get_static_event_templates() );
-        }
-
-        if ( empty( $type ) || $type === 'ticket' ) {
-            $static_templates = array_merge( $static_templates, etn_get_static_ticket_templates() );
-        }
-
-        if ( empty( $type ) || $type === 'speaker' ) {
-            $static_templates = array_merge( $static_templates, etn_get_static_speaker_templates() );
-        }
-
-        return $static_templates;
+        return \Eventin\Template\StaticTemplateConfig::by_type( $type );
     }
 }

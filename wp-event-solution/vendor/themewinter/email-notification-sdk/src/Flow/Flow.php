@@ -1,9 +1,9 @@
 <?php
 
-namespace Ens\Flow;
+namespace Eventin\Vendor\Ens\Flow;
 
-use Ens\Base\PostModel;
-use Ens\Utils\Helpers;
+use Eventin\Vendor\Ens\Base\PostModel;
+use Eventin\Vendor\Ens\Utils\Helpers;
 use WP_Query;
 
 /**

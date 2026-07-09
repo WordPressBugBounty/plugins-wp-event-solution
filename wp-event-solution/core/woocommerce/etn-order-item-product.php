@@ -28,6 +28,41 @@ class Etn_Woo_Product extends WC_Product {
         $this->supports[] = 'ajax_add_to_cart';
         parent::__construct( $product );
     }
+
+    /**
+     * Resolve the real price for an etn event product.
+     *
+     * Etn events keep no usable price on the product itself: the `_price`
+     * postmeta stays 0 and the per-booking amount (ticket variations ×
+     * quantity) lives only in the cart line meta `_etn_variation_total_price`,
+     * injected at runtime by Hooks::set_cart_total() on the in-memory cart
+     * product. Any payment gateway that reloads the product fresh via
+     * wc_get_product() and reads get_price() — e.g. iyzico's PriceHelper does
+     * `get_price() * quantity` — therefore sees 0 and aborts the order with
+     * "Fiyat bilgisi sıfırdan büyük olmalıdır" (price must be greater than
+     * zero). Fall back to the live cart line for this event so a freshly
+     * loaded product reports the correct, non-zero amount. Tickets are sold
+     * individually (cart quantity is locked to 1), so the cart-line total is
+     * the per-unit price.
+     *
+     * @param   string  $context
+     * @return  string|float
+     */
+    public function get_price( $context = 'view' ) {
+        $price = parent::get_price( $context );
+
+        if ( ( '' === $price || floatval( $price ) <= 0 ) && function_exists( 'WC' ) && WC()->cart ) {
+            foreach ( WC()->cart->get_cart() as $cart_item ) {
+                $cart_product_id = isset( $cart_item['product_id'] ) ? absint( $cart_item['product_id'] ) : 0;
+
+                if ( $cart_product_id === $this->get_id() && ! empty( $cart_item['_etn_variation_total_price'] ) ) {
+                    return (float) $cart_item['_etn_variation_total_price'];
+                }
+            }
+        }
+
+        return $price;
+    }
     // maybe overwrite other functions from WC_Product
 }
 

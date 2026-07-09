@@ -18,7 +18,16 @@
     },
     "scripts": {
         "wp": "vendor/bin/wp",
-        "make-pot": "vendor/bin/wp i18n make-pot . languages/eventin.pot --exclude=src,node_modules,vendor,build,.git,tools --skip-js"
+        "make-pot": "vendor/bin/wp i18n make-pot . languages/eventin.pot --exclude=src,node_modules,vendor,build,.git,tools --skip-js",
+        "scope-sdk": "@php tools/scope-notification-sdk.php",
+        "post-install-cmd": [
+            "@php tools/scope-notification-sdk.php",
+            "@composer dump-autoload -o"
+        ],
+        "post-update-cmd": [
+            "@php tools/scope-notification-sdk.php",
+            "@composer dump-autoload -o"
+        ]
     },
     "config": {
         "process-timeout": 0

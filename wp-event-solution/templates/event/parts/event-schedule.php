@@ -117,7 +117,7 @@
 		                                        aria-label="<?php echo esc_html($speaker_title); ?>">
 		                                        <?php if ($etn_speaker_image): ?>
 		                                            <img src="<?php echo esc_url($etn_speaker_image); ?>" alt="<?php echo esc_attr($speaker_title); ?>" height="50" width="50">
-		                                        <?php echo get_the_post_thumbnail($value, 'thumbnail'); ?>
+		                                        <?php //echo get_the_post_thumbnail($value, 'thumbnail'); ?>
 		                                        <?php else: ?>
 	                                        <img src='<?php echo esc_url($speaker_avatar); ?>'
 	                                            alt='<?php echo esc_attr($speaker_title); ?>'>

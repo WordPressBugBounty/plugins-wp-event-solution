@@ -70,6 +70,12 @@ class RefundController extends WP_REST_Controller {
             'refundable_total' => max( 0, round( $final_amount - $total, 2 ) ),
             'final_amount'     => $final_amount,
             'order_status'     => $order->status,
+            // Currency captured on the order at purchase time (reflects the
+            // gateway/currency actually used), falling back to the global setting.
+            'currency'         => $order->currency ? $order->currency : etn_currency(),
+            'currency_symbol'  => $order->currency_symbol
+                ? html_entity_decode( $order->currency_symbol, ENT_QUOTES, 'UTF-8' )
+                : html_entity_decode( etn_currency_symbol(), ENT_QUOTES, 'UTF-8' ),
         ], 200 );
     }
 

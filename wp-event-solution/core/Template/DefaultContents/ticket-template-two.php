@@ -59,6 +59,8 @@
             <p style="font-size:18px;font-weight:400;color:#4a5568;margin-bottom:0px;">{{ticket_type}}</p>
         </div>
 
+        {{add_ons}}
+
         <div class="wp-block-group ticket-row" style="display:flex;justify-content:space-between;width:100%;">
             <p style="font-size:18px;font-weight:500;color:#2d3748;margin-bottom:0px;">Payment Status:</p>
             <p style="font-size:18px;font-weight:400;color:#4a5568;margin-bottom:0px;">{{payment_status}}</p>

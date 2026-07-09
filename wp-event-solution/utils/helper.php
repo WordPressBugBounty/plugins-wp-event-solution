@@ -1149,6 +1149,116 @@
         }
 
         /**
+         * Single page organizer block (event template two/three)
+         *
+         * Ported from Eventin Pro so event layouts two & three render organizers
+         * even when the Pro plugin is inactive.
+         *
+         * @param mixed $etn_organizer_events
+         *
+         * @return void
+         */
+        public static function single_template_organizer( $etn_organizer_events )
+        {
+            if ( file_exists( get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'event/event-pro-organizers.php' ) ) {
+                require get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'event/event-pro-organizers.php';
+            } elseif ( file_exists( get_template_directory() . \Wpeventin::theme_templates_dir() . 'event/event-pro-organizers.php' ) ) {
+                require get_template_directory() . \Wpeventin::theme_templates_dir() . 'event/event-pro-organizers.php';
+            } elseif ( file_exists( \Wpeventin::templates_dir() . 'event/event-pro-organizers.php' ) ) {
+                require \Wpeventin::templates_dir() . 'event/event-pro-organizers.php';
+            }
+        }
+
+        /**
+         * Single page speaker block (event template two/three)
+         *
+         * Ported from Eventin Pro so event layouts two & three render speakers
+         * even when the Pro plugin is inactive.
+         *
+         * @param mixed $etn_speaker_events
+         *
+         * @return void
+         */
+        public static function single_template_speaker( $etn_speaker_events )
+        {
+            if ( file_exists( get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'event/event-pro-speaker.php' ) ) {
+                require get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'event/event-pro-speaker.php';
+            } elseif ( file_exists( get_template_directory() . \Wpeventin::theme_templates_dir() . 'event/event-pro-speaker.php' ) ) {
+                require get_template_directory() . \Wpeventin::theme_templates_dir() . 'event/event-pro-speaker.php';
+            } elseif ( file_exists( \Wpeventin::templates_dir() . 'event/event-pro-speaker.php' ) ) {
+                require \Wpeventin::templates_dir() . 'event/event-pro-speaker.php';
+            }
+        }
+
+        /**
+         * Return a dash separator when the given value is non-empty.
+         *
+         * Ported from Eventin Pro (used by the event two/three location-detail rows).
+         *
+         * @param string $param
+         *
+         * @return string
+         */
+        public static function showing_space( $param )
+        {
+            $dash = '';
+
+            if ( '' !== $param ) {
+                $dash = ' - ';
+            }
+
+            return $dash;
+        }
+
+        /**
+         * Render the countdown markup for event templates two & three.
+         *
+         * Ported from Eventin Pro so the single-event countdown renders when the
+         * Pro plugin is inactive. Requires the `etn-jquery-countdown` assets, which
+         * the free plugin now registers, plus the `.etn-countdown-parent` init in
+         * event-manager-public.js.
+         *
+         * @param string $etn_start_date
+         * @param string $event_start_time
+         * @param string $etn_timezone
+         *
+         * @return void
+         */
+        public static function countdown_markup( $etn_start_date, $event_start_time, $etn_timezone )
+        {
+            $event_start_time   = isset( $event_start_time ) && ( "" != $event_start_time ) ? date_i18n( "H:i:s", strtotime( $event_start_time ) ) : "00:00:00";
+            $event_start_date   = isset( $etn_start_date ) && ( "" != $etn_start_date ) ? date_i18n( "m/d/Y", strtotime( $etn_start_date ) ) : date_i18n( "m/d/Y", time() );
+            $counter_start_time = $event_start_date . " " . $event_start_time;
+            $countdown_day      = esc_html__( "day", "eventin" );
+            $countdown_hr       = esc_html__( "hr", "eventin" );
+            $countdown_min      = esc_html__( "min", "eventin" );
+            $countdown_sec      = esc_html__( "sec", "eventin" );
+            $event_options      = get_option( "etn_event_options" );
+            $show_seperate_dot  = true;
+            $timezone_offset    = \Etn\Core\Event\Helper::instance()->get_timezone_numeric_value( $etn_timezone );
+
+            $date_texts = [
+                'day'    => $countdown_day,
+                'days'   => esc_html__( "days", "eventin" ),
+                'hr'     => $countdown_hr,
+                'hrs'    => esc_html__( "hrs", "eventin" ),
+                'min'    => $countdown_min,
+                'mins'   => esc_html__( "mins", "eventin" ),
+                'sec'    => $countdown_sec,
+                'secs'   => esc_html__( "secs", "eventin" ),
+                'offset' => $timezone_offset,
+            ];
+
+            if ( file_exists( get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'event/event-pro-countdown.php' ) ) {
+                require get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'event/event-pro-countdown.php';
+            } elseif ( file_exists( get_template_directory() . \Wpeventin::theme_templates_dir() . 'event/event-pro-countdown.php' ) ) {
+                require get_template_directory() . \Wpeventin::theme_templates_dir() . 'event/event-pro-countdown.php';
+            } elseif ( file_exists( \Wpeventin::templates_dir() . 'event/event-pro-countdown.php' ) ) {
+                require \Wpeventin::templates_dir() . 'event/event-pro-countdown.php';
+            }
+        }
+
+        /**
          * Get Schedule Topics by User ID
          *
          * @param int $user_id The ID of the user.
@@ -1376,7 +1486,12 @@
         public static function prepare_event_template_path($default_template_name, $template_name)
         {
 
-            if ("event-one" !== $template_name && class_exists('Etn_Pro\Bootstrap') && class_exists('Wpeventin_Pro')) {
+            // Layouts one, two and three now ship in the free plugin, so they resolve
+            // to the free templates dir whether or not Pro is active. Any other
+            // (Pro-only) template still resolves from Pro when it is present.
+            if ( in_array( $template_name, [ 'event-one', 'event-two', 'event-three' ], true ) ) {
+                $single_template_path = \Wpeventin::templates_dir() . $template_name . ".php";
+            } elseif ("event-one" !== $template_name && class_exists('Etn_Pro\Bootstrap') && class_exists('Wpeventin_Pro')) {
                 $single_template_path = \Wpeventin_Pro::templates_dir() . $template_name . ".php";
             } else {
                 $single_template_path = \Wpeventin::templates_dir() . $default_template_name . ".php";
@@ -3723,13 +3838,12 @@
                             $start_time        = empty($etn_start_time) ? '' : (($event_time_format == "24") ? date('H:i', $etn_start_time) : date('g:i a', $etn_start_time));
                             $end_time          = empty($etn_end_time) ? '' : (($event_time_format == "24") ? date('H:i', $etn_end_time) : date('g:i a', $etn_end_time));
 
-                            if ($start_date < $end_date) {
-                                $start_date = $start_date;
-                                $end_date   = $end_date;
-                            } else {
-                                $start_date = $start_date . "" . $start_time;
-                                $end_date   = $end_date . "" . $end_time;
-                            }
+                            // Always expose clean, date-only values. The frontend composes
+                            // the time from the separate start_time/end_time fields, so
+                            // concatenating them here (with no separator) only produced
+                            // malformed strings like "2026-06-1910:00 am".
+                            $start_date = $start_date;
+                            $end_date   = $end_date;
 
                             $event->className  = "has-event";
                             $event->start_time = $start_time;
@@ -3857,8 +3971,25 @@
                      */
                     public static function eventin_ticket_widget($single_event_id, $style = "", $class = "", $style_variant = "")
                     {
-                        // purchase module script
-                        wp_enqueue_script('etn-module-purchase');
+                        // PERF: the purchase form is a React app (build/js/module-purchase.js)
+                        // that pulls in the shared admin vendor stack (antd, react, dayjs and
+                        // the Gutenberg editor externals) — several MB a public event page does
+                        // not need at first paint. On normal front-end page views, defer it:
+                        // render a server-side placeholder and load the bundle on first
+                        // interaction via the etn-ticket-lazy loader. In admin / REST / AJAX /
+                        // preview contexts there is no wp_footer to carry the lazy payload, so
+                        // enqueue eagerly as before.
+                        $can_lazy_load = ! is_admin()
+                            && ! wp_doing_ajax()
+                            && ! ( defined( 'REST_REQUEST' ) && REST_REQUEST )
+                            && ! is_preview();
+
+                        if ( $can_lazy_load ) {
+                            self::enable_lazy_ticket_loader();
+                        } else {
+                            // purchase module script
+                            wp_enqueue_script('etn-module-purchase');
+                        }
 
                         if (file_exists(get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'event/purchase-form/single-event-variable-ticket.php')) {
                             $purchase_form_widget = get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'event/purchase-form/single-event-variable-ticket.php';
@@ -3869,6 +4000,148 @@
                         }
 
                         include $purchase_form_widget;
+                    }
+
+                    /**
+                     * Handles queued for import-on-interaction loading.
+                     *
+                     * @var string[]
+                     */
+                    private static $lazy_handles = array();
+
+                    /**
+                     * Queue a registered script handle for import-on-interaction loading.
+                     *
+                     * Instead of enqueuing a heavy React/antd frontend bundle eagerly (which
+                     * drags the shared vendor chunks onto first paint), this records the handle,
+                     * enqueues the tiny vanilla loader once, and schedules the captured
+                     * dependency subtree to be printed late in the footer. The loader replays it
+                     * the first time the visitor interacts with the page (or taps a CTA).
+                     *
+                     * Multiple handles queued on the same request (e.g. the ticket purchase
+                     * bundle + the Pro RSVP bundle) are captured together, so their shared
+                     * vendor chunks are emitted only once.
+                     *
+                     * @param string $handle Registered script handle to defer.
+                     * @return void
+                     */
+                    public static function enqueue_lazy_bundle( $handle )
+                    {
+                        if ( ! in_array( $handle, self::$lazy_handles, true ) ) {
+                            self::$lazy_handles[] = $handle;
+                        }
+
+                        if ( ! wp_script_is( 'etn-ticket-lazy', 'enqueued' ) ) {
+                            // Version by file content so edits always bust browser caches
+                            // (the static plugin version would not change between patches).
+                            $loader_path = \Wpeventin::plugin_dir() . 'assets/js/etn-ticket-lazy.js';
+                            $loader_ver  = file_exists( $loader_path )
+                                ? hash_file( 'crc32b', $loader_path )
+                                : \Wpeventin::version();
+
+                            wp_enqueue_script(
+                                'etn-ticket-lazy',
+                                \Wpeventin::plugin_url( 'assets/js/etn-ticket-lazy.js' ),
+                                array(),
+                                $loader_ver,
+                                true
+                            );
+                        }
+
+                        // Skeleton styles for the lazy placeholders (shown only until the
+                        // React bundle loads on first interaction, then replaced on mount).
+                        if ( ! wp_style_is( 'etn-lazy-skeleton', 'enqueued' ) ) {
+                            wp_register_style( 'etn-lazy-skeleton', false );
+                            wp_enqueue_style( 'etn-lazy-skeleton' );
+                            wp_add_inline_style(
+                                'etn-lazy-skeleton',
+                                '.etn-ticket-placeholder,.etn-rsvp-placeholder{padding:20px;border:1px solid #eef0f4;border-radius:10px;background:#fff}'
+                                . '.etn-ticket-placeholder .etn-purchase-ticket-title,.etn-rsvp-placeholder .etn-rsvp-placeholder-title{margin:0 0 6px;font-size:20px;font-weight:700;color:#334155}'
+                                . '.etn-ticket-price-hint{font-size:14px;color:#64748b;margin-bottom:16px}'
+                                . '.etn-skel{background:linear-gradient(90deg,#eef1f6 25%,#e3e7ef 37%,#eef1f6 63%);background-size:400% 100%;animation:etn-skel 1.4s ease infinite;border-radius:6px}'
+                                . '.etn-skel-row{height:42px;margin-bottom:12px}'
+                                . '.etn-skel-btn{height:44px;width:150px;margin-top:4px;border-radius:8px}'
+                                . '@keyframes etn-skel{0%{background-position:100% 50%}100%{background-position:0 50%}}'
+                                . '@media (prefers-reduced-motion:reduce){.etn-skel{animation:none}}'
+                            );
+                        }
+
+                        static $payload_hooked = false;
+                        if ( $payload_hooked ) {
+                            return;
+                        }
+                        $payload_hooked = true;
+
+                        // Priority 100: run after WP has printed the normal footer scripts, so
+                        // the captured subtree contains only handles not already on the page
+                        // (the deferred bundles + their vendor / wp-core dependencies).
+                        add_action( 'wp_footer', array( __CLASS__, 'print_lazy_ticket_payload' ), 100 );
+                    }
+
+                    /**
+                     * Back-compat wrapper: queue the ticket purchase bundle for lazy loading.
+                     *
+                     * @return void
+                     */
+                    public static function enable_lazy_ticket_loader()
+                    {
+                        self::enqueue_lazy_bundle( 'etn-module-purchase' );
+                    }
+
+                    /**
+                     * Print the deferred bundles' dependency subtree as an inert <template>,
+                     * to be replayed on interaction by etn-ticket-lazy.js.
+                     *
+                     * @return void
+                     */
+                    public static function print_lazy_ticket_payload()
+                    {
+                        $payload = self::capture_lazy_script_payload( self::$lazy_handles );
+
+                        if ( '' === $payload ) {
+                            return;
+                        }
+
+                        // The payload is WP-generated <script> markup captured verbatim;
+                        // escaping it would corrupt the tags it must reproduce.
+                        echo '<template id="etn-mp-payload">' . $payload . '</template>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+                    }
+
+                    /**
+                     * Capture the full, ordered <script> dependency subtree for one or more
+                     * registered handles without affecting the live print queue.
+                     *
+                     * Works on an isolated clone of WP_Scripts so resolving and printing the
+                     * subtree here does not mark these handles "done" on the real queue (which
+                     * would suppress them if another component legitimately enqueues them). Any
+                     * handle already printed on the page is skipped automatically (it is in the
+                     * clone's "done" list copied from the global instance). Passing several
+                     * handles emits their shared dependencies only once.
+                     *
+                     * @param string|string[] $handles Registered script handle(s).
+                     * @return string Concatenated <script> markup, or '' if nothing to emit.
+                     */
+                    public static function capture_lazy_script_payload( $handles )
+                    {
+                        $handles = array_values( array_filter( (array) $handles, function ( $handle ) {
+                            return wp_script_is( $handle, 'registered' );
+                        } ) );
+
+                        if ( empty( $handles ) ) {
+                            return '';
+                        }
+
+                        $scripts = wp_scripts();
+
+                        $clone            = clone $scripts;
+                        $clone->to_do     = array();
+                        $clone->do_concat = false; // Never concatenate; we want discrete tags.
+
+                        ob_start();
+                        $clone->do_items( $handles );
+                        $html = ob_get_clean();
+
+                        return is_string( $html ) ? $html : '';
                     }
 
                     /**
@@ -4522,10 +4795,12 @@
             include_once \Wpeventin::plugin_dir() . 'core/event/template-hooks.php';
             include_once \Wpeventin::plugin_dir() . 'core/event/template-functions.php';
 
-            if (class_exists('Wpeventin_Pro')) {
-                include_once \Wpeventin_Pro::core_dir() . 'Event/template-functions.php';
-                include_once \Wpeventin_Pro::core_dir() . 'Event/template-hooks.php';
-            }
+            // Pro's single-event template layer (layouts two & three + the layout-one
+            // map/speaker additions) is now merged into the free template files above,
+            // which are the source of truth. Loading Pro's copies here would
+            // double-register the layout hooks, so we intentionally no longer include
+            // them. Pro's function definitions are function_exists-guarded and its
+            // markup lives in the free templates dir, so nothing else needs Pro's copies.
         }
 
     /**

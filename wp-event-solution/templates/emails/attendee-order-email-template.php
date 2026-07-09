@@ -25,6 +25,7 @@
     style="margin: 30px 0; background-color: #c9c9c9; height: 1px"
 ></div>
 <!-- Ticket Details Area -->
+<?php if ( ! empty( $attendee ) ) : ?>
     <div>
         <h2
         style="
@@ -104,7 +105,9 @@
             style="margin: 30px 0; background-color: #c9c9c9; height: 1px"
             ></div>
         <div>
+<?php endif; ?>
 
+<?php if ( ! empty( $event ) ) : ?>
 <!-- Event Details Area -->
 <div style="margin-top: 20px">
     <h3
@@ -201,3 +204,4 @@
     </div>
     </div>
 </div>
+<?php endif; ?>

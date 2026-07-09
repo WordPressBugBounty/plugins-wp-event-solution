@@ -22,6 +22,15 @@ class Settings {
     public static function get( $key = '' ) {
         $settings = get_option( self::$option_name, [] );
 
+        // Harden against a corrupted option value. If the row exists but holds a
+        // non-array (e.g. an empty string written by an external process), the
+        // default [] above is ignored by get_option(), and the offset assignment
+        // in update() would fatal with "Cannot access offset of type string on
+        // string", white-screening the entire site on every boot.
+        if ( ! is_array( $settings ) ) {
+            $settings = [];
+        }
+
         if ( ! $key ) {
             return $settings;
         }

@@ -524,7 +524,7 @@ defined( 'ABSPATH' ) || exit;
 										<?php echo esc_html__( 'Upgrade to Pro', 'eventin' ); ?>
 									</a>
 								<?php } else {?>
-									<a target="_blank" href="https://support.themewinter.com/docs/plugins/plugin-docs/integration/bricks-builder-integration/" class="etn-btn-text">
+									<a target="_blank" href="https://themewinter.com/docs/plugins/plugin-docs/integration/bricks-builder-integration/" class="etn-btn-text">
 										<?php echo esc_html__( 'Documentation', 'eventin' ); ?>
 									</a>
 								<?php }?>
@@ -577,7 +577,7 @@ defined( 'ABSPATH' ) || exit;
 										<?php echo esc_html__( 'Upgrade to Pro', 'eventin' ); ?>
 									</a>
 								<?php } else {?>
-									<a target="_blank" href="https://support.themewinter.com/docs/plugins/plugin-docs/integration/oxygen-builder-integration-pro/" class="etn-btn-text">
+									<a target="_blank" href="https://themewinter.com/docs/plugins/plugin-docs/integration/oxygen-builder-integration-pro/" class="etn-btn-text">
 										<?php echo esc_html__( 'Documentation', 'eventin' ); ?>
 									</a>
 								<?php }?>

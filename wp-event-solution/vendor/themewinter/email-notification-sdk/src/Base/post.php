@@ -1,6 +1,6 @@
 <?php
 
-namespace Ens\Base;
+namespace Eventin\Vendor\Ens\Base;
 
 /**
  * Main post class

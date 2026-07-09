@@ -46,6 +46,13 @@ class Admin {
             return;
         }
 
+        // Respect the Google Map addon toggle. When the addon is off the venue
+        // autocomplete React field falls back to manual entry, so there is no
+        // reason to inject Google's Maps loader.
+        if ( 'on' !== etn_get_option( 'etn_googlemap_api' ) ) {
+            return;
+        }
+
         $api_key = etn_get_option( 'google_api_key' );
         if ( empty( $api_key ) ) {
             return;

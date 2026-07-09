@@ -166,6 +166,24 @@ if ( wp_is_block_theme() ) {
                         </td>
                     </tr>
                     <?php endforeach; ?>
+                    <?php if ( ! empty( $order->option_selections ) && is_array( $order->option_selections ) ) : ?>
+                        <?php foreach ( $order->option_selections as $addon ) : ?>
+                        <tr style="border-bottom:1px solid #f1f5f9;">
+                            <td style="padding:14px 0;font-size:14px;color:#334155;">
+                                <?php echo esc_html( ( $addon['field_label'] ?? '' ) . ': ' . ( $addon['choice_value'] ?? '' ) ); ?>
+                                <span style="color:#94a3b8;">&nbsp;&times;&nbsp;<?php echo esc_html( $addon['qty'] ?? 1 ); ?></span>
+                            </td>
+                            <td style="padding:14px 0;text-align:right;font-size:14px;color:#334155;">
+                                <?php
+                                echo esc_html( \Etn\Core\Event\Helper::instance()->currency_with_position(
+                                    number_format( (float) ( $addon['line_total'] ?? 0 ), 2 ),
+                                    $order
+                                ) );
+                                ?>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
                 </tbody>
             </table>
         </div>

@@ -51,7 +51,13 @@ class OrderModel extends Post_Model {
         'remaining_time_to_pay' => 3,
         'extra_fields'        => [],
         'currency'			  => '',
-        'currency_symbol'     => ''
+        'currency_symbol'     => '',
+        'customer_country'    => '',
+        'customer_state'      => '',
+        'customer_city'       => '',
+        'customer_zip'        => '',
+        'option_selections'   => [],
+        'options_total'       => 0,
     ];
 
     /**

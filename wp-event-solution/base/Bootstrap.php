@@ -14,6 +14,7 @@ use Eventin\Emails\EmailHookProvider;
 use Eventin\Refund\RefundProvider;
 use Eventin\Reports\ReportProvider;
 use Eventin\Template\TemplateProvider;
+use Eventin\PreviewPlaceholder\PreviewPlaceholderProvider;
 use Eventin\Upgrade\Upgraders\V_4_0_29;
 
 /**
@@ -39,6 +40,7 @@ class Bootstrap {
         SpeakerProvider::class,
         EmailHookProvider::class,
         TemplateProvider::class,
+        PreviewPlaceholderProvider::class,
         RefundProvider::class,
         ReportProvider::class,
     ];

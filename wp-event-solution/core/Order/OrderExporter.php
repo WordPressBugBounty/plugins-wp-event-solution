@@ -89,7 +89,13 @@ class OrderExporter implements PostExporterInterface {
             $total_discount = floatval(get_post_meta( $order->id, 'discount_total', true ));
             $tax_display_mode = get_post_meta( $order->id, 'tax_display_mode', true );
             $extra_fields = json_encode(etn_safe_decode(get_post_meta( $order->id, 'extra_fields', true )));
-            
+
+            $option_selections = etn_safe_decode( get_post_meta( $order->id, 'option_selections', true ) );
+            $options_total     = floatval( get_post_meta( $order->id, 'options_total', true ) );
+            if ( 'csv' === $this->format ) {
+                $option_selections = json_encode( $option_selections ?: [] );
+            }
+
             $final_total = floatval( $order->total_price ) - $total_discount;
 
             if ( $tax_display_mode != 'incl' ) {
@@ -112,6 +118,8 @@ class OrderExporter implements PostExporterInterface {
                 'total_price'       => $order->total_price,
                 'final_price'       => $final_total,
                 'ticket_items'      => $tickets,
+                'add_ons'           => $option_selections,
+                'add_ons_total'     => $options_total,
                 'extra_fields'      => $extra_fields,
                 'attendees'         => $attendees,
             ];
@@ -145,6 +153,8 @@ class OrderExporter implements PostExporterInterface {
             'total_price'        => __( 'Total Price', 'eventin' ),
             'final_price'        => __( 'Final Price', 'eventin' ),
             'ticket_items'       => __( 'Ticket Items', 'eventin' ),
+            'add_ons'            => __( 'Add-ons', 'eventin' ),
+            'add_ons_total'      => __( 'Add-ons Total', 'eventin' ),
             'attendees'          => __( 'Attendees', 'eventin' ),
             'extra_fields'       => __( 'Extra Fields', 'eventin' ),
         ];

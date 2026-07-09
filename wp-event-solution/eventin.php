@@ -10,7 +10,7 @@ defined('ABSPATH') || exit;
  * Plugin Name:       Eventin
  * Plugin URI:        https://themewinter.com/eventin/
  * Description:       Simple and Easy to use Event Management Solution
- * Version:           4.1.15
+ * Version:           4.1.16
  * Author:            Themewinter
  * Author URI:        https://themewinter.com/
  * License:           GPL-2.0+
@@ -44,7 +44,7 @@ class Wpeventin
 	 * @var string The plugin version.
 	 */
 	public static function version() {
-		return "4.1.15";
+		return "4.1.16";
 	}
     /**
      * Initializes the Wpeventin() class
@@ -409,8 +409,8 @@ class Wpeventin
 
     private function load_automation_package()
     {
-        if (class_exists(\Ens\Core\SDK::class)) {
-            \Ens\Core\SDK::get_instance()->setup([
+        if (class_exists(\Eventin\Vendor\Ens\Core\SDK::class)) {
+            \Eventin\Vendor\Ens\Core\SDK::get_instance()->setup([
                 'plugin_name'          => 'Eventin',
                 'plugin_slug'          => 'eventin',
                 'general_prefix'       => 'eve',
@@ -596,8 +596,20 @@ class Wpeventin
                         ],
                         "delay_dependencies"       => [
                             [
-                                "label" => "Before Event Date",
-                                "value" => "before_event_date",
+                                "label" => "Before Event Start",
+                                "value" => "before_event_start_date",
+                            ],
+                            [
+                                "label" => "Before Event End",
+                                "value" => "before_event_end_date",
+                            ],
+                            [
+                                "label" => "After Event Start",
+                                "value" => "after_event_start_date",
+                            ],
+                            [
+                                "label" => "After Event End",
+                                "value" => "after_event_end_date",
                             ],
                         ],
                         "email_receivers"          => [
@@ -651,8 +663,97 @@ class Wpeventin
                         ],
                         "delay_dependencies"       => [
                             [
-                                "label" => "Before Event Date",
-                                "value" => "before_event_date",
+                                "label" => "Before Event Start",
+                                "value" => "before_event_start_date",
+                            ],
+                            [
+                                "label" => "Before Event End",
+                                "value" => "before_event_end_date",
+                            ],
+                            [
+                                "label" => "After Event Start",
+                                "value" => "after_event_start_date",
+                            ],
+                            [
+                                "label" => "After Event End",
+                                "value" => "after_event_end_date",
+                            ],
+                        ],
+                        "email_receivers"          => [
+                            [
+                                "label" => "Attendee",
+                                "value" => "attendee_email",
+                            ],
+                        ],
+                    ],
+                    [
+                        "trigger_label"            => "Send Certificate",  // Name of the event
+                        "trigger_value"            => "send_certificate",  // Event slug
+                        "trigger_data"             => [                    // Data you have after the event happened
+                            [
+                                "label" => "Site Name",
+                                "value" => "site_name",
+                                "type"  => "string",
+                            ],
+                            [
+                                "label" => "Site Link",
+                                "value" => "site_link",
+                                "type"  => "string",
+                            ],
+                            [
+                                "label" => "Event Title",
+                                "value" => "event_title",
+                                "type"  => "string",
+                            ],
+                            [
+                                "label" => "Event Date",
+                                "value" => "event_date",
+                                "type"  => "date",
+                            ],
+                            [
+                                "label" => "Event Time",
+                                "value" => "event_time",
+                                "type"  => "string",
+                            ],
+                            [
+                                "label" => "Event Location",
+                                "value" => "event_location",
+                                "type"  => "string",
+                            ],
+                            [
+                                "label" => "Certificate Link",
+                                "value" => "certificate_link",
+                                "type"  => "string",
+                            ],
+                            [
+                                "label" => "Ticket Link",
+                                "value" => "ticket_link",
+                                "type"  => "string",
+                            ],
+                        ],
+                        "conditional_dependencies" => [ // Data you have after the event happened
+                            [
+                                "label" => "Event Title",
+                                "value" => "event_title",
+                                "type"  => "string",
+                            ],
+                        ],
+                        "delay_dependencies"       => [
+                            [
+                                "label" => "Before Event Start",
+                                "value" => "before_event_start_date",
+                            ],
+                            [
+                                "label" => "Before Event End",
+                                "value" => "before_event_end_date",
+                            ],
+                            [
+                                "label" => "After Event Start",
+                                "value" => "after_event_start_date",
+                            ],
+                            [
+                                "label" => "After Event End",
+                                "value" => "after_event_end_date",
                             ],
                         ],
                         "email_receivers"          => [

@@ -23,7 +23,7 @@
             "installation-source": "dist",
             "autoload": {
                 "psr-4": {
-                    "Ens\\": "src/"
+                    "Eventin\\Vendor\\Ens\\": "src/"
                 },
                 "files": [
                     "src/Utils/global-helpers.php"

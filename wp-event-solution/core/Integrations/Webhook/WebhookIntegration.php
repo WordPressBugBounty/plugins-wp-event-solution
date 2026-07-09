@@ -18,6 +18,7 @@ class WebhookIntegration implements HookableInterface {
     private $integrations = [
         FluentCRM::class,
         MailMint::class,
+        MailPoet::class,
     ];
 
     /**

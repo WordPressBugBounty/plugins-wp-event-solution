@@ -1,19 +1,44 @@
 <?php
+    $tax_display_mode = '';
+
     // For FluentCart orders with tax, always defer to the FC store's tax_inclusion setting -
     // the saved tax_display_mode on the order can be stale or wrong when FC's tax_behavior
     // column wasn't populated from the cart's tax_data at order creation time. For all other
     // gateways, prefer the order's stored value; fall back to the WooCommerce global last.
-    $tax_display_mode = $order->tax_display_mode;
+    if ( ! empty( $order ) ) {
+        $tax_display_mode = $order->tax_display_mode;
 
-    if ( $order->payment_method === 'fluentcart' && $order->tax_total > 0 && class_exists( '\\FluentCart\\App\\Modules\\Tax\\TaxModule' ) ) {
-        $fc_tax_settings  = ( new \FluentCart\App\Modules\Tax\TaxModule() )->getSettings();
-        $fc_tax_inclusion = is_array( $fc_tax_settings ) ? ( $fc_tax_settings['tax_inclusion'] ?? '' ) : '';
-        $tax_display_mode = ( 'included' === $fc_tax_inclusion ) ? 'incl' : 'excl';
+        if ( $order->payment_method === 'fluentcart' && $order->tax_total > 0 && class_exists( '\\FluentCart\\App\\Modules\\Tax\\TaxModule' ) ) {
+            $fc_tax_settings  = ( new \FluentCart\App\Modules\Tax\TaxModule() )->getSettings();
+            $fc_tax_inclusion = is_array( $fc_tax_settings ) ? ( $fc_tax_settings['tax_inclusion'] ?? '' ) : '';
+            $tax_display_mode = ( 'included' === $fc_tax_inclusion ) ? 'incl' : 'excl';
+        }
+
+        if ( empty( $tax_display_mode ) ) {
+            $tax_display_mode = get_option( 'woocommerce_tax_display_shop' );
+        }
     }
 
-    if ( empty( $tax_display_mode ) ) {
-        $tax_display_mode = get_option( 'woocommerce_tax_display_shop' );
+    // Presentation flag: whether tax is shown as an "(includes … Tax)" note (inclusive)
+    // or as a separate "+ Tax" line (exclusive). This is independent of $tax_display_mode,
+    // which only says whether tax is already baked into $order->total_price. Native gateways
+    // always persist tax_display_mode = 'incl' (for reporting), so they must consult the
+    // Eventin tax_type setting to tell inclusive from exclusive — same as the success page.
+    if ( 'wc' === $order->payment_method || 'fluentcart' === $order->payment_method ) {
+        $tax_included_in_total = ( 'incl' === $tax_display_mode );
+    } else {
+        $tax_included_in_total = ( 'inclusive' === etn_get_option( 'tax_type', 'exclusive' ) );
     }
+
+    // Subtotal is the sum of the line items shown below — ticket lines PLUS the
+    // add-on (Optiontics) lines — never $order->total_price, which already carries
+    // tax for native orders. Add-on rows are itemised above the Subtotal, so leaving
+    // options_total out makes Subtotal + Tax fail to equal Total.
+    $items_subtotal = 0;
+    foreach ( $order->get_tickets() as $subtotal_ticket ) {
+        $items_subtotal += floatval( $subtotal_ticket['etn_ticket_price'] ) * intval( $subtotal_ticket['etn_ticket_qty'] );
+    }
+    $items_subtotal += (float) $order->options_total;
 ?>
 <!--Email Content Area -->
 <?php if ( ! empty( $content ) ) { ?>
@@ -40,6 +65,7 @@
     </h1>
 <?php } ?>
 
+<?php if ( ! empty( $order ) ) : ?>
 <!-- Order Header -->
 <div
     style="
@@ -83,6 +109,40 @@
             </td>
         </tr>
         <?php endforeach; ?>
+        <?php
+            // OrderModel exposes meta through __get without a __isset, so empty()/isset()
+            // on $order->option_selections is unreliable (always reads as "not set").
+            // Read into locals first, then test those.
+            $etn_order_addons        = is_array( $order->option_selections ) ? $order->option_selections : [];
+            $etn_order_options_total = (float) $order->options_total;
+        ?>
+        <?php if ( ! empty( $etn_order_addons ) ): ?>
+            <?php foreach( $etn_order_addons as $addon ): ?>
+            <tr>
+                <td style="padding: 10px 0; font-size: 14px; color: #334155">
+                    <?php printf( '%s: %s &times; %s', esc_html( $addon['field_label'] ?? '' ), esc_html( $addon['choice_value'] ?? '' ), esc_html( $addon['qty'] ?? 1 ) ); ?>
+                </td>
+                <td style="padding: 10px 0; text-align: right; font-size: 14px; color: #334155;">
+                    <?php
+                        $addon_price = \Etn\Core\Event\Helper::instance()->currency_with_position( number_format( (float) ( $addon['line_total'] ?? 0 ), 2 ), $order );
+                        printf( '%s', esc_html( $addon_price ) );
+                    ?>
+                </td>
+            </tr>
+            <?php endforeach; ?>
+        <?php elseif ( $etn_order_options_total > 0 ): ?>
+            <tr>
+                <td style="padding: 10px 0; font-size: 14px; color: #334155">
+                    <?php echo esc_html__( 'Add-ons', 'eventin' ); ?>
+                </td>
+                <td style="padding: 10px 0; text-align: right; font-size: 14px; color: #334155;">
+                    <?php
+                        $addon_total_price = \Etn\Core\Event\Helper::instance()->currency_with_position( number_format( $etn_order_options_total, 2 ), $order );
+                        printf( '%s', esc_html( $addon_total_price ) );
+                    ?>
+                </td>
+            </tr>
+        <?php endif; ?>
     </tbody>
     </table>
 
@@ -106,8 +166,8 @@
             "
         >
         <?php
-            $total_with_currency = \Etn\Core\Event\Helper::instance()->currency_with_position( number_format($order->total_price,2), $order );
-            printf( '%s', esc_html( $total_with_currency) );
+            $subtotal_with_currency = \Etn\Core\Event\Helper::instance()->currency_with_position( number_format( $items_subtotal, 2 ), $order );
+            printf( '%s', esc_html( $subtotal_with_currency ) );
         ?>
 
         </td>
@@ -136,7 +196,7 @@
             </td>
         </tr>
         <?php endif; ?>
-        <?php if ( $tax_display_mode != 'incl' && $order->tax_total > 0 ) : ?>
+        <?php if ( ! $tax_included_in_total && $order->tax_total > 0 ) : ?>
         <!-- Tax -->
         <tr>
             <td
@@ -194,20 +254,23 @@
                 $tax_total = 0;
             }
             
+            // Total value: when tax is already baked into total_price ('incl', i.e. all
+            // native orders and tax-inclusive WC/FC) don't add it again; otherwise
+            // (exclusive-stored, e.g. WooCommerce) add it on top.
             if ( $tax_display_mode === 'incl' && $order->tax_total > 0 ) {
-                // Inclusive tax: total already includes tax, so don't add it again
                 $final_total = floatval($order->total_price ) - floatval($discount_price);
-                $price_with_currency = \Etn\Core\Event\Helper::instance()->currency_with_position( number_format($final_total,2), $order );
-                $tax_with_currency = \Etn\Core\Event\Helper::instance()->currency_with_position( number_format($tax_total,2), $order );
+            } else {
+                $final_total = floatval($order->total_price ) - floatval($discount_price) + floatval($tax_total);
+            }
+            $price_with_currency = \Etn\Core\Event\Helper::instance()->currency_with_position( number_format($final_total,2), $order );
 
+            // Note vs separate line: only genuinely inclusive tax gets the "(includes … Tax)"
+            // note; exclusive tax is shown on its own "Tax:" row above instead.
+            $tax_note = '';
+            if ( $tax_included_in_total && $order->tax_total > 0 ) {
+                $tax_with_currency = \Etn\Core\Event\Helper::instance()->currency_with_position( number_format($tax_total,2), $order );
                 // translators: %s is the tax amount with currency symbol.
                 $tax_note    = sprintf( __( '(includes %s Tax)', 'eventin' ), esc_html( $tax_with_currency ) );
-
-            } else {
-                // Exclusive tax: add tax to the total
-                $final_total = floatval($order->total_price ) - floatval($discount_price) + floatval($tax_total);
-                $price_with_currency = \Etn\Core\Event\Helper::instance()->currency_with_position( number_format($final_total,2), $order );
-                $tax_note    = '';
             }
             
             // Output the final total with tax note
@@ -326,7 +389,9 @@
         <div>
         <?php endforeach; ?>
 <?php endif; ?>
+<?php endif; // ! empty( $order ) ?>
 
+<?php if ( ! empty( $event ) ) : ?>
 <!-- Event Details Area -->
 <div style="margin-top: 20px">
     <h3
@@ -412,3 +477,4 @@
     </div>
     </div>
 </div>
+<?php endif; ?>

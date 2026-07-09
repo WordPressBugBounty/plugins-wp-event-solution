@@ -24,11 +24,11 @@ class RevenueReport extends AbstractReport {
     public static function get_total_revenue( $dates = [], $event_id = null ) {
         global $wpdb;
 
-        $tax_display_mode = get_option( 'woocommerce_tax_display_shop' );
-
-        $revenue_expr = $tax_display_mode === 'incl'
-            ? 'COALESCE(price.meta_value + 0, 0) - COALESCE(discount.meta_value + 0, 0)'
-            : 'COALESCE(price.meta_value + 0, 0) - COALESCE(discount.meta_value + 0, 0) + COALESCE(tax.meta_value + 0, 0)';
+        // Add tax only for orders whose own tax_display_mode is not 'incl'.
+        // Native orders are stored 'incl' (tax already inside total_price), so
+        // they are not double-counted; WooCommerce orders keep their own mode.
+        $revenue_expr = "COALESCE(price.meta_value + 0, 0) - COALESCE(discount.meta_value + 0, 0)"
+            . " + CASE WHEN COALESCE(mode.meta_value, 'excl') = 'incl' THEN 0 ELSE COALESCE(tax.meta_value + 0, 0) END";
 
         // partially_refunded orders contribute (gross - sum of their refund amounts).
         // refunded orders are excluded entirely (net is 0).
@@ -48,6 +48,9 @@ class RevenueReport extends AbstractReport {
             LEFT JOIN {$wpdb->postmeta} tax
                 ON tax.post_id = p.ID
                 AND tax.meta_key = 'tax_total'
+            LEFT JOIN {$wpdb->postmeta} mode
+                ON mode.post_id = p.ID
+                AND mode.meta_key = 'tax_display_mode'
             LEFT JOIN {$wpdb->postmeta} refunds
                 ON refunds.post_id = p.ID
                 AND refunds.meta_key = 'etn_refunds'
@@ -129,11 +132,10 @@ class RevenueReport extends AbstractReport {
             return [];
         }
 
-        $tax_display_mode = get_option( 'woocommerce_tax_display_shop' );
-
-        $revenue_expr = $tax_display_mode === 'incl'
-            ? 'COALESCE(price.meta_value + 0, 0) - COALESCE(discount.meta_value + 0, 0)'
-            : 'COALESCE(price.meta_value + 0, 0) - COALESCE(discount.meta_value + 0, 0) + COALESCE(tax.meta_value + 0, 0)';
+        // Per-order tax mode: native orders are 'incl' (tax already in total_price),
+        // so tax is added only for non-'incl' (e.g. WooCommerce excl) orders.
+        $revenue_expr = "COALESCE(price.meta_value + 0, 0) - COALESCE(discount.meta_value + 0, 0)"
+            . " + CASE WHEN COALESCE(mode.meta_value, 'excl') = 'incl' THEN 0 ELSE COALESCE(tax.meta_value + 0, 0) END";
 
         $placeholders = implode( ',', array_fill( 0, count( $event_ids ), '%d' ) );
 
@@ -164,6 +166,9 @@ class RevenueReport extends AbstractReport {
             LEFT JOIN {$wpdb->postmeta} tax
                 ON tax.post_id = em.post_id
                 AND tax.meta_key = 'tax_total'
+            LEFT JOIN {$wpdb->postmeta} mode
+                ON mode.post_id = em.post_id
+                AND mode.meta_key = 'tax_display_mode'
             WHERE em.meta_key = 'event_id'
             AND em.meta_value IN ({$placeholders})
             GROUP BY em.meta_value", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
@@ -199,15 +204,13 @@ class RevenueReport extends AbstractReport {
         // Batch-load all order meta in a single query
         update_meta_cache( 'post', $order_ids );
 
-        // Get tax display mode once, outside the loop
-        $tax_display_mode = get_option( 'woocommerce_tax_display_shop' );
-
         foreach ( $order_ids as $order_id ) {
             $total_price    = floatval( get_post_meta( $order_id, 'total_price', true ) );
             $float_discount = floatval( get_post_meta( $order_id, 'discount_total', true ) );
             $float_tax      = floatval( get_post_meta( $order_id, 'tax_total', true ) );
+            $mode           = get_post_meta( $order_id, 'tax_display_mode', true );
 
-            if ( $tax_display_mode === 'incl' ) {
+            if ( $mode === 'incl' ) {
                 $total += $total_price - $float_discount;
             } else {
                 $total += $total_price - $float_discount + $float_tax;

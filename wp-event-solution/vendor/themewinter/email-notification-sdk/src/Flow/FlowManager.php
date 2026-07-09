@@ -1,9 +1,9 @@
 <?php
-namespace Ens\Flow;
+namespace Eventin\Vendor\Ens\Flow;
 
 use DateTime;
-use Ens\Config;
-use Ens\Email\EmailSender;
+use Eventin\Vendor\Ens\Config;
+use Eventin\Vendor\Ens\Email\EmailSender;
 
 /**
  * Class FlowManager

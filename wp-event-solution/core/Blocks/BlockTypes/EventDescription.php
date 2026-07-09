@@ -48,9 +48,19 @@ defined( 'ABSPATH' ) || exit;
                     $event_id = $template->get_preview_event_id();
                 }
             } else if ('etn-template' == get_post_type(get_the_ID())) {
-                // Non-editor rendering inside a ticket/certificate template — output a placeholder
-                // so TemplateModel::get_rendable_content() can replace it with real attendee event data.
-                return '{{event_description}}';
+                $template_type = get_post_meta(get_the_ID(), 'type', true);
+
+                if ('ticket' === $template_type || 'certificate' === $template_type) {
+                    // Ticket/certificate templates render through TemplateModel::get_rendable_content(),
+                    // which strtr-replaces this token with the real attendee event's description.
+                    return '{{event_description}}';
+                }
+
+                // Landing-page (event) templates render the preview event directly, like every
+                // sibling block (EventTitle, EventVenue, …). Resolve and render the real description
+                // instead of emitting a token that get_demo_content() turns into sample text.
+                $template = new \Eventin\Template\TemplateModel(get_the_ID());
+                $event_id = $template->get_preview_event_id();
             } else {
                 $event_id = get_the_ID();
             }

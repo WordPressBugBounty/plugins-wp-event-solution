@@ -356,7 +356,7 @@ class EventDetailsParts {
 							<p class="etn-acccordion-contents <?php echo esc_attr( $acc_class ); ?>">
 								<?php
 								if ( has_blocks( $faq['etn_faq_content'] ) ) {
-									echo do_blocks( $faq['etn_faq_content'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- do_blocks() is a trusted WP core function processing Gutenberg block content.
+									echo wp_kses_post( do_blocks( $faq['etn_faq_content'] ) );
 								} else {
 									echo esc_html( $faq['etn_faq_content'] );
 								}
