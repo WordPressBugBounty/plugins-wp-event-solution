@@ -2,14 +2,14 @@
 # This file is distributed under the GPL-2.0+.
 msgid ""
 msgstr ""
-"Project-Id-Version: Eventin 4.1.16\n"
+"Project-Id-Version: Eventin 4.1.17\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/eventin\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-07-08T13:52:11+00:00\n"
+"POT-Creation-Date: 2026-07-11T05:21:07+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: eventin\n"
@@ -387,8 +387,8 @@ msgstr ""
 #: core/event/Api/EventTagController.php:454
 #: core/Order/OrderController.php:1783
 #: core/schedule/Api/ScheduleController.php:575
-#: core/speaker/Api/SpeakerController.php:815
-#: core/speaker/Api/SpeakerController.php:882
+#: core/speaker/Api/SpeakerController.php:827
+#: core/speaker/Api/SpeakerController.php:894
 msgid "Invalid data format"
 msgstr ""
 
@@ -398,8 +398,8 @@ msgstr ""
 #: core/event/Api/EventTagController.php:490
 #: core/Order/OrderController.php:1917
 #: core/schedule/Api/ScheduleController.php:607
-#: core/speaker/Api/SpeakerController.php:847
-#: core/speaker/Api/SpeakerController.php:909
+#: core/speaker/Api/SpeakerController.php:859
+#: core/speaker/Api/SpeakerController.php:921
 msgid "You must provide a valid file."
 msgstr ""
 
@@ -521,7 +521,7 @@ msgstr ""
 #: build/js/template-builder-header-toolbar.js:53
 #: src/components/extra-fields/default-extra-field.jsx:52
 #: src/components/order-view-details/customer-information.jsx:33
-#: src/module-purchase/order-create-form/billing-form-field.jsx:187
+#: src/module-purchase/order-create-form/billing-form-field.jsx:194
 #: src/module-purchase/order-create-form/form-field-list.jsx:99
 #: src/pages/attendees/attendees-table/actions/preview-modal.jsx:197
 #: src/pages/attendees/form/attendee-form-fields.jsx:179
@@ -563,7 +563,7 @@ msgstr ""
 #: src/blocks/attendee-extra-fields/attendee-extra-fields-interface.jsx:12
 #: src/components/extra-fields/default-extra-field.jsx:59
 #: src/components/order-view-details/customer-information.jsx:38
-#: src/module-purchase/order-create-form/billing-form-field.jsx:211
+#: src/module-purchase/order-create-form/billing-form-field.jsx:218
 #: src/module-purchase/order-create-form/form-field-list.jsx:119
 #: src/pages/attendees/attendees-table/actions/preview-modal.jsx:201
 #: src/pages/attendees/form/attendee-form-fields.jsx:203
@@ -2485,7 +2485,7 @@ msgstr ""
 #: build/chunks/js/9172.f695bf50.js:348
 #: build/js/module-purchase.js:207
 #: build/js/packages.js:2829
-#: src/module-purchase/order-create-form/order-summary.jsx:425
+#: src/module-purchase/order-create-form/order-summary.jsx:428
 #: src/pages/bookings/bookings-table/columns/payment-method.jsx:12
 #: src/pages/bookings/bookings-table/filter/filter-by-payment.jsx:19
 #: src/pages/free-vs-pro/constant.js:197
@@ -2503,7 +2503,7 @@ msgstr ""
 #: build/chunks/js/9172.f695bf50.js:348
 #: build/js/module-purchase.js:207
 #: build/js/packages.js:2829
-#: src/module-purchase/order-create-form/order-summary.jsx:433
+#: src/module-purchase/order-create-form/order-summary.jsx:436
 #: src/pages/bookings/bookings-table/columns/payment-method.jsx:13
 #: src/pages/free-vs-pro/constant.js:187
 msgid "PayPal"
@@ -3884,55 +3884,55 @@ msgstr ""
 msgid "%1$d terms are deleted of %2$d"
 msgstr ""
 
-#: core/speaker/Api/SpeakerController.php:374
+#: core/speaker/Api/SpeakerController.php:386
 msgid "Speaker can not create from clone id. Please try again"
 msgstr ""
 
-#: core/speaker/Api/SpeakerController.php:461
+#: core/speaker/Api/SpeakerController.php:473
 msgid "User does not exist"
 msgstr ""
 
-#: core/speaker/Api/SpeakerController.php:466
-#: core/speaker/Api/SpeakerController.php:474
+#: core/speaker/Api/SpeakerController.php:478
+#: core/speaker/Api/SpeakerController.php:486
 msgid "Forbidden"
 msgstr ""
 
-#: core/speaker/Api/SpeakerController.php:498
+#: core/speaker/Api/SpeakerController.php:510
 msgid "The email you provided is exist and assign speaker or organizer role"
 msgstr ""
 
-#: core/speaker/Api/SpeakerController.php:508
+#: core/speaker/Api/SpeakerController.php:520
 msgid "Speaker can not updated. Please try again"
 msgstr ""
 
-#: core/speaker/Api/SpeakerController.php:561
-#: core/speaker/Api/SpeakerController.php:594
+#: core/speaker/Api/SpeakerController.php:573
+#: core/speaker/Api/SpeakerController.php:606
 msgid "The speaker cannot be deleted."
 msgstr ""
 
-#: core/speaker/Api/SpeakerController.php:583
+#: core/speaker/Api/SpeakerController.php:595
 msgid "Speaker ids can not be empty."
 msgstr ""
 
-#: core/speaker/Api/SpeakerController.php:622
+#: core/speaker/Api/SpeakerController.php:634
 msgid "Speaker cannot be deleted."
 msgstr ""
 
 #. translators: %1$d is the number of speakers deleted, %2$d is the total number of speakers selected.
-#: core/speaker/Api/SpeakerController.php:628
+#: core/speaker/Api/SpeakerController.php:640
 #, php-format
 msgid "%1$d speakers are deleted of %2$d"
 msgstr ""
 
-#: core/speaker/Api/SpeakerController.php:857
+#: core/speaker/Api/SpeakerController.php:869
 msgid "Successfully imported speakers"
 msgstr ""
 
-#: core/speaker/Api/SpeakerController.php:919
+#: core/speaker/Api/SpeakerController.php:931
 msgid "Successfully imported organizers"
 msgstr ""
 
-#: core/speaker/Api/SpeakerController.php:954
+#: core/speaker/Api/SpeakerController.php:966
 msgid "Speaker or Organizer already exists"
 msgstr ""
 
@@ -5077,13 +5077,13 @@ msgstr ""
 
 #: templates/event/parts/event-banner.php:13
 #: templates/event/parts/event-banner.php:22
-#: templates/event/parts/styles/event-banner/style-1.php:16
-#: templates/event/parts/styles/event-banner/style-1.php:25
+#: templates/event/parts/styles/event-banner/style-1.php:17
+#: templates/event/parts/styles/event-banner/style-1.php:33
 msgid "Event banner"
 msgstr ""
 
 #: templates/event/parts/event-banner.php:27
-#: templates/event/parts/styles/event-banner/style-1.php:30
+#: templates/event/parts/styles/event-banner/style-1.php:40
 msgid "No event banner image found."
 msgstr ""
 
@@ -5382,14 +5382,14 @@ msgstr ""
 
 #: templates/event/parts/styles/venue/style-1.php:75
 #: templates/event/parts/styles/venue/style-3.php:77
-#: templates/event/parts/styles/venue/style-4.php:99
+#: templates/event/parts/styles/venue/style-4.php:101
 #: templates/event/parts/styles/venue/style-5.php:80
 msgid "Get Direction"
 msgstr ""
 
 #: templates/event/parts/styles/venue/style-1.php:98
-#: templates/event/parts/styles/venue/style-3.php:102
-#: templates/event/parts/styles/venue/style-4.php:21
+#: templates/event/parts/styles/venue/style-3.php:103
+#: templates/event/parts/styles/venue/style-4.php:22
 msgid "Map location not available"
 msgstr ""
 
@@ -5713,7 +5713,7 @@ msgstr ""
 #: build/js/module-purchase.js:207
 #: build/js/module-purchase.js:400
 #: build/js/module-purchase.js:433
-#: src/module-purchase/order-create-form/order-summary.jsx:363
+#: src/module-purchase/order-create-form/order-summary.jsx:366
 #: src/module-purchase/payment-success-page/index.jsx:608
 #: src/module-purchase/ticket-selector/components/TicketStyleVariations/style-2/OrderSummary.jsx:75
 #: src/module-purchase/ticket-selector/components/TicketStyleVariations/style-3/index.jsx:224
@@ -5724,7 +5724,7 @@ msgstr ""
 
 #: templates/order-preview-template.php:224
 #: build/js/module-purchase.js:207
-#: src/module-purchase/order-create-form/order-summary.jsx:462
+#: src/module-purchase/order-create-form/order-summary.jsx:465
 msgid "Complete Payment"
 msgstr ""
 
@@ -8774,7 +8774,7 @@ msgstr ""
 
 #: widgets/zoom/zoom.php:225
 #: build/js/module-purchase.js:207
-#: src/module-purchase/order-create-form/order-summary.jsx:441
+#: src/module-purchase/order-create-form/order-summary.jsx:444
 msgid "Local"
 msgstr ""
 
@@ -12825,14 +12825,14 @@ msgstr ""
 
 #: build/chunks/js/1658.f7e5e39b.js:563
 #: build/js/module-purchase.js:207
-#: src/module-purchase/order-create-form/billing-form-field.jsx:303
+#: src/module-purchase/order-create-form/billing-form-field.jsx:310
 #: src/pages/settings/payments/tax-settings.jsx:98
 msgid "Postcode / ZIP"
 msgstr ""
 
 #: build/chunks/js/1658.f7e5e39b.js:563
 #: build/js/module-purchase.js:207
-#: src/module-purchase/order-create-form/billing-form-field.jsx:293
+#: src/module-purchase/order-create-form/billing-form-field.jsx:300
 #: src/pages/settings/payments/tax-settings.jsx:99
 msgid "City"
 msgstr ""
@@ -13209,7 +13209,7 @@ msgstr ""
 #: build/js/module-purchase.js:207
 #: build/js/packages.js:869
 #: src/components/order-view-details/billing-information.jsx:42
-#: src/module-purchase/order-create-form/billing-form-field.jsx:141
+#: src/module-purchase/order-create-form/billing-form-field.jsx:148
 #: src/pages/bookings-create/form/billing-form-fields.jsx:36
 msgid "Billing Information"
 msgstr ""
@@ -14480,7 +14480,7 @@ msgstr ""
 #: build/chunks/js/5525.30f14375.js:509
 #: build/js/module-purchase.js:207
 #: build/js/packages.js:2710
-#: src/module-purchase/order-create-form/billing-form-field.jsx:198
+#: src/module-purchase/order-create-form/billing-form-field.jsx:205
 #: src/module-purchase/order-create-form/form-field-list.jsx:107
 #: src/pages/attendees/form/attendee-form-fields.jsx:190
 #: src/pages/bookings-create/form/billing-form-fields.jsx:90
@@ -14503,7 +14503,7 @@ msgstr ""
 #: build/chunks/js/5525.30f14375.js:509
 #: build/js/module-purchase.js:207
 #: build/js/packages.js:2710
-#: src/module-purchase/order-create-form/billing-form-field.jsx:221
+#: src/module-purchase/order-create-form/billing-form-field.jsx:228
 #: src/module-purchase/order-create-form/form-field-list.jsx:125
 #: src/pages/attendees/form/attendee-form-fields.jsx:209
 #: src/pages/bookings-create/form/billing-form-fields.jsx:110
@@ -15096,7 +15096,7 @@ msgstr ""
 #: build/js/index-onboard.js:3804
 #: build/js/module-purchase.js:207
 #: build/js/packages.js:4599
-#: src/module-purchase/order-create-form/index.jsx:608
+#: src/module-purchase/order-create-form/index.jsx:615
 #: src/pages/bookings-create/form/booking-form.jsx:230
 #: src/pages/events_v2/create-and-edit/components/save-next-popup/index.jsx:102
 #: src/pages/onboarding/components/steps/step-four.jsx:119
@@ -15912,56 +15912,56 @@ msgstr ""
 
 #: build/chunks/js/5525.30f14375.js:509
 #: build/js/module-purchase.js:207
-#: src/module-purchase/order-create-form/billing-form-field.jsx:147
+#: src/module-purchase/order-create-form/billing-form-field.jsx:154
 #: src/pages/bookings-create/form/billing-form-fields.jsx:42
 msgid "First Name"
 msgstr ""
 
 #: build/chunks/js/5525.30f14375.js:509
 #: build/js/module-purchase.js:207
-#: src/module-purchase/order-create-form/billing-form-field.jsx:149
+#: src/module-purchase/order-create-form/billing-form-field.jsx:156
 #: src/pages/bookings-create/form/billing-form-fields.jsx:44
 msgid "Enter First Name"
 msgstr ""
 
 #: build/chunks/js/5525.30f14375.js:509
 #: build/js/module-purchase.js:207
-#: src/module-purchase/order-create-form/billing-form-field.jsx:154
+#: src/module-purchase/order-create-form/billing-form-field.jsx:161
 #: src/pages/bookings-create/form/billing-form-fields.jsx:49
 msgid "First Name is Required!"
 msgstr ""
 
 #: build/chunks/js/5525.30f14375.js:509
 #: build/js/module-purchase.js:207
-#: src/module-purchase/order-create-form/billing-form-field.jsx:167
+#: src/module-purchase/order-create-form/billing-form-field.jsx:174
 #: src/pages/bookings-create/form/billing-form-fields.jsx:62
 msgid "Last Name"
 msgstr ""
 
 #: build/chunks/js/5525.30f14375.js:509
 #: build/js/module-purchase.js:207
-#: src/module-purchase/order-create-form/billing-form-field.jsx:169
+#: src/module-purchase/order-create-form/billing-form-field.jsx:176
 #: src/pages/bookings-create/form/billing-form-fields.jsx:64
 msgid "Enter Last Name"
 msgstr ""
 
 #: build/chunks/js/5525.30f14375.js:509
 #: build/js/module-purchase.js:207
-#: src/module-purchase/order-create-form/billing-form-field.jsx:174
+#: src/module-purchase/order-create-form/billing-form-field.jsx:181
 #: src/pages/bookings-create/form/billing-form-fields.jsx:69
 msgid "Last Name is Required!"
 msgstr ""
 
 #: build/chunks/js/5525.30f14375.js:509
 #: build/js/module-purchase.js:207
-#: src/module-purchase/order-create-form/billing-form-field.jsx:189
+#: src/module-purchase/order-create-form/billing-form-field.jsx:196
 #: src/pages/bookings-create/form/billing-form-fields.jsx:84
 msgid "Enter Email Address"
 msgstr ""
 
 #: build/chunks/js/5525.30f14375.js:509
 #: build/js/module-purchase.js:207
-#: src/module-purchase/order-create-form/billing-form-field.jsx:213
+#: src/module-purchase/order-create-form/billing-form-field.jsx:220
 #: src/pages/bookings-create/form/billing-form-fields.jsx:102
 msgid "Enter Phone Number"
 msgstr ""
@@ -15973,7 +15973,7 @@ msgstr ""
 
 #: build/chunks/js/5525.30f14375.js:509
 #: build/js/module-purchase.js:207
-#: src/module-purchase/order-create-form/billing-form-field.jsx:260
+#: src/module-purchase/order-create-form/billing-form-field.jsx:267
 #: src/pages/bookings-create/form/billing-form-fields.jsx:144
 msgid "Phone number must be between 8 and 15 digits!"
 msgstr ""
@@ -16005,7 +16005,7 @@ msgstr ""
 
 #: build/chunks/js/5525.30f14375.js:509
 #: build/js/module-purchase.js:207
-#: src/module-purchase/order-create-form/order-summary.jsx:287
+#: src/module-purchase/order-create-form/order-summary.jsx:290
 #: src/pages/bookings-create/form/booking-summary.jsx:85
 msgid "Booking Summary"
 msgstr ""
@@ -23630,7 +23630,7 @@ msgstr ""
 #: build/js/gutenberg-blocks.js:2
 #: build/js/module-purchase.js:207
 #: build/js/module-purchase.js:433
-#: src/module-purchase/order-create-form/order-summary.jsx:464
+#: src/module-purchase/order-create-form/order-summary.jsx:467
 #: src/module-purchase/ticket-selector/components/TicketStyleVariations/style-1/index.jsx:211
 #: src/module-purchase/ticket-selector/components/TicketStyleVariations/style-2/OrderSummary.jsx:90
 #: src/module-purchase/ticket-selector/components/TicketStyleVariations/style-3/index.jsx:236
@@ -23972,17 +23972,17 @@ msgid "Select State"
 msgstr ""
 
 #: build/js/module-purchase.js:207
-#: src/module-purchase/order-create-form/billing-form-field.jsx:286
+#: src/module-purchase/order-create-form/billing-form-field.jsx:293
 msgid "Tax Information"
 msgstr ""
 
 #: build/js/module-purchase.js:207
-#: src/module-purchase/order-create-form/billing-form-field.jsx:295
+#: src/module-purchase/order-create-form/billing-form-field.jsx:302
 msgid "Enter City"
 msgstr ""
 
 #: build/js/module-purchase.js:207
-#: src/module-purchase/order-create-form/billing-form-field.jsx:305
+#: src/module-purchase/order-create-form/billing-form-field.jsx:312
 msgid "Enter Postcode / ZIP"
 msgstr ""
 
@@ -24003,48 +24003,48 @@ msgstr ""
 
 #: build/js/module-purchase.js:207
 #: build/js/module-purchase.js:349
-#: src/module-purchase/order-create-form/index.jsx:558
+#: src/module-purchase/order-create-form/index.jsx:565
 #: src/module-purchase/payment-error-page/index.jsx:70
 msgid "Couldn't Create Booking"
 msgstr ""
 
 #: build/js/module-purchase.js:207
-#: src/module-purchase/order-create-form/option-fields.jsx:111
+#: src/module-purchase/order-create-form/option-fields.jsx:120
 msgid "This option is required"
 msgstr ""
 
 #: build/js/module-purchase.js:207
-#: src/module-purchase/order-create-form/option-fields.jsx:126
+#: src/module-purchase/order-create-form/option-fields.jsx:135
 msgid "Select an option"
 msgstr ""
 
 #: build/js/module-purchase.js:207
-#: src/module-purchase/order-create-form/order-summary.jsx:165
+#: src/module-purchase/order-create-form/order-summary.jsx:168
 msgid "VAT"
 msgstr ""
 
 #: build/js/module-purchase.js:207
-#: src/module-purchase/order-create-form/order-summary.jsx:372
+#: src/module-purchase/order-create-form/order-summary.jsx:375
 msgid "(incl."
 msgstr ""
 
 #: build/js/module-purchase.js:207
-#: src/module-purchase/order-create-form/order-summary.jsx:399
+#: src/module-purchase/order-create-form/order-summary.jsx:402
 msgid "Payment Options"
 msgstr ""
 
 #: build/js/module-purchase.js:207
-#: src/module-purchase/order-create-form/order-summary.jsx:407
+#: src/module-purchase/order-create-form/order-summary.jsx:410
 msgid "Please select a payment method"
 msgstr ""
 
 #: build/js/module-purchase.js:207
-#: src/module-purchase/order-create-form/order-summary.jsx:467
+#: src/module-purchase/order-create-form/order-summary.jsx:470
 msgid "Book Now"
 msgstr ""
 
 #: build/js/module-purchase.js:207
-#: src/module-purchase/order-create-form/order-summary.jsx:466
+#: src/module-purchase/order-create-form/order-summary.jsx:469
 msgid "Proceed to Payment"
 msgstr ""
 

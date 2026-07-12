@@ -413,7 +413,8 @@ class TemplateModel extends Post_Model {
             setup_postdata( $post );
         }
 
-        $content = $this->add_proxy_image( $this->get_content() );
+        $content = $this->swap_cover_banner( $this->get_content() );
+        $content = $this->add_proxy_image( $content );
         $content = do_blocks( $content ); // Process Gutenberg blocks
         $content = do_shortcode( $content ); // Process shortcodes
         $content = $this->prioritize_lcp_image( $content ); // Hint the cover image as LCP
@@ -695,6 +696,59 @@ class TemplateModel extends Post_Model {
             '{{add_ons_inline}}'      => 'Dinner: Veg (x2)',
             // '{{qr_code}}',
         ];
+    }
+
+    /**
+     * Swap a pre-built template's hardcoded demo banner for the real event banner.
+     *
+     * Event templates 6-9 render their hero as a static wp-block-cover whose
+     * background image is a baked-in demo asset (feature-image*.webp), not the
+     * dynamic {@see \Eventin\Blocks\BlockTypes\EventBanner} block. When such a
+     * template renders a real event on the front-end single page we replace the
+     * first cover-background image with that event's own banner, so a live event
+     * never shows the design-time demo image. Templates that use the dynamic
+     * event-banner block carry no cover-background <img> and are left untouched.
+     *
+     * Only runs while a real event is being rendered ($rendering_event_id set),
+     * so the editor/template preview keeps its demo design. Runs before
+     * add_proxy_image() because the event banner is same-origin and must not be
+     * proxied.
+     *
+     * @param   string  $content  Raw block markup (before do_blocks()).
+     *
+     * @return  string
+     */
+    private function swap_cover_banner( $content ) {
+        if ( ! self::$rendering_event_id ) {
+            return $content;
+        }
+
+        $event  = new Event_Model( self::$rendering_event_id );
+        $banner = $event->event_banner;
+
+        if ( empty( $banner ) ) {
+            return $content;
+        }
+
+        // Locate the hero cover-background image and read its current (demo) src.
+        if ( ! preg_match( '/<img[^>]*\bwp-block-cover__image-background\b[^>]*>/i', $content, $img ) ) {
+            return $content;
+        }
+
+        if ( ! preg_match( '/\ssrc="([^"]+)"/i', $img[0], $src ) ) {
+            return $content;
+        }
+
+        $demo_url = $src[1];
+
+        if ( $demo_url === $banner ) {
+            return $content;
+        }
+
+        // The demo URL appears in both the cover block's "url" attribute and the
+        // inner <img> src; replacing the exact string swaps both so do_blocks()
+        // outputs the real banner. Scoped to that URL, so other images are safe.
+        return str_replace( $demo_url, esc_url( $banner ), $content );
     }
 
     /**

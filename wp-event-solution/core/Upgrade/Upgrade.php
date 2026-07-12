@@ -79,13 +79,28 @@ class Upgrade {
      */
     public static function register() {
         $current_version = Wpeventin::version();
+        $migrated_from   = get_option( 'etn_db_migration' );
 
         foreach ( self::$upgraders as $version => $upgrader ) {
             if ( ! class_exists( $upgrader ) ) {
                 continue;
             }
 
-            if ( version_compare( $version, $current_version, '<' ) ) {
+            // Never run an upgrader that targets a release newer than the code we're running.
+            if ( version_compare( $version, $current_version, '>' ) ) {
+                continue;
+            }
+
+            if ( $migrated_from ) {
+                // Existing site: run every upgrader newer than the last one applied, so a
+                // customer who skips a release (e.g. 4.1.15 -> 4.1.17) still runs the
+                // intermediate migration(s) such as 4.1.16.
+                if ( version_compare( $version, $migrated_from, '<=' ) ) {
+                    continue;
+                }
+            } elseif ( version_compare( $version, $current_version, '<' ) ) {
+                // No migration marker yet (fresh install): preserve prior behavior and run
+                // only the current release's upgrader.
                 continue;
             }
 

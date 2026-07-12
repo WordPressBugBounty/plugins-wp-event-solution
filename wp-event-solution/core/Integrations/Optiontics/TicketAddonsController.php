@@ -116,7 +116,7 @@ class TicketAddonsController extends WP_REST_Controller {
      * Build the per-ticket-type add-on map.
      *
      * @param \WP_REST_Request $request Request.
-     * @return \WP_REST_Response { [ticket_slug]: [ { node_id, title, field_type, is_required, choices, block_id } ] }
+     * @return \WP_REST_Response { [ticket_slug]: [ { node_id, title, field_type, is_required, choices, block_id, base_price } ] }
      */
     public function get_items( $request ) {
         $event_id = absint( $request->get_param( 'event_id' ) );
@@ -155,12 +155,18 @@ class TicketAddonsController extends WP_REST_Controller {
                 continue;
             }
 
+            // Ticket base price — needed client-side to display percentage-priced
+            // choices as the amount that will actually be charged. Must match the
+            // base used in OrderController::reprice ( $variation['etn_ticket_price'] ).
+            $base_price = (float) ( $variation['etn_ticket_price'] ?? 0 );
+
             $fields = [];
 
             foreach ( $block_ids as $block_id ) {
                 foreach ( $adapter->get_block_fields( $block_id ) as $field ) {
-                    $field['block_id'] = $block_id;
-                    $fields[]          = $field;
+                    $field['block_id']   = $block_id;
+                    $field['base_price'] = $base_price;
+                    $fields[]            = $field;
                 }
             }
 

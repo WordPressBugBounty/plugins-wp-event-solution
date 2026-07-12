@@ -61,6 +61,11 @@ defined( 'ABSPATH' ) || exit;
             $venue_latitude  = ! empty($location['latitude']) ? $location['latitude'] : '';
             $venue_longitude = ! empty($location['longitude']) ? $location['longitude'] : '';
 
+            // A pure virtual event has no physical venue, so its style template must
+            // suppress the map (and the "Map location not available" fallback). Hybrid
+            // events keep a venue, so they are not treated as virtual here.
+            $is_virtual = ( 'online' === get_post_meta( $event_id, 'event_type', true ) );
+
             // Get event dates and times
             $date_format = etn_date_format();
             $time_format = etn_time_format();

@@ -270,6 +270,18 @@ class SpeakerController extends WP_REST_Controller {
                 isset( $args['exclude'] ) ? (array) $args['exclude'] : [],
                 $placeholder_user_ids
             );
+            // The Speakers/Organizers tabs filter by category, which populates
+            // `include` with every user of that role (placeholders included). WP_User_Query
+            // honours `include` over `exclude`, so on those tabbed views the exclude above
+            // is a no-op unless the placeholder users are also removed from `include`.
+            if ( ! empty( $args['include'] ) ) {
+                $args['include'] = array_values( array_diff( (array) $args['include'], $placeholder_user_ids ) );
+                // Empty include is treated as "no filter" (returns everyone); force
+                // zero results when the placeholders were the only users included.
+                if ( empty( $args['include'] ) ) {
+                    $args['include'] = [ -1 ];
+                }
+            }
         }
 
         $events = [];

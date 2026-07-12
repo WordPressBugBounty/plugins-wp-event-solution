@@ -97,11 +97,13 @@
 						                            referrerpolicy="no-referrer-when-downgrade">
 						                        </iframe>
 						                    </div>						                          					                          				                          			                          		                          	                          																																				            <?php else: ?>
+                    <?php if ( empty( $is_virtual ) ): ?>
                     <div class="etn-venue-map-container">
                         <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #999; font-size: 14px;">
                             <?php echo esc_html__('Map location not available', 'eventin'); ?>
                         </div>
                     </div>
+                    <?php endif; ?>
             <?php endif; ?>
         </div>
     </div>
