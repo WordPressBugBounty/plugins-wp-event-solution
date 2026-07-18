@@ -7,18 +7,18 @@
             "source": {
                 "type": "git",
                 "url": "git@github.com:themewinter/email-notification-sdk.git",
-                "reference": "f1c3449f3ddda49dc2cc44640393d9dd9bedfff7"
+                "reference": "6c9c945a8fb3f640a64db0414d96e928ad6b247b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/themewinter/email-notification-sdk/zipball/f1c3449f3ddda49dc2cc44640393d9dd9bedfff7",
-                "reference": "f1c3449f3ddda49dc2cc44640393d9dd9bedfff7",
+                "url": "https://api.github.com/repos/themewinter/email-notification-sdk/zipball/6c9c945a8fb3f640a64db0414d96e928ad6b247b",
+                "reference": "6c9c945a8fb3f640a64db0414d96e928ad6b247b",
                 "shasum": ""
             },
             "require-dev": {
                 "phpunit/phpunit": "^10"
             },
-            "time": "2026-04-30T04:58:55+00:00",
+            "time": "2026-07-11T05:06:27+00:00",
             "type": "library",
             "installation-source": "dist",
             "autoload": {

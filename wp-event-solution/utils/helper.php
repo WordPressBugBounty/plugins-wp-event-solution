@@ -3763,6 +3763,21 @@
                             $parent_id           = $post_parent == 'hide_both' ? '0' : $post_parent;
                             $args['post_parent'] = $parent_id;
                         }
+
+                        // Hide the shipped preview-placeholder event from the calendar. This runs
+                        // inside the eventin/v1 REST endpoint, and PreviewPlaceholderVisibility's
+                        // pre_get_posts exclusion deliberately bails on REST requests — so the
+                        // placeholder must be excluded here at the query source instead.
+                        if (class_exists('\Eventin\PreviewPlaceholder\PreviewPlaceholder')) {
+                            $placeholder_ids = \Eventin\PreviewPlaceholder\PreviewPlaceholder::excluded_post_ids();
+                            if ($placeholder_ids) {
+                                $args['post__not_in'] = array_merge(
+                                    isset($args['post__not_in']) ? (array) $args['post__not_in'] : [],
+                                    $placeholder_ids
+                                );
+                            }
+                        }
+
                         $post_ids = get_posts($args);
 
                         if (('child' == $post_parent || 'hide_both' == $post_parent) && (is_array($post_ids) && count($post_ids) > 0)) {

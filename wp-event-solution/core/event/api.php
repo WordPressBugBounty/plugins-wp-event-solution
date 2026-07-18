@@ -343,6 +343,15 @@ class Api extends \Etn\Base\Api_Handler {
 			$args['author'] = $user_id;
 		}
 
+		// Hide the shipped preview-placeholder event from this v1 REST list (the
+		// pre_get_posts exclusion skips REST requests, so exclude at the source).
+		if ( class_exists( '\Eventin\PreviewPlaceholder\PreviewPlaceholder' ) ) {
+			$placeholder_ids = \Eventin\PreviewPlaceholder\PreviewPlaceholder::excluded_post_ids();
+			if ( $placeholder_ids ) {
+				$args['post__not_in'] = $placeholder_ids;
+			}
+		}
+
 		$events = [];
 		$items  = new WP_Query( $args );
 

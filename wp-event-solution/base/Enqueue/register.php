@@ -380,6 +380,10 @@ class Register {
      * @return  void
      */
     public function admin_helpscout_beacon() {
+        if ( 'on' === etn_get_option( 'hide_helpscout_beacon_widget' ) ) {
+            return;
+        }
+
         $screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
         $is_eventin_screen = false;
  

@@ -529,7 +529,23 @@ class TemplateModel extends Post_Model {
 
         $placeholder = $this->get_place_holder( $attendee_id );
 
-        $rendered = $this->get_rendered_content();
+        // Expose the attendee's real event to dynamic blocks (event-title,
+        // event-datetime, event-venue, …) so they resolve it instead of the
+        // template's design-time preview / shipped placeholder event while
+        // do_blocks() runs against the template post. Without this, a ticket
+        // whose template is built from blocks (not {{tokens}}) renders the
+        // preview-placeholder event's data. Mirrors get_rendable_event_content();
+        // save/restore keeps nested template renders correct.
+        $attendee                 = new Attendee_Model( $attendee_id );
+        $previous_event_id        = self::$rendering_event_id;
+        self::$rendering_event_id = (int) $attendee->etn_event_id;
+
+        try {
+            $rendered = $this->get_rendered_content();
+        } finally {
+            self::$rendering_event_id = $previous_event_id;
+        }
+
         $content  = strtr( $rendered, $placeholder );
 
         // Remove any extra_field tokens that had no matching attendee data.

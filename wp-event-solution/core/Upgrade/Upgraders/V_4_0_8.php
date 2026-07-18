@@ -1,13 +1,10 @@
 <?php
-
 /**
  * Updater for version 4.0.8
  *
  * @package Eventin\Upgrade
  */
 namespace Eventin\Upgrade\Upgraders;
-
-defined( 'ABSPATH' ) || exit;
 
 use Etn\Core\Event\Event_Model;
 
@@ -113,11 +110,11 @@ public $data = [
     private function get_data( $id ) {
         if ( $id ) {
             $thumbnail_id       = get_post_thumbnail_id( $id );
-            $src                = wp_get_attachment_image_src( $thumbnail_id, 'full' );
-            $image              = isset( $src[0] ) ? esc_url( $src[0] ) : '';
+            $src                = wp_get_attachment_image_src( $thumbnail_id, 'full' )[0];
+            $image              = isset( $src ) ? esc_url( $src ) : '';
             $company_logo       = get_post_meta( $id, 'etn_speaker_company_logo', true );
-            $company_img        = wp_get_attachment_image_src( $company_logo, 'full' );
-            $company_logo       = isset( $company_img[0] ) ? esc_url( $company_img[0] ) : '';
+            $company_img        = wp_get_attachment_image_src( $company_logo, 'full' )[0];
+            $company_logo       = isset( $company_img ) ? esc_url( $company_img ) : '';
 
             return [
                 'user_name'                 => get_post_meta( $id, 'etn_speaker_title', true ),
@@ -261,12 +258,18 @@ public $data = [
             $speaker_ids = [];
 
             foreach( $speakers as $speaker ) {
-                $speaker_ids[] = $this->get_user_by_speaker( $speaker );
+                $user_id = $this->get_user_by_speaker( $speaker );
+
+                // Skip speakers that could not be mapped to a migrated user.
+                if ( $user_id ) {
+                    $speaker_ids[] = $user_id;
+                }
             }
 
-            if ( is_array( $topic ) ) {
-                $topic['speakers'] = $speaker_ids;
-            }
+            // Update both keys: `speakers` is used by the frontend templates and
+            // `etn_shedule_speaker` is used by the admin schedule speaker option.
+            $topic['speakers']             = $speaker_ids;
+            $topic['etn_shedule_speaker']  = $speaker_ids;
 
             $new_topics[] = $topic;
         }
@@ -285,7 +288,7 @@ public $data = [
         $args = array(
             'fields'     => 'ID',
             'number'     => -1,
-            'meta_query' => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+            'meta_query' => array(
                 array(
                     'key'     => 'etn_speaker_post_id', 
                     'value'   => $speaker_id,
@@ -319,7 +322,7 @@ public $data = [
             $args = array(
                 'fields'     => 'ID',
                 'number'     => -1,
-                'meta_query' => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+                'meta_query' => array(
                     'relation' => 'AND',
                     array(
                         'key'     => 'etn_speaker_group',

@@ -64,24 +64,36 @@ class FlowAPI extends WP_REST_Controller {
                     'methods'             => \WP_REST_Server::CREATABLE,
                     'callback'            => [$this, 'create_item'],
                     'permission_callback' => function () {
-                        // return current_user_can( 'manage_options' );
-                        return true;
+                        return apply_filters(
+                            $this->identifier . '_create_flow_permission',
+                            current_user_can( 'manage_options' ),
+                            'manage_options'
+                        );
+                        // return true;
                     },
                 ],
                 [ // Bulk delete
                     'methods'             => \WP_REST_Server::DELETABLE,
                     'callback'            => [$this, 'bulk_delete'],
                     'permission_callback' => function () {
-                        // return current_user_can( 'manage_options' );
-                        return true;
+                        return apply_filters(
+                            $this->identifier . '_delete_flow_permission',
+                            current_user_can( 'manage_options' ),
+                            'manage_options'
+                        );
+                        // return true;
                     },
                 ],
                 [ // show list
                     'methods'             => \WP_REST_Server::READABLE,
                     'callback'            => [$this, 'get_items'],
                     'permission_callback' => function () {
-                        // return current_user_can( 'manage_options' );
-                        return true;
+                        return apply_filters(
+                            $this->identifier . '_get_flow_permission',
+                            current_user_can( 'manage_options' ),
+                            'manage_options'
+                        );
+                        // return true;
                     },
                 ],
             ]
@@ -92,24 +104,36 @@ class FlowAPI extends WP_REST_Controller {
                 'methods'             => \WP_REST_Server::READABLE,
                 'callback'            => [$this, 'get_item'],
                 'permission_callback' => function () {
-                    // return current_user_can( 'manage_options' );
-                    return true;
+                    return apply_filters(
+                        $this->identifier . '_get_flow_permission',
+                        current_user_can( 'manage_options' ),
+                        'manage_options'
+                    );
+                    // return true;
                 },
             ],
             [ // Update single flow
                 'methods'             => \WP_REST_Server::EDITABLE,
                 'callback'            => [$this, 'update_item'],
                 'permission_callback' => function () {
-                    // return current_user_can( 'manage_options' );
-                    return true;
+                    return apply_filters(
+                        $this->identifier . '_update_flow_permission',
+                        current_user_can( 'manage_options' ),
+                        'manage_options'
+                    );
+                    // return true;
                 },
             ],
             [ // Delete single flow
                 'methods'             => \WP_REST_Server::DELETABLE,
                 'callback'            => [$this, 'delete_item'],
                 'permission_callback' => function () {
-                    // return current_user_can( 'manage_options' );
-                    return true;
+                    return apply_filters(
+                        $this->identifier . '_delete_flow_permission',
+                        current_user_can( 'manage_options' ),
+                        'manage_options'
+                    );
+                    // return true;
                 },
             ],
         ] );
@@ -119,8 +143,12 @@ class FlowAPI extends WP_REST_Controller {
                 'methods'             => \WP_REST_Server::CREATABLE,
                 'callback'            => [$this, 'clone_item'],
                 'permission_callback' => function () {
-                    // return current_user_can( 'manage_options' );
-                    return true;
+                    return apply_filters(
+                        $this->identifier . '_clone_flow_permission',
+                        current_user_can( 'manage_options' ),
+                        'manage_options'
+                    );
+                    // return true;
                 },
             ],
         ] );

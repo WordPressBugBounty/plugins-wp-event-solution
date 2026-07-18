@@ -18,7 +18,11 @@ class Etn_Ticket_Qrcode extends Widget_Base {
     }
 
     public function get_icon() {
-        return 'eicon-qr-code';
+        return 'eicon-barcode';
+    }
+
+    public function get_screenshot() {
+        return \Wpeventin::assets_url() . 'images/qr.webp';
     }
 
     public function get_categories() {
@@ -105,6 +109,18 @@ class Etn_Ticket_Qrcode extends Widget_Base {
     }
 
     protected function render() {
+        if ( \Elementor\Plugin::$instance->editor->is_edit_mode() ) {
+            $qr_url = \Wpeventin::assets_url() . 'images/qr.webp';
+            ?>
+            <div class="eventin-ticket-qrcode">
+                <img src="<?php echo esc_url( $qr_url ); ?>"
+                     alt="<?php esc_attr_e( 'Ticket QR Code', 'eventin' ); ?>"
+                     style="max-width: 150px; height: auto; display: inline-block;" />
+            </div>
+            <?php
+            return;
+        }
+
         if ( ! class_exists( 'Wpeventin_Pro' ) ) {
             echo '<p>' . esc_html__( 'Ticket QR Code requires Eventin Pro.', 'eventin' ) . '</p>';
             return;

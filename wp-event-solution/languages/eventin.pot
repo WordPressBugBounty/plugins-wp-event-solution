@@ -2,14 +2,14 @@
 # This file is distributed under the GPL-2.0+.
 msgid ""
 msgstr ""
-"Project-Id-Version: Eventin 4.1.17\n"
+"Project-Id-Version: Eventin 4.1.18\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/eventin\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-07-11T05:21:07+00:00\n"
+"POT-Creation-Date: 2026-07-14T13:31:12+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: eventin\n"
@@ -71,7 +71,7 @@ msgstr ""
 
 #: core/AccessControl/Permission.php:224
 #: core/Admin/Menu.php:81
-#: build/chunks/js/2532.e519c48e.js:526
+#: build/chunks/js/2532.556badbd.js:526
 #: src/pages/dashboard/index.jsx:87
 msgid "Dashboard"
 msgstr ""
@@ -85,8 +85,8 @@ msgstr ""
 #: core/event/cpt.php:61
 #: core/event/cpt.php:98
 #: templates/layout/header.php:71
-#: build/chunks/js/1658.f7e5e39b.js:331
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:331
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/eventbrite/components/EventPreviewSection.jsx:44
 #: src/pages/settings/import/facebook-events/components/EventPreviewSection.jsx:44
 #: src/pages/settings/import/the-events-calendar/components/EventPreviewSection.jsx:42
@@ -130,8 +130,8 @@ msgstr ""
 #: core/Attendee/RsvpExporter.php:233
 #: core/Order/OrderExporter.php:158
 #: build/chunks/js/279.1651034a.js:443
-#: build/chunks/js/1658.f7e5e39b.js:555
-#: build/chunks/js/2532.e519c48e.js:1
+#: build/chunks/js/1658.7eff9742.js:555
+#: build/chunks/js/2532.556badbd.js:1
 #: build/chunks/js/9172.f695bf50.js:193
 #: build/chunks/js/9977.728598b6.js:232
 #: build/js/packages.js:869
@@ -155,7 +155,7 @@ msgstr ""
 #: core/Admin/Menu.php:116
 #: templates/layout/header.php:51
 #: widgets/advanced-search/advanced-search.php:60
-#: build/chunks/js/1658.f7e5e39b.js:555
+#: build/chunks/js/1658.7eff9742.js:555
 #: build/js/dashboard.js:157
 #: build/js/dashboard.js:4076
 #: build/js/gutenberg-blocks.js:1
@@ -234,8 +234,8 @@ msgid "Eventin 4.0, the latest version, includes major changes across different 
 msgstr ""
 
 #: core/Admin/hooks.php:645
-#: core/event/api.php:424
-#: core/event/api.php:452
+#: core/event/api.php:433
+#: core/event/api.php:461
 msgid "Event not found."
 msgstr ""
 
@@ -460,7 +460,7 @@ msgstr ""
 #: core/shortcodes/views/shortcode-list-menu.php:341
 #: core/speaker/SpeakerExporter.php:130
 #: templates/attendee/attendee-details.php:9
-#: build/chunks/js/2532.e519c48e.js:1
+#: build/chunks/js/2532.556badbd.js:1
 #: build/chunks/js/3168.3754c814.js:153
 #: build/chunks/js/3546.eb1ed7f8.js:607
 #: build/chunks/js/5269.49a7a87a.js:255
@@ -499,8 +499,8 @@ msgstr ""
 #: core/shortcodes/hooks.php:287
 #: core/speaker/SpeakerExporter.php:133
 #: templates/attendee/attendee-details.php:11
-#: build/chunks/js/1658.f7e5e39b.js:555
-#: build/chunks/js/2532.e519c48e.js:1
+#: build/chunks/js/1658.7eff9742.js:555
+#: build/chunks/js/2532.556badbd.js:1
 #: build/chunks/js/4458.ba44369b.js:58
 #: build/chunks/js/5269.49a7a87a.js:255
 #: build/chunks/js/5269.49a7a87a.js:481
@@ -539,7 +539,7 @@ msgstr ""
 #: core/Order/OrderExporter.php:145
 #: core/shortcodes/hooks.php:293
 #: templates/attendee/attendee-details.php:14
-#: build/chunks/js/2532.e519c48e.js:1
+#: build/chunks/js/2532.556badbd.js:1
 #: build/chunks/js/4458.ba44369b.js:58
 #: build/chunks/js/5269.49a7a87a.js:255
 #: build/chunks/js/5269.49a7a87a.js:481
@@ -578,7 +578,7 @@ msgstr ""
 #: core/Attendee/AttendeeExporter.php:198
 #: core/Attendee/RsvpExporter.php:235
 #: core/Order/OrderExporter.php:147
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/import/eventbrite/components/ImportConfigSection.jsx:31
 #: src/pages/settings/import/eventbrite/components/ImportConfigSection.jsx:65
 msgid "Event ID"
@@ -681,7 +681,7 @@ msgstr ""
 #: core/Attendee/cpt.php:83
 #: core/Attendee/cpt.php:84
 #: core/Attendee/cpt.php:144
-#: build/chunks/js/2532.e519c48e.js:652
+#: build/chunks/js/2532.556badbd.js:652
 #: build/chunks/js/5525.30f14375.js:509
 #: build/js/module-purchase.js:207
 #: src/module-purchase/order-create-form/attendee-form-field.jsx:97
@@ -832,9 +832,9 @@ msgstr ""
 #: core/Order/OrderExporter.php:149
 #: build/chunks/js/279.1651034a.js:456
 #: build/chunks/js/279.1651034a.js:595
-#: build/chunks/js/1658.f7e5e39b.js:265
-#: build/chunks/js/2532.e519c48e.js:1
-#: build/chunks/js/2532.e519c48e.js:652
+#: build/chunks/js/1658.7eff9742.js:265
+#: build/chunks/js/2532.556badbd.js:1
+#: build/chunks/js/2532.556badbd.js:652
 #: build/chunks/js/5269.49a7a87a.js:320
 #: build/chunks/js/8306.f82644bf.js:475
 #: build/chunks/js/8760.de3abcad.js:23
@@ -879,7 +879,7 @@ msgid "Attendee Email"
 msgstr ""
 
 #: core/Attendee/RsvpExporter.php:238
-#: build/chunks/js/2532.e519c48e.js:1
+#: build/chunks/js/2532.556badbd.js:1
 #: build/chunks/js/8306.f82644bf.js:413
 #: build/chunks/js/8306.f82644bf.js:475
 #: build/chunks/js/9172.f695bf50.js:193
@@ -934,8 +934,8 @@ msgstr ""
 
 #: core/calendar/add-calendar/add-calendar.php:30
 #: build/chunks/js/279.1651034a.js:595
-#: build/chunks/js/1658.f7e5e39b.js:331
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:331
+#: build/chunks/js/1658.7eff9742.js:447
 #: build/chunks/js/9977.728598b6.js:245
 #: build/js/dashboard.js:1466
 #: build/js/module-purchase.js:192
@@ -983,7 +983,7 @@ msgid "Customer not found"
 msgstr ""
 
 #: core/Customer/Api/CustomerController.php:224
-#: core/event/api.php:462
+#: core/event/api.php:471
 msgid "Successfully deleted"
 msgstr ""
 
@@ -1054,36 +1054,36 @@ msgid "You haven't authorization permission to view settings."
 msgstr ""
 
 #: core/event/api.php:242
-#: core/event/api.php:680
+#: core/event/api.php:689
 msgid "You haven't authorization permission to update settings."
 msgstr ""
 
-#: core/event/api.php:420
+#: core/event/api.php:429
 msgid "Please enter a event id"
 msgstr ""
 
-#: core/event/api.php:440
+#: core/event/api.php:449
 msgid "Event id is required."
 msgstr ""
 
-#: core/event/api.php:448
-#: core/event/api.php:604
+#: core/event/api.php:457
+#: core/event/api.php:613
 msgid "Unauthorized user. Sorry you are not allowed to do that"
 msgstr ""
 
-#: core/event/api.php:456
+#: core/event/api.php:465
 msgid "Unable to delete one or more event. Please try again."
 msgstr ""
 
-#: core/event/api.php:608
+#: core/event/api.php:617
 msgid "Something is Wrong"
 msgstr ""
 
-#: core/event/api.php:639
+#: core/event/api.php:648
 msgid "Event Seat Mapping has been saved successfully"
 msgstr ""
 
-#: core/event/api.php:641
+#: core/event/api.php:650
 msgid "Event ID not found"
 msgstr ""
 
@@ -1394,7 +1394,7 @@ msgstr ""
 
 #: core/event/CategoryExporter.php:112
 #: core/event/EventTagExporter.php:113
-#: build/chunks/js/1658.f7e5e39b.js:555
+#: build/chunks/js/1658.7eff9742.js:555
 #: build/js/dashboard.js:2112
 #: build/js/index-onboard.js:1274
 #: build/js/packages.js:3097
@@ -1409,7 +1409,7 @@ msgstr ""
 #: core/event/EventTagExporter.php:114
 #: build/chunks/js/553.22ca7e81.js:193
 #: build/chunks/js/1046.fa445736.js:756
-#: build/chunks/js/1658.f7e5e39b.js:265
+#: build/chunks/js/1658.7eff9742.js:265
 #: build/chunks/js/5494.db8c978b.js:614
 #: build/chunks/js/9140.70c02cda.js:607
 #: build/js/dashboard.js:46
@@ -1536,9 +1536,9 @@ msgstr ""
 #: templates/attendee/purchased-events.php:6
 #: templates/order-preview-template.php:117
 #: build/chunks/js/279.1651034a.js:456
-#: build/chunks/js/1658.f7e5e39b.js:331
-#: build/chunks/js/1658.f7e5e39b.js:447
-#: build/chunks/js/2532.e519c48e.js:1
+#: build/chunks/js/1658.7eff9742.js:331
+#: build/chunks/js/1658.7eff9742.js:447
+#: build/chunks/js/2532.556badbd.js:1
 #: build/chunks/js/3168.3754c814.js:127
 #: build/chunks/js/9172.f695bf50.js:193
 #: build/chunks/js/9977.728598b6.js:245
@@ -1571,8 +1571,8 @@ msgid "New Event"
 msgstr ""
 
 #: core/event/cpt.php:36
-#: build/chunks/js/1658.f7e5e39b.js:331
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:331
+#: build/chunks/js/1658.7eff9742.js:447
 #: build/js/index-onboard.js:3804
 #: src/pages/onboarding/components/steps/last-step.jsx:143
 #: src/pages/settings/import/eventbrite/components/ImportResults.jsx:127
@@ -1632,7 +1632,7 @@ msgstr ""
 #: core/event/event-model.php:168
 #: utils/locale/static.php:10
 #: build/chunks/js/279.1651034a.js:595
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: build/chunks/js/3168.3754c814.js:145
 #: build/chunks/js/3168.3754c814.js:147
 #: build/chunks/js/3168.3754c814.js:149
@@ -1664,7 +1664,7 @@ msgstr ""
 #: core/event/event-model.php:180
 #: utils/helper.php:2891
 #: build/chunks/js/279.1651034a.js:595
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: build/chunks/js/3168.3754c814.js:145
 #: build/chunks/js/3168.3754c814.js:147
 #: build/chunks/js/3168.3754c814.js:149
@@ -1970,7 +1970,7 @@ msgstr ""
 
 #: core/event/EventExporter.php:195
 #: core/Order/OrderExporter.php:159
-#: build/chunks/js/1658.f7e5e39b.js:596
+#: build/chunks/js/1658.7eff9742.js:596
 #: build/js/gutenberg-blocks.js:1
 #: build/js/template-builder-header-toolbar.js:53
 #: src/blocks/attendee-info/settings/content-panel-body.jsx:85
@@ -1980,13 +1980,13 @@ msgid "Extra Fields"
 msgstr ""
 
 #: core/event/EventExporter.php:196
-#: build/chunks/js/2532.e519c48e.js:987
+#: build/chunks/js/2532.556badbd.js:987
 #: build/chunks/js/6948.8913e1e3.js:1
 #: build/js/dashboard.js:4016
 #: build/js/dashboard.js:4035
 #: build/js/index-onboard.js:3178
 #: build/js/index-onboard.js:3197
-#: build/js/index-onboard.js:4231
+#: build/js/index-onboard.js:4320
 #: build/js/packages.js:5025
 #: build/js/packages.js:5044
 #: src/pages/events_v2/create-and-edit/tickets/components/rsvp/rsvp-card.jsx:35
@@ -2479,8 +2479,8 @@ msgid "NB: Requires Eventin Pro"
 msgstr ""
 
 #: core/Extensions/Extension.php:888
-#: build/chunks/js/1658.f7e5e39b.js:563
-#: build/chunks/js/2532.e519c48e.js:168
+#: build/chunks/js/1658.7eff9742.js:563
+#: build/chunks/js/2532.556badbd.js:168
 #: build/chunks/js/6948.8913e1e3.js:1
 #: build/chunks/js/9172.f695bf50.js:348
 #: build/js/module-purchase.js:207
@@ -2498,7 +2498,7 @@ msgid "Accept ticket payments through Stripe. Requires Eventin Pro."
 msgstr ""
 
 #: core/Extensions/Extension.php:909
-#: build/chunks/js/2532.e519c48e.js:168
+#: build/chunks/js/2532.556badbd.js:168
 #: build/chunks/js/6948.8913e1e3.js:1
 #: build/chunks/js/9172.f695bf50.js:348
 #: build/js/module-purchase.js:207
@@ -2574,6 +2574,8 @@ msgid "AI-powered assistant for Eventin to help manage events more efficiently."
 msgstr ""
 
 #: core/Extensions/plugin-status.php:55
+#: build/js/index-onboard.js:3804
+#: src/pages/onboarding/components/steps/step-five.jsx:140
 msgid "Activated"
 msgstr ""
 
@@ -2782,7 +2784,7 @@ msgid "Date Time"
 msgstr ""
 
 #: core/Order/OrderExporter.php:148
-#: build/chunks/js/1658.f7e5e39b.js:555
+#: build/chunks/js/1658.7eff9742.js:555
 #: build/chunks/js/5525.30f14375.js:509
 #: src/pages/bookings-create/form/payment-fields.jsx:30
 #: src/pages/settings/nav-list.jsx:79
@@ -2795,8 +2797,8 @@ msgid "Tax Mode"
 msgstr ""
 
 #: core/Order/OrderExporter.php:151
-#: build/chunks/js/1658.f7e5e39b.js:555
-#: build/chunks/js/2532.e519c48e.js:1
+#: build/chunks/js/1658.7eff9742.js:555
+#: build/chunks/js/2532.556badbd.js:1
 #: build/chunks/js/9172.f695bf50.js:193
 #: build/js/packages.js:869
 #: src/components/order-view-details/pricing-details.jsx:140
@@ -2823,7 +2825,7 @@ msgstr ""
 
 #: core/Order/OrderExporter.php:156
 #: templates/emails/admin-order-email-template.php:136
-#: build/chunks/js/2532.e519c48e.js:1
+#: build/chunks/js/2532.556badbd.js:1
 #: build/chunks/js/5269.49a7a87a.js:255
 #: build/chunks/js/9172.f695bf50.js:193
 #: build/js/packages.js:869
@@ -3145,7 +3147,7 @@ msgstr ""
 
 #: core/schedule/ScheduleExporter.php:98
 #: build/chunks/js/279.1651034a.js:595
-#: build/chunks/js/2532.e519c48e.js:1
+#: build/chunks/js/2532.556badbd.js:1
 #: build/chunks/js/5269.49a7a87a.js:255
 #: build/chunks/js/9172.f695bf50.js:193
 #: build/chunks/js/9977.728598b6.js:245
@@ -3460,7 +3462,7 @@ msgstr ""
 #: widgets/zoom/zoom.php:304
 #: widgets/zoom/zoom.php:320
 #: widgets/zoom/zoom.php:336
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: build/chunks/js/3168.3754c814.js:145
 #: build/chunks/js/3168.3754c814.js:147
 #: build/chunks/js/3168.3754c814.js:149
@@ -3516,7 +3518,7 @@ msgstr ""
 #: widgets/zoom/zoom.php:305
 #: widgets/zoom/zoom.php:321
 #: widgets/zoom/zoom.php:337
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: build/chunks/js/3168.3754c814.js:145
 #: build/chunks/js/3168.3754c814.js:147
 #: build/chunks/js/3168.3754c814.js:149
@@ -3655,10 +3657,10 @@ msgstr ""
 #: widgets/schedule-list/schedule-list.php:264
 #: widgets/schedule/schedule.php:127
 #: widgets/speakers/speakers.php:578
-#: widgets/ticket-qrcode/ticket-qrcode.php:44
+#: widgets/ticket-qrcode/ticket-qrcode.php:48
 #: widgets/upcoming-event-tab/upcoming-event-tab.php:294
 #: widgets/upcoming-event-tab/upcoming-event-tab.php:981
-#: build/chunks/js/1658.f7e5e39b.js:555
+#: build/chunks/js/1658.7eff9742.js:555
 #: build/chunks/js/3168.3754c814.js:145
 #: build/js/gutenberg-blocks.js:1
 #: src/blocks/components/alignment-control/index.js:17
@@ -3684,10 +3686,10 @@ msgstr ""
 #: widgets/schedule-list/schedule-list.php:272
 #: widgets/schedule/schedule.php:135
 #: widgets/speakers/speakers.php:586
-#: widgets/ticket-qrcode/ticket-qrcode.php:52
+#: widgets/ticket-qrcode/ticket-qrcode.php:56
 #: widgets/upcoming-event-tab/upcoming-event-tab.php:302
 #: widgets/upcoming-event-tab/upcoming-event-tab.php:989
-#: build/chunks/js/1658.f7e5e39b.js:555
+#: build/chunks/js/1658.7eff9742.js:555
 #: build/chunks/js/3168.3754c814.js:145
 #: build/js/gutenberg-blocks.js:1
 #: src/blocks/components/alignment-control/index.js:27
@@ -4345,9 +4347,9 @@ msgstr ""
 #: core/Template/TemplatePreview.php:22
 #: templates/attendee/ticket-markup-style-1.php:17
 #: templates/template-parts/attendee/ticket-markup-block.php:19
-#: build/chunks/js/2532.e519c48e.js:1
-#: build/chunks/js/2532.e519c48e.js:168
-#: build/chunks/js/2532.e519c48e.js:652
+#: build/chunks/js/2532.556badbd.js:1
+#: build/chunks/js/2532.556badbd.js:168
+#: build/chunks/js/2532.556badbd.js:652
 #: build/chunks/js/4458.ba44369b.js:58
 #: build/chunks/js/5269.49a7a87a.js:320
 #: build/chunks/js/5269.49a7a87a.js:481
@@ -4417,7 +4419,7 @@ msgstr ""
 #: build/chunks/js/279.1651034a.js:456
 #: build/chunks/js/553.22ca7e81.js:193
 #: build/chunks/js/1046.fa445736.js:756
-#: build/chunks/js/2532.e519c48e.js:652
+#: build/chunks/js/2532.556badbd.js:652
 #: build/chunks/js/3546.eb1ed7f8.js:607
 #: build/chunks/js/5269.49a7a87a.js:320
 #: build/chunks/js/5494.db8c978b.js:659
@@ -4583,7 +4585,7 @@ msgid "Attendee ID"
 msgstr ""
 
 #: core/woocommerce/hooks.php:2311
-#: build/chunks/js/2532.e519c48e.js:1
+#: build/chunks/js/2532.556badbd.js:1
 #: build/chunks/js/5269.49a7a87a.js:481
 #: build/chunks/js/9172.f695bf50.js:193
 #: build/js/packages.js:869
@@ -4831,9 +4833,9 @@ msgid "Payment Method:"
 msgstr ""
 
 #: templates/emails/admin-order-email-template.php:293
-#: build/chunks/js/1658.f7e5e39b.js:590
-#: build/chunks/js/1658.f7e5e39b.js:596
-#: build/chunks/js/2532.e519c48e.js:168
+#: build/chunks/js/1658.7eff9742.js:590
+#: build/chunks/js/1658.7eff9742.js:596
+#: build/chunks/js/2532.556badbd.js:168
 #: build/chunks/js/9172.f695bf50.js:348
 #: build/js/packages.js:2829
 #: src/pages/bookings/bookings-table/columns/payment-method.jsx:11
@@ -4844,7 +4846,7 @@ msgid "WooCommerce"
 msgstr ""
 
 #: templates/emails/admin-order-email-template.php:295
-#: build/chunks/js/1658.f7e5e39b.js:563
+#: build/chunks/js/1658.7eff9742.js:563
 #: build/chunks/js/5525.30f14375.js:509
 #: src/pages/bookings-create/form/payment-fields.jsx:47
 #: src/pages/settings/payments/local-payment.jsx:47
@@ -5303,7 +5305,9 @@ msgstr ""
 
 #: templates/event/parts/rsvp.php:171
 #: build/chunks/js/5046.2510f6b6.js:1
+#: build/js/index-onboard.js:3804
 #: src/pages/extensions/components/single-module-card/index.jsx:113
+#: src/pages/onboarding/components/steps/step-five.jsx:235
 msgid "Continue"
 msgstr ""
 
@@ -5353,9 +5357,9 @@ msgstr ""
 
 #: templates/event/parts/styles/event-schedule/style-1.php:25
 #: templates/event/parts/styles/event-schedule/style-2.php:25
-#: build/chunks/js/1658.f7e5e39b.js:331
-#: build/chunks/js/2532.e519c48e.js:987
-#: src/pages/onboarding/constants/index.js:92
+#: build/chunks/js/1658.7eff9742.js:331
+#: build/chunks/js/2532.556badbd.js:987
+#: src/pages/onboarding/constants/index.js:103
 #: src/pages/settings/event-settings/event-details.jsx:103
 msgid "Event Schedule"
 msgstr ""
@@ -5491,7 +5495,7 @@ msgid " attendees so far."
 msgstr ""
 
 #: templates/event/purchase-form/recurring-event-variable-ticket.php:54
-#: utils/helper.php:4531
+#: utils/helper.php:4546
 msgid "To"
 msgstr ""
 
@@ -5505,8 +5509,8 @@ msgid "Registration Deadline Expired!!"
 msgstr ""
 
 #: templates/event/purchase-form/single-event-variable-ticket.php:33
-#: build/chunks/js/1658.f7e5e39b.js:331
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:331
+#: build/chunks/js/1658.7eff9742.js:447
 #: build/chunks/js/6948.8913e1e3.js:1
 #: build/chunks/js/9172.f695bf50.js:348
 #: build/js/dashboard.js:4102
@@ -5537,8 +5541,8 @@ msgstr ""
 #: templates/parts/event/ticket.php:2
 #: build/chunks/js/828.43fdeef1.js:153
 #: build/chunks/js/828.43fdeef1.js:584
-#: build/chunks/js/2532.e519c48e.js:1
-#: build/chunks/js/2532.e519c48e.js:652
+#: build/chunks/js/2532.556badbd.js:1
+#: build/chunks/js/2532.556badbd.js:652
 #: build/chunks/js/5190.e9a96298.js:125
 #: build/chunks/js/9172.f695bf50.js:193
 #: build/chunks/js/9172.f695bf50.js:348
@@ -5671,7 +5675,7 @@ msgid "Event Locations"
 msgstr ""
 
 #: templates/layout/header.php:95
-#: build/chunks/js/1658.f7e5e39b.js:596
+#: build/chunks/js/1658.7eff9742.js:596
 #: src/pages/settings/settings-guidelines-constants.js:127
 msgid "Speaker Categories"
 msgstr ""
@@ -5729,7 +5733,7 @@ msgid "Complete Payment"
 msgstr ""
 
 #: templates/parts/event/faq.php:2
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: build/js/dashboard.js:3671
 #: build/js/index-onboard.js:2833
 #: build/js/packages.js:4680
@@ -6437,7 +6441,7 @@ msgstr ""
 #: utils/functions.php:735
 #: utils/helper.php:3263
 #: build/js/dashboard.js:5000
-#: build/js/index-onboard.js:4310
+#: build/js/index-onboard.js:4399
 #: build/js/packages.js:6907
 #: build/js/template-builder-header-toolbar.js:53
 #: src/pages/template-builder/create/constants.js:19
@@ -6452,7 +6456,7 @@ msgstr ""
 #: build/js/dashboard.js:1226
 #: build/js/dashboard.js:5000
 #: build/js/index-onboard.js:1000
-#: build/js/index-onboard.js:4310
+#: build/js/index-onboard.js:4399
 #: build/js/packages.js:1470
 #: build/js/packages.js:6907
 #: build/js/template-builder-header-toolbar.js:53
@@ -6800,7 +6804,7 @@ msgstr ""
 #: widgets/upcoming-event-tab/upcoming-event-tab.php:121
 #: build/chunks/js/279.1651034a.js:595
 #: build/chunks/js/553.22ca7e81.js:207
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: build/chunks/js/3168.3754c814.js:145
 #: build/chunks/js/3168.3754c814.js:147
 #: build/chunks/js/3168.3754c814.js:149
@@ -6859,7 +6863,7 @@ msgstr ""
 msgid "Input field is empty"
 msgstr ""
 
-#: utils/helper.php:3909
+#: utils/helper.php:3924
 #: build/chunks/js/828.43fdeef1.js:236
 #: build/js/dashboard.js:1
 #: build/js/dashboard.js:1142
@@ -6880,15 +6884,15 @@ msgstr ""
 msgid "Default"
 msgstr ""
 
-#: utils/helper.php:4605
+#: utils/helper.php:4620
 msgid "More Events"
 msgstr ""
 
-#: utils/helper.php:4736
+#: utils/helper.php:4751
 msgid "Upgrade to  Pro"
 msgstr ""
 
-#: utils/helper.php:4756
+#: utils/helper.php:4771
 msgid "Install Eventin AI"
 msgstr ""
 
@@ -7062,7 +7066,7 @@ msgid "Location Text"
 msgstr ""
 
 #: widgets/advanced-search/advanced-search.php:92
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: build/js/gutenberg-blocks.js:1
 #: build/js/index-onboard.js:3804
 #: build/js/template-builder-header-toolbar.js:53
@@ -7236,7 +7240,7 @@ msgstr ""
 #: widgets/schedule-list/schedule-list.php:220
 #: widgets/schedule/schedule.php:283
 #: widgets/speakers/speakers.php:202
-#: widgets/ticket-qrcode/ticket-qrcode.php:76
+#: widgets/ticket-qrcode/ticket-qrcode.php:80
 #: widgets/upcoming-event-tab/upcoming-event-tab.php:374
 #: widgets/upcoming-event-tab/upcoming-event-tab.php:425
 #: build/js/gutenberg-blocks.js:1
@@ -7284,7 +7288,7 @@ msgstr ""
 #: widgets/schedule-list/schedule-list.php:162
 #: widgets/schedule-list/schedule-list.php:247
 #: widgets/schedule/schedule.php:295
-#: widgets/ticket-qrcode/ticket-qrcode.php:88
+#: widgets/ticket-qrcode/ticket-qrcode.php:92
 #: widgets/upcoming-event-tab/upcoming-event-tab.php:442
 #: build/js/gutenberg-blocks.js:1
 #: src/blocks/attendee-extra-fields/settings/advanced-panel-body.jsx:152
@@ -7807,7 +7811,7 @@ msgstr ""
 #: widgets/speakers/speakers.php:140
 #: widgets/upcoming-event-tab/upcoming-event-tab.php:135
 #: build/chunks/js/279.1651034a.js:595
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: build/chunks/js/3168.3754c814.js:145
 #: build/chunks/js/3168.3754c814.js:149
 #: build/chunks/js/3168.3754c814.js:151
@@ -7831,7 +7835,7 @@ msgstr ""
 #: widgets/speakers/speakers.php:139
 #: widgets/upcoming-event-tab/upcoming-event-tab.php:136
 #: build/chunks/js/279.1651034a.js:595
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: build/chunks/js/3168.3754c814.js:145
 #: build/chunks/js/3168.3754c814.js:149
 #: build/chunks/js/3168.3754c814.js:151
@@ -8115,7 +8119,7 @@ msgstr ""
 #: widgets/events/events.php:777
 #: widgets/schedule/schedule.php:122
 #: widgets/speakers/speakers.php:574
-#: widgets/ticket-qrcode/ticket-qrcode.php:40
+#: widgets/ticket-qrcode/ticket-qrcode.php:44
 #: widgets/upcoming-event-tab/upcoming-event-tab.php:289
 #: widgets/upcoming-event-tab/upcoming-event-tab.php:977
 #: build/js/gutenberg-blocks.js:1
@@ -8136,7 +8140,7 @@ msgstr ""
 #: widgets/schedule-list/schedule-list.php:268
 #: widgets/schedule/schedule.php:131
 #: widgets/speakers/speakers.php:582
-#: widgets/ticket-qrcode/ticket-qrcode.php:48
+#: widgets/ticket-qrcode/ticket-qrcode.php:52
 #: widgets/upcoming-event-tab/upcoming-event-tab.php:298
 #: widgets/upcoming-event-tab/upcoming-event-tab.php:985
 #: build/js/dashboard.js:1
@@ -8170,8 +8174,8 @@ msgstr ""
 #: widgets/events-tab/events-tab.php:328
 #: widgets/schedule/schedule.php:220
 #: widgets/upcoming-event-tab/upcoming-event-tab.php:390
-#: build/chunks/js/1658.f7e5e39b.js:265
-#: build/chunks/js/2532.e519c48e.js:1
+#: build/chunks/js/1658.7eff9742.js:265
+#: build/chunks/js/2532.556badbd.js:1
 #: build/chunks/js/9172.f695bf50.js:193
 #: build/js/packages.js:869
 #: src/components/order-view-details/order-attendee-list.jsx:65
@@ -8519,17 +8523,18 @@ msgid "Content Box Padding"
 msgstr ""
 
 #: widgets/ticket-qrcode/ticket-qrcode.php:17
+#: widgets/ticket-qrcode/ticket-qrcode.php:117
 #: build/js/gutenberg-blocks.js:1
 #: src/blocks/qr-code/index.js:18
 msgid "Ticket QR Code"
 msgstr ""
 
-#: widgets/ticket-qrcode/ticket-qrcode.php:33
-#: widgets/ticket-qrcode/ticket-qrcode.php:68
+#: widgets/ticket-qrcode/ticket-qrcode.php:37
+#: widgets/ticket-qrcode/ticket-qrcode.php:72
 msgid "QR Code"
 msgstr ""
 
-#: widgets/ticket-qrcode/ticket-qrcode.php:109
+#: widgets/ticket-qrcode/ticket-qrcode.php:125
 msgid "Ticket QR Code requires Eventin Pro."
 msgstr ""
 
@@ -8562,7 +8567,7 @@ msgid " info"
 msgstr ""
 
 #: widgets/zoom/style/zoom-1.php:30
-#: build/chunks/js/2532.e519c48e.js:1
+#: build/chunks/js/2532.556badbd.js:1
 #: build/chunks/js/9172.f695bf50.js:193
 #: build/js/gutenberg-blocks.js:1
 #: build/js/packages.js:869
@@ -8578,7 +8583,7 @@ msgid "Meeting ID"
 msgstr ""
 
 #: widgets/zoom/style/zoom-1.php:48
-#: build/chunks/js/1658.f7e5e39b.js:265
+#: build/chunks/js/1658.7eff9742.js:265
 #: src/pages/settings/advanced/webhookRepeater.jsx:167
 msgid "Topic"
 msgstr ""
@@ -8844,7 +8849,7 @@ msgstr ""
 
 #: widgets/zoom/zoom.php:351
 #: build/chunks/js/279.1651034a.js:193
-#: build/chunks/js/2532.e519c48e.js:50
+#: build/chunks/js/2532.556badbd.js:50
 #: build/js/packages.js:1083
 #: src/components/setup-notice/data.js:51
 #: src/components/setup-notice/data.js:63
@@ -8894,7 +8899,7 @@ msgstr ""
 #: build/chunks/js/279.1651034a.js:1
 #: build/chunks/js/553.22ca7e81.js:1
 #: build/chunks/js/1046.fa445736.js:1
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:447
 #: build/chunks/js/3546.eb1ed7f8.js:1
 #: build/chunks/js/5269.49a7a87a.js:1
 #: build/chunks/js/5494.db8c978b.js:1
@@ -8908,7 +8913,7 @@ msgstr ""
 #: build/js/packages.js:319
 #: src/components/custom-pagination/index.jsx:55
 #: src/components/custom-show-total.jsx:22
-#: src/pages/onboarding/components/stepper/index.jsx:34
+#: src/pages/onboarding/components/stepper/index.jsx:37
 #: src/pages/settings/import/the-events-calendar/components/EventPreviewSection.jsx:47
 msgid "of"
 msgstr ""
@@ -9084,42 +9089,42 @@ msgid "Start Import"
 msgstr ""
 
 #: build/chunks/js/279.1651034a.js:193
-#: build/chunks/js/2532.e519c48e.js:50
+#: build/chunks/js/2532.556badbd.js:50
 #: build/js/packages.js:1083
 #: src/components/setup-notice/data.js:10
 msgid "Create your first event with date, time & location"
 msgstr ""
 
 #: build/chunks/js/279.1651034a.js:193
-#: build/chunks/js/2532.e519c48e.js:50
+#: build/chunks/js/2532.556badbd.js:50
 #: build/js/packages.js:1083
 #: src/components/setup-notice/data.js:22
 msgid "Add attendees & tickets with seat limits & pricing"
 msgstr ""
 
 #: build/chunks/js/279.1651034a.js:193
-#: build/chunks/js/2532.e519c48e.js:50
+#: build/chunks/js/2532.556badbd.js:50
 #: build/js/packages.js:1083
 #: src/components/setup-notice/data.js:34
 msgid "Create speakers & organizers for your event page"
 msgstr ""
 
 #: build/chunks/js/279.1651034a.js:193
-#: build/chunks/js/2532.e519c48e.js:50
+#: build/chunks/js/2532.556badbd.js:50
 #: build/js/packages.js:1083
 #: src/components/setup-notice/data.js:49
 msgid "Create event"
 msgstr ""
 
 #: build/chunks/js/279.1651034a.js:193
-#: build/chunks/js/2532.e519c48e.js:50
+#: build/chunks/js/2532.556badbd.js:50
 #: build/js/packages.js:1083
 #: src/components/setup-notice/data.js:55
 msgid "Enable Attendees"
 msgstr ""
 
 #: build/chunks/js/279.1651034a.js:193
-#: build/chunks/js/2532.e519c48e.js:50
+#: build/chunks/js/2532.556badbd.js:50
 #: build/js/packages.js:1083
 #: src/components/setup-notice/data.js:57
 #: src/components/setup-notice/data.js:69
@@ -9127,55 +9132,55 @@ msgid "Go to settings"
 msgstr ""
 
 #: build/chunks/js/279.1651034a.js:193
-#: build/chunks/js/2532.e519c48e.js:50
+#: build/chunks/js/2532.556badbd.js:50
 #: build/js/packages.js:1083
 #: src/components/setup-notice/data.js:61
 msgid "Create Speakers"
 msgstr ""
 
 #: build/chunks/js/279.1651034a.js:193
-#: build/chunks/js/2532.e519c48e.js:50
-#: build/chunks/js/2532.e519c48e.js:987
+#: build/chunks/js/2532.556badbd.js:50
+#: build/chunks/js/2532.556badbd.js:987
 #: build/js/dashboard.js:3936
 #: build/js/index-onboard.js:3098
 #: build/js/packages.js:1083
 #: build/js/packages.js:4945
 #: src/components/setup-notice/data.js:67
 #: src/pages/events_v2/create-and-edit/tickets/components/payment-method-banner.jsx:53
-#: src/pages/onboarding/constants/index.js:106
+#: src/pages/onboarding/constants/index.js:117
 msgid "Enable Payment"
 msgstr ""
 
 #: build/chunks/js/279.1651034a.js:193
-#: build/chunks/js/2532.e519c48e.js:50
+#: build/chunks/js/2532.556badbd.js:50
 #: build/js/packages.js:1083
 #: src/components/setup-notice/index.jsx:86
 msgid "Welcome to Eventin"
 msgstr ""
 
 #: build/chunks/js/279.1651034a.js:193
-#: build/chunks/js/2532.e519c48e.js:50
+#: build/chunks/js/2532.556badbd.js:50
 #: build/js/packages.js:1083
 #: src/components/setup-notice/index.jsx:88
 msgid "Set up your event in minutes! From creating events to enabling payments — we’ll walk you through everything you need to launch faster."
 msgstr ""
 
 #: build/chunks/js/279.1651034a.js:193
-#: build/chunks/js/2532.e519c48e.js:50
+#: build/chunks/js/2532.556badbd.js:50
 #: build/js/packages.js:1083
 #: src/components/setup-notice/index.jsx:101
 msgid "View Documentation"
 msgstr ""
 
 #: build/chunks/js/279.1651034a.js:193
-#: build/chunks/js/2532.e519c48e.js:50
+#: build/chunks/js/2532.556badbd.js:50
 #: build/js/packages.js:1083
 #: src/components/setup-notice/index.jsx:109
 msgid "Video Tutorial "
 msgstr ""
 
 #: build/chunks/js/279.1651034a.js:193
-#: build/chunks/js/2532.e519c48e.js:50
+#: build/chunks/js/2532.556badbd.js:50
 #: build/js/packages.js:1083
 #: src/components/setup-notice/index.jsx:119
 msgid "Eventin launch checklist"
@@ -9283,7 +9288,7 @@ msgstr ""
 #: build/chunks/js/553.22ca7e81.js:193
 #: build/chunks/js/828.43fdeef1.js:1
 #: build/chunks/js/1046.fa445736.js:756
-#: build/chunks/js/2532.e519c48e.js:652
+#: build/chunks/js/2532.556badbd.js:652
 #: build/chunks/js/3546.eb1ed7f8.js:607
 #: build/chunks/js/5269.49a7a87a.js:255
 #: build/chunks/js/5269.49a7a87a.js:320
@@ -9521,9 +9526,9 @@ msgstr ""
 #: build/chunks/js/553.22ca7e81.js:193
 #: build/chunks/js/828.43fdeef1.js:584
 #: build/chunks/js/1046.fa445736.js:756
-#: build/chunks/js/1658.f7e5e39b.js:265
-#: build/chunks/js/2532.e519c48e.js:50
-#: build/chunks/js/2532.e519c48e.js:652
+#: build/chunks/js/1658.7eff9742.js:265
+#: build/chunks/js/2532.556badbd.js:50
+#: build/chunks/js/2532.556badbd.js:652
 #: build/chunks/js/3546.eb1ed7f8.js:607
 #: build/chunks/js/5190.e9a96298.js:149
 #: build/chunks/js/5269.49a7a87a.js:250
@@ -9678,7 +9683,7 @@ msgstr ""
 #: build/chunks/js/279.1651034a.js:456
 #: build/chunks/js/828.43fdeef1.js:1
 #: build/chunks/js/828.43fdeef1.js:543
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:447
 #: build/chunks/js/5190.e9a96298.js:125
 #: build/chunks/js/9977.728598b6.js:245
 #: build/js/packages.js:4206
@@ -9703,7 +9708,7 @@ msgid "Preview"
 msgstr ""
 
 #: build/chunks/js/279.1651034a.js:456
-#: build/chunks/js/2532.e519c48e.js:652
+#: build/chunks/js/2532.556badbd.js:652
 #: build/chunks/js/5269.49a7a87a.js:255
 #: build/chunks/js/8306.f82644bf.js:413
 #: build/chunks/js/9172.f695bf50.js:256
@@ -9751,7 +9756,7 @@ msgid "Are you sure you want to send certificate for this event?"
 msgstr ""
 
 #: build/chunks/js/279.1651034a.js:456
-#: build/chunks/js/2532.e519c48e.js:652
+#: build/chunks/js/2532.556badbd.js:652
 #: build/chunks/js/9172.f695bf50.js:256
 #: build/chunks/js/9977.728598b6.js:245
 #: build/js/dashboard.js:1226
@@ -9767,7 +9772,7 @@ msgid "Successfully deleted the event!"
 msgstr ""
 
 #: build/chunks/js/279.1651034a.js:456
-#: build/chunks/js/2532.e519c48e.js:652
+#: build/chunks/js/2532.556badbd.js:652
 #: build/chunks/js/9172.f695bf50.js:256
 #: build/chunks/js/9977.728598b6.js:245
 #: build/js/dashboard.js:1226
@@ -9816,7 +9821,7 @@ msgid "Current Homepage"
 msgstr ""
 
 #: build/chunks/js/279.1651034a.js:456
-#: build/chunks/js/1658.f7e5e39b.js:555
+#: build/chunks/js/1658.7eff9742.js:555
 #: build/chunks/js/9977.728598b6.js:245
 #: build/js/packages.js:5661
 #: src/pages/events_v2/event-lists/components/columns/title.jsx:29
@@ -9825,13 +9830,13 @@ msgid "Eventbrite"
 msgstr ""
 
 #: build/chunks/js/279.1651034a.js:456
-#: build/chunks/js/2532.e519c48e.js:168
+#: build/chunks/js/2532.556badbd.js:168
 #: build/chunks/js/9977.728598b6.js:245
 #: build/js/dashboard.js:3614
 #: build/js/index-onboard.js:2776
 #: build/js/packages.js:4623
 #: build/js/packages.js:5661
-#: src/components/whats-new/constants.js:34
+#: src/components/whats-new/constants.js:35
 #: src/pages/events_v2/create-and-edit/components/social-media-links/constant.js:28
 #: src/pages/events_v2/event-lists/components/columns/title.jsx:30
 msgid "Facebook"
@@ -10122,7 +10127,7 @@ msgstr ""
 #: build/js/dashboard.js:2416
 #: build/js/dashboard.js:5000
 #: build/js/index-onboard.js:1578
-#: build/js/index-onboard.js:4310
+#: build/js/index-onboard.js:4399
 #: build/js/packages.js:3401
 #: build/js/packages.js:6907
 #: build/js/template-builder-header-toolbar.js:53
@@ -10190,8 +10195,8 @@ msgid "Choose a Page Builder to Continue"
 msgstr ""
 
 #: build/chunks/js/828.43fdeef1.js:236
-#: build/chunks/js/1658.f7e5e39b.js:265
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:265
+#: build/chunks/js/1658.7eff9742.js:331
 #: build/chunks/js/3546.eb1ed7f8.js:607
 #: build/chunks/js/4458.ba44369b.js:58
 #: build/chunks/js/5046.2510f6b6.js:1
@@ -10330,7 +10335,7 @@ msgid "Preview now"
 msgstr ""
 
 #: build/chunks/js/828.43fdeef1.js:236
-#: build/chunks/js/2532.e519c48e.js:1
+#: build/chunks/js/2532.556badbd.js:1
 #: build/chunks/js/5269.49a7a87a.js:255
 #: build/chunks/js/9172.f695bf50.js:193
 #: build/js/dashboard.js:2112
@@ -10527,29 +10532,29 @@ msgstr ""
 msgid "Search by tag name"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:110
+#: build/chunks/js/1658.7eff9742.js:110
 #: build/js/module-purchase.js:192
 #: src/data/geo-options.js:12
 msgid "All countries (*)"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:110
+#: build/chunks/js/1658.7eff9742.js:110
 #: build/js/module-purchase.js:192
 #: src/data/geo-options.js:13
 msgid "All states (*)"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:110
+#: build/chunks/js/1658.7eff9742.js:110
 #: src/layouts/settings/form-outlet.jsx:47
 msgid "Successfully updated settings!"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:110
+#: build/chunks/js/1658.7eff9742.js:110
 #: src/layouts/settings/form-outlet.jsx:54
 msgid "Couldn't save settings!"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:110
+#: build/chunks/js/1658.7eff9742.js:110
 #: build/chunks/js/5046.2510f6b6.js:21
 #: build/js/dashboard.js:349
 #: build/js/dashboard.js:495
@@ -10572,17 +10577,17 @@ msgstr ""
 msgid "Save Changes"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:251
-#: build/chunks/js/1658.f7e5e39b.js:555
+#: build/chunks/js/1658.7eff9742.js:251
+#: build/chunks/js/1658.7eff9742.js:555
 #: src/pages/settings/advanced/control-access.jsx:26
 #: src/pages/settings/nav-list.jsx:155
 #: src/pages/settings/nav-list.jsx:156
 msgid "Manage Access"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:251
-#: build/chunks/js/1658.f7e5e39b.js:555
-#: build/chunks/js/1658.f7e5e39b.js:596
+#: build/chunks/js/1658.7eff9742.js:251
+#: build/chunks/js/1658.7eff9742.js:555
+#: build/chunks/js/1658.7eff9742.js:596
 #: src/pages/settings/advanced/domain-registration.jsx:30
 #: src/pages/settings/nav-list.jsx:148
 #: src/pages/settings/nav-list.jsx:149
@@ -10591,28 +10596,28 @@ msgstr ""
 msgid "Domain Registration"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:251
+#: build/chunks/js/1658.7eff9742.js:251
 #: src/pages/settings/advanced/domain-registration.jsx:31
 msgid "Allow event scenarios to be displayed on registered websites."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:251
+#: build/chunks/js/1658.7eff9742.js:251
 #: src/pages/settings/advanced/domain-registration.jsx:38
 msgid "Cross Website Event Display "
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:251
+#: build/chunks/js/1658.7eff9742.js:251
 #: src/pages/settings/advanced/domain-registration.jsx:44
 msgid "Allow the event details page cross over to another website using a shortcode."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:251
-#: build/chunks/js/1658.f7e5e39b.js:265
-#: build/chunks/js/1658.f7e5e39b.js:331
-#: build/chunks/js/1658.f7e5e39b.js:555
-#: build/chunks/js/1658.f7e5e39b.js:559
-#: build/chunks/js/1658.f7e5e39b.js:563
-#: build/chunks/js/1658.f7e5e39b.js:596
+#: build/chunks/js/1658.7eff9742.js:251
+#: build/chunks/js/1658.7eff9742.js:265
+#: build/chunks/js/1658.7eff9742.js:331
+#: build/chunks/js/1658.7eff9742.js:555
+#: build/chunks/js/1658.7eff9742.js:559
+#: build/chunks/js/1658.7eff9742.js:563
+#: build/chunks/js/1658.7eff9742.js:596
 #: src/pages/settings/advanced/domain-registration.jsx:50
 #: src/pages/settings/advanced/webhooks.jsx:57
 #: src/pages/settings/email/purchase-email.jsx:43
@@ -10627,88 +10632,88 @@ msgstr ""
 msgid "Read Documentation"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:251
+#: build/chunks/js/1658.7eff9742.js:251
 #: src/pages/settings/advanced/domain-registration.jsx:69
 msgid "No domain added yet!"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:251
+#: build/chunks/js/1658.7eff9742.js:251
 #: src/pages/settings/advanced/domain-registration.jsx:84
 msgid "Register Website URL"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:251
+#: build/chunks/js/1658.7eff9742.js:251
 #: src/pages/settings/advanced/domain-registration.jsx:90
 msgid "Enter external domain"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:251
+#: build/chunks/js/1658.7eff9742.js:251
 #: src/pages/settings/advanced/domain-registration.jsx:126
 msgid "Add Domain"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:251
-#: build/chunks/js/1658.f7e5e39b.js:596
+#: build/chunks/js/1658.7eff9742.js:251
+#: build/chunks/js/1658.7eff9742.js:596
 #: src/pages/settings/advanced/general.jsx:29
 #: src/pages/settings/settings-guidelines-constants.js:59
 #: src/pages/settings/settings-guidelines-constants.js:193
 msgid "General Settings"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:251
+#: build/chunks/js/1658.7eff9742.js:251
 #: src/pages/settings/advanced/general.jsx:36
 msgid "Date Format"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:251
+#: build/chunks/js/1658.7eff9742.js:251
 #: src/pages/settings/advanced/general.jsx:58
 #: src/pages/settings/advanced/general.jsx:88
 msgid "Change"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:251
+#: build/chunks/js/1658.7eff9742.js:251
 #: src/pages/settings/advanced/general.jsx:66
 msgid "Time Format"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:251
+#: build/chunks/js/1658.7eff9742.js:251
 #: src/pages/settings/advanced/general.jsx:102
 msgid "Primary Color"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:251
+#: build/chunks/js/1658.7eff9742.js:251
 #: src/pages/settings/advanced/general.jsx:118
 msgid "Secondary Color"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:261
+#: build/chunks/js/1658.7eff9742.js:261
 #: src/pages/settings/advanced/slug.jsx:47
 msgid "Slug Settings"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:261
+#: build/chunks/js/1658.7eff9742.js:261
 #: src/pages/settings/advanced/slug.jsx:57
 msgid "A flash is required for the Permalink setting if the slug name changes."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:261
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:261
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/advanced/slug.jsx:63
 #: src/pages/settings/import/facebook-events/components/AppConfigSection.jsx:54
 msgid "Click here"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:261
+#: build/chunks/js/1658.7eff9742.js:261
 #: src/pages/settings/advanced/slug.jsx:71
 msgid "Event Slug Name"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:261
+#: build/chunks/js/1658.7eff9742.js:261
 #: src/pages/settings/advanced/slug.jsx:76
 msgid "Enter event slug"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:261
+#: build/chunks/js/1658.7eff9742.js:261
 #: src/pages/settings/advanced/slug.jsx:84
 #: src/pages/settings/advanced/slug.jsx:92
 #: src/pages/settings/advanced/slug.jsx:119
@@ -10716,60 +10721,60 @@ msgstr ""
 msgid "Example: http://eventin.com/"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:261
+#: build/chunks/js/1658.7eff9742.js:261
 #: src/pages/settings/advanced/slug.jsx:96
 msgid "etn"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:261
+#: build/chunks/js/1658.7eff9742.js:261
 #: src/pages/settings/advanced/slug.jsx:102
 msgid "Speaker Slug Name"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:261
+#: build/chunks/js/1658.7eff9742.js:261
 #: src/pages/settings/advanced/slug.jsx:110
 msgid "Enter speaker slug "
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:261
+#: build/chunks/js/1658.7eff9742.js:261
 #: src/pages/settings/advanced/slug.jsx:132
 msgid "author"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:265
+#: build/chunks/js/1658.7eff9742.js:265
 #: src/pages/settings/advanced/webhookRepeater.jsx:89
 msgid "Successfully deleted the webhook!"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:265
+#: build/chunks/js/1658.7eff9742.js:265
 #: src/pages/settings/advanced/webhookRepeater.jsx:99
 msgid "Couldn't delete the webhook!"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:265
+#: build/chunks/js/1658.7eff9742.js:265
 #: src/pages/settings/advanced/webhookRepeater.jsx:119
 msgid "New Webhook"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:265
+#: build/chunks/js/1658.7eff9742.js:265
 #: src/pages/settings/advanced/webhookRepeater.jsx:125
 msgid "Webhook Name"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:265
+#: build/chunks/js/1658.7eff9742.js:265
 #: src/pages/settings/advanced/webhookRepeater.jsx:128
 msgid "Enter Webhook Name"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:265
+#: build/chunks/js/1658.7eff9742.js:265
 #: src/pages/settings/advanced/webhookRepeater.jsx:142
 msgid "Select Webhook status"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:265
-#: build/chunks/js/2532.e519c48e.js:1
-#: build/chunks/js/2532.e519c48e.js:168
-#: build/chunks/js/2532.e519c48e.js:652
+#: build/chunks/js/1658.7eff9742.js:265
+#: build/chunks/js/2532.556badbd.js:1
+#: build/chunks/js/2532.556badbd.js:168
+#: build/chunks/js/2532.556badbd.js:652
 #: build/chunks/js/9172.f695bf50.js:193
 #: build/chunks/js/9172.f695bf50.js:348
 #: build/js/packages.js:869
@@ -10781,184 +10786,184 @@ msgstr ""
 msgid "Pending"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:265
+#: build/chunks/js/1658.7eff9742.js:265
 #: src/pages/settings/advanced/webhookRepeater.jsx:158
 msgid "Disabled"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:265
+#: build/chunks/js/1658.7eff9742.js:265
 #: src/pages/settings/advanced/webhookRepeater.jsx:170
 msgid "Select Webhook Topic"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:265
+#: build/chunks/js/1658.7eff9742.js:265
 #: src/pages/settings/advanced/webhookRepeater.jsx:186
 msgid "Delivery URL"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:265
+#: build/chunks/js/1658.7eff9742.js:265
 #: src/pages/settings/advanced/webhookRepeater.jsx:189
 msgid "Enter Delivery URL"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:265
+#: build/chunks/js/1658.7eff9742.js:265
 #: build/chunks/js/5046.2510f6b6.js:1
 #: src/pages/extensions/components/stripe-config-modal.jsx:99
 #: src/pages/settings/advanced/webhookRepeater.jsx:199
 msgid "Secret Key"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:265
+#: build/chunks/js/1658.7eff9742.js:265
 #: src/pages/settings/advanced/webhookRepeater.jsx:203
 msgid "Enter Secret Key"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:265
+#: build/chunks/js/1658.7eff9742.js:265
 #: src/pages/settings/advanced/webhookRepeater.jsx:59
 msgid "Successfully updated webhook!"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:265
+#: build/chunks/js/1658.7eff9742.js:265
 #: src/pages/settings/advanced/webhookRepeater.jsx:65
 msgid "Successfully created webhook!"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:265
+#: build/chunks/js/1658.7eff9742.js:265
 #: src/pages/settings/advanced/webhookRepeater.jsx:73
 msgid "Couldn't create webhook!"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:265
+#: build/chunks/js/1658.7eff9742.js:265
 #: src/pages/settings/advanced/webhookRepeater.jsx:108
 msgid "Are you sure you want to delete this webhook?"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:265
+#: build/chunks/js/1658.7eff9742.js:265
 #: src/pages/settings/advanced/webhookRepeater.jsx:262
 msgid "Event Create"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:265
+#: build/chunks/js/1658.7eff9742.js:265
 #: src/pages/settings/advanced/webhookRepeater.jsx:266
 msgid "Event Update"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:265
+#: build/chunks/js/1658.7eff9742.js:265
 #: src/pages/settings/advanced/webhookRepeater.jsx:270
 msgid "Event Delete"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:265
+#: build/chunks/js/1658.7eff9742.js:265
 #: src/pages/settings/advanced/webhookRepeater.jsx:274
 msgid "Event Restore"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:265
+#: build/chunks/js/1658.7eff9742.js:265
 #: src/pages/settings/advanced/webhookRepeater.jsx:278
 msgid "Speaker Create"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:265
+#: build/chunks/js/1658.7eff9742.js:265
 #: src/pages/settings/advanced/webhookRepeater.jsx:282
 msgid "Speaker Update"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:265
+#: build/chunks/js/1658.7eff9742.js:265
 #: src/pages/settings/advanced/webhookRepeater.jsx:286
 msgid "Speaker Delete"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:265
+#: build/chunks/js/1658.7eff9742.js:265
 #: src/pages/settings/advanced/webhookRepeater.jsx:290
 msgid "Speaker Restore"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:265
+#: build/chunks/js/1658.7eff9742.js:265
 #: src/pages/settings/advanced/webhookRepeater.jsx:294
 msgid "Attendee Create"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:265
+#: build/chunks/js/1658.7eff9742.js:265
 #: src/pages/settings/advanced/webhookRepeater.jsx:298
 msgid "Attendee Update"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:265
+#: build/chunks/js/1658.7eff9742.js:265
 #: src/pages/settings/advanced/webhookRepeater.jsx:302
 msgid "Attendee Delete"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:265
+#: build/chunks/js/1658.7eff9742.js:265
 #: src/pages/settings/advanced/webhookRepeater.jsx:306
 msgid "Attendee Restore"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:265
+#: build/chunks/js/1658.7eff9742.js:265
 #: src/pages/settings/advanced/webhookRepeater.jsx:310
 msgid "Schedule Create"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:265
+#: build/chunks/js/1658.7eff9742.js:265
 #: src/pages/settings/advanced/webhookRepeater.jsx:314
 msgid "Schedule Update"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:265
+#: build/chunks/js/1658.7eff9742.js:265
 #: src/pages/settings/advanced/webhookRepeater.jsx:318
 msgid "Schedule Delete"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:265
+#: build/chunks/js/1658.7eff9742.js:265
 #: src/pages/settings/advanced/webhookRepeater.jsx:322
 msgid "Schedule Restore"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:265
+#: build/chunks/js/1658.7eff9742.js:265
 #: src/pages/settings/advanced/webhookRepeater.jsx:326
 msgid "Booking Create"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:265
+#: build/chunks/js/1658.7eff9742.js:265
 #: src/pages/settings/advanced/webhookRepeater.jsx:330
 msgid "Booking Update"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:265
+#: build/chunks/js/1658.7eff9742.js:265
 #: src/pages/settings/advanced/webhookRepeater.jsx:334
 msgid "Booking Delete"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:265
+#: build/chunks/js/1658.7eff9742.js:265
 #: src/pages/settings/advanced/webhookRepeater.jsx:338
 msgid "Booking Restore"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:265
+#: build/chunks/js/1658.7eff9742.js:265
 #: src/pages/settings/advanced/webhooks.jsx:40
 msgid "Webhook Settings"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:265
+#: build/chunks/js/1658.7eff9742.js:265
 #: src/pages/settings/advanced/webhooks.jsx:45
 msgid "Enable Webhooks?"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:265
+#: build/chunks/js/1658.7eff9742.js:265
 #: src/pages/settings/advanced/webhooks.jsx:48
 msgid "Webhooks are used to receive small amounts of data from events and automate workflows."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:265
+#: build/chunks/js/1658.7eff9742.js:265
 #: src/pages/settings/advanced/webhooks.jsx:79
 msgid "No webhook topic added yet!"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:265
+#: build/chunks/js/1658.7eff9742.js:265
 #: src/pages/settings/advanced/webhooks.jsx:111
 msgid "Add Webhook"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:322
+#: build/chunks/js/1658.7eff9742.js:322
 #: build/js/dashboard.js:3671
 #: build/js/index-onboard.js:2833
 #: build/js/packages.js:4680
@@ -10967,7 +10972,7 @@ msgstr ""
 msgid "Guidelines & Resources"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:322
+#: build/chunks/js/1658.7eff9742.js:322
 #: build/js/dashboard.js:3671
 #: build/js/index-onboard.js:2833
 #: build/js/packages.js:4680
@@ -10976,7 +10981,7 @@ msgstr ""
 msgid "Need assistance?"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:322
+#: build/chunks/js/1658.7eff9742.js:322
 #: build/js/dashboard.js:3671
 #: build/js/index-onboard.js:2833
 #: build/js/packages.js:4680
@@ -10985,22 +10990,22 @@ msgstr ""
 msgid "Contact Support."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:326
+#: build/chunks/js/1658.7eff9742.js:326
 #: src/pages/settings/email/automation-notice.jsx:31
 msgid "Automation Modules are Currently Enabled"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:326
+#: build/chunks/js/1658.7eff9742.js:326
 #: src/pages/settings/email/automation-notice.jsx:35
 msgid "You can manage emails using the Automation modules. Go to the Automation tab to get started."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:326
+#: build/chunks/js/1658.7eff9742.js:326
 #: src/pages/settings/email/automation-notice.jsx:39
 msgid "Go to Automation"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: build/chunks/js/5046.2510f6b6.js:1
 #: build/chunks/js/8856.076a3a9f.js:653
 #: src/pages/extensions/components/single-module-card/ModuleFooterActions.jsx:102
@@ -11011,43 +11016,43 @@ msgstr ""
 msgid "Configure"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/email/purchase-email.jsx:31
 msgid "Email Settings"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/email/purchase-email.jsx:34
 #: src/pages/settings/email/rsvp-invitations.jsx:34
 msgid "Manage how you want to utilize email settings."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/email/purchase-email.jsx:51
 msgid "Purchase Confirmation Email"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/email/purchase-email.jsx:55
 msgid "Send attendees ticket confirmation email with link to register on the event."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/email/purchase-email.jsx:70
 msgid "Event Reminder Email"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/email/purchase-email.jsx:71
 msgid "Send event reminder to the attendees."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/email/reminder-email.jsx:61
 msgid "Event Reminder Email Configuration"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: build/chunks/js/5190.e9a96298.js:125
 #: build/js/dashboard.js:3221
 #: build/js/index-onboard.js:2383
@@ -11065,65 +11070,65 @@ msgstr ""
 msgid "Save"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/email/reminder-email.jsx:80
 #: src/pages/settings/email/ticket-purchase-email-form.jsx:107
 msgid "Send Email to Admin"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/email/reminder-email.jsx:81
 #: src/pages/settings/email/ticket-purchase-email-form.jsx:108
 msgid "Enable to send email to admin"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/email/reminder-email.jsx:122
 #: src/pages/settings/email/rsvp-reminder-email.jsx:121
 msgid "Set Custom Time"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/email/reminder-email.jsx:156
 msgid "Enter Duration"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/email/reminder-email.jsx:178
 #: src/pages/settings/email/rsvp-reminder-email.jsx:171
 msgid "Time Type"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/email/reminder-email.jsx:188
 msgid "Select Time Type"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/email/reminder-email.jsx:195
 #: src/pages/settings/email/rsvp-reminder-email.jsx:182
 msgid "Minute"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/email/reminder-email.jsx:202
 #: src/pages/settings/email/rsvp-reminder-email.jsx:189
 msgid "Hour"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/email/reminder-email.jsx:209
 #: src/pages/settings/email/rsvp-reminder-email.jsx:196
 msgid "Day"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/email/reminder-email.jsx:258
 #: src/pages/settings/email/rsvp-reminder-email.jsx:261
 msgid "Add"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/email/reminder-email.jsx:278
 #: src/pages/settings/email/rsvp-email-notification.jsx:118
 #: src/pages/settings/email/rsvp-reminder-email.jsx:281
@@ -11131,7 +11136,7 @@ msgstr ""
 msgid "From Email"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: build/chunks/js/4458.ba44369b.js:58
 #: build/chunks/js/5269.49a7a87a.js:481
 #: build/chunks/js/5525.30f14375.js:44
@@ -11146,7 +11151,7 @@ msgstr ""
 msgid "Enter your email"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: build/chunks/js/8760.de3abcad.js:23
 #: build/js/packages.js:6417
 #: src/pages/rsvp-report/rsvp-invitation-form.jsx:172
@@ -11157,7 +11162,7 @@ msgstr ""
 msgid "Email Subject"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/email/reminder-email.jsx:311
 #: src/pages/settings/email/rsvp-email-notification.jsx:184
 #: src/pages/settings/email/rsvp-reminder-email.jsx:320
@@ -11165,7 +11170,7 @@ msgstr ""
 msgid "Enter email subject"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: build/chunks/js/8760.de3abcad.js:23
 #: build/js/packages.js:6417
 #: src/pages/rsvp-report/rsvp-invitation-form.jsx:221
@@ -11176,17 +11181,17 @@ msgstr ""
 msgid "Email Body"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/email/rsvp-email-notification.jsx:87
 msgid "RSVP Email Notification"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/email/rsvp-email-notification.jsx:140
 msgid "RSVP Type"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: build/chunks/js/8306.f82644bf.js:475
 #: build/chunks/js/8306.f82644bf.js:595
 #: build/chunks/js/8760.de3abcad.js:23
@@ -11207,7 +11212,7 @@ msgstr ""
 msgid "Going"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: build/chunks/js/8306.f82644bf.js:475
 #: build/chunks/js/8306.f82644bf.js:595
 #: build/chunks/js/8760.de3abcad.js:23
@@ -11232,7 +11237,7 @@ msgstr ""
 msgid "Not Going"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: build/chunks/js/8306.f82644bf.js:475
 #: build/chunks/js/8306.f82644bf.js:595
 #: build/chunks/js/8760.de3abcad.js:23
@@ -11261,14 +11266,14 @@ msgstr ""
 msgid "Maybe"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/email/rsvp-invitations.jsx:31
 msgid "RSVP Email Settings"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
-#: build/chunks/js/1658.f7e5e39b.js:555
-#: build/chunks/js/1658.f7e5e39b.js:596
+#: build/chunks/js/1658.7eff9742.js:331
+#: build/chunks/js/1658.7eff9742.js:555
+#: build/chunks/js/1658.7eff9742.js:596
 #: src/pages/settings/email/rsvp-invitations.jsx:51
 #: src/pages/settings/nav-list.jsx:117
 #: src/pages/settings/nav-list.jsx:118
@@ -11277,27 +11282,27 @@ msgstr ""
 msgid "RSVP Invitation Email"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/email/rsvp-invitations.jsx:52
 msgid "Invite attendees to confirm their attendance with personalized RSVP emails."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/email/ticket-purchase-email-form.jsx:81
 msgid "Ticket Confirmation Email"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/email/ticket-purchase-email-form.jsx:126
 msgid "Send Email to Attendees"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/email/ticket-purchase-email-form.jsx:127
 msgid "Enable to send email to attendees"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: build/chunks/js/5525.30f14375.js:44
 #: build/js/module-purchase.js:207
 #: src/module-purchase/order-create-form/form-field-list.jsx:58
@@ -11306,212 +11311,212 @@ msgstr ""
 msgid "Please enter a valid email address"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/archive-event.jsx:25
 msgid "Archive Settings"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/archive-event.jsx:29
 msgid "Display Events Per Page"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/archive-event.jsx:30
 msgid "In the Archive page, how many events to show."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/archive-event.jsx:45
 msgid "Include Into Search"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/archive-event.jsx:46
 msgid "Data from events will appear in search engine results."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/archive-event.jsx:53
 msgid "Include event in search"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/archive-event.jsx:61
 msgid "Do not Include event in search"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/archive-event.jsx:70
 msgid "Sort Archive Events By"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/archive-event.jsx:71
 msgid "Filter archived events based on the expired or upcoming date"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/archive-event.jsx:97
 msgid "Order Archive Events By"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/archive-event.jsx:98
 msgid "Display archived events based on ascending or descending order"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/archive-event.jsx:105
 msgid "Show in ascending order"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/archive-event.jsx:113
 msgid "Show in descending order"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/attendee-extra-fields.jsx:23
 msgid "Additional Information Fields"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/attendee.jsx:28
 msgid "Require Last Name"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/attendee.jsx:29
 msgid "Make last name a required field for event registration and billing"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/attendee.jsx:37
 msgid "Enable Phone Field"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/attendee.jsx:38
 msgid "Add phone number field to the registration form for attendee contact"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/attendee.jsx:46
 msgid "Require Phone Field"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/attendee.jsx:47
 msgid "Make phone number a required field for event registration and billing"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/attendee.jsx:55
 msgid "Bulk Attendee Registration"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/attendee.jsx:56
 msgid "Enable automatic fill-up all attendee details by one click."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/attendee.jsx:74
 msgid "Attendees Registration"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/attendee.jsx:78
 msgid "Enable Attendees Registration"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/attendee.jsx:82
 msgid "Allow attendance tracking and unique ticket management."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/attendee.jsx:105
 msgid "Remove Attendees After Failed Payment"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/attendee.jsx:109
 msgid "Attendees with failed status will be removed from participant list. Given number will be calculated in days."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/attendee.jsx:114
 msgid "Enter no. of days"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/attendee.jsx:122
 msgid "Given number will be calculated in days."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/attendee.jsx:132
 msgid "Attendee's Verification Process"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/attendee.jsx:136
 msgid "Select the preferred verification process for attendees."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/attendee.jsx:143
 msgid "Single Step for Auto Check-in"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/attendee.jsx:147
 msgid "Include event automatically check-in"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/attendee.jsx:154
 msgid "Two Step for Manual Check-in"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/attendee.jsx:158
 msgid "Include event manually check-in"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/attendee.jsx:169
 msgid "Certification Preference"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/attendee.jsx:173
 msgid "Send certificates to your preferred attendee groups."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/attendee.jsx:180
 msgid "Send to \"Checked-in Attendees\""
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/attendee.jsx:184
 msgid "Person who checked-in the event"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/attendee.jsx:191
 msgid "Send to \"All Attendees\""
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/attendee.jsx:195
 msgid "Sent everyone in the purchase list"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: build/js/gutenberg-blocks.js:1
 #: build/js/index-onboard.js:3804
 #: src/blocks/related-events/settings/style-panel-body.jsx:206
@@ -11520,304 +11525,314 @@ msgstr ""
 msgid "Event Date"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/event-details.jsx:23
 msgid "Enable to hide event date on event page."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/event-details.jsx:31
 msgid "Event Time"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/event-details.jsx:32
 msgid "Enable to hide event time on event page."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/event-details.jsx:41
 msgid "Enable to hide event location on event page."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/event-details.jsx:49
 msgid "Total Seats"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/event-details.jsx:50
 msgid "Enable to hide event seats on event page."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/event-details.jsx:58
 msgid "Ticket Sale End date"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/event-details.jsx:59
 msgid "Enable to show ticket sale end date on event page."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/event-details.jsx:67
 msgid "Attendee Count"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/event-details.jsx:68
 msgid "Enable to hide event attendee count on event page."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/event-details.jsx:76
 msgid "Event Organizers"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/event-details.jsx:77
 msgid "Enable to hide event organizers list on event page."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/event-details.jsx:85
 msgid "Speakers Block"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/event-details.jsx:86
 msgid "Enable to hide event speakers list from event page."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/event-details.jsx:94
 msgid "Organizer Email"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/event-details.jsx:95
 msgid "Enable the display of Organizer emails in the organizer list on the event page."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/event-details.jsx:104
 msgid "Enable to hide displaying schedule details from event Page."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/event-details.jsx:112
 msgid "Hide Past Recurring Events"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/event-details.jsx:113
 msgid "Enable to hide expired child events from the recurring event schedule on the event page."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/event-details.jsx:121
 msgid "Schema Mark-up"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/event-details.jsx:122
 msgid "Activate to generate JSON schema markup for search ranking."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
-#: build/chunks/js/1658.f7e5e39b.js:596
+#: build/chunks/js/1658.7eff9742.js:331
+#: build/chunks/js/1658.7eff9742.js:596
 #: src/pages/settings/event-settings/event-details.jsx:130
 #: src/pages/settings/settings-guidelines-constants.js:86
 msgid "Countdown Timer"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/event-details.jsx:131
 msgid "Enable to hide event countdown timer from event page."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/event-details.jsx:140
 msgid "Enable to hide frequently asked questions option from event page."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/event-details.jsx:148
 msgid "Social Media"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/event-details.jsx:149
 msgid "Enable to hide social media icons from event page."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/event-details.jsx:157
 msgid "Related Event"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/event-details.jsx:158
 msgid "Enable to hide Related Event on event page."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/event-details.jsx:166
 msgid "Dokan Event Publish Approval"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/event-details.jsx:167
 msgid "Automatically publish Dokan Vendor/Seller Event when an event is created."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/event-details.jsx:175
 msgid "Enable AI module for Multivendor"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/event-details.jsx:176
 msgid "Enable or disable AI-powered features for multivendor event management on the frontend dashboard."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/event-details.jsx:184
 msgid "Vendor Event Category & Tags"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/event-details.jsx:185
 msgid "Enable to hide event category and tags on the event page for vendor-created events only"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/event-details.jsx:193
 msgid "Limit Tickets Per Email"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/event-details.jsx:194
 msgid "Enable to restrict the maximum number of tickets a single email can purchase per event."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
-#: build/chunks/js/1658.f7e5e39b.js:596
-#: src/pages/settings/event-settings/event-details.jsx:206
+#: build/chunks/js/1658.7eff9742.js:331
+#: src/pages/settings/event-settings/event-details.jsx:202
+msgid "Support Chat Widget"
+msgstr ""
+
+#: build/chunks/js/1658.7eff9742.js:331
+#: src/pages/settings/event-settings/event-details.jsx:203
+msgid "Enable to hide the Eventin support chat widget from the Eventin admin dashboard."
+msgstr ""
+
+#: build/chunks/js/1658.7eff9742.js:331
+#: build/chunks/js/1658.7eff9742.js:596
+#: src/pages/settings/event-settings/event-details.jsx:215
 #: src/pages/settings/settings-guidelines-constants.js:78
 msgid "Event Details Settings"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
-#: src/pages/settings/event-settings/event-details.jsx:223
+#: build/chunks/js/1658.7eff9742.js:331
+#: src/pages/settings/event-settings/event-details.jsx:232
 msgid "Max Tickets Per Email"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
-#: src/pages/settings/event-settings/event-details.jsx:227
+#: build/chunks/js/1658.7eff9742.js:331
+#: src/pages/settings/event-settings/event-details.jsx:236
 msgid "Maximum number of tickets a single email can purchase per event."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
-#: src/pages/settings/event-settings/event-details.jsx:232
-#: src/pages/settings/event-settings/event-details.jsx:246
+#: build/chunks/js/1658.7eff9742.js:331
+#: src/pages/settings/event-settings/event-details.jsx:241
+#: src/pages/settings/event-settings/event-details.jsx:255
 msgid "Set Number"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
-#: src/pages/settings/event-settings/event-details.jsx:240
+#: build/chunks/js/1658.7eff9742.js:331
+#: src/pages/settings/event-settings/event-details.jsx:249
 msgid "Related Event Per Page"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
-#: src/pages/settings/event-settings/event-details.jsx:241
+#: build/chunks/js/1658.7eff9742.js:331
+#: src/pages/settings/event-settings/event-details.jsx:250
 msgid "Limit Number of related events to show in an single page."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/speaker-details.jsx:15
 msgid "Show Email"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/speaker-details.jsx:16
 msgid "Enable to show email on speaker details page."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/speaker-details.jsx:24
 msgid "Send User Notification"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/speaker-details.jsx:25
 msgid "Send the new user an email about their account."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/event-settings/speaker-details.jsx:37
 msgid "Speaker Details Settings"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/import/eventbrite/components/ApiConfigSection.jsx:34
 msgid "API Configuration "
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/import/eventbrite/components/ApiConfigSection.jsx:37
 msgid "Connect your Eventbrite account using API Key "
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
-#: build/chunks/js/2532.e519c48e.js:168
-#: src/components/whats-new/constants.js:12
+#: build/chunks/js/1658.7eff9742.js:331
+#: build/chunks/js/2532.556badbd.js:168
+#: src/components/whats-new/constants.js:13
 #: src/pages/settings/import/eventbrite/components/ApiConfigSection.jsx:45
 msgid "Docs"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/import/eventbrite/components/ApiConfigSection.jsx:52
 msgid "Eventbrite Private API Key"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/import/eventbrite/components/ApiConfigSection.jsx:62
 msgid "Enter your Eventbrite API Key"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/import/eventbrite/components/ApiConfigSection.jsx:79
 msgid "Connected"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/import/eventbrite/components/ApiConfigSection.jsx:80
 msgid "Save Key"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/import/eventbrite/components/ApiConfigSection.jsx:90
 msgid "Your API key is encrypted and stored securely"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/import/eventbrite/components/EventPreviewSection.jsx:30
 msgid "Fetching events from Eventbrite…"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:331
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/eventbrite/components/EventPreviewSection.jsx:42
 #: src/pages/settings/import/facebook-events/components/EventPreviewSection.jsx:42
 #: src/pages/settings/import/the-events-calendar/components/EventPreviewSection.jsx:40
 msgid "Importing…"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
-#: build/chunks/js/1658.f7e5e39b.js:447
-#: build/chunks/js/1658.f7e5e39b.js:555
+#: build/chunks/js/1658.7eff9742.js:331
+#: build/chunks/js/1658.7eff9742.js:447
+#: build/chunks/js/1658.7eff9742.js:555
 #: src/pages/settings/import/eventbrite/components/EventPreviewSection.jsx:44
 #: src/pages/settings/import/facebook-events/components/EventPreviewSection.jsx:44
 #: src/pages/settings/import/the-events-calendar/components/EventPreviewSection.jsx:42
@@ -11826,8 +11841,8 @@ msgstr ""
 msgid "Import"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:331
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/eventbrite/components/EventPreviewSection.jsx:45
 #: src/pages/settings/import/facebook-events/components/EventPreviewSection.jsx:45
 #: src/pages/settings/import/facebook-events/components/ImportConfigSection.jsx:58
@@ -11835,32 +11850,32 @@ msgstr ""
 msgid "Import Events"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:331
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/eventbrite/components/EventPreviewSection.jsx:53
 #: src/pages/settings/import/facebook-events/components/EventPreviewSection.jsx:53
 #: src/pages/settings/import/the-events-calendar/components/EventPreviewSection.jsx:57
 msgid "Event Preview"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:331
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/eventbrite/components/EventPreviewSection.jsx:57
 #: src/pages/settings/import/facebook-events/components/EventPreviewSection.jsx:57
 #: src/pages/settings/import/the-events-calendar/components/EventPreviewSection.jsx:49
 msgid "1 event found"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:331
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/eventbrite/components/EventPreviewSection.jsx:58
 #: src/pages/settings/import/facebook-events/components/EventPreviewSection.jsx:58
 #: src/pages/settings/import/the-events-calendar/components/EventPreviewSection.jsx:50
 msgid "events found"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:331
+#: build/chunks/js/1658.7eff9742.js:447
 #: build/js/dashboard.js:131
 #: build/js/index-onboard.js:131
 #: build/js/packages.js:131
@@ -11871,173 +11886,173 @@ msgstr ""
 msgid "Deselect All"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:331
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/eventbrite/components/EventPreviewSection.jsx:69
 #: src/pages/settings/import/facebook-events/components/EventPreviewSection.jsx:69
 #: src/pages/settings/import/the-events-calendar/components/EventPreviewSection.jsx:67
 msgid "Select All"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/import/eventbrite/components/EventRow.jsx:81
 msgid "View on Eventbrite"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/import/eventbrite/components/ImportConfigSection.jsx:32
 #: src/pages/settings/import/eventbrite/components/ImportConfigSection.jsx:69
 msgid "Organization"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/import/eventbrite/components/ImportConfigSection.jsx:36
 msgid "Enter Event ID"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/import/eventbrite/components/ImportConfigSection.jsx:37
 msgid "Select an organization"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/import/eventbrite/components/ImportConfigSection.jsx:46
 msgid "Import Configuration"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/import/eventbrite/components/ImportConfigSection.jsx:49
 msgid "Select what to import from Eventbrite"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/import/eventbrite/components/ImportConfigSection.jsx:59
 msgid "Select Import type"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/import/eventbrite/components/ImportConfigSection.jsx:60
 msgid "Import By"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/import/eventbrite/components/ImportConfigSection.jsx:112
 msgid "Preview Events"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/import/eventbrite/components/ImportConfigSection.jsx:121
 msgid "Find your Event ID in the Eventbrite URL (e.g., eventbrite.com/event-name-123456789) or select an organization to import all its events."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:331
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/eventbrite/components/ImportResults.jsx:41
 #: src/pages/settings/import/facebook-events/components/ImportResults.jsx:41
 #: src/pages/settings/import/the-events-calendar/components/ImportResults.jsx:41
 msgid "Imported successfully"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:331
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/eventbrite/components/ImportResults.jsx:47
 #: src/pages/settings/import/facebook-events/components/ImportResults.jsx:47
 msgid "Updated"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:331
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/eventbrite/components/ImportResults.jsx:53
 #: src/pages/settings/import/facebook-events/components/ImportResults.jsx:53
 #: src/pages/settings/import/the-events-calendar/components/ImportResults.jsx:47
 msgid "Already exists (skipped)"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:331
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/eventbrite/components/ImportResults.jsx:76
 #: src/pages/settings/import/facebook-events/components/ImportResults.jsx:76
 #: src/pages/settings/import/the-events-calendar/components/ImportResults.jsx:66
 msgid "Import Results"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:331
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/eventbrite/components/ImportResults.jsx:81
 #: src/pages/settings/import/facebook-events/components/ImportResults.jsx:81
 #: src/pages/settings/import/the-events-calendar/components/ImportResults.jsx:71
 msgid "imported successfully"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:331
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/eventbrite/components/ImportResults.jsx:87
 #: src/pages/settings/import/facebook-events/components/ImportResults.jsx:87
 #: src/pages/settings/import/the-events-calendar/components/ImportResults.jsx:77
 msgid "skipped"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:331
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/eventbrite/components/ImportResults.jsx:98
 #: src/pages/settings/import/facebook-events/components/ImportResults.jsx:98
 #: src/pages/settings/import/the-events-calendar/components/ImportResults.jsx:88
 msgid "Failed to import"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/import/eventbrite/hooks/useEventbriteImport.js:32
 msgid "API key cannot be empty."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/import/eventbrite/hooks/useEventbriteImport.js:43
 msgid "API key saved."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/import/eventbrite/hooks/useEventbriteImport.js:47
 msgid "Failed to save API key."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/import/eventbrite/hooks/useEventbriteImport.js:77
 msgid "Failed to load organizations."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:331
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/eventbrite/hooks/useEventbriteImport.js:140
 #: src/pages/settings/import/facebook-events/hooks/useFacebookImport.js:153
 msgid "No events found."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:331
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/eventbrite/hooks/useEventbriteImport.js:119
 #: src/pages/settings/import/facebook-events/hooks/useFacebookImport.js:135
 msgid "Please enter an ID to search."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/import/eventbrite/hooks/useEventbriteImport.js:114
 msgid "Please enter and save your API key first."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
+#: build/chunks/js/1658.7eff9742.js:331
 #: src/pages/settings/import/eventbrite/index.jsx:46
 msgid "Import Eventbrite Events"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:331
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:331
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/eventbrite/index.jsx:47
 #: src/pages/settings/import/facebook-events/index.jsx:56
 msgid "Connect your account and start importing events in minutes."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:447
-#: build/chunks/js/1658.f7e5e39b.js:555
+#: build/chunks/js/1658.7eff9742.js:447
+#: build/chunks/js/1658.7eff9742.js:555
 #: src/pages/settings/import/eventbrite/utils/api.js:19
 #: src/pages/settings/import/facebook-events/utils/api.js:23
 #: src/pages/settings/import/facebook-events/utils/api.js:49
@@ -12045,318 +12060,318 @@ msgstr ""
 msgid "Network error. Please try again."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/facebook-events/components/AppConfigSection.jsx:31
 msgid "App Configuration"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/facebook-events/components/AppConfigSection.jsx:34
 msgid "Enter your Facebook App credentials to connect your account."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/facebook-events/components/AppConfigSection.jsx:47
 msgid "You have to create a Facebook application before filling the following details."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/facebook-events/components/AppConfigSection.jsx:56
 msgid "to create a new Facebook application."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/facebook-events/components/AppConfigSection.jsx:60
 msgid "Set the site URL as:"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/facebook-events/components/AppConfigSection.jsx:68
 msgid "Set Valid OAuth redirect URI:"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/facebook-events/components/AppConfigSection.jsx:80
 msgid "Facebook App ID"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/facebook-events/components/AppConfigSection.jsx:86
 msgid "Enter your Facebook App ID"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/facebook-events/components/AppConfigSection.jsx:90
 #: src/pages/settings/import/facebook-events/components/AppConfigSection.jsx:110
 msgid "You can view or create your Facebook Apps from "
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/facebook-events/components/AppConfigSection.jsx:92
 #: src/pages/settings/import/facebook-events/components/AppConfigSection.jsx:112
 msgid "developers.facebook.com/apps"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/facebook-events/components/AppConfigSection.jsx:98
 msgid "Facebook App Secret"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/facebook-events/components/AppConfigSection.jsx:106
 msgid "Enter your Facebook App Secret"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/facebook-events/components/AppConfigSection.jsx:125
 msgid "Credentials Saved"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/facebook-events/components/AppConfigSection.jsx:126
 msgid "Save Credentials"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/facebook-events/components/AuthorizationSection.jsx:26
 msgid "Facebook Authorization"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/facebook-events/components/AuthorizationSection.jsx:29
 msgid "Authorize your Facebook account to import events."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/facebook-events/components/AuthorizationSection.jsx:39
 msgid "Authorized as:"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/facebook-events/components/AuthorizationSection.jsx:48
 msgid "Please authorize your Facebook account to start importing events."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/facebook-events/components/AuthorizationSection.jsx:55
 msgid "Important:"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/facebook-events/components/AuthorizationSection.jsx:55
 msgid "Before authorizing, add this URL as a Valid OAuth Redirect URI in your Facebook App settings:"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/facebook-events/components/AuthorizationSection.jsx:75
 msgid "Reauthorize"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/facebook-events/components/AuthorizationSection.jsx:76
 msgid "Authorize with Facebook"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/facebook-events/components/AuthorizationSection.jsx:85
 msgid "Authorization Error:"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/facebook-events/components/EventPreviewSection.jsx:30
 msgid "Fetching events from Facebook…"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/facebook-events/components/FbEventRow.jsx:81
 msgid "View on Facebook"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/facebook-events/components/ImportConfigSection.jsx:16
 msgid "Facebook Page"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/facebook-events/components/ImportConfigSection.jsx:17
 msgid "Facebook Group"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/facebook-events/components/ImportConfigSection.jsx:18
 msgid "Facebook Event ID"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/facebook-events/components/ImportConfigSection.jsx:23
 msgid "Facebook Page ID"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/facebook-events/components/ImportConfigSection.jsx:24
 msgid "e.g. etnfbevents"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/facebook-events/components/ImportConfigSection.jsx:25
 msgid "Enter the page username. For https://www.facebook.com/etnfbevents/ use \"etnfbevents\"."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/facebook-events/components/ImportConfigSection.jsx:28
 msgid "Facebook Group ID"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/facebook-events/components/ImportConfigSection.jsx:29
 msgid "Enter numeric Facebook Group ID"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/facebook-events/components/ImportConfigSection.jsx:30
 msgid "Enter the numeric ID of the Facebook Group to import events from."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/facebook-events/components/ImportConfigSection.jsx:33
 msgid "Facebook Event ID(s)"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/facebook-events/components/ImportConfigSection.jsx:34
 msgid "e.g. 123456789,987654321"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/facebook-events/components/ImportConfigSection.jsx:35
 msgid "Enter one or more Facebook Event IDs separated by commas."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/facebook-events/components/ImportConfigSection.jsx:61
 msgid "Select the preferred method for importing events"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/facebook-events/components/ImportConfigSection.jsx:71
 msgid "Import From"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/facebook-events/components/ImportConfigSection.jsx:72
 msgid "Select import method"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/facebook-events/hooks/useFacebookImport.js:73
 msgid "App ID and App Secret are required."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/facebook-events/hooks/useFacebookImport.js:87
 msgid "Credentials saved."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/facebook-events/hooks/useFacebookImport.js:90
 msgid "Failed to save credentials."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/facebook-events/hooks/useFacebookImport.js:110
 msgid "Failed to get authorization URL."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/facebook-events/hooks/useFacebookImport.js:214
 msgid "Import failed"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/facebook-events/index.jsx:55
 msgid "Import Facebook Events"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/the-events-calendar/components/EventPreviewSection.jsx:30
 msgid "Fetching events from The Events Calendar…"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:447
 #: build/js/packages.js:319
 #: src/components/custom-show-total.jsx:20
 #: src/pages/settings/import/the-events-calendar/components/EventPreviewSection.jsx:47
 msgid "Showing"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/the-events-calendar/components/EventPreviewSection.jsx:47
 msgid "events"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/the-events-calendar/hooks/useTecImport.js:27
 msgid "No events found in The Events Calendar."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/the-events-calendar/index.jsx:38
 msgid "Import from The Events Calendar"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/the-events-calendar/index.jsx:39
 msgid "Import your existing events directly from The Events Calendar plugin into Eventin."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/the-events-calendar/index.jsx:49
 #: src/pages/settings/import/the-events-calendar/index.jsx:69
 msgid "Fetch Events"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/the-events-calendar/index.jsx:52
 msgid "Click the button below to load all events from The Events Calendar. No API key required — events are read directly from your database."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:447
+#: build/chunks/js/1658.7eff9742.js:447
 #: src/pages/settings/import/the-events-calendar/index.jsx:68
 msgid "Fetching…"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:555
+#: build/chunks/js/1658.7eff9742.js:555
 #: src/pages/settings/nav-list.jsx:48
 #: src/pages/settings/nav-list.jsx:49
 msgid "Event Details"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:555
+#: build/chunks/js/1658.7eff9742.js:555
 #: src/pages/settings/nav-list.jsx:55
 #: src/pages/settings/nav-list.jsx:56
 msgid "Archive Event"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:555
+#: build/chunks/js/1658.7eff9742.js:555
 #: src/pages/settings/nav-list.jsx:69
 #: src/pages/settings/nav-list.jsx:70
 msgid "Speaker Details"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:555
+#: build/chunks/js/1658.7eff9742.js:555
 #: src/pages/settings/nav-list.jsx:86
 msgid "Checkout Settings"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:555
-#: build/chunks/js/1658.f7e5e39b.js:596
+#: build/chunks/js/1658.7eff9742.js:555
+#: build/chunks/js/1658.7eff9742.js:596
 #: src/pages/settings/nav-list.jsx:87
 #: src/pages/settings/payments/woo-commerce.jsx:150
 msgid "Checkout"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:555
-#: build/chunks/js/1658.f7e5e39b.js:596
+#: build/chunks/js/1658.7eff9742.js:555
+#: build/chunks/js/1658.7eff9742.js:596
 #: src/pages/settings/nav-list.jsx:93
 #: src/pages/settings/payments/currency-settings.jsx:131
 #: src/pages/settings/settings-guidelines-constants.js:41
@@ -12364,25 +12379,25 @@ msgstr ""
 msgid "Currency Settings"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:555
+#: build/chunks/js/1658.7eff9742.js:555
 #: src/pages/settings/nav-list.jsx:94
 msgid "Currency"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:555
-#: build/chunks/js/1658.f7e5e39b.js:590
+#: build/chunks/js/1658.7eff9742.js:555
+#: build/chunks/js/1658.7eff9742.js:590
 #: src/pages/settings/nav-list.jsx:100
 #: src/pages/settings/payments/tax-settings.jsx:205
 msgid "Tax Settings"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:555
+#: build/chunks/js/1658.7eff9742.js:555
 #: src/pages/settings/nav-list.jsx:110
 #: src/pages/settings/nav-list.jsx:111
 msgid "Purchase Email"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:555
+#: build/chunks/js/1658.7eff9742.js:555
 #: build/js/gutenberg-blocks.js:1
 #: src/blocks/attendee-extra-fields/settings/style-panel-body.jsx:147
 #: src/blocks/attendee-info/settings/style-panel-body.jsx:149
@@ -12394,50 +12409,50 @@ msgstr ""
 msgid "General"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:555
+#: build/chunks/js/1658.7eff9742.js:555
 #: src/pages/settings/nav-list.jsx:141
 #: src/pages/settings/nav-list.jsx:142
 msgid "Webhooks"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:555
+#: build/chunks/js/1658.7eff9742.js:555
 #: src/pages/settings/nav-list.jsx:166
 msgid "Eventbrite Import"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:555
+#: build/chunks/js/1658.7eff9742.js:555
 #: src/pages/settings/nav-list.jsx:172
 msgid "Facebook Events"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:555
+#: build/chunks/js/1658.7eff9742.js:555
 #: src/pages/settings/nav-list.jsx:173
 msgid "Facebook Events Import"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:555
+#: build/chunks/js/1658.7eff9742.js:555
 #: src/pages/settings/nav-list.jsx:179
 msgid "The Events Calendar"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:555
+#: build/chunks/js/1658.7eff9742.js:555
 #: src/pages/settings/nav-list.jsx:180
 msgid "The Events Calendar Import"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:555
+#: build/chunks/js/1658.7eff9742.js:555
 #: src/pages/settings/nav-list.jsx:191
 #: src/pages/settings/nav-list.jsx:192
 msgid "Event Settings"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:555
+#: build/chunks/js/1658.7eff9742.js:555
 #: src/pages/settings/nav-list.jsx:199
 #: src/pages/settings/nav-list.jsx:200
 msgid "Payments"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:555
+#: build/chunks/js/1658.7eff9742.js:555
 #: build/chunks/js/5190.e9a96298.js:125
 #: build/js/dashboard.js:3671
 #: build/js/gutenberg-blocks.js:1
@@ -12476,204 +12491,204 @@ msgstr ""
 msgid "Advanced"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:555
-#: build/chunks/js/1658.f7e5e39b.js:596
+#: build/chunks/js/1658.7eff9742.js:555
+#: build/chunks/js/1658.7eff9742.js:596
 #: src/pages/settings/payments/checkout-configuration.jsx:50
 #: src/pages/settings/payments/checkout-configuration.jsx:113
 #: src/pages/settings/settings-guidelines-constants.js:153
 msgid "Checkout Configuration"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:555
+#: build/chunks/js/1658.7eff9742.js:555
 #: src/pages/settings/payments/checkout-configuration.jsx:53
 msgid "After the time expires, tickets will be released and the user must restart the process."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:555
+#: build/chunks/js/1658.7eff9742.js:555
 #: src/pages/settings/payments/checkout-configuration.jsx:66
 msgid "Set Timeout (minutes)"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:555
+#: build/chunks/js/1658.7eff9742.js:555
 #: src/pages/settings/payments/checkout-configuration.jsx:75
 msgid "Enter timeout duration (in minutes)"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:555
+#: build/chunks/js/1658.7eff9742.js:555
 #: src/pages/settings/payments/currency-settings.jsx:58
 msgid "100$"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:555
+#: build/chunks/js/1658.7eff9742.js:555
 #: src/pages/settings/payments/currency-settings.jsx:67
 msgid "$100"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:555
+#: build/chunks/js/1658.7eff9742.js:555
 #: src/pages/settings/payments/currency-settings.jsx:75
 msgid "Right with space"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:555
+#: build/chunks/js/1658.7eff9742.js:555
 #: src/pages/settings/payments/currency-settings.jsx:76
 msgid "100 $"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:555
+#: build/chunks/js/1658.7eff9742.js:555
 #: src/pages/settings/payments/currency-settings.jsx:84
 msgid "Left with space"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:555
+#: build/chunks/js/1658.7eff9742.js:555
 #: src/pages/settings/payments/currency-settings.jsx:85
 msgid "$ 100"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:555
+#: build/chunks/js/1658.7eff9742.js:555
 #: src/pages/settings/payments/currency-settings.jsx:95
 msgid "Comma-Dot"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:555
+#: build/chunks/js/1658.7eff9742.js:555
 #: src/pages/settings/payments/currency-settings.jsx:96
 msgid "15,000.00"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:555
+#: build/chunks/js/1658.7eff9742.js:555
 #: src/pages/settings/payments/currency-settings.jsx:104
 msgid "Dot-Comma"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:555
+#: build/chunks/js/1658.7eff9742.js:555
 #: src/pages/settings/payments/currency-settings.jsx:105
 msgid "15.000,00"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:555
+#: build/chunks/js/1658.7eff9742.js:555
 #: src/pages/settings/payments/currency-settings.jsx:113
 msgid "Space-Dot"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:555
+#: build/chunks/js/1658.7eff9742.js:555
 #: src/pages/settings/payments/currency-settings.jsx:114
 msgid "15 000.00"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:555
+#: build/chunks/js/1658.7eff9742.js:555
 #: src/pages/settings/payments/currency-settings.jsx:122
 msgid "Space-Comma"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:555
+#: build/chunks/js/1658.7eff9742.js:555
 #: src/pages/settings/payments/currency-settings.jsx:123
 msgid "15 000,00"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:555
+#: build/chunks/js/1658.7eff9742.js:555
 #: src/pages/settings/payments/currency-settings.jsx:134
 msgid "Choose your preferred currency and currency symbol."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:555
+#: build/chunks/js/1658.7eff9742.js:555
 #: src/pages/settings/payments/currency-settings.jsx:148
 msgid "Note: When WooCommerce payment is enabled, this setting will be ignored"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:555
+#: build/chunks/js/1658.7eff9742.js:555
 #: src/pages/settings/payments/currency-settings.jsx:156
 msgid "Note: When SureCart payment is enabled, this setting will be ignored."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:555
+#: build/chunks/js/1658.7eff9742.js:555
 #: src/pages/settings/payments/currency-settings.jsx:164
 msgid "Note: When FluentCart payment is enabled, this setting will be ignored."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:555
+#: build/chunks/js/1658.7eff9742.js:555
 #: src/pages/settings/payments/currency-settings.jsx:178
 #: src/pages/settings/payments/currency-settings.jsx:194
 #: src/pages/settings/payments/currency-settings.jsx:210
 msgid "Currency settings is managed by "
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:555
+#: build/chunks/js/1658.7eff9742.js:555
 #: src/pages/settings/payments/currency-settings.jsx:186
 msgid "WooCommerce Settings"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:555
+#: build/chunks/js/1658.7eff9742.js:555
 #: src/pages/settings/payments/currency-settings.jsx:202
 msgid "SureCart Settings"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:555
+#: build/chunks/js/1658.7eff9742.js:555
 #: src/pages/settings/payments/currency-settings.jsx:218
 msgid "FluentCart Settings"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:555
+#: build/chunks/js/1658.7eff9742.js:555
 #: src/pages/settings/payments/currency-settings.jsx:226
 msgid "Select Preferred Currency"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:555
+#: build/chunks/js/1658.7eff9742.js:555
 #: src/pages/settings/payments/currency-settings.jsx:231
 msgid "When WooCommerce payment is enabled, this setting will be ignored."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:555
+#: build/chunks/js/1658.7eff9742.js:555
 #: src/pages/settings/payments/currency-settings.jsx:239
 msgid "Choose preferred currency"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:555
+#: build/chunks/js/1658.7eff9742.js:555
 #: src/pages/settings/payments/currency-settings.jsx:295
 msgid "Price Symbol Position"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:555
+#: build/chunks/js/1658.7eff9742.js:555
 #: src/pages/settings/payments/currency-settings.jsx:300
 msgid "This controls the position of the currency symbol."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:555
+#: build/chunks/js/1658.7eff9742.js:555
 #: src/pages/settings/payments/currency-settings.jsx:307
 msgid "Choose Price Symbol Position"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:555
+#: build/chunks/js/1658.7eff9742.js:555
 #: src/pages/settings/payments/currency-settings.jsx:319
 msgid "Price Separator"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:555
+#: build/chunks/js/1658.7eff9742.js:555
 #: src/pages/settings/payments/currency-settings.jsx:321
 msgid "This sets the price separator of display is the price"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:555
+#: build/chunks/js/1658.7eff9742.js:555
 #: src/pages/settings/payments/currency-settings.jsx:328
 msgid "Choose Price Separator"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:555
+#: build/chunks/js/1658.7eff9742.js:555
 #: src/pages/settings/payments/currency-settings.jsx:340
 msgid "Number of decimals"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:555
+#: build/chunks/js/1658.7eff9742.js:555
 #: src/pages/settings/payments/currency-settings.jsx:342
 msgid "This sets the number of decimal points shown in displayed prices"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:555
+#: build/chunks/js/1658.7eff9742.js:555
 #: src/pages/settings/payments/currency-settings.jsx:348
 msgid "Add number of decimals"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:559
-#: build/chunks/js/1658.f7e5e39b.js:590
-#: build/chunks/js/2532.e519c48e.js:168
+#: build/chunks/js/1658.7eff9742.js:559
+#: build/chunks/js/1658.7eff9742.js:590
+#: build/chunks/js/2532.556badbd.js:168
 #: build/chunks/js/9172.f695bf50.js:348
 #: build/js/packages.js:2829
 #: src/pages/bookings/bookings-table/columns/payment-method.jsx:16
@@ -12682,22 +12697,22 @@ msgstr ""
 msgid "FluentCart"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:559
+#: build/chunks/js/1658.7eff9742.js:559
 #: src/pages/settings/payments/fluentcart.jsx:54
 msgid "Enable FluentCart Payments."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:559
+#: build/chunks/js/1658.7eff9742.js:559
 #: src/pages/settings/payments/index.jsx:31
 msgid "Payment Settings"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:563
+#: build/chunks/js/1658.7eff9742.js:563
 #: src/pages/settings/payments/local-payment.jsx:50
 msgid "Enable Local Payment to allow customers to pay at the venue or through offline methods."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:563
+#: build/chunks/js/1658.7eff9742.js:563
 #: build/chunks/js/9172.f695bf50.js:348
 #: build/js/packages.js:2829
 #: src/pages/bookings/bookings-table/filter/filter-by-payment.jsx:23
@@ -12705,29 +12720,29 @@ msgstr ""
 msgid "Paypal"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:563
+#: build/chunks/js/1658.7eff9742.js:563
 #: src/pages/settings/payments/paypal.jsx:48
 msgid "Enable Paypal Payments."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:563
+#: build/chunks/js/1658.7eff9742.js:563
 #: src/pages/settings/payments/paypal.jsx:62
 msgid "PayPal Client Id"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:563
+#: build/chunks/js/1658.7eff9742.js:563
 #: build/chunks/js/5046.2510f6b6.js:1
 #: src/pages/extensions/components/paypal-config-modal.jsx:83
 #: src/pages/settings/payments/paypal.jsx:67
 msgid "Enter client id"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:563
+#: build/chunks/js/1658.7eff9742.js:563
 #: src/pages/settings/payments/paypal.jsx:76
 msgid "PayPal Secret key"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:563
+#: build/chunks/js/1658.7eff9742.js:563
 #: build/chunks/js/5046.2510f6b6.js:1
 #: src/pages/extensions/components/paypal-config-modal.jsx:98
 #: src/pages/extensions/components/stripe-config-modal.jsx:101
@@ -12736,43 +12751,43 @@ msgstr ""
 msgid "Enter secret key"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:563
+#: build/chunks/js/1658.7eff9742.js:563
 #: src/pages/settings/payments/stripe.jsx:48
 msgid "Enable Stripe Payments."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:563
+#: build/chunks/js/1658.7eff9742.js:563
 #: src/pages/settings/payments/stripe.jsx:62
 msgid "Publishable key"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:563
+#: build/chunks/js/1658.7eff9742.js:563
 #: build/chunks/js/5046.2510f6b6.js:1
 #: src/pages/extensions/components/stripe-config-modal.jsx:86
 #: src/pages/settings/payments/stripe.jsx:67
 msgid "Enter publishable key"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:563
+#: build/chunks/js/1658.7eff9742.js:563
 #: src/pages/settings/payments/stripe.jsx:76
 msgid "Secret key"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:563
+#: build/chunks/js/1658.7eff9742.js:563
 #: src/pages/settings/payments/stripe.jsx:92
 msgid "Webhook signing secret"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:563
+#: build/chunks/js/1658.7eff9742.js:563
 #: build/chunks/js/5046.2510f6b6.js:1
 #: src/pages/extensions/components/stripe-config-modal.jsx:116
 #: src/pages/settings/payments/stripe.jsx:97
 msgid "Enter webhook signing secret (whsec_...)"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:563
-#: build/chunks/js/1658.f7e5e39b.js:590
-#: build/chunks/js/2532.e519c48e.js:168
+#: build/chunks/js/1658.7eff9742.js:563
+#: build/chunks/js/1658.7eff9742.js:590
+#: build/chunks/js/2532.556badbd.js:168
 #: build/chunks/js/6948.8913e1e3.js:1
 #: build/chunks/js/9172.f695bf50.js:348
 #: build/js/packages.js:2829
@@ -12784,65 +12799,65 @@ msgstr ""
 msgid "SureCart"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:563
+#: build/chunks/js/1658.7eff9742.js:563
 #: src/pages/settings/payments/surecart.jsx:51
 msgid "Enable SureCart Payments."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:563
+#: build/chunks/js/1658.7eff9742.js:563
 #: src/pages/settings/payments/surecart.jsx:68
 msgid "SureCart Webhook URL"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:563
+#: build/chunks/js/1658.7eff9742.js:563
 #: src/pages/settings/payments/surecart.jsx:76
 msgid "Copy Webhook URL"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:563
+#: build/chunks/js/1658.7eff9742.js:563
 #: src/pages/settings/payments/surecart.jsx:81
 msgid "Enter webhook url"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:563
+#: build/chunks/js/1658.7eff9742.js:563
 #: src/pages/settings/payments/surecart.jsx:96
 msgid "Test payments with SureCart sandbox"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:563
+#: build/chunks/js/1658.7eff9742.js:563
 #: build/js/module-purchase.js:207
 #: src/module-purchase/order-create-form/billing-form-field.jsx:79
 #: src/pages/settings/payments/tax-settings.jsx:96
 msgid "Country"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:563
+#: build/chunks/js/1658.7eff9742.js:563
 #: build/js/module-purchase.js:207
 #: src/module-purchase/order-create-form/billing-form-field.jsx:98
 #: src/pages/settings/payments/tax-settings.jsx:97
 msgid "State"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:563
+#: build/chunks/js/1658.7eff9742.js:563
 #: build/js/module-purchase.js:207
 #: src/module-purchase/order-create-form/billing-form-field.jsx:310
 #: src/pages/settings/payments/tax-settings.jsx:98
 msgid "Postcode / ZIP"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:563
+#: build/chunks/js/1658.7eff9742.js:563
 #: build/js/module-purchase.js:207
 #: src/module-purchase/order-create-form/billing-form-field.jsx:300
 #: src/pages/settings/payments/tax-settings.jsx:99
 msgid "City"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:563
+#: build/chunks/js/1658.7eff9742.js:563
 #: src/pages/settings/payments/tax-settings.jsx:102
 msgid "Rate Type"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:563
+#: build/chunks/js/1658.7eff9742.js:563
 #: build/js/dashboard.js:1
 #: build/js/gutenberg-blocks.js:1
 #: build/js/index-onboard.js:1
@@ -12855,7 +12870,7 @@ msgstr ""
 msgid "Percentage (%)"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:563
+#: build/chunks/js/1658.7eff9742.js:563
 #: build/js/dashboard.js:1
 #: build/js/gutenberg-blocks.js:1
 #: build/js/index-onboard.js:1
@@ -12865,273 +12880,273 @@ msgstr ""
 msgid "Fixed"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:563
+#: build/chunks/js/1658.7eff9742.js:563
 #: src/pages/settings/payments/tax-settings.jsx:109
 msgid "Rate"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:563
+#: build/chunks/js/1658.7eff9742.js:563
 #: src/pages/settings/payments/tax-settings.jsx:110
 msgid "Tax Name"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:590
+#: build/chunks/js/1658.7eff9742.js:590
 #: src/pages/settings/payments/tax-settings.jsx:186
 msgid "Exclusive"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:590
+#: build/chunks/js/1658.7eff9742.js:590
 #: src/pages/settings/payments/tax-settings.jsx:187
 msgid "Tax is added on top of the ticket price."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:590
+#: build/chunks/js/1658.7eff9742.js:590
 #: src/pages/settings/payments/tax-settings.jsx:194
 msgid "Inclusive"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:590
+#: build/chunks/js/1658.7eff9742.js:590
 #: src/pages/settings/payments/tax-settings.jsx:195
 msgid "Tax is already included in the ticket price."
 msgstr ""
 
 #. translators: %s is the active payment gateway name (e.g. WooCommerce).
-#: build/chunks/js/1658.f7e5e39b.js:593
+#: build/chunks/js/1658.7eff9742.js:593
 #: src/pages/settings/payments/tax-settings.jsx:215
 #, js-format
 msgid "You're selling tickets through %s."
 msgstr ""
 
 #. translators: %s is the active payment gateway name (e.g. WooCommerce).
-#: build/chunks/js/1658.f7e5e39b.js:596
+#: build/chunks/js/1658.7eff9742.js:596
 #: src/pages/settings/payments/tax-settings.jsx:223
 #, js-format
 msgid "Eventin's built-in tax settings don't apply to %s orders — configure tax rates in your %s settings instead. These options apply only to Stripe, PayPal, and Offline (Local) payments."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:596
+#: build/chunks/js/1658.7eff9742.js:596
 #: src/pages/settings/payments/tax-settings.jsx:241
 msgid "Enable Tax?"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:596
+#: build/chunks/js/1658.7eff9742.js:596
 #: src/pages/settings/payments/tax-settings.jsx:242
 msgid "Enable tax to apply tax rates to your event ticket prices."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:596
+#: build/chunks/js/1658.7eff9742.js:596
 #: src/pages/settings/payments/tax-settings.jsx:252
 msgid "Tax Type"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:596
+#: build/chunks/js/1658.7eff9742.js:596
 #: src/pages/settings/payments/tax-settings.jsx:253
 msgid "Choose whether tax is included in or added on top of the ticket price."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:596
+#: build/chunks/js/1658.7eff9742.js:596
 #: src/pages/settings/payments/tax-settings.jsx:271
 msgid "No tax rate added yet!"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:596
+#: build/chunks/js/1658.7eff9742.js:596
 #: src/pages/settings/payments/tax-settings.jsx:382
 msgid "Add Rate"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:596
+#: build/chunks/js/1658.7eff9742.js:596
 #: src/pages/settings/payments/woo-commerce.jsx:50
 msgid "Count Refunded / Failed Booking In Purchase Report"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:596
+#: build/chunks/js/1658.7eff9742.js:596
 #: src/pages/settings/payments/woo-commerce.jsx:54
 msgid "Include cost for refunded / failed tickets in purchase history."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:596
+#: build/chunks/js/1658.7eff9742.js:596
 #: src/pages/settings/payments/woo-commerce.jsx:62
 msgid "Show Print and Download Invoice Button"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:596
+#: build/chunks/js/1658.7eff9742.js:596
 #: src/pages/settings/payments/woo-commerce.jsx:63
 msgid "Show print and download invoice option after payment."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:596
+#: build/chunks/js/1658.7eff9742.js:596
 #: src/pages/settings/payments/woo-commerce.jsx:71
 msgid "Require Account Login"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:596
+#: build/chunks/js/1658.7eff9742.js:596
 #: src/pages/settings/payments/woo-commerce.jsx:72
 msgid "Required login to the purchase of event tickets."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:596
+#: build/chunks/js/1658.7eff9742.js:596
 #: src/pages/settings/payments/woo-commerce.jsx:80
 msgid "Show Billing Info"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:596
+#: build/chunks/js/1658.7eff9742.js:596
 #: src/pages/settings/payments/woo-commerce.jsx:81
 msgid "Show billing info on woocommerce checkout page."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:596
+#: build/chunks/js/1658.7eff9742.js:596
 #: src/pages/settings/payments/woo-commerce.jsx:89
 msgid "Include Event Details in Woocommerce Cart & Invoice E-mail"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:596
+#: build/chunks/js/1658.7eff9742.js:596
 #: src/pages/settings/payments/woo-commerce.jsx:93
 msgid "Include event details page link in woocommerce cart and invoice email."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:596
+#: build/chunks/js/1658.7eff9742.js:596
 #: src/pages/settings/payments/woo-commerce.jsx:110
 msgid "Enable WooCommerce Payments."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:596
+#: build/chunks/js/1658.7eff9742.js:596
 #: src/pages/settings/payments/woo-commerce.jsx:127
 msgid "After Adding to Cart, Redirect to "
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:596
+#: build/chunks/js/1658.7eff9742.js:596
 #: src/pages/settings/payments/woo-commerce.jsx:131
 msgid "Select where to redirect after adding tickets to eventin cart."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:596
+#: build/chunks/js/1658.7eff9742.js:596
 #: src/pages/settings/payments/woo-commerce.jsx:137
 #: src/pages/settings/payments/woo-commerce.jsx:169
 msgid "Select a option"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:596
+#: build/chunks/js/1658.7eff9742.js:596
 #: src/pages/settings/payments/woo-commerce.jsx:146
 msgid "Cart"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:596
+#: build/chunks/js/1658.7eff9742.js:596
 #: src/pages/settings/payments/woo-commerce.jsx:159
 msgid "After Confirming the Order, Redirect To "
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:596
+#: build/chunks/js/1658.7eff9742.js:596
 #: src/pages/settings/payments/woo-commerce.jsx:163
 msgid "Select where to redirect after confirming the order: Eventin thank-you page or WooCommerce thank-you page"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:596
+#: build/chunks/js/1658.7eff9742.js:596
 #: src/pages/settings/payments/woo-commerce.jsx:178
 msgid "Eventin Thank you"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:596
+#: build/chunks/js/1658.7eff9742.js:596
 #: src/pages/settings/payments/woo-commerce.jsx:185
 msgid "Woocommerce Thank you"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:596
+#: build/chunks/js/1658.7eff9742.js:596
 #: src/pages/settings/payments/woo-commerce.jsx:213
 msgid "Confirm Ticket Based on Payment Status"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:596
+#: build/chunks/js/1658.7eff9742.js:596
 #: src/pages/settings/payments/woo-commerce.jsx:217
 msgid "Select the payment statuses that will trigger ticket confirmation."
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:596
+#: build/chunks/js/1658.7eff9742.js:596
 #: src/pages/settings/payments/woo-commerce.jsx:226
 msgid "Please select at least one status"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:596
+#: build/chunks/js/1658.7eff9742.js:596
 #: src/pages/settings/settings-guidelines-constants.js:10
 msgid "Event Setup"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:596
+#: build/chunks/js/1658.7eff9742.js:596
 #: src/pages/settings/settings-guidelines-constants.js:14
 #: src/pages/settings/settings-guidelines-constants.js:108
 msgid "Attendee Management"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:596
+#: build/chunks/js/1658.7eff9742.js:596
 #: src/pages/settings/settings-guidelines-constants.js:18
 #: src/pages/settings/settings-guidelines-constants.js:123
 msgid "Speaker Setup"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:596
-#: build/chunks/js/2532.e519c48e.js:987
-#: build/js/index-onboard.js:4231
+#: build/chunks/js/1658.7eff9742.js:596
+#: build/chunks/js/2532.556badbd.js:987
+#: build/js/index-onboard.js:4320
 #: src/pages/onboarding/constants/index.js:42
 #: src/pages/settings/settings-guidelines-constants.js:22
 #: src/pages/settings/settings-guidelines-constants.js:90
 msgid "Recurring Events"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:596
+#: build/chunks/js/1658.7eff9742.js:596
 #: src/pages/settings/settings-guidelines-constants.js:29
 #: src/pages/settings/settings-guidelines-constants.js:134
 msgid "Payment Gateways"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:596
+#: build/chunks/js/1658.7eff9742.js:596
 #: src/pages/settings/settings-guidelines-constants.js:33
 #: src/pages/settings/settings-guidelines-constants.js:138
 msgid "Stripe Setup"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:596
+#: build/chunks/js/1658.7eff9742.js:596
 #: src/pages/settings/settings-guidelines-constants.js:37
 #: src/pages/settings/settings-guidelines-constants.js:142
 msgid "PayPal Setup"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:596
+#: build/chunks/js/1658.7eff9742.js:596
 #: src/pages/settings/settings-guidelines-constants.js:48
 msgid "Email Notifications"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:596
+#: build/chunks/js/1658.7eff9742.js:596
 #: src/pages/settings/settings-guidelines-constants.js:63
 #: src/pages/settings/settings-guidelines-constants.js:215
 msgid "Webhook Configuration"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:596
+#: build/chunks/js/1658.7eff9742.js:596
 #: src/pages/settings/settings-guidelines-constants.js:71
 #: src/pages/settings/settings-guidelines-constants.js:229
 msgid "Role & Access Control"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:596
+#: build/chunks/js/1658.7eff9742.js:596
 #: src/pages/settings/settings-guidelines-constants.js:82
 msgid "Schema Markup"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:596
+#: build/chunks/js/1658.7eff9742.js:596
 #: src/pages/settings/settings-guidelines-constants.js:97
 msgid "Archive Event Display"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:596
+#: build/chunks/js/1658.7eff9742.js:596
 #: src/pages/settings/settings-guidelines-constants.js:101
 msgid "Event Shortcodes"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:596
+#: build/chunks/js/1658.7eff9742.js:596
 #: src/pages/settings/settings-guidelines-constants.js:116
 msgid "Certificates"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:596
+#: build/chunks/js/1658.7eff9742.js:596
 #: build/js/gutenberg-blocks.js:1
 #: src/blocks/event-rsvp/inspector-controls.js:8
 #: src/pages/settings/settings-guidelines-constants.js:157
@@ -13139,22 +13154,22 @@ msgstr ""
 msgid "RSVP Settings"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:596
+#: build/chunks/js/1658.7eff9742.js:596
 #: src/pages/settings/settings-guidelines-constants.js:171
 msgid "Purchase Email Notification"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:596
+#: build/chunks/js/1658.7eff9742.js:596
 #: src/pages/settings/settings-guidelines-constants.js:175
 msgid "Email Templates"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:596
+#: build/chunks/js/1658.7eff9742.js:596
 #: src/pages/settings/settings-guidelines-constants.js:197
 msgid "Google Calendar"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:596
+#: build/chunks/js/1658.7eff9742.js:596
 #: build/chunks/js/8856.076a3a9f.js:1
 #: build/js/index-onboard.js:1240
 #: src/pages/about-us/constant.js:58
@@ -13162,7 +13177,7 @@ msgstr ""
 msgid "Zoom Integration"
 msgstr ""
 
-#: build/chunks/js/1658.f7e5e39b.js:596
+#: build/chunks/js/1658.7eff9742.js:596
 #: src/pages/settings/settings-guidelines-constants.js:208
 msgid "Custom Slug Settings"
 msgstr ""
@@ -13203,7 +13218,7 @@ msgstr ""
 msgid "Attendees List"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:1
+#: build/chunks/js/2532.556badbd.js:1
 #: build/chunks/js/5525.30f14375.js:509
 #: build/chunks/js/9172.f695bf50.js:193
 #: build/js/module-purchase.js:207
@@ -13214,9 +13229,9 @@ msgstr ""
 msgid "Billing Information"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:1
-#: build/chunks/js/2532.e519c48e.js:168
-#: build/chunks/js/2532.e519c48e.js:652
+#: build/chunks/js/2532.556badbd.js:1
+#: build/chunks/js/2532.556badbd.js:168
+#: build/chunks/js/2532.556badbd.js:652
 #: build/chunks/js/9172.f695bf50.js:193
 #: build/chunks/js/9172.f695bf50.js:348
 #: build/js/packages.js:869
@@ -13228,8 +13243,8 @@ msgstr ""
 msgid "Completed"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:1
-#: build/chunks/js/2532.e519c48e.js:652
+#: build/chunks/js/2532.556badbd.js:1
+#: build/chunks/js/2532.556badbd.js:652
 #: build/chunks/js/9172.f695bf50.js:193
 #: build/chunks/js/9172.f695bf50.js:256
 #: build/chunks/js/9172.f695bf50.js:348
@@ -13244,8 +13259,8 @@ msgstr ""
 msgid "Refunded"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:1
-#: build/chunks/js/2532.e519c48e.js:168
+#: build/chunks/js/2532.556badbd.js:1
+#: build/chunks/js/2532.556badbd.js:168
 #: build/chunks/js/9172.f695bf50.js:193
 #: build/chunks/js/9172.f695bf50.js:348
 #: build/js/packages.js:869
@@ -13256,8 +13271,8 @@ msgstr ""
 msgid "Partially Refunded"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:1
-#: build/chunks/js/2532.e519c48e.js:168
+#: build/chunks/js/2532.556badbd.js:1
+#: build/chunks/js/2532.556badbd.js:168
 #: build/chunks/js/9172.f695bf50.js:193
 #: build/chunks/js/9172.f695bf50.js:348
 #: build/js/packages.js:869
@@ -13267,21 +13282,21 @@ msgstr ""
 msgid "Waiting"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:1
+#: build/chunks/js/2532.556badbd.js:1
 #: build/chunks/js/9172.f695bf50.js:193
 #: build/js/packages.js:869
 #: src/components/order-view-details/customer-information.jsx:59
 msgid "Payment Gateway"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:1
+#: build/chunks/js/2532.556badbd.js:1
 #: build/chunks/js/9172.f695bf50.js:193
 #: build/js/packages.js:869
 #: src/components/order-view-details/customer-information.jsx:65
 msgid "View Order on WooCommerce"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:1
+#: build/chunks/js/2532.556badbd.js:1
 #: build/chunks/js/5269.49a7a87a.js:255
 #: build/chunks/js/9172.f695bf50.js:193
 #: build/js/packages.js:869
@@ -13291,29 +13306,29 @@ msgstr ""
 msgid "Download PDF"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:1
+#: build/chunks/js/2532.556badbd.js:1
 #: build/chunks/js/9172.f695bf50.js:193
 #: build/js/packages.js:869
 #: src/components/order-view-details/order-attendee-list.jsx:24
 msgid "No."
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:1
+#: build/chunks/js/2532.556badbd.js:1
 #: build/chunks/js/9172.f695bf50.js:193
 #: build/js/packages.js:869
 #: src/components/order-view-details/order-attendee-list.jsx:69
 msgid "Actions"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:1
+#: build/chunks/js/2532.556badbd.js:1
 #: build/chunks/js/9172.f695bf50.js:193
 #: build/js/packages.js:869
 #: src/components/order-view-details/order-attendee-list.jsx:76
 msgid "View Details and Download Ticket"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:1
-#: build/chunks/js/2532.e519c48e.js:652
+#: build/chunks/js/2532.556badbd.js:1
+#: build/chunks/js/2532.556badbd.js:652
 #: build/chunks/js/9172.f695bf50.js:193
 #: build/chunks/js/9172.f695bf50.js:348
 #: build/js/module-purchase.js:400
@@ -13326,8 +13341,8 @@ msgstr ""
 msgid "Booking ID"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:1
-#: build/chunks/js/2532.e519c48e.js:656
+#: build/chunks/js/2532.556badbd.js:1
+#: build/chunks/js/2532.556badbd.js:656
 #: build/chunks/js/8306.f82644bf.js:413
 #: build/chunks/js/9172.f695bf50.js:193
 #: build/js/packages.js:869
@@ -13338,7 +13353,7 @@ msgstr ""
 msgid "Close"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:1
+#: build/chunks/js/2532.556badbd.js:1
 #: build/chunks/js/8306.f82644bf.js:413
 #: build/chunks/js/9172.f695bf50.js:193
 #: build/js/packages.js:869
@@ -13348,35 +13363,35 @@ msgstr ""
 msgid "Details"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:1
+#: build/chunks/js/2532.556badbd.js:1
 #: build/chunks/js/9172.f695bf50.js:193
 #: build/js/packages.js:869
 #: src/components/order-view-details/order-view-modal.jsx:156
 msgid "Pricing"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:1
+#: build/chunks/js/2532.556badbd.js:1
 #: build/chunks/js/9172.f695bf50.js:193
 #: build/js/packages.js:869
 #: src/components/order-view-details/order-view-modal.jsx:177
 msgid "Refund history"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:1
+#: build/chunks/js/2532.556badbd.js:1
 #: build/chunks/js/9172.f695bf50.js:193
 #: build/js/packages.js:869
 #: src/components/order-view-details/order-view-modal.jsx:192
 msgid "Extra Information"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:1
+#: build/chunks/js/2532.556badbd.js:1
 #: build/chunks/js/9172.f695bf50.js:193
 #: build/js/packages.js:869
 #: src/components/order-view-details/order-view-modal.jsx:206
 msgid "Attendee List"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:1
+#: build/chunks/js/2532.556badbd.js:1
 #: build/chunks/js/9172.f695bf50.js:193
 #: build/js/gutenberg-blocks.js:1
 #: build/js/packages.js:869
@@ -13386,57 +13401,57 @@ msgstr ""
 msgid "Ticket Info"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:1
+#: build/chunks/js/2532.556badbd.js:1
 #: build/chunks/js/9172.f695bf50.js:193
 #: build/js/packages.js:869
 #: src/components/order-view-details/pricing-details.jsx:126
 msgid "Total Amount"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:1
+#: build/chunks/js/2532.556badbd.js:1
 #: build/chunks/js/9172.f695bf50.js:193
 #: build/js/packages.js:869
 #: src/components/order-view-details/pricing-details.jsx:131
 msgid "Discount"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:1
+#: build/chunks/js/2532.556badbd.js:1
 #: build/chunks/js/9172.f695bf50.js:193
 #: build/js/packages.js:869
 #: src/components/order-view-details/pricing-details.jsx:139
 msgid "Tax (included)"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:1
+#: build/chunks/js/2532.556badbd.js:1
 #: build/chunks/js/9172.f695bf50.js:193
 #: build/js/packages.js:869
 #: src/components/order-view-details/pricing-details.jsx:147
 msgid "Total Refunded"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:1
+#: build/chunks/js/2532.556badbd.js:1
 #: build/chunks/js/9172.f695bf50.js:193
 #: build/js/packages.js:869
 #: src/components/order-view-details/pricing-details.jsx:152
 msgid "Final Amount"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:1
+#: build/chunks/js/2532.556badbd.js:1
 #: build/chunks/js/9172.f695bf50.js:193
 #: build/js/packages.js:869
 #: src/components/order-view-details/refund-history.jsx:54
 msgid "Refunded total:"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:1
+#: build/chunks/js/2532.556badbd.js:1
 #: build/chunks/js/9172.f695bf50.js:193
 #: build/js/packages.js:869
 #: src/components/order-view-details/refund-history.jsx:57
 msgid "Remaining refundable:"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:1
-#: build/chunks/js/2532.e519c48e.js:652
+#: build/chunks/js/2532.556badbd.js:1
+#: build/chunks/js/2532.556badbd.js:652
 #: build/chunks/js/9172.f695bf50.js:193
 #: build/chunks/js/9172.f695bf50.js:348
 #: build/js/packages.js:869
@@ -13448,109 +13463,109 @@ msgstr ""
 msgid "Amount"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:1
+#: build/chunks/js/2532.556badbd.js:1
 #: build/chunks/js/9172.f695bf50.js:193
 #: build/js/packages.js:869
 #: src/components/order-view-details/refund-history.jsx:102
 msgid "Reason"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:1
+#: build/chunks/js/2532.556badbd.js:1
 #: build/chunks/js/9172.f695bf50.js:193
 #: build/js/packages.js:869
 #: src/components/order-view-details/refund-history.jsx:106
 msgid "By"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:168
+#: build/chunks/js/2532.556badbd.js:168
 #: src/components/whats-new/components/ChangelogItem.jsx:30
 msgid "New"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:168
+#: build/chunks/js/2532.556badbd.js:168
 #: src/components/whats-new/components/ChangelogList.jsx:22
 msgid "Loading changelog..."
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:168
+#: build/chunks/js/2532.556badbd.js:168
 #: src/components/whats-new/components/ChangelogList.jsx:32
 msgid "Error loading changelog:"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:168
+#: build/chunks/js/2532.556badbd.js:168
 #: src/components/whats-new/components/ChangelogList.jsx:39
 msgid "Retry"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:168
+#: build/chunks/js/2532.556badbd.js:168
 #: src/components/whats-new/components/ChangelogList.jsx:48
 msgid "No changelog entries found"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:168
+#: build/chunks/js/2532.556badbd.js:168
 #: src/components/whats-new/components/WhatsNewButton.jsx:40
-#: src/components/whats-new/index.jsx:62
+#: src/components/whats-new/index.jsx:83
 msgid "What's New"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:168
-#: src/components/whats-new/constants.js:23
+#: build/chunks/js/2532.556badbd.js:168
+#: src/components/whats-new/constants.js:24
 msgid "Support"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:168
-#: src/components/whats-new/constants.js:45
+#: build/chunks/js/2532.556badbd.js:168
+#: src/components/whats-new/constants.js:46
 msgid "Youtube"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:168
+#: build/chunks/js/2532.556badbd.js:168
 #: build/chunks/js/9172.f695bf50.js:348
 #: build/js/packages.js:2829
 #: src/pages/bookings/bookings-table/columns/payment-method.jsx:14
 msgid "Local Pay"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:168
+#: build/chunks/js/2532.556badbd.js:168
 #: build/chunks/js/9172.f695bf50.js:348
 #: build/js/packages.js:2829
 #: src/pages/bookings/bookings-table/columns/payment-method.jsx:23
 msgid "N/A"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:168
+#: build/chunks/js/2532.556badbd.js:168
 #: build/chunks/js/9172.f695bf50.js:348
 #: build/js/packages.js:2829
 #: src/pages/bookings/bookings-table/columns/status.jsx:67
 msgid "Cannot change status while booking is in waiting state."
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:168
+#: build/chunks/js/2532.556badbd.js:168
 #: build/chunks/js/9172.f695bf50.js:348
 #: build/js/packages.js:2829
 #: src/pages/bookings/bookings-table/columns/status.jsx:72
 msgid "Cannot change status for Sure Cart payments. Please use Sure Cart dashboard to change the status."
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:168
+#: build/chunks/js/2532.556badbd.js:168
 #: build/chunks/js/9172.f695bf50.js:348
 #: build/js/packages.js:2829
 #: src/pages/bookings/bookings-table/columns/status.jsx:77
 msgid "Cannot change status for FluentCart payments. Please use FluentCart dashboard to change the status."
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:168
+#: build/chunks/js/2532.556badbd.js:168
 #: build/chunks/js/9172.f695bf50.js:348
 #: build/js/packages.js:2829
 #: src/pages/bookings/bookings-table/columns/status.jsx:48
 msgid "Successfully updated the order status!"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:404
+#: build/chunks/js/2532.556badbd.js:404
 #: src/pages/dashboard/components/filters.jsx:61
 msgid "Hello"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:404
+#: build/chunks/js/2532.556badbd.js:404
 #: build/chunks/js/5494.db8c978b.js:607
 #: build/chunks/js/8306.f82644bf.js:595
 #: build/chunks/js/9172.f695bf50.js:256
@@ -13566,7 +13581,7 @@ msgstr ""
 msgid "Select Date"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:404
+#: build/chunks/js/2532.556badbd.js:404
 #: build/chunks/js/9172.f695bf50.js:256
 #: build/js/packages.js:2737
 #: src/pages/bookings/bookings-table/booking-stats/filters.jsx:69
@@ -13574,7 +13589,7 @@ msgstr ""
 msgid "All Days"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:404
+#: build/chunks/js/2532.556badbd.js:404
 #: build/chunks/js/8306.f82644bf.js:595
 #: build/chunks/js/9172.f695bf50.js:256
 #: build/js/packages.js:2737
@@ -13585,7 +13600,7 @@ msgstr ""
 msgid "30 Days"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:404
+#: build/chunks/js/2532.556badbd.js:404
 #: build/chunks/js/8306.f82644bf.js:595
 #: build/chunks/js/9172.f695bf50.js:256
 #: build/js/packages.js:2737
@@ -13596,7 +13611,7 @@ msgstr ""
 msgid "7 Days"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:404
+#: build/chunks/js/2532.556badbd.js:404
 #: build/chunks/js/8306.f82644bf.js:595
 #: build/chunks/js/9172.f695bf50.js:256
 #: build/js/packages.js:2737
@@ -13607,7 +13622,7 @@ msgstr ""
 msgid "Today"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:436
+#: build/chunks/js/2532.556badbd.js:436
 #: build/chunks/js/9172.f695bf50.js:256
 #: build/js/packages.js:2737
 #: src/pages/bookings/bookings-table/booking-stats/hooks.js:85
@@ -13615,34 +13630,34 @@ msgstr ""
 msgid "Total Revenue"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:468
+#: build/chunks/js/2532.556badbd.js:468
 #: src/pages/dashboard/components/statistics.jsx:34
 msgid "Total Events"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:468
+#: build/chunks/js/2532.556badbd.js:468
 #: src/pages/dashboard/components/statistics.jsx:39
 msgid "Total Organizers & Speakers"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:468
+#: build/chunks/js/2532.556badbd.js:468
 #: src/pages/dashboard/components/statistics.jsx:47
 msgid "Total Attendees"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:526
+#: build/chunks/js/2532.556badbd.js:526
 #: build/js/template-builder-header-toolbar.js:53
 #: src/pages/dashboard/dashboard-header.jsx:38
 #: src/pages/template-builder/template-editor/components/event-selection-modal/EventSelectionModalView.jsx:75
 msgid "Create Event"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:526
+#: build/chunks/js/2532.556badbd.js:526
 #: src/pages/dashboard/index.jsx:106
 msgid "Booking Performance"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:652
+#: build/chunks/js/2532.556badbd.js:652
 #: build/chunks/js/5269.49a7a87a.js:255
 #: build/chunks/js/9172.f695bf50.js:256
 #: build/js/packages.js:2484
@@ -13653,7 +13668,7 @@ msgstr ""
 msgid "View Details"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:652
+#: build/chunks/js/2532.556badbd.js:652
 #: build/chunks/js/9172.f695bf50.js:256
 #: build/js/packages.js:2737
 #: src/pages/bookings/bookings-table/actions/more.jsx:52
@@ -13661,7 +13676,7 @@ msgstr ""
 msgid "Are you sure you want to delete this booking?"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:652
+#: build/chunks/js/2532.556badbd.js:652
 #: build/chunks/js/9172.f695bf50.js:348
 #: build/js/packages.js:2829
 #: src/pages/bookings/bookings-table/columns.jsx:48
@@ -13670,7 +13685,7 @@ msgstr ""
 msgid "Payment"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:652
+#: build/chunks/js/2532.556badbd.js:652
 #: build/chunks/js/5269.49a7a87a.js:320
 #: build/js/packages.js:2549
 #: src/pages/attendees/attendees-table/filter/filter-by-status.jsx:43
@@ -13678,164 +13693,170 @@ msgstr ""
 msgid "Processing"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:652
+#: build/chunks/js/2532.556badbd.js:652
 #: src/pages/dashboard/table/columns/status.jsx:25
 msgid "Hold"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:652
+#: build/chunks/js/2532.556badbd.js:652
 #: src/pages/dashboard/table/index.jsx:33
 msgid "Recent Bookings"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:652
+#: build/chunks/js/2532.556badbd.js:652
 #: src/pages/dashboard/table/index.jsx:37
 msgid "View All"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:656
+#: build/chunks/js/2532.556badbd.js:656
 #: src/pages/onboarding/components/setup-progress-modal/index.jsx:94
 msgid "You're"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:656
+#: build/chunks/js/2532.556badbd.js:656
 #: src/pages/onboarding/components/setup-progress-modal/index.jsx:94
 msgid "setup complete!"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:656
+#: build/chunks/js/2532.556badbd.js:656
 #: src/pages/onboarding/components/setup-progress-modal/index.jsx:97
 msgid "Great start! Let's finish setting up your event for maximum impact"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:656
+#: build/chunks/js/2532.556badbd.js:656
 #: src/pages/onboarding/components/setup-progress-modal/index.jsx:128
 msgid "Get Help & Support"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:656
+#: build/chunks/js/2532.556badbd.js:656
 #: src/pages/onboarding/components/setup-progress-modal/index.jsx:130
 msgid "Still facing any setup issues or have any questions or feedback?"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:656
+#: build/chunks/js/2532.556badbd.js:656
 #: src/pages/onboarding/components/setup-progress-modal/index.jsx:141
 msgid "Just book a live call"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:987
-#: build/js/index-onboard.js:4231
+#: build/chunks/js/2532.556badbd.js:987
+#: build/js/index-onboard.js:4320
 #: src/pages/onboarding/constants/index.js:18
 msgid "Simple Event Listing"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:987
-#: build/js/index-onboard.js:4231
+#: build/chunks/js/2532.556badbd.js:987
+#: build/js/index-onboard.js:4320
 #: src/pages/onboarding/constants/index.js:19
 msgid "Basic event pages and calendars"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:987
-#: build/js/index-onboard.js:4231
+#: build/chunks/js/2532.556badbd.js:987
+#: build/js/index-onboard.js:4320
 #: src/pages/onboarding/constants/index.js:24
 msgid "Ticket Selling"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:987
-#: build/js/index-onboard.js:4231
+#: build/chunks/js/2532.556badbd.js:987
+#: build/js/index-onboard.js:4320
 #: src/pages/onboarding/constants/index.js:25
 msgid "Sell tickets and manage payments"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:987
-#: build/js/index-onboard.js:4231
+#: build/chunks/js/2532.556badbd.js:987
+#: build/js/index-onboard.js:4320
 #: src/pages/onboarding/constants/index.js:30
 msgid "Online Events"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:987
-#: build/js/index-onboard.js:4231
+#: build/chunks/js/2532.556badbd.js:987
+#: build/js/index-onboard.js:4320
 #: src/pages/onboarding/constants/index.js:31
 msgid "Zoom/Meet integration"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:987
-#: build/js/index-onboard.js:4231
+#: build/chunks/js/2532.556badbd.js:987
+#: build/js/index-onboard.js:4320
 #: src/pages/onboarding/constants/index.js:36
 msgid "Conference / Multi-Speaker"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:987
-#: build/js/index-onboard.js:4231
+#: build/chunks/js/2532.556badbd.js:987
+#: build/js/index-onboard.js:4320
 #: src/pages/onboarding/constants/index.js:37
 msgid "Complex events with schedules"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:987
-#: build/js/index-onboard.js:4231
+#: build/chunks/js/2532.556badbd.js:987
+#: build/js/index-onboard.js:4320
 #: src/pages/onboarding/constants/index.js:43
 msgid "Weekly, monthly events"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:987
-#: build/js/index-onboard.js:4231
+#: build/chunks/js/2532.556badbd.js:987
+#: build/js/index-onboard.js:4320
 #: src/pages/onboarding/constants/index.js:49
 msgid "Know Who's Attending"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:987
-#: build/js/index-onboard.js:4231
-#: src/pages/onboarding/constants/index.js:118
+#: build/chunks/js/2532.556badbd.js:987
+#: build/js/index-onboard.js:4320
+#: src/pages/onboarding/constants/index.js:62
+msgid "Aisentic"
+msgstr ""
+
+#: build/chunks/js/2532.556badbd.js:987
+#: build/js/index-onboard.js:4320
+#: src/pages/onboarding/constants/index.js:129
 msgid "Quick Event Creation"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:987
-#: build/js/index-onboard.js:4231
-#: src/pages/onboarding/constants/index.js:119
+#: build/chunks/js/2532.556badbd.js:987
+#: build/js/index-onboard.js:4320
+#: src/pages/onboarding/constants/index.js:130
 msgid "Get started in minutes"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:987
-#: build/js/index-onboard.js:4231
-#: src/pages/onboarding/constants/index.js:124
+#: build/chunks/js/2532.556badbd.js:987
+#: build/js/index-onboard.js:4320
+#: src/pages/onboarding/constants/index.js:135
 msgid "Virtual & Offline Event"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:987
-#: build/js/index-onboard.js:4231
-#: src/pages/onboarding/constants/index.js:125
+#: build/chunks/js/2532.556badbd.js:987
+#: build/js/index-onboard.js:4320
+#: src/pages/onboarding/constants/index.js:136
 msgid "Host events anywhere"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:987
-#: build/js/index-onboard.js:4231
-#: src/pages/onboarding/constants/index.js:130
+#: build/chunks/js/2532.556badbd.js:987
+#: build/js/index-onboard.js:4320
+#: src/pages/onboarding/constants/index.js:141
 msgid "Boost Ticket Selling"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:987
-#: build/js/index-onboard.js:4231
-#: src/pages/onboarding/constants/index.js:131
+#: build/chunks/js/2532.556badbd.js:987
+#: build/js/index-onboard.js:4320
+#: src/pages/onboarding/constants/index.js:142
 msgid "Monetize your events"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:987
-#: src/pages/onboarding/constants/index.js:73
+#: build/chunks/js/2532.556badbd.js:987
+#: src/pages/onboarding/constants/index.js:84
 msgid "Created your first event"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:987
-#: src/pages/onboarding/constants/index.js:80
+#: build/chunks/js/2532.556badbd.js:987
+#: src/pages/onboarding/constants/index.js:91
 msgid "Add your event organizer"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:987
-#: src/pages/onboarding/constants/index.js:85
+#: build/chunks/js/2532.556badbd.js:987
+#: src/pages/onboarding/constants/index.js:96
 msgid "Event Tickets Setup"
 msgstr ""
 
-#: build/chunks/js/2532.e519c48e.js:987
-#: src/pages/onboarding/constants/index.js:99
+#: build/chunks/js/2532.556badbd.js:987
+#: src/pages/onboarding/constants/index.js:110
 msgid "Customize event page design"
 msgstr ""
 
@@ -14831,8 +14852,10 @@ msgstr ""
 
 #: build/chunks/js/5046.2510f6b6.js:1
 #: build/chunks/js/8856.076a3a9f.js:653
+#: build/js/index-onboard.js:3804
 #: src/pages/extensions/components/single-module-card/ModuleFooterActions.jsx:68
 #: src/pages/extensions/components/single-module-card/ModuleFooterActions.jsx:122
+#: src/pages/onboarding/components/steps/step-five.jsx:165
 #: src/pages/our-plugins/single-module-card.jsx:126
 msgid "Activate"
 msgstr ""
@@ -14847,8 +14870,10 @@ msgstr ""
 
 #: build/chunks/js/5046.2510f6b6.js:1
 #: build/chunks/js/8856.076a3a9f.js:653
+#: build/js/index-onboard.js:3804
 #: src/pages/extensions/components/single-module-card/ModuleFooterActions.jsx:85
 #: src/pages/extensions/components/single-module-card/ModuleFooterActions.jsx:112
+#: src/pages/onboarding/components/steps/step-five.jsx:176
 #: src/pages/our-plugins/single-module-card.jsx:113
 msgid "Install"
 msgstr ""
@@ -15099,6 +15124,7 @@ msgstr ""
 #: src/module-purchase/order-create-form/index.jsx:615
 #: src/pages/bookings-create/form/booking-form.jsx:230
 #: src/pages/events_v2/create-and-edit/components/save-next-popup/index.jsx:102
+#: src/pages/onboarding/components/steps/step-five.jsx:232
 #: src/pages/onboarding/components/steps/step-four.jsx:119
 #: src/pages/onboarding/components/steps/step-three.jsx:146
 #: src/pages/onboarding/components/steps/step-two.jsx:122
@@ -22042,14 +22068,14 @@ msgid "Configuration"
 msgstr ""
 
 #: build/js/dashboard.js:5042
-#: build/js/index-onboard.js:4352
+#: build/js/index-onboard.js:4441
 #: build/js/packages.js:6949
 #: src/pages/template-builder/useRemoteTemplates.js:124
 msgid "Template imported successfully"
 msgstr ""
 
 #: build/js/dashboard.js:5042
-#: build/js/index-onboard.js:4352
+#: build/js/index-onboard.js:4441
 #: build/js/packages.js:6949
 #: src/pages/template-builder/useRemoteTemplates.js:137
 msgid "Failed to import template"
@@ -23721,7 +23747,7 @@ msgid "Please select a date range"
 msgstr ""
 
 #: build/js/index-onboard.js:3779
-#: src/pages/onboarding/components/stepper/index.jsx:34
+#: src/pages/onboarding/components/stepper/index.jsx:37
 msgid "Step"
 msgstr ""
 
@@ -23743,6 +23769,38 @@ msgstr ""
 #: build/js/index-onboard.js:3804
 #: src/pages/onboarding/components/steps/last-step.jsx:147
 msgid "Go Dashboard"
+msgstr ""
+
+#: build/js/index-onboard.js:3804
+#: src/pages/onboarding/components/steps/step-five.jsx:102
+msgid "Failed to load recommended plugins."
+msgstr ""
+
+#: build/js/index-onboard.js:3804
+#: src/pages/onboarding/components/steps/step-five.jsx:125
+msgid "Action failed. Please try again."
+msgstr ""
+
+#: build/js/index-onboard.js:3804
+#: src/pages/onboarding/components/steps/step-five.jsx:191
+msgid "Recommended Plugins"
+msgstr ""
+
+#: build/js/index-onboard.js:3804
+#: src/pages/onboarding/components/steps/step-five.jsx:193
+msgid "Supercharge your events with these free companion plugins. You can always add them later."
+msgstr ""
+
+#: build/js/index-onboard.js:3804
+#: src/pages/onboarding/components/steps/step-five.jsx:153
+msgid "Upgrade"
+msgstr ""
+
+#: build/js/index-onboard.js:3804
+#: src/pages/onboarding/components/steps/step-five.jsx:228
+#: src/pages/onboarding/components/steps/step-four.jsx:115
+#: src/pages/onboarding/components/steps/step-three.jsx:142
+msgid "Skip step"
 msgstr ""
 
 #: build/js/index-onboard.js:3804
@@ -23768,12 +23826,6 @@ msgstr ""
 #: build/js/index-onboard.js:3804
 #: src/pages/onboarding/components/steps/step-four.jsx:106
 msgid "Location is required!"
-msgstr ""
-
-#: build/js/index-onboard.js:3804
-#: src/pages/onboarding/components/steps/step-four.jsx:115
-#: src/pages/onboarding/components/steps/step-three.jsx:142
-msgid "Skip step"
 msgstr ""
 
 #: build/js/index-onboard.js:3804
@@ -23891,22 +23943,22 @@ msgstr ""
 msgid "Skip Step"
 msgstr ""
 
-#: build/js/index-onboard.js:4231
+#: build/js/index-onboard.js:4320
 #: src/pages/onboarding/hooks/useEventCreate.js:53
 msgid "Failed to create event. Please try again."
 msgstr ""
 
-#: build/js/index-onboard.js:4231
+#: build/js/index-onboard.js:4320
 #: src/pages/onboarding/hooks/useOrganizerCreate.js:83
 msgid "Organizer already exists."
 msgstr ""
 
-#: build/js/index-onboard.js:4231
+#: build/js/index-onboard.js:4320
 #: src/pages/onboarding/hooks/useOrganizerCreate.js:88
 msgid "Failed to create organizer. Please try again."
 msgstr ""
 
-#: build/js/index-onboard.js:4231
+#: build/js/index-onboard.js:4320
 #: src/pages/onboarding/hooks/useStepTwo.js:88
 msgid "Something went wrong."
 msgstr ""
