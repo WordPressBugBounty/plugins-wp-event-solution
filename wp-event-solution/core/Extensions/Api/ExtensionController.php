@@ -205,6 +205,34 @@ class ExtensionController extends WP_REST_Controller {
 
         $update = Extension::update( $name, $status );
 
+        // Aisentic onboarding handshake: once Aisentic is activated, hand the
+        // organizer identity the user typed during onboarding to the Aisentic
+        // plugin via a WP action instead of calling its REST API from here.
+        // Aisentic boots its providers on include, so activate_plugin() (run
+        // inside Extension::update above) has already attached the listener in
+        // this same request — the do_action below is heard.
+        //
+        // Gated on explicit user consent: the onboarding "Connect my site"
+        // checkbox sends `connect_account=true`. Without it, activating Aisentic
+        // must NOT transmit the user's name/email/site to the provider.
+        $connect_account = filter_var( $input->get( 'connect_account' ), FILTER_VALIDATE_BOOLEAN );
+
+        if ( 'aisentic' === $name && 'activate' === $status && $connect_account && PluginManager::is_activated( 'aisentic' ) ) {
+            /**
+             * Fires after Aisentic is activated during onboarding.
+             *
+             * @param string $account_name Organizer/account name from onboarding.
+             * @param string $email        Organizer/account email from onboarding.
+             * @param string $site_url     Site URL to register with the provider.
+             */
+            do_action(
+                'eventin/aisentic/register_site',
+                sanitize_text_field( $input->get( 'account_name' ) ?? '' ),
+                sanitize_email( $input->get( 'email' ) ?? '' ),
+                esc_url_raw( $input->get( 'site_url' ) ?? site_url() )
+            );
+        }
+
         if($name == 'automation' && $update == 1 && $status == 'on') {
             $is_email_automation_migrated = get_option( 'etn_email_automation_migrated' );
             if ( ! $is_email_automation_migrated ) {

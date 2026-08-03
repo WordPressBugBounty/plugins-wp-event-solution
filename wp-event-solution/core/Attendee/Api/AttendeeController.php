@@ -332,6 +332,11 @@ class AttendeeController extends WP_REST_Controller {
                 $currency_cache[ $order_id ] = [
                     'currency'        => get_post_meta( $order_id, 'currency', true ),
                     'currency_symbol' => get_post_meta( $order_id, 'currency_symbol', true ),
+                    // Order-level coupon so the attendee preview can note it (the
+                    // per-ticket price shown is the gross sticker; the coupon discount
+                    // applies to the order total).
+                    'coupon_code'     => get_post_meta( $order_id, 'coupon_code', true ),
+                    'discount_total'  => get_post_meta( $order_id, 'discount_total', true ),
                 ];
             }
             $cached_currency              = $order_id ? ( $currency_cache[ $order_id ] ?? [] ) : [];
@@ -339,6 +344,8 @@ class AttendeeController extends WP_REST_Controller {
             $post_data['currency_symbol'] = ! empty( $cached_currency['currency_symbol'] )
                 ? html_entity_decode( $cached_currency['currency_symbol'], ENT_QUOTES, 'UTF-8' )
                 : html_entity_decode( etn_currency_symbol() );
+            $post_data['coupon_code']     = ! empty( $cached_currency['coupon_code'] ) ? $cached_currency['coupon_code'] : '';
+            $post_data['discount_total']  = ! empty( $cached_currency['discount_total'] ) ? (float) $cached_currency['discount_total'] : 0;
 
             $attendees[] = $this->prepare_response_for_collection( $post_data );
         }
@@ -675,6 +682,10 @@ class AttendeeController extends WP_REST_Controller {
         $event_id = !empty($data['etn_event_id']) ? $data['etn_event_id'] : 0;
         $data['extra_fields'] = $item->get_extra_fields();
         $data['extra_fields_files'] = $item->get_extra_field_files();
+        // Stored keys are ASCII slugs, so non-Latin labels (Arabic, Bengali, …)
+        // collapse to `_2` and can't be humanized client-side. Ship the schema
+        // labels alongside the values.
+        $data['extra_fields_labels'] = $item->get_extra_field_labels();
         $data['scanner_update_time'] = $item->get_scanner_update_time();
         $data['event_extra_field'] = get_post_meta( $event_id, 'attendee_extra_fields', true );
 
@@ -967,13 +978,60 @@ class AttendeeController extends WP_REST_Controller {
 
         $attendee = new Attendee_Model( $id );
         $event    = new Event_Model( $attendee->etn_event_id );
-        $from      = etn_get_email_settings( 'purchase_email' )['from'];
 
         if ( ! is_email( $attendee->etn_email ) ) {
             return new WP_Error( 'email_error', __( 'The attendee doesn\'t have valid email', 'eventin' ) );
         }
 
-        Mail::to( $attendee->etn_email )->from( $from )->send( new AttendeeOrderEmail( $event, $attendee ) );
+        // A resend has to use whichever delivery system a real purchase would use —
+        // mirroring OrderEmailTrait::send_email(). Sending directly regardless of the
+        // module made every resent ticket carry the legacy purchase_email
+        // subject/body/from even when the admin had moved the ticket email into an
+        // "Event Ticket Purchase" automation flow.
+        $etn_addons_options      = get_option( 'etn_addons_options' );
+        $is_automation_module_on = is_array( $etn_addons_options ) && ( $etn_addons_options['automation'] ?? 'off' ) === 'on';
+
+        if ( ! $is_automation_module_on ) {
+            $from = etn_get_email_settings( 'purchase_email' )['from'];
+
+            Mail::to( $attendee->etn_email )->from( $from )->send( new AttendeeOrderEmail( $event, $attendee ) );
+
+            return rest_ensure_response( [
+                'message' => __( 'Successfully send ticket email', 'eventin' ),
+            ] );
+        }
+
+        $date_format = get_option( 'date_format' );
+
+        try {
+            $event_start_date_timestamp = ( new \DateTime( $event->get_start_date(), wp_timezone() ) )->getTimestamp();
+        } catch ( \Exception $e ) {
+            $event_start_date_timestamp = 0;
+        }
+
+        // Payload mirrors OrderEmailTrait::send_email_to_attendee_through_automation()
+        // so the flow resolves the same trigger variables it would on a real purchase.
+        // Only `attendee_email` is carried: FlowManager skips any email node whose
+        // receiverType key is absent from the payload, so this cannot re-notify the
+        // customer or the admin. attendee_id/attendee_email stay index-aligned because
+        // EnsHooks resolves the per-recipient attendee via $action_data['attendee_id'][$count].
+        // A fresh session_id keeps the node's processed_session_ids list from
+        // suppressing the resend as an already-handled purchase.
+        do_action( 'global_notification_hook', 'event_ticket_purchase', [
+            'site_name'              => get_bloginfo( 'name' ),
+            'site_link'              => get_site_url(),
+            'site_logo'              => get_site_icon_url(),
+            'event_title'            => $event->get_title(),
+            'event_date'             => $event->get_start_date( $date_format ),
+            'event_date_timestamp'   => $event_start_date_timestamp,
+            'event_time'             => $event->get_start_time( etn_time_format() ),
+            'booking_time_timestamp' => current_time( 'timestamp' ),
+            'event_location'         => $event->get_address(),
+            'attendee_id'            => [ $attendee->id ],
+            'attendee_email'         => [ $attendee->etn_email ],
+            'event_id'               => $event->id,
+            'session_id'             => uniqid(),
+        ] );
 
         $response = [
             'message'   => __( 'Successfully send ticket email', 'eventin' ),
@@ -1095,10 +1153,10 @@ class AttendeeController extends WP_REST_Controller {
             'site_link'                  => get_site_url(),
             'event_title'                => $event->get_title(),
             'event_date'                 => $event->get_end_date( $date_format ),
-            'event_time'                 => $event->get_end_time(),
+            'event_time'                 => $event->get_end_time( etn_time_format() ),
             // Both timestamps so the flow's delay node can key off event start OR end.
-            'event_start_date_timestamp' => $this->get_event_date_timestamp( $event->get_start_date(), $event->get_start_time() ),
-            'event_end_date_timestamp'   => $this->get_event_date_timestamp( $event->get_end_date(), $event->get_end_time() ),
+            'event_start_date_timestamp' => $this->get_event_date_timestamp( $event->get_start_date(), $event->get_start_time( 'H:i' ) ),
+            'event_end_date_timestamp'   => $this->get_event_date_timestamp( $event->get_end_date(), $event->get_end_time( 'H:i' ) ),
             'event_location'             => $event->get_address(),
             'attendee_id'                => [ $attendee->id ],
             'attendee_email'             => [ $attendee->etn_email ],
@@ -1128,7 +1186,9 @@ class AttendeeController extends WP_REST_Controller {
         $time = is_string( $time ) ? trim( $time ) : '';
 
         // Normalize any "digits + separator + digits" shape (e.g. "6h45", "6.45", "6 45") to "06:45".
-        if ( $time && preg_match( '/^(\d{1,2})\D+(\d{1,2})/', $time, $m ) ) {
+        // Skip 12-hour strings ("8:00 pm"): rewriting them here would discard the
+        // am/pm marker and silently schedule every afternoon event 12 hours early.
+        if ( $time && ! preg_match( '/[ap]\.?m\.?$/i', $time ) && preg_match( '/^(\d{1,2})\D+(\d{1,2})/', $time, $m ) ) {
             $time = sprintf( '%02d:%02d', (int) $m[1], (int) $m[2] );
         }
 

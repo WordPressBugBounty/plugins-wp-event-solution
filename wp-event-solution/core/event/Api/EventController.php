@@ -604,7 +604,7 @@ class EventController extends WP_REST_Controller {
     /**
      * Get a compact event list for select/dropdown consumers.
      *
-     * Returns only id/title/status/start_date/end_date with a single batched
+     * Returns only id/title/status/start_date/end_date/start_time/end_time with a single batched
      * meta-cache prime, avoiding the heavy per-event prepare_item_for_response
      * (userdata, taxonomies, user-group queries, sold-tickets, revenue map).
      *
@@ -640,7 +640,7 @@ class EventController extends WP_REST_Controller {
 
         $posts = ( new WP_Query( $args ) )->posts;
 
-        // One batched meta query for every event's start/end date instead of N.
+        // One batched meta query for every event's start/end date + time instead of N.
         update_meta_cache( 'post', wp_list_pluck( $posts, 'ID' ) );
 
         $items = [];
@@ -654,6 +654,8 @@ class EventController extends WP_REST_Controller {
                 'status'     => $event->get_status(),
                 'start_date' => get_post_meta( $post->ID, 'etn_start_date', true ),
                 'end_date'   => get_post_meta( $post->ID, 'etn_end_date', true ),
+                'start_time' => get_post_meta( $post->ID, 'etn_start_time', true ),
+                'end_time'   => get_post_meta( $post->ID, 'etn_end_time', true ),
             ];
         }
 
@@ -723,6 +725,53 @@ class EventController extends WP_REST_Controller {
     }
 
     /**
+     * Forces an event to draft when the current user's role is not allowed to
+     * publish events.
+     *
+     * Admins ( manage_options ) are never restricted. A role is restricted when
+     * its publish toggle in Event Settings is off:
+     *  - seller  -> dokan_event_auto_publish (update only, preserves existing
+     *              Dokan approval behavior)
+     *  - author  -> author_can_publish_event
+     *  - editor  -> editor_can_publish_event
+     *
+     * Applies to both wp-admin and the frontend dashboard since both post
+     * through this controller.
+     *
+     * @since 4.0.0
+     *
+     * @param array|WP_Error $prepared_event Prepared event data.
+     * @param bool           $is_update      Whether this is an update request. The
+     *                                       seller rule only applies on update to
+     *                                       match the original Dokan behavior.
+     * @return array|WP_Error
+     */
+    protected function maybe_restrict_publish( $prepared_event, $is_update = false ) {
+        if ( is_wp_error( $prepared_event ) ) {
+            return $prepared_event;
+        }
+
+        // Admins can always publish.
+        if ( current_user_can( 'manage_options' ) ) {
+            return $prepared_event;
+        }
+
+        $user  = get_userdata( get_current_user_id() ?: -1 );
+        $roles = $user->roles ?? [];
+
+        $restricted =
+            ( $is_update && in_array( 'seller', $roles, true ) && Settings::get( 'dokan_event_auto_publish' ) !== 'on' )
+            || ( in_array( 'author', $roles, true ) && Settings::get( 'author_can_publish_event' ) !== 'on' )
+            || ( in_array( 'editor', $roles, true ) && Settings::get( 'editor_can_publish_event' ) !== 'on' );
+
+        if ( $restricted ) {
+            $prepared_event['post_status'] = 'draft';
+        }
+
+        return $prepared_event;
+    }
+
+    /**
      * Creates a single event.
      *
      * @since 4.0.0
@@ -733,6 +782,8 @@ class EventController extends WP_REST_Controller {
     public function create_item( $request ) {
 		
         $prepared_event = $this->prepare_item_for_database( $request );
+
+        $prepared_event = $this->maybe_restrict_publish( $prepared_event );
 
         if ( is_wp_error( $prepared_event ) ) {
             return $prepared_event;
@@ -870,24 +921,11 @@ class EventController extends WP_REST_Controller {
      * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
      */
     public function update_item( $request ) {
-	    
-	    $user = get_userdata(get_current_user_id() ?? -1);
-	    $isSeller = in_array("seller", $user->roles ?? []);
-	    $dokan_event_auto_publish = Settings::get("dokan_event_auto_publish") === "on";
-		
-		
+
         $prepared_event = $this->prepare_item_for_database( $request );
-	    
-		/** checking if user is a `seller` AND
-         * admin approval is `required` for the
-         * publishing of the event.
-		 **/
-		if ( $isSeller ) {
-			if ( !$dokan_event_auto_publish ) {
-				$prepared_event["post_status"] = "draft";
-			}
-	    }
-		
+
+        $prepared_event = $this->maybe_restrict_publish( $prepared_event, true );
+
         if ( is_wp_error( $prepared_event ) ) {
             return $prepared_event;
         }
@@ -2041,7 +2079,12 @@ class EventController extends WP_REST_Controller {
         }
 
         if ( isset( $input_data['event_socials'] ) ) {
-            $event_data['etn_event_socials'] = etn_sanitize_array_input( $input_data['event_socials'] );
+            // The form always submits a trailing empty row (it is the repeater's
+            // "type here" affordance). Drop rows with no URL so the meta never
+            // holds a placeholder link that renders as a bare icon chip.
+            $event_data['etn_event_socials'] = etn_get_valid_event_socials(
+                etn_sanitize_array_input( $input_data['event_socials'] )
+            );
         }
 
         if ( isset( $input_data['schedules'] ) ) {

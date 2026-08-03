@@ -4,6 +4,7 @@ namespace Eventin\Refund;
 defined( 'ABSPATH' ) || exit;
 
 use Etn\Core\Attendee\Attendee_Model;
+use Eventin\Coupon\CouponModel;
 use Eventin\Order\OrderModel;
 use WP_Error;
 
@@ -70,18 +71,14 @@ class RefundService {
                 return new WP_Error( 'eventin_refund_already_refunded', __( 'One or more attendees are already refunded.', 'eventin' ), [ 'status' => 409, 'already_refunded' => array_values( $already ) ] );
             }
 
-            $gross_all = 0.0;
-            foreach ( $attendees as $a ) {
-                $gross_all += (float) $a['price'];
-            }
-            $gross_selected = 0.0;
+            // Sum the shares load_order_attendees() already allocated. Recomputing
+            // the ratio here would be a second copy of the same rule, free to drift
+            // from the preview the admin just approved in the refund modal.
+            $amount = 0.0;
             foreach ( $attendee_ids as $aid ) {
-                $gross_selected += (float) $attendees[ $aid ]['price'];
+                $amount += (float) $attendees[ $aid ]['net_price'];
             }
-            // Pro-rate: selected gross share × final paid amount.
-            $amount = $gross_all > 0
-                ? round( ( $gross_selected / $gross_all ) * $final_amount, 2 )
-                : 0.0;
+            $amount = round( $amount, 2 );
 
             if ( $amount > $remaining_cap + 0.001 ) {
                 return new WP_Error(
@@ -188,29 +185,272 @@ class RefundService {
             }
             $status = isset( $att['etn_status'] ) ? (string) $att['etn_status'] : '';
             $out[ $aid ] = [
-                'id'          => $aid,
-                'status'      => $status !== '' ? $status : 'failed',
-                'price'       => isset( $att['etn_ticket_price'] ) ? (float) $att['etn_ticket_price'] : 0.0,
-                'event_id'    => isset( $att['etn_event_id'] ) ? (int) $att['etn_event_id'] : 0,
-                'ticket_slug' => isset( $att['ticket_slug'] ) ? (string) $att['ticket_slug'] : '',
-                'ticket_name' => isset( $att['ticket_name'] ) ? (string) $att['ticket_name'] : '',
-                'name'        => isset( $att['etn_name'] ) ? (string) $att['etn_name'] : '',
+                'id'           => $aid,
+                'status'       => $status !== '' ? $status : 'failed',
+                'price'        => isset( $att['etn_ticket_price'] ) ? (float) $att['etn_ticket_price'] : 0.0,
+                'addons_total' => $this->addons_total( isset( $att['etn_option_selections'] ) ? $att['etn_option_selections'] : [] ),
+                'event_id'     => isset( $att['etn_event_id'] ) ? (int) $att['etn_event_id'] : 0,
+                'ticket_slug'  => isset( $att['ticket_slug'] ) ? (string) $att['ticket_slug'] : '',
+                'ticket_name'  => isset( $att['ticket_name'] ) ? (string) $att['ticket_name'] : '',
+                'name'         => isset( $att['etn_name'] ) ? (string) $att['etn_name'] : '',
             ];
         }
 
-        // Add per-attendee net_price: ticket_price's pro-rated share of the final
-        // paid amount (post-discount, +tax if excl). Frontend uses this for the
-        // refund preview so the live total matches what the backend will record.
+        // Add per-attendee net_price: this attendee's share of the final paid
+        // amount (post-discount, +tax if excl). The share is weighted by what the
+        // attendee is actually worth — their ticket price PLUS the add-ons they
+        // personally bought, LESS the part of the coupon their own spend earned.
+        // Weighting on ticket price alone hands one buyer's add-on money to another,
+        // and weighting on gross worth hands one buyer's discount to another; either
+        // way refunding a single ticket returns the wrong figure (both only came out
+        // right when every ticket was refunded at once).
+        // Frontend uses this for the refund preview, and create() sums these same
+        // values, so the preview and the recorded amount cannot disagree.
         $order        = new OrderModel( (int) $order_id );
         $final_amount = $this->final_amount_for_order( $order );
-        $gross_all    = 0.0;
-        foreach ( $out as $a ) {
-            $gross_all += (float) $a['price'];
+
+        foreach ( $this->allocate( $this->refund_weights( $order, $out ), $final_amount ) as $aid => $share ) {
+            $out[ $aid ]['net_price'] = $share;
         }
-        foreach ( $out as $aid => $a ) {
-            $out[ $aid ]['net_price'] = ( $gross_all > 0 )
-                ? round( ( (float) $a['price'] / $gross_all ) * $final_amount, 2 )
-                : 0.0;
+
+        return $out;
+    }
+
+    /**
+     * What each attendee is worth for the purpose of splitting the amount paid.
+     *
+     * Gross worth (ticket + their own add-ons) minus the slice of the coupon that
+     * their own spend earned. Both terms matter, and for opposite reasons:
+     *
+     *  - drop the add-ons and one buyer's add-on money is refunded to another;
+     *  - drop the discount and one buyer's discount is charged to another.
+     *
+     * Only the RATIO between weights is used ({@see allocate()} normalises against
+     * the amount actually paid), which is why a 'total'-scope coupon comes out
+     * identical with or without the discount term: it scales every weight by the
+     * same factor. The ratio only moves when the discount was NOT proportional to
+     * gross worth — i.e. a ticket-scope coupon, which skips add-ons, and a
+     * ticket-restricted one, which skips ineligible tickets too.
+     *
+     * @param   OrderModel  $order      Order being refunded.
+     * @param   array       $attendees  Attendee rows from load_order_attendees().
+     *
+     * @return  array<int,float>  Attendee id => weight.
+     */
+    protected function refund_weights( $order, array $attendees ) {
+        $gross = [];
+
+        foreach ( $attendees as $aid => $attendee ) {
+            $gross[ $aid ] = (float) $attendee['price'] + (float) $attendee['addons_total'];
+        }
+
+        $discount = (float) $order->discount_total;
+
+        if ( $discount <= 0 ) {
+            return $gross;
+        }
+
+        $worth = $this->discountable_worth( $order, $attendees );
+        $base  = array_sum( $worth );
+
+        // A zero base means nothing on this order was discountable, which cannot be
+        // squared with a non-zero discount — fall back to gross worth rather than
+        // dividing by zero or inventing an apportionment.
+        if ( $base <= 0 ) {
+            return $gross;
+        }
+
+        $weights = [];
+
+        foreach ( $gross as $aid => $value ) {
+            $weights[ $aid ] = max( 0.0, $value - ( $worth[ $aid ] / $base ) * $discount );
+        }
+
+        return $weights;
+    }
+
+    /**
+     * The part of each attendee's spend that the coupon was actually computed against.
+     *
+     * Mirrors the discount base in {@see \Eventin\Coupon\CouponValidator::validate()}:
+     * 'total' scope discounts the whole subtotal, tickets and add-ons alike; 'tickets'
+     * scope discounts ticket price only, and only for the eligible slugs when the
+     * coupon is ticket-restricted.
+     *
+     * The terms are read from the ORDER, where apply_coupon() froze them, never from
+     * the coupon row — that row is a whole-row overwrite away from changing and a
+     * delete away from vanishing, and either would silently re-apportion the refunds
+     * of an order paid for long ago.
+     *
+     * Two fallbacks, in order, for orders placed before those fields existed:
+     * the coupon row itself (right whenever it has not been edited since), then
+     * 'total' (which reproduces the historical behaviour exactly, so nothing that
+     * works today starts moving). WooCommerce orders land on 'total' too — their
+     * coupon never went through Eventin's engine, so there is no scope to honour.
+     *
+     * @param   OrderModel  $order      Order being refunded.
+     * @param   array       $attendees  Attendee rows from load_order_attendees().
+     *
+     * @return  array<int,float>  Attendee id => discountable worth.
+     */
+    protected function discountable_worth( $order, array $attendees ) {
+        $scope = (string) $order->discount_scope;
+        $slugs = array_map( 'strval', (array) $order->discount_ticket_slugs );
+
+        if ( '' === $scope ) {
+            list( $scope, $slugs ) = $this->legacy_discount_terms( $order );
+        }
+
+        $worth = [];
+
+        foreach ( $attendees as $aid => $attendee ) {
+            if ( 'tickets' !== $scope ) {
+                $worth[ $aid ] = (float) $attendee['price'] + (float) $attendee['addons_total'];
+                continue;
+            }
+
+            // No slugs recorded means the coupon was unrestricted: every ticket line
+            // counted towards the base.
+            $eligible = ! $slugs || in_array( (string) $attendee['ticket_slug'], $slugs, true );
+
+            $worth[ $aid ] = $eligible ? (float) $attendee['price'] : 0.0;
+        }
+
+        return $worth;
+    }
+
+    /**
+     * Best-effort discount terms for an order placed before they were frozen onto it.
+     *
+     * Reads the coupon the order still names. Right whenever that coupon has not been
+     * edited or deleted since the purchase; when it has, this degrades to 'total',
+     * which is exactly what these orders already did. So it can improve a legacy
+     * order's split and cannot make one worse.
+     *
+     * @param   OrderModel  $order  Order being refunded.
+     *
+     * @return  array{0:string,1:string[]}  [ scope, eligible ticket slugs ]
+     */
+    protected function legacy_discount_terms( $order ) {
+        $coupon_id = (int) $order->coupon_id;
+
+        if ( $coupon_id <= 0 ) {
+            return [ 'total', [] ];
+        }
+
+        $coupon = ( new CouponModel() )->find( $coupon_id );
+
+        if ( ! $coupon || 'tickets' !== ( isset( $coupon['discount_scope'] ) ? $coupon['discount_scope'] : 'total' ) ) {
+            return [ 'total', [] ];
+        }
+
+        $restricted = isset( $coupon['restricted_tickets'] ) ? (array) $coupon['restricted_tickets'] : [];
+
+        return [ 'tickets', array_values( array_map( 'strval', $restricted ) ) ];
+    }
+
+    /**
+     * Sum the add-on lines a single attendee personally bought.
+     *
+     * Reads the attendee's own `etn_option_selections`, written per attendee at
+     * order creation ({@see \Eventin\Order\Api\OrderController::prepare_attendee_data()}).
+     * Absent on bookings made before add-ons existed, and on any booking without
+     * them — both yield 0.0, which leaves the share weighted on ticket price alone.
+     *
+     * @param   mixed  $selections  Meta value: array of rows, or a JSON/serialized string.
+     *
+     * @return  float
+     */
+    protected function addons_total( $selections ) {
+        if ( is_string( $selections ) ) {
+            $decoded    = json_decode( $selections, true );
+            $selections = is_array( $decoded ) ? $decoded : maybe_unserialize( $selections );
+        }
+
+        if ( ! is_array( $selections ) ) {
+            return 0.0;
+        }
+
+        $total = 0.0;
+
+        foreach ( $selections as $row ) {
+            if ( is_array( $row ) && isset( $row['line_total'] ) ) {
+                $total += (float) $row['line_total'];
+            }
+        }
+
+        return round( $total, 2 );
+    }
+
+    /**
+     * Split an amount across weighted parts so the parts sum to it exactly.
+     *
+     * Rounding each share independently loses or gains a cent: two $50 tickets on
+     * a $100.01 order each come to 50.005 and both round up to 50.01, putting the
+     * refundable total a cent above what was charged — which then rejects the last
+     * ticket for exceeding the remaining balance. Largest-remainder allocation
+     * hands the leftover cents out one at a time instead, so the parts always add
+     * back up to $amount and refunding every ticket closes the order to the cent.
+     *
+     * Works in integer cents; ties break on the larger weight then the lower id, so
+     * the split is stable across calls rather than depending on iteration order.
+     *
+     * @param   array<int,float>  $weights  Part id => relative weight.
+     * @param   float             $amount   Total to split.
+     *
+     * @return  array<int,float>  Part id => allocated amount.
+     */
+    protected function allocate( array $weights, $amount ) {
+        $out = [];
+
+        foreach ( $weights as $id => $weight ) {
+            $out[ $id ] = 0.0;
+        }
+
+        $total_weight = array_sum( $weights );
+        $total_cents  = (int) round( (float) $amount * 100 );
+
+        if ( ! $out || $total_weight <= 0 || $total_cents <= 0 ) {
+            return $out;
+        }
+
+        $remainders = [];
+        $assigned   = 0;
+
+        foreach ( $weights as $id => $weight ) {
+            $exact             = ( (float) $weight / $total_weight ) * $total_cents;
+            $whole             = (int) floor( $exact );
+            $out[ $id ]        = $whole;
+            $remainders[ $id ] = $exact - $whole;
+            $assigned         += $whole;
+        }
+
+        $ids = array_keys( $weights );
+
+        usort( $ids, function ( $a, $b ) use ( $remainders, $weights ) {
+            $cmp = $remainders[ $b ] <=> $remainders[ $a ];
+            if ( 0 !== $cmp ) {
+                return $cmp;
+            }
+            $cmp = $weights[ $b ] <=> $weights[ $a ];
+            if ( 0 !== $cmp ) {
+                return $cmp;
+            }
+            return $a <=> $b;
+        } );
+
+        $left = $total_cents - $assigned;
+
+        foreach ( $ids as $id ) {
+            if ( $left <= 0 ) {
+                break;
+            }
+            $out[ $id ]++;
+            $left--;
+        }
+
+        foreach ( $out as $id => $cents ) {
+            $out[ $id ] = round( $cents / 100, 2 );
         }
 
         return $out;
@@ -220,15 +460,50 @@ class RefundService {
      * Customer-paid amount for the order (post-discount, plus tax if tax-exclusive).
      * Refunds are pro-rated and capped against this value, not raw total_price.
      *
-     * @param OrderModel $order
-     * @return float
+     * `total_price` does not mean the same thing on every order, which is what
+     * makes this more than a subtraction:
+     *
+     *  - Every gateway EXCEPT WooCommerce has already taken the coupon off it.
+     *    apply_coupon() subtracts the discount at order creation and
+     *    apply_native_tax() stores the discounted total at payment. Subtracting
+     *    discount_total again there double-counts the coupon and under-refunds by
+     *    its value (a $40 order with a $5 coupon, paid $35, would cap at $30).
+     *  - WooCommerce is the sole exception. sync_wc_order_totals() deliberately
+     *    keeps total_price as the gross ticket subtotal and copies the WooCommerce
+     *    coupon alongside it in discount_total, so there the discount is still
+     *    outstanding and MUST come off. Leaving it on let an admin refund a
+     *    WooCommerce customer more than they ever paid — WooCommerce then clamped
+     *    the excess and the two systems' books stopped matching.
+     *
+     * Those two are also the only writers of discount_total, which is what makes
+     * the gateway check exhaustive rather than a guess. This is the PHP twin of
+     * chargedTotal() in src/helpers/utils/order-totals.js — keep them in step.
+     *
+     * @param   OrderModel  $order  Order to value.
+     *
+     * @return  float  What the customer was actually charged.
      */
     public function final_amount_for_order( $order ) {
         $total    = (float) $order->total_price;
-        $discount = (float) $order->discount_total;
         $tax      = (float) $order->tax_total;
         $is_incl  = 'incl' === (string) $order->tax_display_mode;
-        return max( 0.0, $total - $discount + ( $is_incl ? 0.0 : $tax ) );
+        $discount = $this->discount_still_outstanding( $order ) ? (float) $order->discount_total : 0.0;
+
+        return max( 0.0, $total + ( $is_incl ? 0.0 : $tax ) - $discount );
+    }
+
+    /**
+     * Whether the order's coupon has NOT yet been taken off its total_price.
+     *
+     * True for WooCommerce only. Mirrors discountAlreadyInTotal() in
+     * src/helpers/utils/order-totals.js (inverted).
+     *
+     * @param   OrderModel  $order  Order to inspect.
+     *
+     * @return  bool
+     */
+    protected function discount_still_outstanding( $order ) {
+        return 'wc' === (string) $order->payment_method;
     }
 
     /**

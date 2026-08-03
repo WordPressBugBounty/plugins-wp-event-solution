@@ -5,6 +5,8 @@ namespace Eventin\Upgrade;
 defined( 'ABSPATH' ) || exit;
 
 use Eventin\Eventin;
+use Eventin\PreviewPlaceholder\PreviewPlaceholderEventSeeder;
+use Eventin\Upgrade\Schema;
 use Eventin\Upgrade\Upgraders\UpdateInterface;
 use Eventin\Upgrade\Upgraders\V_4_0_0;
 use Eventin\Upgrade\Upgraders\V_4_0_2;
@@ -21,6 +23,9 @@ use Eventin\Upgrade\Upgraders\V_4_1_13;
 use Eventin\Upgrade\Upgraders\V_4_1_14;
 use Eventin\Upgrade\Upgraders\V_4_1_15;
 use Eventin\Upgrade\Upgraders\V_4_1_16;
+use Eventin\Upgrade\Upgraders\V_4_1_17;
+use Eventin\Upgrade\Upgraders\V_4_1_18;
+use Eventin\Upgrade\Upgraders\V_4_1_19;
 use Wpeventin;
 
 /**
@@ -49,6 +54,9 @@ class Upgrade {
         '4.1.14' => V_4_1_14::class,
         '4.1.15' => V_4_1_15::class,
         '4.1.16' => V_4_1_16::class,
+        '4.1.17' => V_4_1_17::class,
+        '4.1.18' => V_4_1_18::class,
+        '4.1.19' => V_4_1_19::class,
     ];
 
     /**
@@ -80,6 +88,23 @@ class Upgrade {
     public static function register() {
         $current_version = Wpeventin::version();
         $migrated_from   = get_option( 'etn_db_migration' );
+
+        // Tables first, and unconditionally: the loop below runs only the current
+        // release's upgrader on a site with no marker, so schema introduced by an
+        // earlier release would never be installed on a fresh install. Data
+        // migrations stay version-gated; a fresh install has nothing to migrate.
+        Schema::install();
+
+        // Same reasoning, same reason it can't live in an upgrader: the Template
+        // Builder preview placeholder was seeded from V_4_1_16 alone, so a fresh
+        // 4.1.19 install — which runs only V_4_1_19 — never got it, and a fresh
+        // 4.1.20 install never would either. It is shipped content the running code
+        // needs, not a migration from a previous version.
+        //
+        // Self-guarding and mutexed (see PreviewPlaceholderEventSeeder): it no-ops
+        // once the event exists, so calling it on every activation and upgrade
+        // cannot produce the duplicate copies the old admin_init call site did.
+        ( new PreviewPlaceholderEventSeeder() )->seed();
 
         foreach ( self::$upgraders as $version => $upgrader ) {
             if ( ! class_exists( $upgrader ) ) {

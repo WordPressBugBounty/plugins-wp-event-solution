@@ -7,6 +7,7 @@ use Etn\Base\Post_Model;
 use Etn\Core\Attendee\Attendee_Model;
 use Etn\Core\Event\Event_Model;
 use Eventin\Customer\CustomerModel;
+use Eventin\ExtraFields\LabelResolver;
 
 /**
  * Order Model
@@ -43,6 +44,14 @@ class OrderModel extends Post_Model {
         'seat_ids'          => '',
         'total_price'       => '',
         'discount_total'    => '',
+        'coupon_id'         => '',
+        'coupon_code'       => '',
+        // How the discount was apportioned, frozen at purchase. Refunds read these
+        // instead of re-reading the coupon row, which is mutable and deletable.
+        // Empty discount_ticket_slugs means every ticket line. See
+        // \Eventin\Refund\RefundService::discountable_worth().
+        'discount_scope'        => '',
+        'discount_ticket_slugs' => [],
         'tax_total'         => 0,
         'tax_display_mode'  => 'excl',
         'payment_id'        => '',
@@ -220,11 +229,20 @@ class OrderModel extends Post_Model {
      * @return string
      */
     private function label_to_slug( $label ) {
-        $slug = mb_strtolower( trim( (string) $label ) );
-        $slug = preg_replace( '/\p{Z}+/u', ' ', $slug );
-        $slug = preg_replace( '/[^a-z0-9 _]/', '', $slug );
-        $slug = preg_replace( '/[ _]+/', '_', $slug );
-        return trim( $slug, '_' );
+        return LabelResolver::slug( $label );
+    }
+
+    /**
+     * Map stored extra-field keys back to their schema labels.
+     *
+     * The stored key is an ASCII slug of the label, so a non-Latin label
+     * (Arabic, Bengali, …) collapses to an empty slug and leaves `_2` behind —
+     * the label can only come from the schema.
+     *
+     * @return  array<string, string>  Key => label.
+     */
+    public function get_extra_field_labels() {
+        return LabelResolver::build_map( $this->get_extra_fields_schema() );
     }
 
     /**

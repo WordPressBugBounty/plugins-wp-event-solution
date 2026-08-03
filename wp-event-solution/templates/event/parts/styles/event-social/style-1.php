@@ -7,6 +7,7 @@
 
              <?php if (is_array($event_socials)): ?>
                 <?php foreach ($event_socials as $social): ?>
+                    <?php if (empty($social['icon']) || empty($social['etn_social_url'])) { continue; } ?>
                     <?php
                         $icon             = ! empty($social['icon']) ? $social['icon'] : '';
                         $title            = ! empty($social["etn_social_title"]) ? $social["etn_social_title"] : '';

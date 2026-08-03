@@ -304,15 +304,17 @@ class OrderController extends WP_REST_Controller {
             ];
         }
 
-        if ( ! empty( $meta_query ) ) {
-            $meta_query['relation'] = 'AND';
-
-            $args['meta_query'] = $meta_query; 
-        }
-
+        // Search keyword: NEST the field OR-group INSIDE the meta_query so the ownership
+        // clause built above (customer_id for an etn-customer, event_id IN for an
+        // organizer) still applies. Previously this REASSIGNED $args['meta_query'] to the
+        // bare OR group, dropping the ownership restriction entirely — which let an
+        // etn-customer read ANY order's PII via ?search_keyword=<a value in the victim
+        // order> (Patchstack: Sensitive Data Exposure / IDOR). By pushing the OR group as
+        // one member of the top-level AND array, the query becomes
+        // (ownership) AND (fname LIKE … OR … OR payment_method LIKE …).
         if ( $search && ! is_numeric( $search ) ) {
-            $meta_query = array(
-                'relation' => 'OR', // 'OR' means any meta key can match
+            $meta_query[] = array(
+                'relation' => 'OR', // any of these fields may match the keyword
                 array(
                     'key'     => 'customer_fname',
                     'value'   => $search,
@@ -339,6 +341,10 @@ class OrderController extends WP_REST_Controller {
                     'compare' => 'LIKE'
                 ),
             );
+        }
+
+        if ( ! empty( $meta_query ) ) {
+            $meta_query['relation'] = 'AND';
 
             $args['meta_query'] = $meta_query;
         }
@@ -924,8 +930,22 @@ class OrderController extends WP_REST_Controller {
      * @return true|WP_Error True if the request has access to update the item, WP_Error object otherwise.
      */
     public function update_item_permissions_check( $request ) {
+        // Staff who own the order (admin, or the event's organizer) may do anything,
+        // including changing the booking status.
         if ( $this->user_can_access_order( $request['id'] ) ) {
             return true;
+        }
+
+        // Guest self-service path: the order-access token is handed to the buyer at
+        // checkout — in plaintext, BEFORE they have paid — and grants a NARROW scope:
+        // updating their own attendee details and choosing a payment method. It must
+        // NEVER authorize a booking-status change. Real payment completion goes through
+        // PaymentController::payment_complete (gateway-verified), so allowing a token
+        // holder to POST action=update_booking_status&status=completed here would let
+        // them mark their own unpaid order paid — a free ticket. Refuse it on the token
+        // path; only owning staff (handled above) may change status.
+        if ( 'update_booking_status' === $request->get_param( 'action' ) ) {
+            return false;
         }
 
         if ( wp_verify_nonce( $request->get_header( 'X-Wp-Nonce' ), 'wp_rest' ) ) {
@@ -1166,6 +1186,7 @@ class OrderController extends WP_REST_Controller {
             'original_total_price'  => $original_total_price,
             'refunded_amount'       => $refunded_amount,
             'discount_total'        => $order->discount_total,
+            'coupon_code'           => $order->coupon_code,
             'tax_total'             => $order->tax_total,
             'tax_display_mode'      => $order->tax_display_mode,
             // Add-on (Optiontics) breakdown: aggregate total for the pricing panel
@@ -1184,6 +1205,9 @@ class OrderController extends WP_REST_Controller {
 	        'wc_order_id'       => $wc_order_id,
             'extra_fields'      => ( $order->extra_fields == "" || $order->extra_fields == null )  ? new \stdClass() : $order->extra_fields,
             'extra_fields_files' => $order->get_extra_field_files(),
+            // Keys are ASCII slugs, so non-Latin labels can't be humanized
+            // client-side — ship the schema labels with the values.
+            'extra_fields_labels' => $order->get_extra_field_labels(),
             'currency'          => $order->currency?$order->currency:etn_currency(),
             'currency_symbol'   => $order->currency_symbol?html_entity_decode($order->currency_symbol, ENT_QUOTES, 'UTF-8'): html_entity_decode(etn_currency_symbol()),
         ];
@@ -1429,6 +1453,83 @@ class OrderController extends WP_REST_Controller {
         $order_data['options_total']     = $options_total;
 
         $order_data['total_price'] = $this->total_price( $order_data['event_id'], $order_data['tickets'] ) + $options_total;
+
+        // Coupon: recompute the discount server-side and fold it into total_price.
+        $order_data = $this->apply_coupon( $input_data, $order_data );
+
+        return $order_data;
+    }
+
+    /**
+     * Apply a coupon to the prepared order data, server-authoritatively.
+     *
+     * Recomputes the discount from the stored coupon (the client `discount_amount`
+     * is never trusted — the create route is guest-open), sets discount_total +
+     * coupon id/code, and reduces total_price on the pre-tax base. Tax is applied
+     * downstream on the discounted total by PaymentController::native_subtotal().
+     * No-op when WooCommerce drives checkout or no coupon code is present. An
+     * invalid code is dropped silently (order proceeds at full price) — the
+     * frontend re-validates before submit, so this only trips on an interim race.
+     *
+     * @param array $input_data Raw request body.
+     * @param array $order_data Prepared order data (contains total_price, tickets).
+     * @return array
+     */
+    protected function apply_coupon( $input_data, $order_data ) {
+        $code = isset( $input_data['coupon_code'] ) ? sanitize_text_field( $input_data['coupon_code'] ) : '';
+
+        if ( ! $code || \Eventin\Coupon\CouponModel::woo_owns_checkout() ) {
+            return $order_data;
+        }
+
+        $subtotal = floatval( $order_data['total_price'] );
+
+        // Authoritative per-ticket prices from the event so a ticket-restricted
+        // coupon discounts only the eligible lines (matches the validate route).
+        $event = new Event_Model( $order_data['event_id'] );
+
+        $cart = [];
+        foreach ( (array) $order_data['tickets'] as $ticket ) {
+            $slug        = isset( $ticket['ticket_slug'] ) ? $ticket['ticket_slug'] : '';
+            $event_ticket = $slug ? $event->get_ticket( $slug ) : null;
+            $cart[] = [
+                'ticket_id' => $slug,
+                'qty'       => isset( $ticket['ticket_quantity'] ) ? intval( $ticket['ticket_quantity'] ) : 0,
+                'price'     => $event_ticket && isset( $event_ticket['etn_ticket_price'] ) ? floatval( $event_ticket['etn_ticket_price'] ) : 0,
+            ];
+        }
+
+        $validator = new \Eventin\Coupon\CouponValidator(
+            new \Eventin\Coupon\CouponModel(),
+            new \Eventin\Coupon\RedemptionModel()
+        );
+
+        $result = $validator->validate( [
+            'code'        => $code,
+            'event_id'    => intval( $order_data['event_id'] ),
+            'cart'        => $cart,
+            'subtotal'    => $subtotal,
+            'buyer_email' => isset( $order_data['customer_email'] ) ? $order_data['customer_email'] : '',
+        ] );
+
+        if ( empty( $result['valid'] ) ) {
+            return $order_data;
+        }
+
+        $discount = floatval( $result['discount_amount'] );
+
+        $order_data['discount_total'] = $discount;
+        $order_data['total_price']    = max( 0, $subtotal - $discount );
+        $order_data['coupon_id']      = intval( $result['coupon']['id'] );
+        $order_data['coupon_code']    = $result['coupon']['code'];
+
+        // Freeze the terms the discount was computed under. Refunds have to know how
+        // it was apportioned across the order, and the coupon row is not a safe place
+        // to look it up later: CouponModel::update() rewrites every column and
+        // delete() leaves no tombstone, so editing or removing the coupon would
+        // silently re-apportion the refunds of an already-completed order.
+        $order_data['discount_scope']        = isset( $result['coupon']['discount_scope'] ) ? $result['coupon']['discount_scope'] : 'total';
+        $order_data['discount_ticket_slugs'] = isset( $result['discount_ticket_slugs'] ) ? (array) $result['discount_ticket_slugs'] : [];
 
         return $order_data;
     }
@@ -2009,18 +2110,41 @@ class OrderController extends WP_REST_Controller {
         $order = new OrderModel( $id );
         $event = new Event_Model( $order->event_id );
         $attendees = $order->get_attendees();
-        $from      = etn_get_email_settings( 'purchase_email' )['from'];
-        
-        // Send email to customer.
-        Mail::to( $order->customer_email )->from( $from )->send( new AdminOrderEmail( $order ) );
 
-        // Send to attendees email.
-        if ( $attendees ) {
-            foreach( $attendees as $attendee ) {
-                $attendee = new Attendee_Model( $attendee['id'] );
+        // A resend has to use whichever delivery system a real purchase would use —
+        // the same branch OrderEmailTrait::send_email() takes. Sending directly
+        // regardless of the module made every resent ticket carry the legacy
+        // purchase_email subject/body/from even when the admin had moved the ticket
+        // email into an "Event Ticket Purchase" automation flow.
+        $etn_addons_options      = get_option( 'etn_addons_options' );
+        $is_automation_module_on = is_array( $etn_addons_options ) && ( $etn_addons_options['automation'] ?? 'off' ) === 'on';
 
-                if ( $attendee->etn_email ) {
-                    Mail::to( $attendee->etn_email )->from( $from )->send( new AttendeeOrderEmail( $event, $attendee ) );
+        if ( $is_automation_module_on ) {
+            // Reuse the trait's per-receiver dispatch so the flow resolves exactly the
+            // trigger variables it would on a real purchase. Each call carries a single
+            // receiver key and FlowManager skips any email node whose receiverType key
+            // is absent, so the customer node and the attendee node fire independently.
+            // No admin dispatch: resend has never notified the site admin, and adding it
+            // here would send mail this action has never sent.
+            $order->send_email_to_customer_through_automation( $order, $event );
+
+            if ( $attendees ) {
+                $order->send_email_to_attendee_through_automation( $attendees, $event, $order );
+            }
+        } else {
+            $from = etn_get_email_settings( 'purchase_email' )['from'];
+
+            // Send email to customer.
+            Mail::to( $order->customer_email )->from( $from )->send( new AdminOrderEmail( $order ) );
+
+            // Send to attendees email.
+            if ( $attendees ) {
+                foreach( $attendees as $attendee ) {
+                    $attendee = new Attendee_Model( $attendee['id'] );
+
+                    if ( $attendee->etn_email ) {
+                        Mail::to( $attendee->etn_email )->from( $from )->send( new AttendeeOrderEmail( $event, $attendee ) );
+                    }
                 }
             }
         }

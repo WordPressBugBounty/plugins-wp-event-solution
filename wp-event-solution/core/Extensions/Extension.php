@@ -172,6 +172,28 @@ class Extension {
                 }
             }
 
+            // Resolve addon install/activate state from disk regardless of the
+            // user on/auto-enable gate above. Without this an installed-not-active
+            // addon (e.g. aisentic) keeps its literal 'on' status and the UI shows
+            // an "Install" button instead of "Activate". The is_user_off override
+            // below still wins for addons the user explicitly disabled.
+            if ( ! $is_user_off && 'addon' === $extension['type'] ) {
+                if (
+                        self::is_need_upgrade( $extension['name'] )
+                        && ! PluginManager::is_installed( $extension['slug'] )
+                    ) {
+                    $extension['status'] = 'upgrade';
+                }
+
+                if ( PluginManager::is_installed( $extension['slug'] ) ) {
+                    $extension['status'] = 'install';
+                }
+
+                if ( PluginManager::is_activated( $extension['slug'] ) ) {
+                    $extension['status'] = 'activate';
+                }
+            }
+
             if ( $is_user_off && in_array( $extension['type'], [ 'module', 'addon' ], true ) ) {
                 $extension['status'] = 'off';
             }
@@ -339,7 +361,18 @@ class Extension {
             }
         }
 
+        $previous_automation = get_option( 'etn_addons_options', [] )['automation'] ?? 'off';
+
         update_option( 'etn_addons_options', $settings );
+
+        $current_automation = $settings['automation'] ?? 'off';
+
+        // Reminder routing (Automation flow vs. default WP-Cron) is decided per
+        // event; flipping the module has to re-decide it for events that already
+        // exist, otherwise they keep the route they were created under.
+        if ( $current_automation !== $previous_automation ) {
+            do_action( 'eventin_automation_module_toggled', $current_automation );
+        }
 
         return $result;
     }
@@ -1022,6 +1055,23 @@ class Extension {
             'settings_link' => '',
             'doc_link'      => 'https://themewinter.com/docs/plugins/plugin-docs/gettings-started-aisentic/how-to-manage-eventin-events-using-aisentics-ai-chatbot/',
             'badge_tags'    => ['Free', 'New', "Recommended"],
+        ];
+
+        $extensions['eventin-addon-for-wcfm'] = [
+            'name'          => 'eventin-addon-for-wcfm',
+            'slug'          => 'eventin-addon-for-wcfm',
+            'type'          => 'addon',
+            'status'        => 'off',
+            'is_pro'        => true,
+            'deps'          => ['wc-frontend-manager', 'wc-multivendor-marketplace'],
+            'title'         => __( 'WCFM Multivendor', 'eventin' ),
+            'description'   => __( 'Sell events through a WCFM Marketplace — vendors create and manage their own events, speakers, schedules and bookings from the WCFM vendor dashboard.', 'eventin' ),
+            'icon'          => ExtensionIcon::get( 'eventin-addon-for-wcfm' ),
+            'demo_link'     => 'https://product.themewinter.com/eventin/',
+            'settings_link' => '',
+            'doc_link'      => '',
+            'notice'        => __( 'NB: Requires WC Frontend Manager and WC Multivendor Marketplace', 'eventin' ),
+            'badge_tags'    => [ 'Pro', 'New' ],
         ];
 
         return $extensions;

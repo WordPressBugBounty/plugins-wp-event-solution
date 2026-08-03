@@ -19,7 +19,10 @@ class Hooks {
         add_shortcode( "events_tab", [$this, "etn_events_tab"] );
 
         //[events_calendar limit='1' event_cat_ids='1,2' event_tag_ids='1,2' /]
-        add_shortcode( "events_calendar", [$this, "calendar_widget"] ); 
+        add_shortcode( "events_calendar", [$this, "calendar_widget"] );
+
+        //[etn_monthly_calendar months='11,12' style='style-1' views='month,week,day,agenda' default_view='month' show_month_dropdown='yes' event_cat_ids='1,2' /]
+        add_shortcode( "etn_monthly_calendar", [$this, "monthly_calendar_widget"] );
 
         //[speakers cat_id='19' limit='3'/]
         add_shortcode( "speakers", [$this, "etn_speakers_widget"] );
@@ -463,10 +466,110 @@ class Hooks {
           </div>
         <?php
 
-        return ob_get_clean(); 
+        return ob_get_clean();
     }
 
-  
+    /**
+     * Monthly Calendar shortcode.
+     *
+     * Shows a calendar restricted to an ordered list of months. The first
+     * configured month renders initially and the frontend prev/next controls
+     * walk the months in the configured order. Supports month / week / day /
+     * agenda views and two designs (style-1 neo-brutalist, style-2 soft SaaS).
+     *
+     * [etn_monthly_calendar months='12,11' style='style-1' views='month,week,day,agenda'
+     *  default_view='month' show_month_dropdown='yes' event_cat_ids='1,2'
+     *  filter_with_status='' limit='3' show_desc='no' show_child_event='yes' show_parent_event='no']
+     */
+    public function monthly_calendar_widget( $attributes ) {
+        wp_enqueue_style( 'etn-monthly-calendar' );
+        wp_enqueue_script( 'etn-monthly-calendar' );
+
+        // Ordered, de-duplicated list of months (1-12). Order is meaningful:
+        // the first month is shown first and navigation follows this order.
+        $months = [];
+        if ( ! empty( $attributes['months'] ) ) {
+            foreach ( explode( ',', $attributes['months'] ) as $month ) {
+                $month = absint( trim( $month ) );
+                if ( $month >= 1 && $month <= 12 && ! in_array( $month, $months, true ) ) {
+                    $months[] = $month;
+                }
+            }
+        }
+        if ( empty( $months ) ) {
+            $months = [ absint( current_time( 'n' ) ) ];
+        }
+
+        $style = ! empty( $attributes['style'] ) && 'style-2' === $attributes['style'] ? 'style-2' : 'style-1';
+
+        // Enabled views, kept in canonical tab order.
+        $allowed_views = [ 'month', 'week', 'day', 'agenda' ];
+        $views         = $allowed_views;
+        if ( ! empty( $attributes['views'] ) ) {
+            $requested = array_map( 'trim', explode( ',', strtolower( $attributes['views'] ) ) );
+            $filtered  = array_values( array_intersect( $allowed_views, $requested ) );
+            if ( ! empty( $filtered ) ) {
+                $views = $filtered;
+            }
+        }
+
+        $default_view = ! empty( $attributes['default_view'] ) ? strtolower( sanitize_text_field( $attributes['default_view'] ) ) : $views[0];
+        if ( ! in_array( $default_view, $views, true ) ) {
+            $default_view = $views[0];
+        }
+
+        $show_month_dropdown = ( isset( $attributes['show_month_dropdown'] ) && 'no' === $attributes['show_month_dropdown'] ) ? 'no' : 'yes';
+        $show_desc           = ! empty( $attributes['show_desc'] ) && 'yes' === $attributes['show_desc'] ? 'yes' : 'no';
+        $limit               = isset( $attributes['limit'] ) && is_numeric( $attributes['limit'] ) ? max( 1, intval( $attributes['limit'] ) ) : 3;
+
+        $allowed_status     = [ '', 'upcoming', 'ongoing', 'expire' ];
+        $filter_with_status = isset( $attributes['filter_with_status'] ) ? sanitize_text_field( $attributes['filter_with_status'] ) : '';
+        $filter_with_status = in_array( $filter_with_status, $allowed_status, true ) ? $filter_with_status : '';
+
+        $show_parent_event = isset( $attributes['show_parent_event'] ) ? $attributes['show_parent_event'] : '';
+        $show_child_event  = isset( $attributes['show_child_event'] ) ? $attributes['show_child_event'] : 'yes';
+        $post_parent       = helper::show_parent_child( $show_parent_event, $show_child_event );
+
+        // Selected category term IDs — integers only, same contract as calendar_widget.
+        $event_cat = [];
+        if ( ! empty( $attributes['event_cat_ids'] ) ) {
+            $event_cat = array_values( array_filter( array_map( 'intval', explode( ',', $attributes['event_cat_ids'] ) ) ) );
+        }
+
+        // Global category name list — keeps legend/chip colors stable across months.
+        $cat_json = [];
+        $terms    = get_terms(
+            [
+                'taxonomy'   => 'etn_category',
+                'hide_empty' => false,
+                'number'     => 50,
+            ]
+        );
+        if ( ! is_wp_error( $terms ) && ! empty( $terms ) ) {
+            $cat_json = array_values( wp_list_pluck( $terms, 'name' ) );
+        }
+
+        $controls = [
+            'months'              => $months,
+            'style'               => $style,
+            'views'               => $views,
+            'default_view'        => $default_view,
+            'show_month_dropdown' => $show_month_dropdown,
+            'show_desc'           => $show_desc,
+            'limit'               => $limit,
+            'filter_with_status'  => $filter_with_status,
+            'post_parent'         => $post_parent,
+        ];
+
+        ob_start();
+        ?>
+          <div class="eventin-shortcode-wrapper">
+              <div class="etn-monthly-calendar-root" data-controls="<?php echo esc_attr( wp_json_encode( $controls ) ); ?>" data-cat="<?php echo esc_attr( wp_json_encode( $cat_json ) ); ?>" data-selectedcats="<?php echo esc_attr( wp_json_encode( $event_cat ) ); ?>"></div>
+          </div>
+        <?php
+
+        return ob_get_clean();
+    }
 
     /**
      * Events shortcode

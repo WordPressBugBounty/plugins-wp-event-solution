@@ -236,6 +236,7 @@ class Permission {
             'etn_manage_get_help'      => __( 'Get Help', 'eventin' ),
             'etn_manage_go_pro'        => __( 'Upgrade to Pro', 'eventin' ),
             'etn_manage_qr_scan'       => __( 'QR Scan Access', 'eventin' ),
+            'etn_manage_coupon'        => __( 'Coupons', 'eventin' ),
         ];
     }
 
@@ -261,6 +262,7 @@ class Permission {
             'etn_manage_get_help',
             'etn_manage_go_pro',
             'etn_manage_qr_scan',
+            'etn_manage_coupon',
         ];
     }
 

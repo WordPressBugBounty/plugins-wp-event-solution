@@ -34,6 +34,9 @@
     "js/vendor-common.js",
     "js/index-calendar.js"
   ],
+  "index-monthly-calendar": [
+    "js/index-monthly-calendar.js"
+  ],
   "index-onboard": [
     "js/vendor-rc.js",
     "js/vendor-antd-icons.js",

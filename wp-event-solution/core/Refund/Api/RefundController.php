@@ -70,6 +70,10 @@ class RefundController extends WP_REST_Controller {
             'refundable_total' => max( 0, round( $final_amount - $total, 2 ) ),
             'final_amount'     => $final_amount,
             'order_status'     => $order->status,
+            // Coupon context so the refund modal can explain why per-ticket amounts
+            // are lower than the sticker price (net = after the coupon discount).
+            'coupon_code'      => $order->coupon_code,
+            'discount_total'   => (float) $order->discount_total,
             // Currency captured on the order at purchase time (reflects the
             // gateway/currency actually used), falling back to the global setting.
             'currency'         => $order->currency ? $order->currency : etn_currency(),

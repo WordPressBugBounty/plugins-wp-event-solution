@@ -217,6 +217,11 @@ class PaymentController extends WP_REST_Controller
 
 		$subtotal += floatval($order->options_total);
 
+		// Coupon discount was frozen at order creation (discount_total). Subtract it
+		// from the pre-tax base so tax is charged on the discounted amount and the
+		// gateway charges the discounted total. Idempotent across payment retries.
+		$subtotal = max( 0, $subtotal - floatval( $order->discount_total ) );
+
 		return $subtotal;
 	}
 

@@ -41,13 +41,33 @@ defined( 'ABSPATH' ) || exit;
 
             if ($this->is_editor()) {
                 $event_id = ! empty($attributes['eventId']) ? intval($attributes['eventId']) : 0;
+
+                if ($event_id == 0) {
+                    $template = new \Eventin\Template\TemplateModel(get_the_ID());
+                    $event_id = $template->get_preview_event_id();
+                }
+            } elseif ('etn-template' == get_post_type(get_the_ID())) {
+                $template = new \Eventin\Template\TemplateModel(get_the_ID());
+                $event_id = $template->get_preview_event_id();
             } else {
                 $event_id = get_the_ID();
             }
 
             $event = new Event_Model($event_id);
 
-            $event_socials = $event->get_social();
+            $event_socials = etn_get_valid_event_socials( $event->get_social() );
+
+            // Nothing to share — render nothing on the frontend, and a hint in the
+            // editor so the block stays selectable. Matches EventDescription's guard.
+            if ( empty( $event_socials ) ) {
+                if ( $this->is_editor() ) {
+                    return '<div style="padding:16px;border:1px dashed #ccc;color:#888;">'
+                        . esc_html__( 'Event Social: no social links set for this event.', 'eventin' )
+                        . '</div>';
+                }
+
+                return '';
+            }
 
             ob_start();
         ?>

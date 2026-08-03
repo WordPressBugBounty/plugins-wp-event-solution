@@ -15,8 +15,10 @@ use Etn\Core\Event\Event_Model;
 use Etn\Traits\Singleton;
 use Eventin\Attendee\Hooks as AttendeeHooks;
 use Eventin\Integrations\Zoom\ZoomCredential;
+use Eventin\Support\DbLock;
 use Eventin\Template\CPT;
 use Eventin\Template\DefaultTemplate;
+use Eventin\Upgrade\Schema;
 use Eventin\Upgrade\Upgrade;
 use Eventin\Upgrade\Upgraders\V_4_0_8;
 use Eventin\Utils\UtilityPackages;
@@ -326,13 +328,32 @@ class Hooks {
      * @return  void
      */
     public function do_upgrade() {
+        // Outside the version gate below, which only fires when the running version
+        // exceeds the stored marker. Sites whose marker is already current but whose
+        // tables were never created — fresh installs before the schema installer
+        // existed — would otherwise stay broken forever. Costs one autoloaded option
+        // read once the schema is present.
+        Schema::install_if_needed();
+
         $db_migration    = get_option( 'etn_db_migration' );
         $current_version = Wpeventin::version();
 
         if ( ! $db_migration || version_compare( $current_version, $db_migration, '>' ) ) {
-            
-            Upgrade::register();
-            update_option( 'etn_db_migration', $current_version, true );
+            // This runs on `admin_init`, which admin-ajax.php fires too, so a single
+            // admin page load re-enters it once per background AJAX request. The
+            // etn_db_migration marker below is only written once the upgraders finish,
+            // so without this lock every one of those requests runs the whole chain
+            // concurrently and slow upgraders execute several times over.
+            if ( ! DbLock::acquire( 'etn_upgrade_lock' ) ) {
+                return;
+            }
+
+            try {
+                Upgrade::register();
+                update_option( 'etn_db_migration', $current_version, true );
+            } finally {
+                DbLock::release( 'etn_upgrade_lock' );
+            }
         }
     }
 

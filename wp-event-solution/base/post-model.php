@@ -321,8 +321,29 @@ abstract class Post_Model {
 	{
 		$is_elementor_editor = get_post_meta($post_id, '_elementor_edit_mode', true);
 		if ( class_exists('Elementor\Plugin') && ($is_elementor_editor === "builder") ) {
-			$elementor_data = get_post_meta($post_id, '_elementor_data', true);
-			update_post_meta($newly_created_post_id, "_elementor_data", $elementor_data);
+			// Elementor renders stored _elementor_data only when _elementor_edit_mode is
+			// 'builder'. Copying _elementor_data alone leaves the clone without edit mode,
+			// so Elementor re-imports post_content into a single Text Editor widget.
+			$elementor_meta_keys = array(
+				'_elementor_edit_mode',
+				'_elementor_data',
+				'_elementor_version',
+				'_elementor_template_type',
+				'_elementor_page_settings',
+				'_elementor_controls_usage',
+			);
+
+			foreach ( $elementor_meta_keys as $meta_key ) {
+				$meta_value = get_post_meta( $post_id, $meta_key, true );
+
+				if ( '' === $meta_value || null === $meta_value ) {
+					continue;
+				}
+
+				// get_post_meta unslashes; update_post_meta will re-slash, so slash here to
+				// preserve JSON in _elementor_data intact.
+				update_post_meta( $newly_created_post_id, $meta_key, wp_slash( $meta_value ) );
+			}
 		}
 	}
 

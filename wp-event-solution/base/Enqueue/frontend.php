@@ -44,5 +44,10 @@ class Frontend
             'eventin',              // Text domain
             plugin_dir_path(__FILE__) . 'languages' //path to language folder
         );
+        wp_set_script_translations(
+            'etn-monthly-calendar', // Monthly Calendar shortcode bundle
+            'eventin',
+            plugin_dir_path(__FILE__) . 'languages'
+        );
     }
 }

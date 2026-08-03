@@ -20,6 +20,24 @@ class Etn_Event_Calendar extends Widget_Base {
     }
 
     /**
+     * Scripts this widget depends on.
+     *
+     * The markup this widget prints is only a mount point — 'etn-app-index'
+     * (build/js/index-calendar.js) is what renders the calendar into it. The
+     * shortcode enqueues that handle at render time, which works on the
+     * frontend but not in the Elementor editor, where widgets are re-rendered
+     * over AJAX long after the preview document's scripts were printed.
+     * Declaring the dependency here makes Elementor load it into the preview
+     * iframe (Widgets_Manager::enqueue_widgets_scripts), so the widget shows a
+     * live calendar instead of an empty-widget placeholder.
+     *
+     * @return string[] Script handles.
+     */
+    public function get_script_depends() {
+        return ['etn-app-index'];
+    }
+
+    /**
      * Retrieve the widget title.
      * @return string Widget title.
      */

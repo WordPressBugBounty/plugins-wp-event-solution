@@ -149,6 +149,13 @@ class Menu implements HookableInterface {
             ];
         }
 
+        $this->submenus[] = [
+            'title'      => __( 'Coupons', 'eventin' ),
+            'capability' => 'etn_manage_coupon',
+            'url'        => 'admin.php?page=' . $this->menu_slug . '#/coupons',
+            'position'   => 5,
+        ];
+
         if ( ! class_exists( 'Wpeventin_Pro' ) ) {
             $this->submenus[] = [
                 'title'      => __( 'Free vs Pro', 'eventin' ),

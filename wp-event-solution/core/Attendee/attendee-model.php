@@ -10,6 +10,7 @@ namespace Etn\Core\Attendee;
 defined( 'ABSPATH' ) || exit;
 
 use Etn\Base\Post_Model;
+use Eventin\ExtraFields\LabelResolver;
 use function cli\err;
 
 /**
@@ -214,11 +215,20 @@ class Attendee_Model extends Post_Model {
      * @return string
      */
     private function label_to_slug( $label ) {
-        $slug = mb_strtolower( trim( (string) $label ) );
-        $slug = preg_replace( '/\p{Z}+/u', ' ', $slug );
-        $slug = preg_replace( '/[^a-z0-9 _]/', '', $slug );
-        $slug = preg_replace( '/[ _]+/', '_', $slug );
-        return trim( $slug, '_' );
+        return LabelResolver::slug( $label );
+    }
+
+    /**
+     * Map stored extra-field keys back to their schema labels.
+     *
+     * Needed because the stored key is an ASCII-only slug of the label, so any
+     * non-Latin label (Arabic, Bengali, …) collapses to an empty slug and the
+     * key degrades to `_2` — the label is unrecoverable from the key alone.
+     *
+     * @return  array<string, string>  Key (no meta prefix) => label.
+     */
+    public function get_extra_field_labels() {
+        return LabelResolver::build_map( $this->get_extra_fields_schema() );
     }
 
     /**
@@ -241,14 +251,30 @@ class Attendee_Model extends Post_Model {
                 continue;
             }
 
-            $field_id  = ! empty( $row['id'] ) ? $row['id'] : ( $idx + 1 );
-            $slug      = $this->label_to_slug( $row['label'] ?? '' );
-            $field_key = $slug . '_' . $field_id;
+            $slug = $this->label_to_slug( $row['label'] ?? '' );
 
-            $att_id = isset( $extras[ $field_key ] ) ? $extras[ $field_key ] : '';
-            // Backward-compat: legacy entries stored without the _{id} suffix.
-            if ( '' === $att_id || null === $att_id ) {
-                $att_id = isset( $extras[ $slug ] ) ? $extras[ $slug ] : '';
+            // Candidate key spellings, most specific first. The frontend writes
+            // `item?.id || index` (0-based), so a schema row with no id lands on
+            // `_{idx}`, not `_{idx+1}` — try both, then the legacy suffix-less key.
+            $candidates = [];
+
+            if ( ! empty( $row['id'] ) ) {
+                $candidates[] = $slug . '_' . $row['id'];
+            }
+
+            $candidates[] = $slug . '_' . $idx;
+            $candidates[] = $slug . '_' . ( $idx + 1 );
+            $candidates[] = $slug;
+
+            $field_key = $candidates[0];
+            $att_id    = '';
+
+            foreach ( $candidates as $candidate ) {
+                if ( isset( $extras[ $candidate ] ) && '' !== $extras[ $candidate ] && null !== $extras[ $candidate ] ) {
+                    $field_key = $candidate;
+                    $att_id    = $extras[ $candidate ];
+                    break;
+                }
             }
 
             if ( '' === $att_id || ! is_numeric( $att_id ) ) {
@@ -380,9 +406,12 @@ class Attendee_Model extends Post_Model {
         );
 
         if ( ! empty( $extra_fields ) ) {
+            $label_map = $this->get_extra_field_labels();
+
             foreach ( $extra_fields as $key => $field ) {
-                // Format label: replace underscores with spaces and capitalize each word.
-                $label = ucwords( str_replace( '_', ' ', $key ) );
+                // Resolve the label from the field schema. Reconstructing it from the
+                // key drops non-Latin labels entirely (Arabic slugs to '', leaving '_2').
+                $label = LabelResolver::label( $key, $label_map );
 
                 $label = apply_filters( 'eventin_attendee_extra_field_label', $label, $key, $this );
                 $value = $this->render_extra_field_value( $key, $field, $files );
@@ -436,10 +465,11 @@ class Attendee_Model extends Post_Model {
     public function get_extra_fields_inline() {
         $extra_fields = $this->get_extra_fields();
         $files        = $this->get_extra_field_files();
+        $label_map    = $this->get_extra_field_labels();
         $parts        = [];
 
         foreach ( $extra_fields as $key => $field ) {
-            $label = ucwords( str_replace( '_', ' ', $key ) );
+            $label = LabelResolver::label( $key, $label_map );
 
             if ( isset( $files[ $key ] ) ) {
                 $value = $files[ $key ]['url'];

@@ -1101,9 +1101,9 @@
             $etn_ticket_price   = isset($etn_ticket_price) ? (floatval($etn_ticket_price)) : 0;
             $etn_left_tickets   = $etn_avaiilable_tickets - $etn_sold_tickets;
             $event_options      = get_option("etn_event_options");
-            $event_time_format  = empty($event_options["time_format"]) ? '12' : $event_options["time_format"];
-            $event_start_time   = empty($etn_start_time) ? '' : (($event_time_format == "24") ? date('H:i', $etn_start_time) : date('g:i a', $etn_start_time));
-            $event_end_time     = empty($etn_end_time) ? '' : (($event_time_format == "24") ? date('H:i', $etn_end_time) : date('g:i a', $etn_end_time));
+            $event_time_format  = (! empty($event_options["time_format"]) && '24' == $event_options["time_format"]) ? 'H:i' : get_option('time_format');
+            $event_start_time   = empty($etn_start_time) ? '' : date_i18n($event_time_format, $etn_start_time);
+            $event_end_time     = empty($etn_end_time) ? '' : date_i18n($event_time_format, $etn_end_time);
             $event_start_date   = self::etn_date($etn_start_date);
             $event_end_date     = self::etn_date($etn_end_date);
             $etn_deadline       = get_post_meta($single_event_id, 'etn_registration_deadline', true);
@@ -3671,7 +3671,7 @@
                      *
                      * @return void
                      */
-                    public static function get_events_by_date($month, $year, $display, $endDate, $startTime, $start_date = '', $end_date = '', $post_parent = '0', $post_id = '0', $selected_cats = '', $filter_with_status = '')
+                    public static function get_events_by_date($month, $year, $display, $endDate, $startTime, $start_date = '', $end_date = '', $post_parent = '0', $post_id = '0', $selected_cats = '', $filter_with_status = '', $with_schedules = false)
                     {
 
                         if (empty($month) || empty($year)) {
@@ -3849,9 +3849,9 @@
                             $event_start_date = ! empty($date_format) ? gmdate($date_options[$date_format], strtotime($etn_start_date)) : gmdate(get_option("date_format"), strtotime($etn_start_date));
 
                             $event_options     = get_option("etn_event_options");
-                            $event_time_format = get_option('time_format');
-                            $start_time        = empty($etn_start_time) ? '' : (($event_time_format == "24") ? date('H:i', $etn_start_time) : date('g:i a', $etn_start_time));
-                            $end_time          = empty($etn_end_time) ? '' : (($event_time_format == "24") ? date('H:i', $etn_end_time) : date('g:i a', $etn_end_time));
+                            $event_time_format = (! empty($event_options["time_format"]) && '24' == $event_options["time_format"]) ? 'H:i' : get_option('time_format');
+                            $start_time        = empty($etn_start_time) ? '' : date_i18n($event_time_format, $etn_start_time);
+                            $end_time          = empty($etn_end_time) ? '' : date_i18n($event_time_format, $etn_end_time);
 
                             // Always expose clean, date-only values. The frontend composes
                             // the time from the separate start_time/end_time fields, so
@@ -3913,10 +3913,95 @@
                             $event->textColor   = get_post_meta($event_id, 'etn_event_calendar_text_color', true);
                             $event->dateFormat  = ! empty($date_options[$date_format]) ? $date_options[$date_format] : get_option('date_format');
                             $event->end_date    = get_post_meta($event_id, 'etn_end_date', true);
+
+                            // Attached schedule programs (sessions/agenda). Opt-in via the
+                            // withSchedules request param so the classic calendar payload
+                            // stays unchanged; used by the monthly calendar's Agenda view.
+                            if ($with_schedules) {
+                                $event->schedules = self::get_event_schedule_programs($event_id);
+                            }
+
                             $all_events[]       = $event;
                         }
 
+                        // Secondary sort: events sharing a start date must be ordered by
+                        // start time ascending. The query above orders by etn_start_date
+                        // only, so same-date events fall back to post ID order (unsorted by
+                        // time). Re-sort here on a full start datetime (date + time) so the
+                        // calendar, upcoming, and date-filtered lists all read chronologically.
+                        usort($all_events, function ($a, $b) {
+                            $a_ts = strtotime(
+                                get_post_meta($a->id, 'etn_start_date', true) . ' ' . get_post_meta($a->id, 'etn_start_time', true)
+                            );
+                            $b_ts = strtotime(
+                                get_post_meta($b->id, 'etn_start_date', true) . ' ' . get_post_meta($b->id, 'etn_start_time', true)
+                            );
+
+                            if ($a_ts === $b_ts) {
+                                return 0;
+                            }
+
+                            return ($a_ts < $b_ts) ? -1 : 1;
+                        });
+
                         return $all_events;
+                    }
+
+                    /**
+                     * Get an event's attached schedule programs in a compact,
+                     * frontend-safe shape: one entry per schedule day with its
+                     * active session slots (title, times, room, description).
+                     *
+                     * @param int $event_id
+                     *
+                     * @return array
+                     */
+                    public static function get_event_schedule_programs($event_id)
+                    {
+                        $schedule_ids = get_post_meta($event_id, 'etn_event_schedule', true);
+                        if (! is_array($schedule_ids) || empty($schedule_ids)) {
+                            return [];
+                        }
+
+                        $schedules = [];
+
+                        foreach ($schedule_ids as $schedule_id) {
+                            $schedule_id = absint($schedule_id);
+                            if (! $schedule_id || 'etn-schedule' !== get_post_type($schedule_id) || 'publish' !== get_post_status($schedule_id)) {
+                                continue;
+                            }
+
+                            $slots    = get_post_meta($schedule_id, 'etn_schedule_topics', true);
+                            $sessions = [];
+
+                            if (is_array($slots)) {
+                                foreach ($slots as $slot) {
+                                    if (! is_array($slot) || (isset($slot['is_active']) && ! $slot['is_active'])) {
+                                        continue;
+                                    }
+                                    // Slot keys use the historical "shedule" spelling.
+                                    $sessions[] = [
+                                        'title'      => isset($slot['etn_schedule_topic']) ? sanitize_text_field($slot['etn_schedule_topic']) : '',
+                                        'start_time' => isset($slot['etn_shedule_start_time']) ? sanitize_text_field($slot['etn_shedule_start_time']) : '',
+                                        'end_time'   => isset($slot['etn_shedule_end_time']) ? sanitize_text_field($slot['etn_shedule_end_time']) : '',
+                                        'room'       => isset($slot['etn_shedule_room']) ? sanitize_text_field($slot['etn_shedule_room']) : '',
+                                    ];
+                                }
+                            }
+
+                            $schedules[] = [
+                                'id'       => $schedule_id,
+                                'title'    => get_the_title($schedule_id),
+                                'date'     => get_post_meta($schedule_id, 'etn_schedule_date', true),
+                                'sessions' => $sessions,
+                            ];
+                        }
+
+                        usort($schedules, function ($a, $b) {
+                            return strcmp($a['date'], $b['date']);
+                        });
+
+                        return $schedules;
                     }
 
                     public static function generate_unique_slug_from_ticket_title($event_id, $event_ticket_variation_title)

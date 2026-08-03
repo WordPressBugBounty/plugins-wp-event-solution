@@ -172,7 +172,11 @@
 
         </td>
         </tr>
-        <?php if ( $order->discount_total > 0 && $order->payment_method == 'wc' ) : ?>
+        <?php // Every gateway can carry a discount: native orders get one from an Eventin
+              // coupon (OrderController::apply_coupon), WooCommerce orders from a WC coupon.
+              // Gating this on 'wc' hid the discount line on every native coupon order while
+              // the Total below was still reduced by it, so the rows did not reconcile. ?>
+        <?php if ( $order->discount_total > 0 ) : ?>
         <tr>
             <td
                 style="padding: 10px 0; font-size: 14px; color: #334155"
@@ -257,10 +261,18 @@
             // Total value: when tax is already baked into total_price ('incl', i.e. all
             // native orders and tax-inclusive WC/FC) don't add it again; otherwise
             // (exclusive-stored, e.g. WooCommerce) add it on top.
+            //
+            // The discount is only subtracted for WooCommerce orders. total_price is
+            // already NET of an Eventin coupon (OrderController::apply_coupon), whereas
+            // sync_wc_order_totals() deliberately keeps WC totals gross and carries the
+            // discount separately. Subtracting unconditionally double-counted the coupon
+            // on every native order. Mirrors RefundService::final_amount_for_order().
+            $discount_to_subtract = ( 'wc' === $order->payment_method ) ? floatval( $discount_price ) : 0;
+
             if ( $tax_display_mode === 'incl' && $order->tax_total > 0 ) {
-                $final_total = floatval($order->total_price ) - floatval($discount_price);
+                $final_total = floatval( $order->total_price ) - $discount_to_subtract;
             } else {
-                $final_total = floatval($order->total_price ) - floatval($discount_price) + floatval($tax_total);
+                $final_total = floatval( $order->total_price ) - $discount_to_subtract + floatval( $tax_total );
             }
             $price_with_currency = \Etn\Core\Event\Helper::instance()->currency_with_position( number_format($final_total,2), $order );
 

@@ -54,6 +54,15 @@ class TemplateBlockAssets implements HookableInterface
             );
             wp_set_script_translations('etn-blocks', 'eventin');
             wp_enqueue_style('eventin-blocks-editor-style', Wpeventin::plugin_url() . 'build/css/gutenberg-blocks.css', [], Wpeventin::version(), 'all');
+
+            // Load the etn-icon font into the block editor canvas (iframe). Only styles
+            // enqueued on enqueue_block_assets reach the iframe; the frontend/admin-page
+            // enqueues of etn-icon don't, so social/icon glyphs (event-social block, etc.)
+            // render blank in the editor without this.
+            if (! wp_style_is('etn-icon', 'registered')) {
+                wp_register_style('etn-icon', Wpeventin::plugin_url() . 'assets/css/etn-icon.css', [], Wpeventin::version(), 'all');
+            }
+            wp_enqueue_style('etn-icon');
         }
         // Load blocks-style.css on both editor and frontend
         // Note: After editing src/blocks/blocks-style.scss, run: npm run build

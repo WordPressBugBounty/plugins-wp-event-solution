@@ -1802,3 +1802,35 @@ if ( ! function_exists( 'etn_get_static_templates_by_type' ) ) {
         return \Eventin\Template\StaticTemplateConfig::by_type( $type );
     }
 }
+
+if ( ! function_exists( 'etn_get_valid_event_socials' ) ) {
+    /**
+     * Filter an event's social links down to the renderable ones.
+     *
+     * The event form seeds an empty row so the repeater always has an input to
+     * type into, so `etn_event_socials` can hold entries with no icon and no
+     * URL at all. A link needs both to be renderable: without a URL there is
+     * nowhere to go, and without an icon the <a> paints as an empty chip (the
+     * bare circle next to "Share:"). Every render path filters through this.
+     *
+     * @param mixed $socials Raw etn_event_socials meta.
+     *
+     * @return array Entries that have both an icon and a URL. Keys are reindexed.
+     */
+    function etn_get_valid_event_socials( $socials ) {
+        if ( ! is_array( $socials ) ) {
+            return [];
+        }
+
+        $valid = array_filter(
+            $socials,
+            function ( $social ) {
+                return is_array( $social )
+                    && ! empty( $social['icon'] )
+                    && ! empty( $social['etn_social_url'] );
+            }
+        );
+
+        return array_values( $valid );
+    }
+}

@@ -2,6 +2,7 @@
 namespace Eventin;
 
 use Eventin\Attendee\Api\AttendeeController;
+use Eventin\Coupon\Api\CouponController;
 use Eventin\Customer\Api\CustomerController;
 use Eventin\Event\Api\EventController;
 use Eventin\EventCategory\Api\EventCategoryController;
@@ -57,6 +58,7 @@ class ApiManager {
         SetupNotification::class,
         TemplateBuilderController::class,
         MailPoetListController::class,
+        CouponController::class,
     ];
 
     /**

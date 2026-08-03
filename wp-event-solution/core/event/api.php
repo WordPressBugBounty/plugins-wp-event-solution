@@ -163,7 +163,9 @@ class Api extends \Etn\Base\Api_Handler {
 			$allowed_status     = ['', 'upcoming', 'ongoing', 'expire'];
 			$filter_with_status = ! empty( $request['filterWithStatus'] ) ? sanitize_text_field( $request['filterWithStatus'] ) : '';
 			$filter_with_status = in_array( $filter_with_status, $allowed_status, true ) ? $filter_with_status : '';
-			$event_list    = Helper::get_events_by_date( $month, $year, $display, $endDate, $startTime, $start, $end, $post_parent, $post_id, $selected_cats, $filter_with_status );
+			// Opt-in: include each event's schedule programs (monthly calendar Agenda view).
+			$with_schedules = ! empty( $request['withSchedules'] ) && filter_var( $request['withSchedules'], FILTER_VALIDATE_BOOLEAN );
+			$event_list    = Helper::get_events_by_date( $month, $year, $display, $endDate, $startTime, $start, $end, $post_parent, $post_id, $selected_cats, $filter_with_status, $with_schedules );
 
 			if ( ! empty( $event_list ) ) {
 				$status_code         = 1;
@@ -449,16 +451,37 @@ class Api extends \Etn\Base\Api_Handler {
 			return new WP_Error( 'event_id_required', __( 'Event id is required.', 'eventin' ) );
 		}
 
-		foreach ( $event_ids as $event_id ) {
-			$event	 = get_post( $event_id );
-			$user_id = get_current_user_id();
+		$user_id = get_current_user_id();
 
-			if ( ! current_user_can( 'manage_options' ) && $event->post_author != $user_id ) {
-				return new WP_Error( 'unauthorized', __( 'Unauthorized user. Sorry you are not allowed to do that', 'eventin' ), [ 'status' => 403 ] );
+		// A guest has user id 0, and a guest-authored post has post_author 0, so the
+		// old `post_author != $user_id` ownership test evaluated 0 != 0 (false) and let
+		// an unauthenticated caller through. Deleting events is a real, capable,
+		// logged-in user's action — reject guests outright before any comparison.
+		if ( ! $user_id ) {
+			return new WP_Error( 'unauthorized', __( 'Unauthorized user. Sorry you are not allowed to do that', 'eventin' ), [ 'status' => 401 ] );
+		}
+
+		$is_admin = current_user_can( 'manage_options' );
+
+		// Gate on a real capability, not just the author comparison.
+		if ( ! $is_admin && ! current_user_can( 'etn_manage_event' ) ) {
+			return new WP_Error( 'unauthorized', __( 'Unauthorized user. Sorry you are not allowed to do that', 'eventin' ), [ 'status' => 403 ] );
+		}
+
+		foreach ( $event_ids as $event_id ) {
+			$event_id = intval( $event_id );
+			$event    = get_post( $event_id );
+
+			// Only ever delete Eventin events through this endpoint — never arbitrary
+			// pages / products / orders that happen to share an author id.
+			if ( ! $event || 'etn' !== $event->post_type ) {
+				return new WP_Error( 'event_not_found', __( 'Event not found.', 'eventin' ), [ 'status' => 404 ] );
 			}
-	
-			if ( ! $event ) {
-				return new WP_Error( 'event_not_found', __( 'Event not found.', 'eventin' ) );
+
+			// Non-admins may only delete events they authored. Compare as integers so a
+			// (int) 0 author can never match a truthy user id.
+			if ( ! $is_admin && (int) $event->post_author !== (int) $user_id ) {
+				return new WP_Error( 'unauthorized', __( 'Unauthorized user. Sorry you are not allowed to do that', 'eventin' ), [ 'status' => 403 ] );
 			}
 
 			if ( is_wp_error( wp_delete_post( $event_id, true ) ) ) {

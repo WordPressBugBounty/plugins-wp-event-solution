@@ -1,0 +1,11 @@
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M0 8C0 3.58172 3.58172 0 8 0H40C44.4183 0 48 3.58172 48 8V40C48 44.4183 44.4183 48 40 48H8C3.58172 48 0 44.4183 0 40V8Z" fill="#EEF0FB"/>
+<g data-normalized="1" transform="translate(-12.676, -12.294) scale(1.528)">
+  <!-- marketplace bag -->
+  <path d="M14 18h20l-1.4 15.2A3 3 0 0 1 29.6 36H18.4a3 3 0 0 1-2.99-2.8L14 18Z" fill="#5B4BDB"/>
+  <path d="M19 18v-1.5a5 5 0 0 1 10 0V18" stroke="#5B4BDB" stroke-width="2.4" stroke-linecap="round"/>
+  <!-- event ticket -->
+  <path d="M20.5 23.5h7a1.5 1.5 0 0 1 1.5 1.5 1.6 1.6 0 0 0 0 3.2A1.5 1.5 0 0 1 27.5 31.7h-7A1.5 1.5 0 0 1 19 30.2a1.6 1.6 0 0 0 0-3.2A1.5 1.5 0 0 1 20.5 23.5Z" fill="#fff"/>
+  <path d="M24 24.6v5.4" stroke="#0F9C8C" stroke-width="1.4" stroke-linecap="round" stroke-dasharray="1.2 1.6"/>
+</g>
+</svg>

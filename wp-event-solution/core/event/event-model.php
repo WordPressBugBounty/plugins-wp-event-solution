@@ -144,8 +144,7 @@ class Event_Model extends Post_Model {
     {
         $start_date = $this->etn_start_date;
         $start_time = $this->etn_start_time;
-        $end_date   = $this->etn_end_date;
-        $end_time   = $this->etn_end_time;
+        list( $end_date, $end_time ) = $this->get_effective_end_parts();
         $status     = get_post_status($this->id);
         $timezone   = $this->event_timezone ? etn_create_date_timezone($this->event_timezone) : wp_timezone_string();
 
@@ -278,6 +277,34 @@ class Event_Model extends Post_Model {
     }
 
     /**
+     * Resolve the effective end date and time.
+     *
+     * Events created outside the event editor — CSV/JSON import above all, since
+     * the editor makes both fields required — can store an empty end date. An
+     * empty value parses to `new DateTime('')`, which is *now*, so a future event
+     * compares as already ended (Expired) and a past one as still running
+     * (Ongoing). Worse, both sides of the Expired check then read "now", so the
+     * result flips on a microsecond boundary and the same event reports a
+     * different status from one page load to the next.
+     *
+     * An event with no end simply ends when it starts, which is the fallback
+     * Helper::event_expire_date() already applies to the registration deadline.
+     *
+     * @return  array  [ end date, end time ]
+     */
+    private function get_effective_end_parts() {
+        $end_date = $this->etn_end_date;
+        $end_time = $this->etn_end_time;
+
+        if ( ! $end_date ) {
+            $end_date = $this->etn_start_date;
+            $end_time = $end_time ? $end_time : $this->etn_start_time;
+        }
+
+        return [ $end_date, $end_time ];
+    }
+
+    /**
      * Get end date time
      *
      * @param   string  $format  [$format description]
@@ -285,8 +312,10 @@ class Event_Model extends Post_Model {
      * @return  string           [return description]
      */
     public function get_end_datetime($format = 'Y-m-d h:i a') {
-        $datetime = $this->get_datetime( $this->etn_end_date, $this->etn_end_time );
-        
+        list( $end_date, $end_time ) = $this->get_effective_end_parts();
+
+        $datetime = $this->get_datetime( $end_date, $end_time );
+
         return $datetime->format( $format );
     }
 

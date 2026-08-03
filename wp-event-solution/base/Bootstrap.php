@@ -4,6 +4,7 @@ namespace Eventin;
 use Eventin\Admin\AdminProvider;
 use Eventin\Blocks\BlockProvider;
 use Eventin\Attendee\AttendeeProvider;
+use Eventin\Coupon\CouponProvider;
 use Eventin\Event\EventProvider;
 use Eventin\Interfaces\ProviderInterface;
 use Eventin\Order\OrderProvider;
@@ -43,6 +44,7 @@ class Bootstrap {
         PreviewPlaceholderProvider::class,
         RefundProvider::class,
         ReportProvider::class,
+        CouponProvider::class,
     ];
 
     /**
@@ -66,9 +68,42 @@ class Bootstrap {
         self::register_providers();
         CustomEndpoint::register();
         self::register_cpt_modules();
-		
+
 		$seeder = new V_4_0_29();
 		$seeder->run();
+
+		self::seed_role_publish_defaults();
+    }
+
+    /**
+     * Seed default event-publish permission for Author/Editor roles once.
+     *
+     * WordPress authors/editors can publish events out of the box (the event
+     * CPT uses the core `post` capability type). The new Author/Editor publish
+     * toggles therefore default to "on" so existing sites keep that behavior
+     * after upgrade. Guarded by a settings flag so it runs a single time and
+     * never overrides an admin's later choice.
+     *
+     * @since 4.1.17
+     *
+     * @return void
+     */
+    protected static function seed_role_publish_defaults(): void {
+        if ( Settings::get( 'etn_role_publish_defaults_seeded' ) ) {
+            return;
+        }
+
+        $defaults = [ 'etn_role_publish_defaults_seeded' => 'on' ];
+
+        if ( Settings::get( 'author_can_publish_event' ) !== 'on' ) {
+            $defaults['author_can_publish_event'] = 'on';
+        }
+
+        if ( Settings::get( 'editor_can_publish_event' ) !== 'on' ) {
+            $defaults['editor_can_publish_event'] = 'on';
+        }
+
+        Settings::update( $defaults );
     }
 
     /**

@@ -70,6 +70,13 @@ class FrontendAssets implements AssetsInterface {
                 ),
                 'in_footer' => true,
             ],
+            // Monthly Calendar shortcode ([etn_monthly_calendar]) — enqueued
+            // on demand by Etn\Core\Shortcodes\Hooks::monthly_calendar_widget().
+            'etn-monthly-calendar' => [
+                'src'       => \Wpeventin::plugin_url( 'build/js/index-monthly-calendar.js' ),
+                'deps'      => ChunkManifest::vendor_deps_for( 'index-monthly-calendar' ),
+                'in_footer' => true,
+            ],
             // PERF: block frontend script enhances already-rendered block markup; it
             // does not need to run before paint. 'defer' removes it from the
             // render-blocking critical path on every event page using blocks.
@@ -124,6 +131,11 @@ class FrontendAssets implements AssetsInterface {
             ],
             'etn-public-css' => [
                 'src' => \Wpeventin::plugin_url( 'build/css/event-manager-public-styles.css' )
+            ],
+            // Monthly Calendar shortcode styles (extracted from the
+            // index-monthly-calendar webpack entry).
+            'etn-monthly-calendar' => [
+                'src' => \Wpeventin::plugin_url( 'build/css/index-monthly-calendar.css' )
             ],
             'etn-icon' => [
                 'src' => \Wpeventin::plugin_url( 'assets/css/etn-icon.css' )

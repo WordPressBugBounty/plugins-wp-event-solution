@@ -35,7 +35,8 @@ defined( 'ABSPATH' ) || exit;
         } 
         ?>
         <?php 
-        if (!isset($event_options["hide_social_from_details"]) && is_array($data['etn_event_socials']) && !empty( $data['etn_event_socials'] )) { ?>
+        $etn_valid_socials = etn_get_valid_event_socials( $data['etn_event_socials'] ?? [] );
+        if (!isset($event_options["hide_social_from_details"]) && !empty( $etn_valid_socials )) { ?>
             <li>
                 <div class="etn-social">
                     <div class="share-icon">
@@ -43,7 +44,7 @@ defined( 'ABSPATH' ) || exit;
                             <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
                         </svg>
                     </div>
-                    <?php foreach ($data['etn_event_socials'] as $social) : ?>
+                    <?php foreach ($etn_valid_socials as $social) : ?>
                         <?php 
                         if (isset($social['icon'])) {
                             $etn_social_class = 'etn-' . str_replace('fab fa-', '', $social['icon']??''); 

@@ -92,6 +92,19 @@ class EventImporter implements PostImporterInterface {
                 'etn_event_location_type'           => ! empty( $row['location_type'] ) ? sanitize_text_field( $row['location_type'] ) : '',
             ];
 
+            // A sheet without End Date / End Time columns would otherwise store an
+            // empty end, which the status/expiry logic reads as "now" and the
+            // list filters (a DATETIME meta_query against etn_end_date) can't
+            // match at all. The event editor makes both fields required, so mirror
+            // that here: an event with no end ends when it starts.
+            if ( empty( $args['etn_end_date'] ) ) {
+                $args['etn_end_date'] = $args['etn_start_date'];
+
+                if ( empty( $args['etn_end_time'] ) ) {
+                    $args['etn_end_time'] = $args['etn_start_time'];
+                }
+            }
+
             $ticket_variations     = ! empty( $row['ticket_variations'] ) ? etn_sanitize_array_input( $row['ticket_variations'] ) : '';
             $event_socials         = ! empty( $row['event_socials'] ) ? etn_sanitize_array_input( $row['event_socials'] ) : '';
             $event_schedule        = ! empty( $row['schedules'] ) ? etn_sanitize_array_input( $row['schedules'] ) : '';
@@ -111,7 +124,7 @@ class EventImporter implements PostImporterInterface {
 
             if ( 'text/csv' == $file_type ) {
                 $args['etn_ticket_variations'] = $this->format_tickets( $ticket_variations );
-                $args['etn_event_socials']     = etn_csv_column_multi_dimension_array( $event_socials );
+                $args['etn_event_socials']     = etn_get_valid_event_socials( etn_csv_column_multi_dimension_array( $event_socials ) );
                 $args['etn_event_schedule']    = etn_csv_column_array( $event_schedule );
                 $args['etn_event_faq']         = etn_sanitize_faq_array( etn_csv_column_multi_dimension_array( $event_faq ) );
                 $args['attendee_extra_fields'] = etn_csv_column_multi_dimension_array( $attendee_extra_fields );

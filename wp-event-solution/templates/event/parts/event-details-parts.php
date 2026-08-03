@@ -150,7 +150,7 @@ class EventDetailsParts {
 	public static function event_single_category( $single_event_id ) {
 		global $post;
 		$data              = Helper::single_template_options( $single_event_id );
-		$etn_event_socials = isset( $data['etn_event_socials'] ) ? $data['etn_event_socials'] : [];
+		$etn_event_socials = etn_get_valid_event_socials( isset( $data['etn_event_socials'] ) ? $data['etn_event_socials'] : [] );
 		$etn_cat_terms     = wp_get_post_terms( $single_event_id, 'etn_category' );
 		$is_hide_social    = etn_get_option( 'hide_social_from_details' );
 		?>

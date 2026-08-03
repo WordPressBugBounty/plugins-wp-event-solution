@@ -74,7 +74,7 @@ class PluginManager {
         } elseif($slug === 'eventin-addon-for-fluentcart') {
             $result    = $upgrader->install('https://downloads.wordpress.org/plugin/eventin-addon-for-fluentcart.latest-stable.zip');
         } elseif($slug === 'aisentic') {
-            $result    = $upgrader->install('https://github.com/themewinter/aisentic-public/releases/download/v1.0.0/aisentic-1.0.0.zip');
+            $result    = $upgrader->install('https://downloads.wordpress.org/plugin/aisentic.latest-stable.zip');
         } else if($slug === 'eventin-addon-for-surecart') {
             $result    = $upgrader->install('https://downloads.wordpress.org/plugin/eventin-addon-for-surecart.latest-stable.zip');
         } else if($slug === 'surecart') {
@@ -83,6 +83,8 @@ class PluginManager {
             $result    = $upgrader->install('https://downloads.wordpress.org/plugin/fluent-cart.latest-stable.zip');
         } else if($slug === 'optiontics') {
             $result    = $upgrader->install('https://github.com/themewinter/optiontics-public/releases/download/release/optiontics.zip');
+        } else if($slug === 'eventin-addon-for-wcfm') {
+            $result    = $upgrader->install('https://github.com/themewinter/eventin-addon-for-wcfm-public/releases/download/v1.0.0/eventin-addon-for-wcfm.zip');
         } else {
             $result    = $upgrader->install('https://downloads.wordpress.org/plugin/' . $slug . '.latest-stable.zip');
         }

@@ -130,11 +130,20 @@ class SettingsController extends WP_REST_Controller {
             return $settings;
         }
 
+        // Client-public keys that non-admins legitimately need. The Google Maps
+        // *JavaScript* API key is referrer-restricted and already emitted into
+        // public front-end event pages (templates/event/event-two-location-map.php)
+        // and the admin Maps loader (base/Enqueue/admin.php); event authors need it
+        // to render the venue autocomplete. It is NOT a server-side secret, so it is
+        // exempt from redaction even though its suffix matches the deny-list below.
+        $public_keys = apply_filters( 'eventin_settings_public_keys', [
+            'google_api_key',
+        ] );
+
         $secret_keys = apply_filters( 'eventin_settings_secret_keys', [
             // Eventin AI
             'eventin_ai_auth_key',
             // Google
-            'google_api_key',
             'google_token',
             'google_meet_client_id',
             'google_meet_client_secret_key',
@@ -163,6 +172,10 @@ class SettingsController extends WP_REST_Controller {
         ] );
 
         foreach ( array_keys( $settings ) as $key ) {
+            if ( in_array( $key, $public_keys, true ) ) {
+                continue;
+            }
+
             if ( in_array( $key, $secret_keys, true ) ) {
                 unset( $settings[ $key ] );
                 continue;

@@ -6,6 +6,7 @@ defined( 'ABSPATH' ) || exit;
 use Etn\Core\Event\Event_Model;
 use Etn\Core\Schedule\Schedule_Model;
 use Etn\Core\Speaker\User_Model;
+use Eventin\Support\DbLock;
 
 /**
  * Seeds the hidden "Applied AI & Machine Learning Summit 2026" placeholder event
@@ -15,11 +16,48 @@ use Etn\Core\Speaker\User_Model;
 class PreviewPlaceholderEventSeeder {
 
     /**
+     * Name of the mutex that serialises concurrent seed attempts.
+     */
+    const LOCK = 'etn_preview_placeholder_seed_lock';
+
+    /**
      * Create the placeholder event and all linked records. Idempotent: no-ops once
-     * the event exists. On failure, leaves the guard option unset so a later boot retries.
+     * the event exists. On failure, releases the lock so a later boot retries.
+     *
+     * Seeding takes seconds (banner resize, ~20 users, schedules, the event). It used
+     * to run from `admin_init`, which admin-ajax.php fires too, so every background
+     * AJAX request landing inside that window started its own full run — which is how
+     * customer sites ended up with two and three copies of the placeholder event. The
+     * existence check alone cannot prevent that: the option it reads is not written
+     * until the run is nearly finished, so every overlapping request sees "not seeded
+     * yet". Hence the lock below, which is what makes the current call site
+     * (`Upgrade::register()`, on activation and on upgrade) safe to enter more than
+     * once.
      */
     public function seed(): void {
         if ( PreviewPlaceholder::event_exists() ) {
+            return;
+        }
+
+        // Atomic claim. A concurrent request that loses here does nothing at all.
+        if ( ! DbLock::acquire( self::LOCK ) ) {
+            return;
+        }
+
+        // Re-check now that we hold the lock: a run that finished between our check
+        // above and this claim has already created everything.
+        //
+        // Flush first, so this reads the database rather than the registry cache.
+        // That cache lives for a day and is written by the very first check above —
+        // so a run that created the event and then died before its `finally` (fatal,
+        // timeout) leaves the records in place with a cached registry that still says
+        // "no placeholder here". The lock expires after five minutes; without this
+        // flush the next run would trust that stale cache and seed a second copy,
+        // which is exactly the duplication this seeder exists to have fixed.
+        PreviewPlaceholder::flush();
+
+        if ( PreviewPlaceholder::event_exists() ) {
+            DbLock::release( self::LOCK );
             return;
         }
 
@@ -68,6 +106,10 @@ class PreviewPlaceholderEventSeeder {
                 ) );
                 if ( $sid ) {
                     $schedule_ids[] = (int) $sid;
+                    // Marked on creation rather than in a batch at the end: a run that
+                    // dies part-way would otherwise leave unmarked records behind, and
+                    // the visibility layer can only hide what carries the marker.
+                    update_post_meta( (int) $sid, PreviewPlaceholder::MARKER_META, '1' );
                 }
             }
 
@@ -90,28 +132,34 @@ class PreviewPlaceholderEventSeeder {
             ], $event_meta ) );
 
             if ( ! $event_id ) {
-                return; // guard stays unset → retry next boot
+                return; // nothing usable created; the finally below frees the lock to retry
             }
+
+            // Mark before anything else can fail, so the event is hideable even if the
+            // rest of this run does not complete.
+            update_post_meta( $event_id, PreviewPlaceholder::MARKER_META, '1' );
+
             if ( $banner ) {
                 set_post_thumbnail( $event_id, $banner['attach_id'] );
             }
 
-            // Mark everything so the visibility layer can hide it.
-            update_post_meta( $event_id, PreviewPlaceholder::MARKER_META, '1' );
-            foreach ( $schedule_ids as $sid ) {
-                update_post_meta( $sid, PreviewPlaceholder::MARKER_META, '1' );
-            }
-            foreach ( $user_ids as $uid ) {
-                update_user_meta( $uid, PreviewPlaceholder::MARKER_META, '1' );
-                update_user_meta( $uid, 'hide_user', '1' ); // hidden from WP Users list (existing filter)
-            }
-
             update_option( PreviewPlaceholder::OPTION_USER_IDS, $user_ids );
             update_option( PreviewPlaceholder::OPTION_SCHEDULE_IDS, $schedule_ids );
-            update_option( PreviewPlaceholder::OPTION_EVENT_ID, (int) $event_id ); // set LAST = guard
+            update_option( PreviewPlaceholder::OPTION_EVENT_ID, (int) $event_id );
         } catch ( \Throwable $e ) {
             // Never fatal a customer's site over a demo seed. Retry next boot.
             return;
+        } finally {
+            // Flushed here rather than after the writes above so a run that dies
+            // part-way still publishes the records it did manage to mark — the
+            // visibility layer reads the registry, and a stale one would leave them
+            // showing until the cache expired.
+            PreviewPlaceholder::flush();
+
+            // Released on every path, including the catch above: the real guard against
+            // re-seeding is event_exists(), so holding the lock past this run would only
+            // block a legitimate retry.
+            DbLock::release( self::LOCK );
         }
     }
 
@@ -158,7 +206,18 @@ class PreviewPlaceholderEventSeeder {
             'date'                      => gmdate( 'Y-m-d H:i:s' ),
         ];
         $user_id = $model->create( $args );
-        return is_wp_error( $user_id ) ? 0 : (int) $user_id;
+
+        if ( is_wp_error( $user_id ) || ! $user_id ) {
+            return 0;
+        }
+
+        // Marked here rather than in a batch at the end of seed(): a run that dies
+        // part-way would otherwise leave unmarked demo users visible in the
+        // Speakers/Organizers lists with nothing pointing at them.
+        update_user_meta( (int) $user_id, PreviewPlaceholder::MARKER_META, '1' );
+        update_user_meta( (int) $user_id, 'hide_user', '1' ); // hidden from WP Users list (existing filter)
+
+        return (int) $user_id;
     }
 
     /**

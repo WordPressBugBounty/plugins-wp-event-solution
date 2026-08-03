@@ -16,7 +16,7 @@ $formatted_end_date = $event->etn_end_date ? (new DateTime($event->etn_end_date,
 $start_date_time = strtotime( $formatted_start_date . ' ' . $event->etn_start_time );
 $end_date_time   = strtotime( $formatted_end_date . ' ' . $event->etn_end_time );
 
-$counter_start_time = $event->get_start_date() . " " . $event->get_start_time();
+$counter_start_time = $event->get_start_date() . " " . $event->get_start_time( 'H:i' );
 $countdown_day      = esc_html__( "day", "eventin" );
 $countdown_hr       = esc_html__( "hr", "eventin" );
 $countdown_min      = esc_html__( "min", "eventin" );

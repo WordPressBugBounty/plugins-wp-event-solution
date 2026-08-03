@@ -39,7 +39,7 @@ class PreviewPlaceholderVisibility implements HookableInterface {
      * @param \WP_Query $query
      */
     public function hide_from_public_queries( $query ): void {
-        if ( is_admin() || ! $query->is_main_query() ) {
+        if ( $this->is_admin_context() || ! $query->is_main_query() ) {
             return;
         }
         if ( ! ( $query->is_post_type_archive( 'etn' ) || $query->is_search() || $query->is_feed() || $query->is_tax() ) ) {
@@ -66,7 +66,7 @@ class PreviewPlaceholderVisibility implements HookableInterface {
      * @param \WP_Query $query
      */
     public function hide_from_secondary_queries( $query ): void {
-        if ( is_admin() || $query->is_main_query() ) {
+        if ( $this->is_admin_context() || $query->is_main_query() ) {
             return;
         }
         if ( defined( 'REST_REQUEST' ) && REST_REQUEST ) {
@@ -107,7 +107,7 @@ class PreviewPlaceholderVisibility implements HookableInterface {
      * @param \WP_User_Query $query
      */
     public function hide_from_user_queries( $query ): void {
-        if ( is_admin() ) {
+        if ( $this->is_admin_context() ) {
             return;
         }
         if ( defined( 'REST_REQUEST' ) && REST_REQUEST ) {
@@ -124,6 +124,65 @@ class PreviewPlaceholderVisibility implements HookableInterface {
         }
         $existing = wp_parse_id_list( (array) $query->get( 'exclude' ) );
         $query->set( 'exclude', array_values( array_unique( array_merge( $existing, $ids ) ) ) );
+    }
+
+    /**
+     * Whether this request is a genuine WP admin screen, where the placeholder must
+     * stay visible so the dashboard can list and manage it.
+     *
+     * `is_admin()` alone is not enough. `wp-admin/admin-ajax.php` defines `WP_ADMIN`,
+     * so `is_admin()` is true for *every* AJAX request — including the
+     * `wp_ajax_nopriv_*` handlers that render front-end markup for logged-out
+     * visitors. Treating those as admin left the demo event listed in full by any
+     * front-end AJAX lister (Pro's "Event Locations" map widget and its BuddyBoss
+     * event list both run their own `WP_Query( [ 'post_type' => 'etn' ] )`).
+     *
+     * So AJAX is never an admin context here: the dashboard reads its lists over the
+     * `eventin/v2` REST API, which both `pre_get_posts` handlers skip separately, and
+     * no wp-admin screen depends on the placeholder surviving an admin-ajax query.
+     * This also covers Elementor's editor round-trips, which are plain admin-ajax.
+     *
+     * @return bool True on real admin screens, false whenever front-end content is
+     *              being rendered (AJAX handlers, Elementor's canvas/preview).
+     */
+    protected function is_admin_context(): bool {
+        if ( ! is_admin() ) {
+            return false;
+        }
+
+        if ( wp_doing_ajax() ) {
+            return false;
+        }
+
+        return ! $this->is_elementor_render_request();
+    }
+
+    /**
+     * Whether Elementor is currently rendering front-end content on an admin screen —
+     * the editor canvas or the preview iframe.
+     *
+     * Elementor's editor AJAX round-trips (widget re-render, template insert, "load
+     * more") need no special case here: is_admin_context() already treats every AJAX
+     * request as front-end.
+     *
+     * @return bool
+     */
+    protected function is_elementor_render_request(): bool {
+        if ( ! class_exists( '\Elementor\Plugin' ) || ! isset( \Elementor\Plugin::$instance ) ) {
+            return false;
+        }
+
+        $elementor = \Elementor\Plugin::$instance;
+
+        if ( isset( $elementor->editor ) && $elementor->editor->is_edit_mode() ) {
+            return true;
+        }
+
+        if ( isset( $elementor->preview ) && $elementor->preview->is_preview_mode() ) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
