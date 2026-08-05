@@ -305,15 +305,21 @@ class Api extends \Etn\Base\Api_Handler {
 	*/
 	public function get_list() {
 		$request        = $this->request;
-		$user_id        = isset( $request['user_id'] ) ? intval( $request['user_id'] ) : 0;
+		$requested_user = isset( $request['user_id'] ) ? intval( $request['user_id'] ) : 0;
 		$posts_per_page = isset( $request['posts_per_page'] ) ? intval( $request['posts_per_page'] ) : 20;
 		$paged          = isset( $request['paged'] ) ? intval( $request['paged'] ) : 1;
 		$group_id       = isset( $request['group_id'] ) ? intval( $request['group_id'] ) : 0;
 		$type           = isset( $request['type'] ) ? $request['type'] : "";
 
+		// The central v1 permission check only verifies the wp_rest nonce, so
+		// this route is reachable by any low-privilege user. Non-published
+		// events (drafts, pending, private) are only ever visible to someone
+		// who may read them; everyone else sees the published list.
+		$can_read_unpublished = current_user_can( 'edit_others_posts' ) || current_user_can( 'manage_options' );
+
 		$args = [
 			'post_type'      => 'etn',
-			'post_status'    => 'any',
+			'post_status'    => $can_read_unpublished ? 'any' : 'publish',
 			'posts_per_page' => $posts_per_page,
 			'paged'          => $paged,
 		];
@@ -339,10 +345,32 @@ class Api extends \Etn\Base\Api_Handler {
 			];
 		}
 		
-		$user = get_userdata( $user_id );
+		// The author scope must come from the session, never from the request.
+		// Previously `user_id` was taken straight off the query string: passing
+		// someone else's id returned THEIR drafts and private events, and
+		// passing an administrator's id skipped the author filter entirely and
+		// returned every event on the site in every status.
+		//
+		// An administrator may still browse another user's events by passing
+		// user_id; for everyone else the parameter is ignored.
+		if ( current_user_can( 'manage_options' ) ) {
+			if ( $requested_user ) {
+				$args['author'] = $requested_user;
+			}
+		} else {
+			$current_user_id = get_current_user_id();
 
-		if ( ! user_can( $user, 'manage_options' ) ) {
-			$args['author'] = $user_id;
+			if ( ! $current_user_id ) {
+				// Logged-out callers get the public published list, unscoped by
+				// author. post_status is already forced to publish above.
+				$args['author'] = '';
+			} else {
+				$args['author'] = $current_user_id;
+			}
+		}
+
+		if ( empty( $args['author'] ) ) {
+			unset( $args['author'] );
 		}
 
 		// Hide the shipped preview-placeholder event from this v1 REST list (the

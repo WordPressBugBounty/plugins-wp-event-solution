@@ -55,6 +55,12 @@ class SpeakerTemplate implements HookableInterface {
         $default_template_name = "speaker-one";
         $settings              = etn_get_option();
         $template_name         = !empty( $settings['speaker_template'] ) ? $settings['speaker_template'] : $default_template_name;
+
+        // The stored value is only sanitize_text_field()'d, which preserves
+        // `../`, and it is concatenated into the include_once() calls below
+        // (including the theme-override branches). Confine it to a bare slug.
+        $template_name = \Etn\Utils\Helper::sanitize_template_slug( $template_name, $default_template_name );
+
         if( ETN_DEMO_SITE === true ) {
 
             switch( get_queried_object_id() ){
@@ -109,6 +115,9 @@ class SpeakerTemplate implements HookableInterface {
 	 * @return void
 	 */
 	public function prepare_speaker_template_path( $default_template_name, $template_name ) {
+		$default_template_name = \Etn\Utils\Helper::sanitize_template_slug( $default_template_name, 'speaker-one' );
+		$template_name         = \Etn\Utils\Helper::sanitize_template_slug( $template_name, $default_template_name );
+
 		$arr = [
 			'speaker-one',
 			'speaker-two-lite',

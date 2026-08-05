@@ -46,8 +46,16 @@ class FluentCRM implements WebhookIntegrationInterface {
 		
 		
  
-        if ( $fluentCRM_enable ==='yes' && !empty( $fluentcrm_webhook ) ) { 
-            $response_user = wp_remote_post($fluentcrm_webhook, ['body' => $body]);
+        if ( $fluentCRM_enable ==='yes' && !empty( $fluentcrm_webhook ) ) {
+            // wp_safe_remote_post applies WordPress's HTTP request validation:
+            // it refuses non-http(s) schemes and, on the front end, refuses
+            // private/loopback addresses. Stored values predating 4.1.20 were
+            // never escaped, so re-validate at send time too.
+            $fluentcrm_webhook = esc_url_raw( $fluentcrm_webhook );
+
+            if ( $fluentcrm_webhook ) {
+                $response_user = wp_safe_remote_post($fluentcrm_webhook, ['body' => $body]);
+            }
         }
     }
 	
@@ -69,7 +77,12 @@ class FluentCRM implements WebhookIntegrationInterface {
 		
 		
 		if ( $fluentCRM_enable ==='yes' && !empty( $fluentcrm_webhook ) ) {
-			$response_user = wp_remote_post($fluentcrm_webhook, ['body' => $body]);
+			// See send_data() — same validation, same reason.
+			$fluentcrm_webhook = esc_url_raw( $fluentcrm_webhook );
+
+			if ( $fluentcrm_webhook ) {
+				$response_user = wp_safe_remote_post($fluentcrm_webhook, ['body' => $body]);
+			}
 		}
 	}
 	

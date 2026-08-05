@@ -9,6 +9,7 @@ namespace Eventin\Schedule\Api;
 
 defined( 'ABSPATH' ) || exit;
 
+use Eventin\AccessControl\Ownership;
 use Eventin\Schedule\ScheduleExporter;
 use Eventin\Schedule\ScheduleImporter;
 use Etn\Core\Schedule\Schedule_Model;
@@ -318,8 +319,22 @@ class ScheduleController extends WP_REST_Controller {
      * @param WP_REST_Request $request Full data about the request.
      * @return WP_Error|boolean
      */
+    /**
+     * Check if a given request has access to update a schedule.
+     *
+     * get_items() already scopes the listing to the caller's own schedules;
+     * this applies the same per-object author test to the write path, which
+     * previously checked only the collection-level capability.
+     *
+     * @param WP_REST_Request $request Full data about the request.
+     * @return WP_Error|boolean
+     */
     public function update_item_permissions_check( $request ) {
-        return current_user_can( 'etn_manage_schedule' );
+        if ( ! current_user_can( 'etn_manage_schedule' ) ) {
+            return false;
+        }
+
+        return Ownership::can_manage_post( $request['id'], 'etn-schedule' );
     }
 
     /**
@@ -436,8 +451,26 @@ class ScheduleController extends WP_REST_Controller {
      * @param WP_REST_Request $request Request object.
      * @return WP_Error|object $prepared_item
      */
+    /**
+     * Check if a given request has access to delete schedules.
+     *
+     * Serves both the per-id route and the bulk route (`ids` in the body). A
+     * bulk request containing one foreign id is refused outright rather than
+     * partially applied.
+     *
+     * @param WP_REST_Request $request Full data about the request.
+     * @return WP_Error|boolean
+     */
     public function delete_item_permissions_check( $request ) {
-        return current_user_can( 'etn_manage_schedule' );
+        if ( ! current_user_can( 'etn_manage_schedule' ) ) {
+            return false;
+        }
+
+        if ( ! empty( $request['ids'] ) ) {
+            return Ownership::can_manage_posts( $request['ids'], 'etn-schedule' );
+        }
+
+        return Ownership::can_manage_post( $request['id'], 'etn-schedule' );
     }
 
     /**

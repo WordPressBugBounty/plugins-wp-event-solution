@@ -97,13 +97,19 @@ class CustomerController extends WP_REST_Controller {
     }
 
     /**
-     * Check if a given request has access to get items.
+     * Check if a given request has access to read customers.
+     *
+     * The customer list is the site's full buyer PII table — every name and
+     * email. It was previously readable by anyone holding `etn_manage_event`,
+     * which Contributor and Author hold on a stock install, while all three
+     * write checks already required `manage_options`. The read now matches the
+     * writes: the whole collection is administrator-only.
      *
      * @param WP_REST_Request $request Full data about the request.
      * @return WP_Error|boolean
      */
     public function get_item_permissions_check( $request ) {
-        return current_user_can( 'etn_manage_event' ) && wp_verify_nonce( $request->get_header( 'X-Wp-Nonce' ), 'wp_rest' );
+        return current_user_can( 'manage_options' ) && wp_verify_nonce( $request->get_header( 'X-Wp-Nonce' ), 'wp_rest' );
     }
 
     /**

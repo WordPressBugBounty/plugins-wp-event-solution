@@ -6,6 +6,7 @@ defined( 'ABSPATH' ) || exit;
 
 use Etn\Core\Attendee\Attendee_Model;
 use Etn\Core\Event\Event_Model;
+use Eventin\AccessControl\Ownership;
 use Eventin\Attendee\Attendee\TicketIdGenerator;
 use Eventin\Customer\CustomerModel;
 use Eventin\Input;
@@ -149,8 +150,14 @@ class OrderController extends WP_REST_Controller {
             [
                 'methods'             => WP_REST_Server::CREATABLE,
                 'callback'            => [$this, 'add_to_waiting_list'],
+                // Was `return true` — fully unauthenticated, and the callback
+                // creates a WordPress user for whatever email is posted. Guests
+                // must still be able to join a waiting list from the front end,
+                // so this matches the guest order path (create_item): a valid
+                // wp_rest nonce, which proves the request came from a real page
+                // load rather than a script hitting the route directly.
                 'permission_callback' => function( $request ) {
-                    return true;
+                    return (bool) wp_verify_nonce( $request->get_header( 'X-WP-Nonce' ), 'wp_rest' );
                 },
             ],
         ] );
@@ -189,8 +196,26 @@ class OrderController extends WP_REST_Controller {
         return false;
     }
 
+    /**
+     * Check if a given request has access to read a single order.
+     *
+     * CVE-2026-4109 was only half-fixed in 4.1.9: the token branch below was
+     * tightened, but the capability branch still returned true for anyone
+     * holding `etn_manage_event` — which Contributor and Author hold by default
+     * — so iterating ids read every customer's order PII. The capability now
+     * gates access to the feature; ownership of the specific order decides
+     * whether this call may proceed, matching how get_items() already scopes
+     * the list.
+     *
+     * @param WP_REST_Request $request Full data about the request.
+     * @return WP_Error|boolean
+     */
     public function get_item_permissions_check( $request ) {
-        if ( current_user_can( 'etn_manage_event' ) ) {
+        // Object-level check. Passes for an administrator, for the organizer who
+        // owns the event the order was placed against, and for the etn-customer
+        // the order belongs to (who holds no etn_manage_* capability at all, so
+        // this must not be nested behind a capability test).
+        if ( is_user_logged_in() && Ownership::can_manage_order( $request['id'] ) ) {
             return true;
         }
 
@@ -2073,13 +2098,43 @@ class OrderController extends WP_REST_Controller {
             $user_data = get_user_by( 'email', $email );
 
             $customer = new CustomerModel( $user_data->ID );
-            $customer->assign_role(['etn-customer']);
+
+            // This path is reachable by an unauthenticated buyer, so the email
+            // posted is unverified — it may well be someone else's. Linking the
+            // order to the account is harmless, but granting a role to an
+            // account that can administer something is not. Skip the role for
+            // privileged accounts; ordinary buyers are unaffected.
+            if ( ! user_can( $user_data->ID, 'edit_posts' ) && ! user_can( $user_data->ID, 'manage_options' ) ) {
+                $customer->assign_role( ['etn-customer'] );
+            }
         } else {
+            // Do not mint WordPress accounts from a guest checkout when the site
+            // has registration switched off. Honouring the site policy is what
+            // stops this endpoint being an open account-creation primitive.
+            // Staff creating an order from the admin screens are unaffected.
+            if ( ! get_option( 'users_can_register' ) && ! current_user_can( 'etn_manage_order' ) ) {
+                /**
+                 * Fires when a guest order could not be linked to an account
+                 * because registration is disabled. The order still holds the
+                 * buyer's contact details; only the WP user is skipped.
+                 *
+                 * @param OrderModel $order The order just created.
+                 * @param string     $email The buyer's email.
+                 */
+                do_action( 'eventin_guest_customer_creation_skipped', $order, $email );
+
+                return;
+            }
+
             $customer = CustomerModel::create([
                 'first_name'    => $input->get('customer_fname'),
                 'last_name'     => $input->get('customer_lname'),
                 'email'         => $email,
             ]);
+        }
+
+        if ( is_wp_error( $customer ) || empty( $customer->id ) ) {
+            return;
         }
 
         $order->update( [

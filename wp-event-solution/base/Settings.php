@@ -77,6 +77,27 @@ class Settings {
     ];
 
     /**
+     * Setting keys whose value is used to build a template include path.
+     *
+     * Why: sanitize_text_field preserves `../`, and these values are
+     * concatenated into include_once() when rendering a single speaker/event.
+     * Storing a traversal sequence here, combined with any local file-write
+     * primitive, is local file inclusion. Confine them to a bare slug on write;
+     * the read side confines them again (see
+     * Etn\Utils\Helper::sanitize_template_slug()).
+     *
+     * Both keys legitimately hold EITHER a static template slug ('event-one',
+     * 'speaker-two-lite', 'style-1', and the Pro-only 'speaker-two' /
+     * 'speaker-three' / 'event-two' / 'event-three') OR the numeric post id of
+     * a custom `etn-template` post. The `[A-Za-z0-9_-]` rule accepts both, so
+     * no legitimate value — free or Pro — is rejected.
+     */
+    protected static $template_slug_keys = [
+        'speaker_template',
+        'event_template',
+    ];
+
+    /**
      * Recursively sanitize settings, preserving safe HTML for email body fields.
      *
      * Email body fields (keyed `body`) are edited via a rich-text editor and
@@ -99,6 +120,12 @@ class Settings {
             } elseif ( in_array( $key, self::$hex_color_keys, true ) ) {
                 $hex             = sanitize_hex_color( (string) $value );
                 $sanitized[$key] = null === $hex ? '' : $hex;
+            } elseif ( in_array( $key, self::$template_slug_keys, true ) ) {
+                // Reject anything that is not a bare slug rather than silently
+                // substituting a default, so a bad value cannot be stored and
+                // the existing setting is left untouched.
+                $slug            = \Etn\Utils\Helper::sanitize_template_slug( $value, '' );
+                $sanitized[$key] = $slug;
             } else {
                 $sanitized[$key] = sanitize_text_field( $value );
             }

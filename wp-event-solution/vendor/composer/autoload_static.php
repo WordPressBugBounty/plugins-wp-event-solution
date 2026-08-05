@@ -105,6 +105,7 @@ class ComposerStaticInit51060d1ef7b9244f23975c06b5e403b1
         'Etn_Wpml' => __DIR__ . '/../..' . '/core/wpml/init.php',
         'Eventin\\Abstracts\\CustomPostType' => __DIR__ . '/../..' . '/base/Abstracts/CustomPostType.php',
         'Eventin\\Abstracts\\Provider' => __DIR__ . '/../..' . '/base/Abstracts/Provider.php',
+        'Eventin\\AccessControl\\Ownership' => __DIR__ . '/../..' . '/core/AccessControl/Ownership.php',
         'Eventin\\AccessControl\\Permission' => __DIR__ . '/../..' . '/core/AccessControl/Permission.php',
         'Eventin\\AccessControl\\PermissionManager' => __DIR__ . '/../..' . '/core/AccessControl/PermissionManager.php',
         'Eventin\\Activate' => __DIR__ . '/../..' . '/base/Activate.php',

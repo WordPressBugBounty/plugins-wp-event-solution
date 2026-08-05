@@ -9,6 +9,7 @@ namespace Eventin\Speaker\Api;
 
 defined( 'ABSPATH' ) || exit;
 
+use Eventin\AccessControl\Ownership;
 use Eventin\Speaker\SpeakerExporter;
 use Eventin\Speaker\SpeakerImporter;
 use Etn\Core\Speaker\User_Model;
@@ -648,9 +649,38 @@ class SpeakerController extends WP_REST_Controller {
      * @param WP_REST_Request $request Full data about the request.
      * @return WP_Error|WP_REST_Response
      */
+    /**
+     * Check if a given request has access to delete speakers.
+     *
+     * Deleting a speaker deletes the underlying WordPress user, so the
+     * collection-level capability is not enough — a Contributor holding
+     * `etn_manage_organizer` could otherwise remove speaker and organizer
+     * accounts created by other people. Serves both the per-id route and the
+     * bulk route (`ids` in the body).
+     *
+     * @param WP_REST_Request $request Full data about the request.
+     * @return WP_Error|boolean
+     */
     public function delete_item_permissions_check( $request ) {
-        return current_user_can( 'etn_manage_organizer' )
-                    || current_user_can( 'etn_manage_event' );
+        if ( ! current_user_can( 'etn_manage_organizer' ) && ! current_user_can( 'etn_manage_event' ) ) {
+            return false;
+        }
+
+        $ids = ! empty( $request['ids'] ) ? (array) $request['ids'] : [ $request['id'] ];
+
+        $ids = array_filter( array_map( 'absint', $ids ) );
+
+        if ( ! $ids ) {
+            return false;
+        }
+
+        foreach ( $ids as $id ) {
+            if ( ! Ownership::can_manage_user( $id ) ) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -948,6 +978,24 @@ class SpeakerController extends WP_REST_Controller {
 
         if ( ! $user ) {
             return false;
+        }
+
+        // Creating a "speaker" for an email that already belongs to a WordPress
+        // user does not create anything — it adds plugin roles to that existing
+        // account and overwrites its user meta. That is an edit of someone
+        // else's account, so it needs the same `edit_user` gate the update path
+        // already applies. Without this, a Contributor could name an
+        // administrator's email and rewrite their profile.
+        //
+        // This method is reached from BOTH create_item() and update_item(), so
+        // guarding here covers the create path that was missed and the
+        // email-change branch of the update path.
+        if ( ! current_user_can( 'edit_user', $user->ID ) ) {
+            return new WP_Error(
+                'rest_forbidden',
+                __( 'Sorry, you are not allowed to modify this user.', 'eventin' ),
+                [ 'status' => 403 ]
+            );
         }
 
         $updated_roles = [];

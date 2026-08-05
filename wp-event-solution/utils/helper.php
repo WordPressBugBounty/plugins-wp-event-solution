@@ -1503,15 +1503,54 @@
         }
 
         /**
-         * Undocumented function
+         * Confine a stored template name to a bare slug.
          *
-         * @param [type] $default_template_name
-         * @param [type] $template_name
+         * Template names come from the settings option, which is written
+         * through sanitize_text_field() — that strips tags but happily
+         * preserves `../`, and the value is then concatenated into an
+         * include_once(). Anything that is not already a plain `[A-Za-z0-9_-]`
+         * slug is REJECTED outright in favour of the caller's default.
          *
-         * @return void
+         * The value is matched as-is rather than being reduced with basename()
+         * first: basename('../../../../etc/passwd') is 'passwd', which is a
+         * valid-looking slug, so reducing first would silently accept a
+         * traversal payload as a "clean" name. Anything containing a path
+         * separator, a dot, a null byte or an encoded sequence is not a
+         * template name and must not be massaged into one.
+         *
+         * @since 4.1.20
+         *
+         * @param string $template_name Untrusted template slug.
+         * @param string $default       Known-good fallback slug.
+         *
+         * @return string A safe slug.
+         */
+        public static function sanitize_template_slug($template_name, $default)
+        {
+            if (! is_string($template_name)) {
+                return $default;
+            }
+
+            if (! preg_match('/^[A-Za-z0-9_-]+$/', $template_name)) {
+                return $default;
+            }
+
+            return $template_name;
+        }
+
+        /**
+         * Build the include path for a single-speaker template.
+         *
+         * @param string $default_template_name Fallback slug.
+         * @param string $template_name         Slug from settings (untrusted).
+         *
+         * @return string Absolute path to a template file.
          */
         public static function prepare_speaker_template_path($default_template_name, $template_name)
         {
+            $default_template_name = self::sanitize_template_slug($default_template_name, 'speaker-one');
+            $template_name         = self::sanitize_template_slug($template_name, $default_template_name);
+
             $arr = [
                 'speaker-one',
                 'speaker-two-lite',

@@ -82,7 +82,12 @@ class CustomerModel {
             'last_name'  => $input->get( 'last_name' ),
             'user_login' => $user_login,
             'user_email' => $input->get( 'email' ),
-            'user_pass'  => wp_hash_password(time()),
+            // Was wp_hash_password( time() ), which made the plaintext password
+            // of every auto-created customer account the Unix timestamp of its
+            // creation — a few-hundred-candidate brute force against an account
+            // the buyer never chose a password for. wp_insert_user() hashes this
+            // itself, so pass a real random secret, not a pre-hashed one.
+            'user_pass'  => wp_generate_password( 24, true, true ),
             'role'       => 'etn-customer'
         ];
         

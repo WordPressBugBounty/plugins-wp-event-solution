@@ -155,6 +155,14 @@ if ( !function_exists( 'etn_single_speaker_template_select' ) ) {
         $default_template_name = "speaker-one";
         $settings              = etn_get_option();
         $template_name         = !empty( $settings['speaker_template'] ) ? $settings['speaker_template'] : $default_template_name;
+
+        // The stored value is only sanitize_text_field()'d, which preserves
+        // `../`, and it is concatenated into the include_once() calls below
+        // (including the theme-override branches, which never reach
+        // prepare_speaker_template_path). Confine it to a bare slug here so
+        // every branch downstream is safe.
+        $template_name = \Etn\Utils\Helper::sanitize_template_slug( $template_name, $default_template_name );
+
         if( ETN_DEMO_SITE === true ) {
 
             switch( get_queried_object_id() ){

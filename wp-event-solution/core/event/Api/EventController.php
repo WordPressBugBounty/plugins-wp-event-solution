@@ -10,6 +10,7 @@ namespace Eventin\Event\Api;
 defined( 'ABSPATH' ) || exit;
 
 use Error;
+use Eventin\AccessControl\Ownership;
 use Eventin\Event\EventExporter;
 use Eventin\Event\EventImporter;
 use Etn\Core\Event\Event_Model;
@@ -256,8 +257,12 @@ class EventController extends WP_REST_Controller {
                 array(
                     'methods'             => WP_REST_Server::EDITABLE,
                     'callback'            => array( $this, 'update_author' ),
+                    // Reassigning post_author is an ownership transfer. Only an
+                    // administrator may perform one — an organizer handing their
+                    // own event to someone else, or (before 4.1.20) taking an
+                    // administrator's event, is not an authoring action.
                     'permission_callback' => function() {
-                        return current_user_can( 'etn_manage_event' );
+                        return current_user_can( 'etn_manage_event' ) && current_user_can( 'manage_options' );
                     },
                 ),
  
@@ -271,7 +276,12 @@ class EventController extends WP_REST_Controller {
             [
                 'methods'             => WP_REST_Server::EDITABLE,
                 'callback'            => [$this, 'set_unset_event_as_homepage'],
-                'permission_callback' => [$this, 'update_item_permissions_check'],
+                // Writes the site-wide `show_on_front` / `page_on_front`
+                // options, so this is a settings change, not an event edit.
+                // Owning the event is not enough.
+                'permission_callback' => function () {
+                    return current_user_can( 'manage_options' );
+                },
                 'args'                => [
                     'id' => [
                         'description' => __('Unique identifier for the event.', 'eventin'),
@@ -322,7 +332,13 @@ class EventController extends WP_REST_Controller {
      * @return bool
      */
     public function clone_item_permissions_check( $request ) {
-        return current_user_can( 'etn_manage_event' );
+        if ( ! current_user_can( 'etn_manage_event' ) ) {
+            return false;
+        }
+
+        // Cloning copies out the source event's full data, so it is a read of
+        // that event as much as a write of a new one.
+        return Ownership::can_manage_post( $request['id'], 'etn' );
     }
 
     /**
@@ -1075,8 +1091,23 @@ class EventController extends WP_REST_Controller {
      * @param WP_REST_Request $request Full details about the request.
      * @return true|WP_Error True if the request has access to update the item, WP_Error object otherwise.
      */
+    /**
+     * Check if a given request has access to update an event.
+     *
+     * `etn_manage_event` is collection-level and is held by Contributor and
+     * Author on a stock install, so on its own it let any Contributor edit an
+     * administrator's event. The capability still gates access to the feature;
+     * ownership of the specific event decides whether this call may proceed.
+     *
+     * @param WP_REST_Request $request Full data about the request.
+     * @return WP_Error|boolean
+     */
     public function update_item_permissions_check( $request ) {
-        return current_user_can( 'etn_manage_event' );
+        if ( ! current_user_can( 'etn_manage_event' ) ) {
+            return false;
+        }
+
+        return Ownership::can_manage_post( $request['id'], 'etn' );
     }
 
     /**
@@ -1214,8 +1245,27 @@ class EventController extends WP_REST_Controller {
      * @param WP_REST_Request $request Full data about the request.
      * @return WP_Error|WP_REST_Response
      */
+    /**
+     * Check if a given request has access to delete events.
+     *
+     * Serves both the per-id route and the bulk route (which carries `ids` in
+     * the body instead). Both are scoped to events the caller owns — a bulk
+     * request containing one foreign id is refused outright rather than
+     * partially applied.
+     *
+     * @param WP_REST_Request $request Full data about the request.
+     * @return WP_Error|boolean
+     */
     public function delete_item_permissions_check( $request ) {
-        return current_user_can( 'etn_manage_event' );
+        if ( ! current_user_can( 'etn_manage_event' ) ) {
+            return false;
+        }
+
+        if ( ! empty( $request['ids'] ) ) {
+            return Ownership::can_manage_posts( $request['ids'], 'etn' );
+        }
+
+        return Ownership::can_manage_post( $request['id'], 'etn' );
     }
 
     /**
@@ -2130,7 +2180,10 @@ class EventController extends WP_REST_Controller {
         }
 
         if ( isset( $input_data['fluent_crm_webhook'] ) ) {
-            $event_data['fluent_crm_webhook'] = $input_data['fluent_crm_webhook'];
+            // Was stored raw while the three neighbouring webhook fields below
+            // were escaped — the odd one out. The value is later fetched
+            // server-side, so an unvalidated string here is an SSRF sink.
+            $event_data['fluent_crm_webhook'] = esc_url_raw( $input_data['fluent_crm_webhook'] );
         }
 
         if ( isset( $input_data['mail_mint_webhook'] ) ) {
@@ -2496,6 +2549,17 @@ class EventController extends WP_REST_Controller {
             return new WP_Error('invalid_author', __( 'Invalid author id', 'eventin' ), ['status' => 422]);
         }
 
+        // Defence in depth: the route is already administrator-only, but keep
+        // the transfer itself guarded so a future re-wiring of the route cannot
+        // silently reopen the takeover.
+        if ( ! current_user_can( 'manage_options' ) ) {
+            return new WP_Error(
+                'rest_forbidden',
+                __( 'Sorry, you are not allowed to reassign the author of this event.', 'eventin' ),
+                ['status' => 403]
+            );
+        }
+
         $updated = wp_update_post([
             'ID'          => $event_id,
             'post_author' => $author_id
@@ -2568,6 +2632,10 @@ class EventController extends WP_REST_Controller {
             return new WP_Error('invalid_status', __( 'Status must be Publish OR Draft', 'eventin' ), array('status' => 400));
         }
 
+        // Validate the WHOLE batch before writing anything. Checking inside the
+        // write loop would publish/unpublish the caller's own events and only
+        // then refuse on the first foreign id — a partial application that
+        // leaves the batch half-applied and is not undone.
         foreach ($event_ids as $event_id) {
             $event = get_post($event_id);
             if (!$event || $event->post_type !== 'etn') {
@@ -2578,6 +2646,18 @@ class EventController extends WP_REST_Controller {
                 );
             }
 
+            // The route's capability check is collection-level; publishing or
+            // unpublishing someone else's event needs ownership of that event.
+            if ( ! Ownership::can_manage_post( $event_id, 'etn' ) ) {
+                return new WP_Error(
+                    'rest_forbidden',
+                    __( 'Sorry, you are not allowed to update this event.', 'eventin' ),
+                    ['status' => 403]
+                );
+            }
+        }
+
+        foreach ($event_ids as $event_id) {
             $result = wp_update_post([
                 'ID' => $event_id,
                 'post_status' => $status

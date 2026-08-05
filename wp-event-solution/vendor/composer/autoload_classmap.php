@@ -72,6 +72,7 @@ return array(
     'Etn_Wpml' => $baseDir . '/core/wpml/init.php',
     'Eventin\\Abstracts\\CustomPostType' => $baseDir . '/base/Abstracts/CustomPostType.php',
     'Eventin\\Abstracts\\Provider' => $baseDir . '/base/Abstracts/Provider.php',
+    'Eventin\\AccessControl\\Ownership' => $baseDir . '/core/AccessControl/Ownership.php',
     'Eventin\\AccessControl\\Permission' => $baseDir . '/core/AccessControl/Permission.php',
     'Eventin\\AccessControl\\PermissionManager' => $baseDir . '/core/AccessControl/PermissionManager.php',
     'Eventin\\Activate' => $baseDir . '/base/Activate.php',
