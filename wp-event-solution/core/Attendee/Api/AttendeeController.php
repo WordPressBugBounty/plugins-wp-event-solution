@@ -9,6 +9,7 @@ namespace Eventin\Attendee\Api;
 
 defined( 'ABSPATH' ) || exit;
 
+use Eventin\AccessControl\Ownership;
 use Eventin\Attendee\AttendeeExporter;
 use Eventin\Attendee\AttendeeImporter;
 use Etn\Core\Attendee\Attendee_Model;
@@ -380,13 +381,35 @@ class AttendeeController extends WP_REST_Controller {
     }
 
     /**
-     * Check if a given request has access to get items.
+     * Check if a given request has access to read attendees.
+     *
+     * This callback serves BOTH the collection route and `/attendees/{id}`.
+     *
+     * Attendee rows carry the buyer's name, email and phone. `get_items()` has
+     * always scoped the listing to the caller's own events, but the per-id read
+     * checked only `etn_manage_attendee`, so the same PII the customers table
+     * holds was readable one id at a time — and, via `/attendees/export`, in
+     * bulk. That made the Finding 5 lockdown of GET /customers moot.
+     *
+     * The capability still gates access to the feature; ownership of the
+     * specific attendee decides whether a per-id call may proceed.
      *
      * @param WP_REST_Request $request Full data about the request.
      * @return WP_Error|boolean
      */
     public function get_item_permissions_check( $request ) {
-        return current_user_can( 'etn_manage_attendee' );
+        if ( ! current_user_can( 'etn_manage_attendee' ) ) {
+            return false;
+        }
+
+        $attendee_id = Ownership::route_subject_id( $request );
+
+        // Collection route: get_items() author-scopes the query itself.
+        if ( ! $attendee_id ) {
+            return true;
+        }
+
+        return Ownership::can_manage_attendee( $attendee_id );
     }
 
     /**
@@ -465,7 +488,12 @@ class AttendeeController extends WP_REST_Controller {
     }
 
     /**
-     * Checks if a given request has access to create a event.
+     * Checks if a given request has access to create an attendee.
+     *
+     * Creating an attendee books a seat on the event named in the payload and
+     * spawns an order against it, so the caller must own that event. Without
+     * this an organizer could inject guests into — and consume stock on —
+     * anyone else's event.
      *
      * @since 4.0.0
      *
@@ -473,7 +501,19 @@ class AttendeeController extends WP_REST_Controller {
      * @return true|WP_Error True if the request has access to create items, WP_Error object otherwise.
      */
     public function create_item_permissions_check( $request ) {
-        return current_user_can( 'etn_manage_attendee' );
+        if ( ! current_user_can( 'etn_manage_attendee' ) ) {
+            return false;
+        }
+
+        $input    = json_decode( $request->get_body(), true );
+        $event_id = ! empty( $input['etn_event_id'] ) ? absint( $input['etn_event_id'] ) : 0;
+
+        // No event named: let the handler return its own validation error.
+        if ( ! $event_id ) {
+            return true;
+        }
+
+        return Ownership::can_manage_post( $event_id, 'etn' );
     }
 
     /**
@@ -539,7 +579,7 @@ class AttendeeController extends WP_REST_Controller {
     }
 
     /**
-     * Checks if a given request has access to update a event.
+     * Checks if a given request has access to update an attendee.
      *
      * @since 4.0.0
      *
@@ -547,7 +587,11 @@ class AttendeeController extends WP_REST_Controller {
      * @return true|WP_Error True if the request has access to update the item, WP_Error object otherwise.
      */
     public function update_item_permissions_check( $request ) {
-        return current_user_can( 'etn_manage_attendee' );
+        if ( ! current_user_can( 'etn_manage_attendee' ) ) {
+            return false;
+        }
+
+        return Ownership::can_manage_attendee( Ownership::route_subject_id( $request ) );
     }
 
     /**
@@ -666,8 +710,36 @@ class AttendeeController extends WP_REST_Controller {
      * @param WP_REST_Request $request Request object.
      * @return WP_Error|object $prepared_item
      */
+    /**
+     * Checks if a given request has access to delete attendees.
+     *
+     * Serves the per-id route and the bulk route. The subject of a per-id
+     * request is read from the URL, never from the body, so a bulk `ids` list
+     * cannot stand in as the thing being authorised — see
+     * Ownership::route_subject_id().
+     *
+     * @param WP_REST_Request $request Full details about the request.
+     * @return bool
+     */
     public function delete_item_permissions_check( $request ) {
-        return current_user_can( 'etn_manage_attendee' );
+        if ( ! current_user_can( 'etn_manage_attendee' ) ) {
+            return false;
+        }
+
+        $attendee_id = Ownership::route_subject_id( $request );
+
+        if ( $attendee_id ) {
+            return Ownership::can_manage_attendee( $attendee_id );
+        }
+
+        $ids = ! empty( $request['ids'] ) ? $request['ids'] : [];
+
+        // No ids: let delete_items() return its own "ids can not be empty" error.
+        if ( ! $ids ) {
+            return true;
+        }
+
+        return Ownership::can_manage_attendees( $ids );
     }
 
     /**
@@ -821,7 +893,24 @@ class AttendeeController extends WP_REST_Controller {
             return new WP_Error( 'format_error', __( 'Invalid data format', 'eventin' ) );
         }
 
-        if ( ! $ids ) {
+        // Export is a bulk READ of every attendee's name, email and phone. The
+        // no-ids branch below is author-scoped by get_events_by_author(), but an
+        // explicit `ids` list was taken on trust — so gating the route on
+        // `etn_manage_attendee` alone turned one request into a dump of every
+        // organizer's buyers, walking straight around the per-id read check and
+        // around the Finding 5 lockdown of GET /customers.
+        //
+        // All-or-nothing, matching EventController::export(): a batch mixing
+        // owned and foreign ids is refused rather than silently trimmed.
+        if ( $ids ) {
+            if ( ! Ownership::can_manage_attendees( $ids ) ) {
+                return new WP_Error(
+                    'rest_forbidden',
+                    __( 'Sorry, you are not allowed to export these attendees.', 'eventin' ),
+                    [ 'status' => 403 ]
+                );
+            }
+        } else {
             $filters    = ! empty( $request['filters'] ) && is_array( $request['filters'] ) ? $request['filters'] : [];
             $args       = [];
             $meta_query = [];
@@ -1048,7 +1137,12 @@ class AttendeeController extends WP_REST_Controller {
      * @return  bool
      */
     public function resend_ticket_permissions_check( $request ) {
-        return current_user_can( 'etn_manage_attendee' );
+        if ( ! current_user_can( 'etn_manage_attendee' ) ) {
+            return false;
+        }
+
+        // Resending mails the buyer, so it must be the event's organizer doing it.
+        return Ownership::can_manage_attendee( Ownership::route_subject_id( $request ) );
     }
     
     /**
@@ -1216,7 +1310,12 @@ class AttendeeController extends WP_REST_Controller {
      * @return  bool
      */
     public function send_certificate_permissions_check( $request ) {
-        return current_user_can( 'etn_manage_attendee' );
+        if ( ! current_user_can( 'etn_manage_attendee' ) ) {
+            return false;
+        }
+
+        // Sending mails the buyer, so it must be the event's organizer doing it.
+        return Ownership::can_manage_attendee( Ownership::route_subject_id( $request ) );
     }
 	
 	

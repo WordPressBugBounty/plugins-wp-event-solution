@@ -30,6 +30,7 @@ Everything is tagged with meta `_etn_preview_placeholder = 1`, and the users als
 | REST event list | `post__not_in` in the query args | `EventController` (~line 498) |
 | REST schedule list | `post__not_in` in the query args | `ScheduleController` (~line 197) |
 | Admin Speaker/Organizer REST list | `exclude` **and** removal from `include` | `SpeakerController` (~line 267) |
+| Event / schedule / speaker / organizer **Export** | `PreviewPlaceholder::strip_post_ids()` / `strip_user_ids()` on the final ID list | `EventController::export_items`, `ScheduleController::export_items`, `SpeakerController::export_items` + `export_organizers` |
 
 ## The subtle one: the admin Speakers / Organizers tabs
 
@@ -86,6 +87,23 @@ for free** — it runs through `pre_get_posts`. Query paths that bypass `WP_Quer
 (raw `$wpdb`, or REST, which is deliberately skipped) still need the exclusion applied
 at the query source, the way `EventController`, `ScheduleController`,
 `core/event/api.php` and `Helper::get_events_by_date()` each do.
+
+## The third subtle one: Export builds its own ID list
+
+The Export routes never run a listing query — the no-ids branch calls
+`Post_Model::get_ids()` / `User_Model::get_ids()` and hands the raw ID list straight to
+an exporter. Those models apply no exclusion, and because export runs over
+`eventin/v2`, the `pre_get_posts` / `pre_get_users` net bails out. The demo event, its
+schedules and its speakers/organizers therefore landed in the downloaded CSV/JSON —
+which users re-import, spreading the demo data to real sites.
+
+Fixed by `PreviewPlaceholder::strip_post_ids()` / `strip_user_ids()` applied to the
+final `$ids` in all four export methods (so it covers the explicit-`ids` branch too — a
+crafted request can name the placeholder even though the admin list never offers it).
+
+Regression cover: `tests/phpunit/tests/ReleasePreviewPlaceholderExportTest.php`. Those
+tests detach the two `pre_get_*` handlers to emulate the REST bail; without that the
+net hides the placeholder and the test passes against unfixed code.
 
 ## Not covered: orphaned or duplicate copies
 

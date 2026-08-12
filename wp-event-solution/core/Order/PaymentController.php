@@ -79,6 +79,38 @@ class PaymentController extends WP_REST_Controller
 	}
 
 	/**
+	 * Reject the request unless order_id points at a real Eventin order.
+	 *
+	 * This endpoint is nonce-only (guest checkout) and takes order_id straight
+	 * from the request body. Both payment routes then drive an OrderModel through
+	 * wp_update_post(), which re-stamps post_type = 'etn-order'. Without this
+	 * check an id pointing at a page/post/product would be rewritten to an order
+	 * and stamped with order meta — an unauthenticated visitor could take a
+	 * site's whole content off the front end by looping post ids (Patchstack
+	 * 33814). Guest checkout only ever finalizes an order that already exists, so
+	 * requiring an existing etn-order here costs the legitimate flow nothing.
+	 *
+	 * @param int $order_id Id supplied in the request body.
+	 *
+	 * @return true|WP_Error True when it is a real order, WP_Error otherwise.
+	 */
+	private function reject_if_not_order($order_id)
+	{
+		$order_id = intval($order_id);
+		$post     = $order_id ? get_post($order_id) : null;
+
+		if (! $post || 'etn-order' !== $post->post_type) {
+			return new WP_Error(
+				'invalid_order',
+				__('Invalid order.', 'eventin'),
+				['status' => 404]
+			);
+		}
+
+		return true;
+	}
+
+	/**
 	 * Create payment intents
 	 *
 	 * @param WP_REST_Request $request
@@ -90,6 +122,11 @@ class PaymentController extends WP_REST_Controller
 		$data            = json_decode($request->get_body(), true);
 		$order_id        = ! empty($data['order_id']) ? intval($data['order_id']) : 0;
 		$payment_method  = ! empty($data['payment_method']) ? sanitize_text_field($data['payment_method']) : '';
+
+		$invalid_order = $this->reject_if_not_order($order_id);
+		if (is_wp_error($invalid_order)) {
+			return $invalid_order;
+		}
 
 		if ($payment_method == 'sure_cart' && (!class_exists('\SureCart') || !class_exists(SureCart::class))) {
 			return new WP_Error('payment_error', __('Please activate SureCart and Eventin Surecart Addon', 'eventin'));
@@ -237,6 +274,12 @@ class PaymentController extends WP_REST_Controller
 		$order_id = !empty($data['order_id']) ? intval($data['order_id']) : 0;
 		$payment_status = !empty($data['payment_status']) ? $data['payment_status'] : 0;
 		$payment_method = !empty($data['payment_method']) ? $data['payment_method'] : null;
+
+		$invalid_order = $this->reject_if_not_order($order_id);
+		if (is_wp_error($invalid_order)) {
+			return $invalid_order;
+		}
+
 		$order           = new OrderModel($order_id);
 		$validate_ticket = $order->validate_ticket(true);
 

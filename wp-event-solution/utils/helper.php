@@ -1476,15 +1476,27 @@
         }
 
         /**
-         * Undocumented function
+         * Build the include path for a single-event template.
          *
-         * @param [type] $default_template_name
-         * @param [type] $template_name
+         * Both arguments are confined to a bare slug first, exactly as
+         * prepare_speaker_template_path() does. They reach this method from the
+         * `event_template` setting and the per-event `event_layout` post meta,
+         * neither of which was ever more than sanitize_text_field()'d — and
+         * that preserves `../`. With Pro active the Pro branch below
+         * concatenates the value into a real directory, so an unconfined slug
+         * is a local file inclusion.
          *
-         * @return void
+         * @since 4.1.22
+         *
+         * @param string $default_template_name Fallback slug.
+         * @param string $template_name         Slug from settings or post meta (untrusted).
+         *
+         * @return string Absolute path to a template file.
          */
         public static function prepare_event_template_path($default_template_name, $template_name)
         {
+            $default_template_name = self::sanitize_template_slug($default_template_name, 'event-one');
+            $template_name         = self::sanitize_template_slug($template_name, $default_template_name);
 
             // Layouts one, two and three now ship in the free plugin, so they resolve
             // to the free templates dir whether or not Pro is active. Any other
@@ -1527,11 +1539,24 @@
          */
         public static function sanitize_template_slug($template_name, $default)
         {
+            // These fields legitimately hold the post id of an `etn-template`
+            // post, and callers are inconsistent about its type:
+            // TemplateController::prepare_assignment_data() runs it through
+            // intval() before etn_update_option(). Rejecting a bare integer
+            // outright would silently blank the "set as default template"
+            // assignment. An integer cannot carry a traversal sequence, so
+            // normalise it and let the pattern below judge the result.
+            if (is_int($template_name) || is_float($template_name)) {
+                $template_name = (string) $template_name;
+            }
+
             if (! is_string($template_name)) {
                 return $default;
             }
 
-            if (! preg_match('/^[A-Za-z0-9_-]+$/', $template_name)) {
+            // \z, not $: PHP's `$` also matches before a trailing newline, so
+            // "speaker-one\n" would otherwise pass and be returned as-is.
+            if (! preg_match('/^[A-Za-z0-9_-]+\z/', $template_name)) {
                 return $default;
             }
 

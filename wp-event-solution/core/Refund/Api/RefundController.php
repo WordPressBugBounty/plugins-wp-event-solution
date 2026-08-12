@@ -3,6 +3,7 @@ namespace Eventin\Refund\Api;
 
 defined( 'ABSPATH' ) || exit;
 
+use Eventin\AccessControl\Ownership;
 use Eventin\Order\OrderModel;
 use Eventin\Refund\RefundModel;
 use Eventin\Refund\RefundService;
@@ -44,10 +45,31 @@ class RefundController extends WP_REST_Controller {
         ] );
     }
 
+    /**
+     * Check access to an order's refund routes.
+     *
+     * These routes hang off the `orders` base and act on a specific order, but
+     * gated on `etn_manage_order` alone they answered 200 for orders whose
+     * parent route `GET /orders/{id}` already answered 403 — so refund history,
+     * buyer names and ticket values leaked, and `POST /orders/{id}/refunds` let
+     * a non-owning organizer move money on someone else's order.
+     *
+     * The capability gates access to the feature; ownership of the specific
+     * order decides whether the call proceeds, matching
+     * OrderController::refund_ticket_permissions_check().
+     *
+     * @param WP_REST_Request $request Full data about the request.
+     * @return WP_Error|bool
+     */
     public function get_items_permissions_check( $request ) {
         if ( ! current_user_can( 'etn_manage_order' ) ) {
             return new WP_Error( 'rest_forbidden', __( 'You do not have permission to manage orders.', 'eventin' ), [ 'status' => 403 ] );
         }
+
+        if ( ! Ownership::can_manage_order( Ownership::route_subject_id( $request ) ) ) {
+            return new WP_Error( 'rest_forbidden', __( 'Sorry, you are not allowed to manage refunds for this order.', 'eventin' ), [ 'status' => 403 ] );
+        }
+
         return true;
     }
 

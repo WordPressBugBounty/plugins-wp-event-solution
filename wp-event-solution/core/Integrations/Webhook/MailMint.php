@@ -154,13 +154,23 @@ class MailMint implements WebhookIntegrationInterface {
      * @return  void
      */
     private function post_to_webhook( $url, $body, $context ) {
+        // The URL is per-event post meta, so whoever can edit the event chooses
+        // where this server-side request goes. Same primitive as the FluentCRM
+        // webhook fixed in 4.1.20 — validate it, and use the safe variant so
+        // WordPress refuses non-http(s) schemes and private/loopback targets.
+        // Values stored before 4.1.20 were never escaped, so re-validate here.
+        $url = esc_url_raw( $url );
+
+        if ( ! $url ) {
+            return;
+        }
+
         $args = [
-            'body'      => $body,
-            'timeout'   => 15,
-            'sslverify' => $this->should_verify_ssl( $url ),
+            'body'    => $body,
+            'timeout' => 15,
         ];
 
-        $response = wp_remote_post( $url, $args );
+        $response = wp_safe_remote_post( $url, $args );
 
         if ( ! defined( 'WP_DEBUG' ) || ! WP_DEBUG ) {
             return;
@@ -181,31 +191,6 @@ class MailMint implements WebhookIntegrationInterface {
                 wp_remote_retrieve_body( $response )
             ) );
         }
-    }
-
-    /**
-     * Skip SSL verification for local development hosts (e.g. *.local, localhost)
-     *
-     * @param   string  $url
-     *
-     * @return  bool
-     */
-    private function should_verify_ssl( $url ) {
-        $host = wp_parse_url( $url, PHP_URL_HOST );
-
-        if ( ! $host ) {
-            return true;
-        }
-
-        if ( 'localhost' === $host || '127.0.0.1' === $host ) {
-            return false;
-        }
-
-        if ( substr( $host, -6 ) === '.local' || substr( $host, -5 ) === '.test' ) {
-            return false;
-        }
-
-        return true;
     }
 
     /**

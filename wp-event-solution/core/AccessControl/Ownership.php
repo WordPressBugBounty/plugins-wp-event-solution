@@ -34,6 +34,101 @@ defined( 'ABSPATH' ) || exit;
 class Ownership {
 
     /**
+     * The id a per-object route is actually going to act on.
+     *
+     * Read the subject from the URL, never from `get_param()`. Two reasons:
+     *
+     *   1. `WP_REST_Request::get_param()` resolves JSON/POST body parameters
+     *      BEFORE the URL parameters, so a body key can shadow the id in the
+     *      path.
+     *   2. A permission callback shared by a per-id route and a bulk route must
+     *      not let the bulk route's `ids` parameter stand in as the subject of a
+     *      per-id request. That is exactly how the 4.1.20 delete checks were
+     *      bypassed: `DELETE /events/<victim>` carrying `{"ids":[<own event>]}`
+     *      was authorised against the caller's own event and then executed
+     *      against the victim's, because the check preferred `ids` and the
+     *      handler only ever read `id`.
+     *
+     * A route with no `id` in its path returns 0, which callers should read as
+     * "this is the collection route".
+     *
+     * @param \WP_REST_Request $request Request being authorised.
+     *
+     * @return int Post/user id from the URL, or 0.
+     */
+    public static function route_subject_id( $request ) {
+        if ( ! is_a( $request, 'WP_REST_Request' ) ) {
+            return 0;
+        }
+
+        $url_params = $request->get_url_params();
+
+        return isset( $url_params['id'] ) ? absint( $url_params['id'] ) : 0;
+    }
+
+    /**
+     * May the current user READ this post?
+     *
+     * Reading is wider than managing: a published event is public, so anyone
+     * may read it. Anything else — draft, pending, private, future — is only
+     * visible to its author and to someone who may edit other people's posts
+     * (Editor and above on a stock install).
+     *
+     * `etn_manage_event` is NOT an acceptable test here. It is granted to
+     * Contributor and Author by default, so gating on it leaks every
+     * administrator's unpublished event to the lowest role that can reach the
+     * events screen.
+     *
+     * @param int         $post_id   Post id to test.
+     * @param string|null $post_type Optional expected post type.
+     *
+     * @return bool
+     */
+    public static function can_read_post( $post_id, $post_type = null ) {
+        $post_id = absint( $post_id );
+
+        if ( ! $post_id ) {
+            return false;
+        }
+
+        $post = get_post( $post_id );
+
+        if ( ! $post ) {
+            return false;
+        }
+
+        if ( $post_type && $post_type !== $post->post_type ) {
+            return false;
+        }
+
+        $readable = false;
+
+        if ( 'publish' === $post->post_status ) {
+            $readable = true;
+        } elseif ( self::is_unscoped() ) {
+            $readable = true;
+        } else {
+            $user_id = get_current_user_id();
+
+            if ( $user_id ) {
+                $readable = ( (int) $post->post_author === (int) $user_id )
+                    || current_user_can( 'edit_others_posts' );
+            }
+        }
+
+        /**
+         * Filter the per-post read decision.
+         *
+         * Multi-organizer setups (WCFM, Dokan) can widen this so a store
+         * manager may preview their vendors' unpublished events.
+         *
+         * @param bool     $readable Whether the current user may read the post.
+         * @param \WP_Post $post     The post being tested.
+         */
+        return (bool) apply_filters( 'eventin_can_read_post', $readable, $post );
+    }
+
+    /**
      * Does the current user bypass all ownership scoping?
      *
      * Administrators (and anyone a site grants `manage_options` to) manage the
@@ -187,6 +282,62 @@ class Ownership {
     }
 
     /**
+     * May the current user READ this speaker/organizer user record?
+     *
+     * Reading is narrower than managing, and deliberately does NOT require
+     * `edit_user`. can_manage_user() demands it because writing to or deleting
+     * an account is an edit of that account — but a Contributor holds no
+     * `edit_users`, so requiring it for a read would lock them out of the very
+     * speakers they created, which they can still see in the list.
+     *
+     * So the read test is simply: administrators, your own account, or a record
+     * you created (the `author` user meta SpeakerController writes on create).
+     * That matches exactly what SpeakerController::get_items() already shows —
+     * the per-id read now returns nothing the list would have hidden.
+     *
+     * @param int $target_user_id User id to test.
+     *
+     * @return bool
+     */
+    public static function can_read_user( $target_user_id ) {
+        $target_user_id = absint( $target_user_id );
+
+        if ( ! $target_user_id || ! get_userdata( $target_user_id ) ) {
+            return false;
+        }
+
+        if ( self::is_unscoped() ) {
+            return true;
+        }
+
+        $user_id = get_current_user_id();
+
+        if ( ! $user_id ) {
+            return false;
+        }
+
+        // Own account is always readable.
+        if ( (int) $target_user_id === (int) $user_id ) {
+            return true;
+        }
+
+        $author = absint( get_user_meta( $target_user_id, 'author', true ) );
+        $owns   = ( $author && $author === (int) $user_id );
+
+        /**
+         * Filter the per-user read decision.
+         *
+         * Multi-organizer setups (WCFM, Dokan) can widen this so a store
+         * manager may view their vendors' speakers.
+         *
+         * @param bool $owns           Whether the current user may read the record.
+         * @param int  $target_user_id User being tested.
+         * @param int  $user_id        Current user id.
+         */
+        return (bool) apply_filters( 'eventin_can_read_user', $owns, $target_user_id, $user_id );
+    }
+
+    /**
      * Can the current user act on this order?
      *
      * An order is reachable by the organizer who owns the event it was placed
@@ -245,5 +396,92 @@ class Ownership {
          * @param int  $user_id  Current user id.
          */
         return (bool) apply_filters( 'eventin_can_manage_order', $owns, $order_id, $user_id );
+    }
+
+    /**
+     * Can the current user act on this attendee?
+     *
+     * An attendee belongs to the organizer who owns the event it was booked
+     * against. Unlike an order there is no customer branch: every attendee
+     * route is staff-facing and gated on `etn_manage_attendee`, which no
+     * customer holds. Buyers reach their own record through the token-scoped
+     * `/attendees/{id}/edit-info` routes instead.
+     *
+     * Attendee rows carry the buyer's name, email and phone — the same PII the
+     * customers table holds — so gating them on the collection capability alone
+     * let anyone with attendee access read every organizer's buyers.
+     *
+     * @param int $attendee_id Attendee post id.
+     *
+     * @return bool
+     */
+    public static function can_manage_attendee( $attendee_id ) {
+        $attendee_id = absint( $attendee_id );
+
+        if ( ! $attendee_id ) {
+            return false;
+        }
+
+        $attendee = get_post( $attendee_id );
+
+        if ( ! $attendee || 'etn-attendee' !== $attendee->post_type ) {
+            return false;
+        }
+
+        if ( self::is_unscoped() ) {
+            return true;
+        }
+
+        $user_id = get_current_user_id();
+
+        if ( ! $user_id ) {
+            return false;
+        }
+
+        // The organizer who owns the event the attendee was booked against.
+        $event_id = absint( get_post_meta( $attendee_id, 'etn_event_id', true ) );
+        $owns     = false;
+
+        if ( $event_id ) {
+            $event = get_post( $event_id );
+            $owns  = ( $event && (int) $event->post_author === (int) $user_id );
+        }
+
+        /**
+         * Filter the per-attendee ownership decision.
+         *
+         * @param bool $owns        Whether the current user may act on the attendee.
+         * @param int  $attendee_id Attendee being tested.
+         * @param int  $user_id     Current user id.
+         */
+        return (bool) apply_filters( 'eventin_can_manage_attendee', $owns, $attendee_id, $user_id );
+    }
+
+    /**
+     * Can the current user act on EVERY one of these attendees?
+     *
+     * All-or-nothing, matching can_manage_posts(): a bulk request that mixes
+     * owned and foreign ids is refused outright rather than silently trimmed,
+     * so a caller can never be told a batch succeeded when part of it was
+     * dropped.
+     *
+     * @param array|int $attendee_ids Attendee ids.
+     *
+     * @return bool
+     */
+    public static function can_manage_attendees( $attendee_ids ) {
+        $attendee_ids = array_filter( array_map( 'absint', (array) $attendee_ids ) );
+
+        if ( ! $attendee_ids ) {
+            return false;
+        }
+
+        foreach ( $attendee_ids as $attendee_id ) {
+            if ( ! self::can_manage_attendee( $attendee_id ) ) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

@@ -159,8 +159,37 @@ class SpeakerController extends WP_REST_Controller {
      * @return WP_Error|boolean
      */
     public function get_item_permissions_check( $request ) {
-        return current_user_can( 'etn_manage_organizer' )
-        || current_user_can( 'etn_manage_event' );
+        if ( ! current_user_can( 'etn_manage_organizer' ) && ! current_user_can( 'etn_manage_event' ) ) {
+            return false;
+        }
+
+        $speaker_id = Ownership::route_subject_id( $request );
+
+        // No id in the path means the collection route — which this callback
+        // also serves for POST (create). get_items() applies its own `author`
+        // meta scoping, and create_item() has no existing record to own, so
+        // both stay on the capability alone exactly as before.
+        if ( ! $speaker_id ) {
+            return true;
+        }
+
+        // A speaker IS a WordPress user, and the record carries their email.
+        // get_items() already hides other people's speakers behind an `author`
+        // meta_query, but `/speakers/{id}` was on the capability alone — and
+        // Contributor holds etn_manage_organizer by default
+        // (core/AccessControl/Permission.php:299), so ids could be walked to
+        // read every organizer's speaker contacts.
+        //
+        // `/speakers/{id}/clone` is worse than a read: it creates a NEW user
+        // account carrying the victim's details, so it needs the same gate.
+        // Cloning a speaker you created is no more privilege than the create
+        // route already grants, so the read test is the right one here.
+        //
+        // can_read_user(), not can_manage_user(): the latter requires
+        // `edit_user`, which a Contributor lacks even for speakers they created
+        // themselves — using it here would hide their own records from them
+        // while the list still showed them.
+        return Ownership::can_read_user( $speaker_id );
     }
 
     /**
@@ -548,12 +577,17 @@ class SpeakerController extends WP_REST_Controller {
      * @return WP_Error|WP_REST_Response
      */
     public function delete_item( $request ) {
-        $id = intval( $request['id'] );
+        // Same source the permission check used — the id in the path.
+        $id = Ownership::route_subject_id( $request );
 
-        $post = get_post( $id );
-
-        if ( is_wp_error( $post ) ) {
-            return $post;
+        // Same guard the bulk route applies: this deletes a WordPress user
+        // account, so the id has to belong to an actual speaker or organizer.
+        if ( ! $id || ! $this->is_speaker_or_organizer( $id ) ) {
+            return new WP_Error(
+                'rest_speaker_invalid',
+                __( 'Invalid speaker id.', 'eventin' ),
+                array( 'status' => 404 )
+            );
         }
 
         $speaker = new User_Model( $id );
@@ -588,7 +622,8 @@ class SpeakerController extends WP_REST_Controller {
      * @return WP_Error|WP_REST_Response
      */
     public function delete_items( $request ) {
-        $ids = ! empty( $request['ids'] ) ? $request['ids'] : [];
+        $ids = ! empty( $request['ids'] ) ? (array) $request['ids'] : [];
+        $ids = array_values( array_unique( array_filter( array_map( 'absint', $ids ) ) ) );
 
         if ( ! $ids ) {
             return new WP_Error(
@@ -597,39 +632,43 @@ class SpeakerController extends WP_REST_Controller {
                 array( 'status' => 400 )
             );
         }
+
         $count = 0;
 
         foreach ( $ids as $id ) {
+            // The endpoint deletes WordPress USER accounts, so it must only ever
+            // touch accounts that are actually speakers or organizers. The role is
+            // the authority — it is what get_items() lists on (`role__in`) — and
+            // NOT the `etn_speaker_category` user meta this used to read: the
+            // importer writes the CSV's speaker-category taxonomy term ids into
+            // that same key (SpeakerImporter::import()), so every imported speaker
+            // failed the old check and took the whole batch down with a 500.
+            if ( ! $this->is_speaker_or_organizer( $id ) ) {
+                continue;
+            }
+
             $speaker = new User_Model( $id );
-            $previous = User_Model::instance()->get_data( $id );
-        
-            if ( ! array_intersect( ['speaker', 'organizer'], $previous['category'] ) ) {
-                return new WP_Error( 'rest_cannot_delete', __( 'The speaker cannot be deleted.', 'eventin' ), [ 'status' => 500 ] );
-            }
-        
-            $user = new WP_User( $id );
-            $user_roles = $user->roles;
-            $allowed_roles = ['speaker', 'organizer'];
-            $hide_user = get_user_meta( $id, 'hide_user', true );
 
-            $has_only_allowed_roles = empty(array_diff( $user_roles, $allowed_roles )) 
-                                    && !empty(array_intersect( $user_roles, $allowed_roles ));
+            do_action( 'eventin_speaker_before_delete', $speaker );
 
-            if ( ! $has_only_allowed_roles ) {
-                if ( $hide_user == 1 ) update_user_meta( $id, 'hide_user', '' ); 
-                $user->remove_role( 'etn-speaker' );
-                $user->remove_role( 'etn-organizer' );
-            } else {
-                $speaker->delete();
+            // User_Model::delete() already decides between deleting the account
+            // and merely stripping the Eventin roles from someone who is also a
+            // real site user. Reimplementing that here compared prefixed roles
+            // (`etn-speaker`) against unprefixed names (`speaker`), so the test
+            // never matched and bulk delete only ever demoted — the account
+            // survived, role-less, and just fell out of the role-scoped list.
+            $deleted = $speaker->delete();
+
+            if ( is_wp_error( $deleted ) || ! $deleted ) {
+                continue;
             }
 
-        
+            do_action( 'eventin_speaker_deleted', $id );
+
             $count++;
         }
-        
 
-
-        if ( $count == 0 ) {
+        if ( 0 === $count ) {
             return new WP_Error(
                 'rest_cannot_delete',
                 __( 'Speaker cannot be deleted.', 'eventin' ),
@@ -641,6 +680,26 @@ class SpeakerController extends WP_REST_Controller {
         $message = sprintf( __( '%1$d speakers are deleted of %2$d', 'eventin' ), $count, count( $ids ) );
 
         return rest_ensure_response( $message );
+    }
+
+    /**
+     * Is this user id actually a speaker or an organizer?
+     *
+     * Guards the delete routes: they remove WordPress user accounts, so the
+     * speakers endpoint must not become a way to delete arbitrary users. Tested
+     * on the role rather than on `etn_speaker_category` — see delete_items().
+     *
+     * @param int $id User id.
+     * @return bool
+     */
+    private function is_speaker_or_organizer( $id ) {
+        $user = get_userdata( absint( $id ) );
+
+        if ( ! $user ) {
+            return false;
+        }
+
+        return (bool) array_intersect( [ 'etn-speaker', 'etn-organizer' ], (array) $user->roles );
     }
 
     /**
@@ -658,6 +717,12 @@ class SpeakerController extends WP_REST_Controller {
      * accounts created by other people. Serves both the per-id route and the
      * bulk route (`ids` in the body).
      *
+     * Which branch runs is decided by the ROUTE, not by which parameters happen
+     * to be present. Preferring `ids` let a caller pass their OWN user id —
+     * which Ownership::can_manage_user() always allows — while the path pointed
+     * at somebody else's speaker account, and `delete_item()` deleted the
+     * account in the path. See Ownership::route_subject_id().
+     *
      * @param WP_REST_Request $request Full data about the request.
      * @return WP_Error|boolean
      */
@@ -666,7 +731,11 @@ class SpeakerController extends WP_REST_Controller {
             return false;
         }
 
-        $ids = ! empty( $request['ids'] ) ? (array) $request['ids'] : [ $request['id'] ];
+        $subject_id = Ownership::route_subject_id( $request );
+
+        // Per-id route: authorise exactly the id in the path. Bulk route: the
+        // whole batch, all-or-nothing.
+        $ids = $subject_id ? [ $subject_id ] : (array) ( $request['ids'] ?? [] );
 
         $ids = array_filter( array_map( 'absint', $ids ) );
 
@@ -861,6 +930,9 @@ class SpeakerController extends WP_REST_Controller {
             $ids = User_Model::get_ids( ['role__in' => ['etn-speaker']] );
         }
 
+        // Keep the demo event's speakers out of the file — see EventController.
+        $ids = \Eventin\PreviewPlaceholder\PreviewPlaceholder::strip_user_ids( (array) $ids );
+
         $exporter = new SpeakerExporter();
         $response = $exporter->export( $ids, $format );
 
@@ -927,6 +999,9 @@ class SpeakerController extends WP_REST_Controller {
         if ( ! $ids ) {
             $ids = User_Model::get_ids( ['role__in' => ['etn-organizer']] );
         }
+
+        // Keep the demo event's organizers out of the file — see EventController.
+        $ids = \Eventin\PreviewPlaceholder\PreviewPlaceholder::strip_user_ids( (array) $ids );
 
         $exporter = new SpeakerExporter();
         $exporter->set_file_name( 'organizer-data' );
@@ -1012,6 +1087,32 @@ class SpeakerController extends WP_REST_Controller {
 
         if ( $exists_with_role && !$is_for_update ) {
             return new WP_Error( 'organizer_speaker_exists', __( 'Speaker or Organizer already exists', 'eventin' ), ['status' => 422] );
+        }
+
+        // Adding a plugin role to an account that already exists is a PROMOTION,
+        // and WordPress gates promotions on `promote_users` — a capability only
+        // an administrator holds by default.
+        //
+        // The `edit_user` check above is not sufficient on its own. WordPress
+        // maps `edit_user` down to `read` when the target is the caller's OWN
+        // account, so every user passes it for themselves. That left the whole
+        // guard open to the simplest possible bypass: instead of naming the
+        // administrator's email, the attacker names their own.
+        //
+        // `etn-speaker` and `etn-organizer` (core/speaker/speaker-role.php) carry
+        // `publish_posts`, `publish_pages`, `edit_pages`, `edit_published_pages`,
+        // `upload_files` and `delete_published_posts` — none of which a stock
+        // Contributor has. So one POST to /speakers naming your own address took
+        // you from "can draft, cannot publish, cannot upload" to all three.
+        //
+        // Checking the role DIFF rather than the role list means an update that
+        // touches an account's meta without changing its roles is unaffected.
+        if ( array_diff( $updated_roles, $user->roles ) && ! current_user_can( 'promote_user', $user->ID ) ) {
+            return new WP_Error(
+                'rest_forbidden',
+                __( 'Sorry, you are not allowed to assign roles to this user.', 'eventin' ),
+                [ 'status' => 403 ]
+            );
         }
 
         foreach ( $updated_roles as $role ) {

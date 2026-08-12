@@ -108,6 +108,52 @@ class Event_Model extends Post_Model {
     ];
 
     /**
+     * Meta keys whose value is used to build a template include path.
+     *
+     * Each legitimately holds EITHER a bare template slug ('event-two',
+     * 'style-1', a Pro-only layout name) OR the numeric post id of an
+     * `etn-template` post. Both shapes are plain `[A-Za-z0-9_-]`, so confining
+     * them rejects nothing real.
+     *
+     * Why it matters: `event_layout` is reachable through
+     * POST/PUT /eventin/v2/events, which a stock Contributor may call for an
+     * event they own. Its value is concatenated into include_once() when the
+     * event's public page renders (etn_single_event_template_select()), and
+     * sanitize_text_field() — all it used to get — happily preserves `../`.
+     *
+     * @since 4.1.22
+     *
+     * @var string[]
+     */
+    protected static $template_slug_meta_keys = [
+        'event_layout',
+        'ticket_template',
+        'certificate_template',
+    ];
+
+    /**
+     * Update event meta, confining template-slug keys to a bare slug.
+     *
+     * A rejected value is stored as '' — the same thing the field holds when no
+     * template has been chosen — rather than silently substituting a default.
+     *
+     * @since 4.1.22
+     *
+     * @param array $data
+     *
+     * @return void
+     */
+    public function update_meta( $data = [] ) {
+        foreach ( self::$template_slug_meta_keys as $key ) {
+            if ( array_key_exists( $key, $data ) ) {
+                $data[$key] = \Etn\Utils\Helper::sanitize_template_slug( $data[$key], '' );
+            }
+        }
+
+        parent::update_meta( $data );
+    }
+
+    /**
      * Get total tickets
      *
      * @return  integer

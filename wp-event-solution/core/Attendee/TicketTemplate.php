@@ -179,11 +179,17 @@ class TicketTemplate implements HookableInterface {
 		if ( $post && $post->post_type === 'etn-template' ) {
 			include_once \Wpeventin::templates_dir() . "template-parts/attendee/ticket-markup-block.php";
 		} else {
+			// esc_html() is for markup, not paths — it leaves `../` untouched.
+			// This value comes from the `attendee_ticket_style` setting, which
+			// is a template slug, so confine it the same way every other
+			// template slug is confined before it reaches an include path.
+			$ticket_style = \Etn\Utils\Helper::sanitize_template_slug( $ticket_style, 'style-1' );
+
 			if(class_exists('Wpeventin_Pro') && 'style-2' === $ticket_style) {
-				include_once \Wpeventin_Pro::templates_dir() . "attendee/ticket-markup-".esc_html($ticket_style).".php";
+				include_once \Wpeventin_Pro::templates_dir() . "attendee/ticket-markup-".$ticket_style.".php";
 			}else {
 				$ticket_style = $ticket_style == 'style-2'?'style-1':$ticket_style;
-				include_once \Wpeventin::templates_dir() . "attendee/ticket-markup-".esc_html($ticket_style).".php";
+				include_once \Wpeventin::templates_dir() . "attendee/ticket-markup-".$ticket_style.".php";
 			}
 		}
 	}

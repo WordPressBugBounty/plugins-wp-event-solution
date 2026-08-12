@@ -86,15 +86,27 @@ class Settings {
      * the read side confines them again (see
      * Etn\Utils\Helper::sanitize_template_slug()).
      *
-     * Both keys legitimately hold EITHER a static template slug ('event-one',
-     * 'speaker-two-lite', 'style-1', and the Pro-only 'speaker-two' /
-     * 'speaker-three' / 'event-two' / 'event-three') OR the numeric post id of
-     * a custom `etn-template` post. The `[A-Za-z0-9_-]` rule accepts both, so
-     * no legitimate value — free or Pro — is rejected.
+     * Every key here legitimately holds EITHER a static template slug
+     * ('event-one', 'speaker-two-lite', 'style-1', and the Pro-only
+     * 'speaker-two' / 'speaker-three' / 'event-two' / 'event-three') OR the
+     * numeric post id of a custom `etn-template` post. The `[A-Za-z0-9_-]` rule
+     * accepts both, so no legitimate value — free or Pro — is rejected.
      */
     protected static $template_slug_keys = [
         'speaker_template',
         'event_template',
+        // Concatenated into the ticket markup include in
+        // Etn\Core\Attendee\TicketTemplate::ticket_markup(). It is not
+        // currently escapable there (the "ticket-markup-" prefix means a bare
+        // `..` component cannot form), but it is the same class of value and
+        // the same class of sink, so it is confined here too.
+        'attendee_ticket_style',
+        // The remaining two global-default targets written by
+        // TemplateController::get_settings_key_for(). Neither reaches an
+        // include path in the free plugin today; they are listed so every key
+        // that holds a template identity is confined by the same rule.
+        'event_layout',
+        'certificate_template',
     ];
 
     /**
@@ -122,8 +134,13 @@ class Settings {
                 $sanitized[$key] = null === $hex ? '' : $hex;
             } elseif ( in_array( $key, self::$template_slug_keys, true ) ) {
                 // Reject anything that is not a bare slug rather than silently
-                // substituting a default, so a bad value cannot be stored and
-                // the existing setting is left untouched.
+                // substituting a default: the value is stored as '' and the
+                // read side falls back to the built-in default template.
+                //
+                // Storing '' (rather than skipping the key) is deliberate — the
+                // settings UI sends '' as the "clear my selection" signal when
+                // the user un-picks a template card, see
+                // src/helpers/hooks/useTemplateSelection.jsx clearSelection().
                 $slug            = \Etn\Utils\Helper::sanitize_template_slug( $value, '' );
                 $sanitized[$key] = $slug;
             } else {

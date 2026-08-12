@@ -699,7 +699,11 @@ class EventController extends WP_REST_Controller {
             return new WP_Error( 'rest_event_invalid', __( 'Invalid event id.', 'eventin' ), [ 'status' => 404 ] );
         }
 
-        if ( ! current_user_can( 'etn_manage_event' ) && 'publish' !== $post->post_status ) {
+        // `etn_manage_event` is held by Contributor and Author on a stock
+        // install, so it is not a guard against them — it let any Contributor
+        // read an administrator's draft. Unpublished events belong to their
+        // author and to whoever may edit other people's posts.
+        if ( ! Ownership::can_read_post( $id, 'etn' ) ) {
             return new WP_Error( 'rest_forbidden', __( 'You do not have permission to view this event.', 'eventin' ), [ 'status' => 403 ] );
         }
 
@@ -891,7 +895,8 @@ class EventController extends WP_REST_Controller {
      * @return WP_REST_Response
      */
     public function recurrence_orphan_preview( $request ) {
-        $id   = (int) $request['id'];
+        // Same source the permission check used — the id in the path.
+        $id   = Ownership::route_subject_id( $request );
         $body = json_decode( $request->get_body(), true );
 
         if ( ! is_array( $body ) ) {
@@ -937,6 +942,9 @@ class EventController extends WP_REST_Controller {
      * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
      */
     public function update_item( $request ) {
+        // Same source the permission check used — the id in the path. Reading
+        // `$request['id']` would let a JSON body shadow it.
+        $id = Ownership::route_subject_id( $request );
 
         $prepared_event = $this->prepare_item_for_database( $request );
 
@@ -946,7 +954,7 @@ class EventController extends WP_REST_Controller {
             return $prepared_event;
         }
 
-        $event = new Event_Model( $request['id'] );
+        $event = new Event_Model( $id );
 
         if ( $event->is_clone ) {
             $prepared_event['is_clone'] = false;
@@ -967,7 +975,7 @@ class EventController extends WP_REST_Controller {
         $previous_event_start_date = $event->etn_start_date;
         $previous_event_start_time = $event->etn_start_time;
 
-        $was_recurring = get_post_meta( $request['id'], 'recurring_enabled', true );
+        $was_recurring = get_post_meta( $id, 'recurring_enabled', true );
 
         // Carry the user's draft|publish choice into the recurring hook so mismatched
         // children become detached events with the chosen status (default: draft).
@@ -980,28 +988,28 @@ class EventController extends WP_REST_Controller {
 
         // Child event date/time edit — caller confirmed detach in a popup.
         $detach_from_parent = (bool) $request->get_param( 'detach_from_parent' );
-        $current_parent_id  = (int) wp_get_post_parent_id( $request['id'] );
+        $current_parent_id  = (int) wp_get_post_parent_id( $id );
 
         if ( $detach_from_parent && $current_parent_id > 0 ) {
             wp_update_post( [
-                'ID'          => (int) $request['id'],
+                'ID'          => (int) $id,
                 'post_parent' => 0,
             ] );
 
-            delete_post_meta( $request['id'], 'recurring_enabled' );
-            delete_post_meta( $request['id'], 'etn_event_recurrence' );
-            delete_post_meta( $request['id'], 'etn_recurrence_timestamps' );
+            delete_post_meta( $id, 'recurring_enabled' );
+            delete_post_meta( $id, 'etn_event_recurrence' );
+            delete_post_meta( $id, 'etn_recurrence_timestamps' );
 
-            clean_post_cache( $request['id'] );
+            clean_post_cache( $id );
 
             // Reload the model so subsequent ->update() works against the now-detached post.
-            $event = new Event_Model( $request['id'] );
+            $event = new Event_Model( $id );
 
             // Don't let the prepared payload reintroduce parent recurrence flags.
             unset( $prepared_event['recurring_enabled'] );
             unset( $prepared_event['etn_event_recurrence'] );
 
-            do_action( 'eventin_recurring_child_detached', (int) $request['id'], $current_parent_id, 'manual' );
+            do_action( 'eventin_recurring_child_detached', (int) $id, $current_parent_id, 'manual' );
         }
 
         $updated = $event->update( $prepared_event );
@@ -1020,7 +1028,7 @@ class EventController extends WP_REST_Controller {
         if ( 'yes' === $was_recurring && ! $is_recurring_now ) {
             // Normalize to original-language parent: children are only attached
             // to the original event under our "inherit from translated parent" rule.
-            $parent_id = (int) $request['id'];
+            $parent_id = (int) $id;
             if ( class_exists( 'Etn_Wpml' ) ) {
                 $parent_id = \Etn_Wpml::original_id( $parent_id, 'post_etn' );
             }
@@ -1041,24 +1049,24 @@ class EventController extends WP_REST_Controller {
                 clean_post_cache( $child_id );
             }
 
-            do_action( 'eventin_recurring_disabled_children_detached', $request['id'], $child_ids );
+            do_action( 'eventin_recurring_disabled_children_detached', $id, $child_ids );
         }
 
         // Update event categories.
         if ( isset( $prepared_event['categories'] ) ) {
-            $this->assign_categories( $request['id'], $prepared_event['categories'] );
+            $this->assign_categories( $id, $prepared_event['categories'] );
         }
 
         // Update event tags.
         if ( isset( $prepared_event['tags'] ) ) {
-            $this->assign_tags( $request['id'], $prepared_event['tags'] );
+            $this->assign_tags( $id, $prepared_event['tags'] );
         } 
-        if(isset($request['id'])){ 
-            set_post_thumbnail($request['id'], $request['event_banner_id']);
+        if ( $id ) {
+            set_post_thumbnail($id, $request['event_banner_id']);
         }
 
         if( empty($request['event_banner']) && empty($request['event_banner_id'])) {
-	        delete_post_thumbnail($request['id']);
+	        delete_post_thumbnail($id);
         }
 
 		clean_post_cache( $event->id );                                                                                                                                            
@@ -1099,6 +1107,12 @@ class EventController extends WP_REST_Controller {
      * administrator's event. The capability still gates access to the feature;
      * ownership of the specific event decides whether this call may proceed.
      *
+     * The subject is read from the URL. Every handler this check guards
+     * (update_item, convert_elementor_to_wordpress, recurrence_orphan_preview)
+     * reads it the same way: `$request['id']` resolves a JSON body key before
+     * the URL one, so a check and a handler that disagree about the source are
+     * the BOLA bypass described in Ownership::route_subject_id().
+     *
      * @param WP_REST_Request $request Full data about the request.
      * @return WP_Error|boolean
      */
@@ -1107,7 +1121,7 @@ class EventController extends WP_REST_Controller {
             return false;
         }
 
-        return Ownership::can_manage_post( $request['id'], 'etn' );
+        return Ownership::can_manage_post( Ownership::route_subject_id( $request ), 'etn' );
     }
 
     /**
@@ -1117,11 +1131,17 @@ class EventController extends WP_REST_Controller {
      * @return WP_Error|WP_REST_Response
      */
     public function delete_item( $request ) {
-        $id = intval( $request['id'] );
+        // Same source the permission check used — the id in the path. Reading
+        // `$request['id']` would let a JSON body shadow it.
+        $id = Ownership::route_subject_id( $request );
 
         $post = get_post( $id );
-        if ( is_wp_error( $post ) ) {
-            return $post;
+        if ( ! $post || 'etn' !== $post->post_type ) {
+            return new WP_Error(
+                'rest_event_invalid',
+                __( 'Invalid event id.', 'eventin' ),
+                array( 'status' => 404 )
+            );
         }
 
         $previous = $this->prepare_item_for_response( $post, $request );
@@ -1253,6 +1273,11 @@ class EventController extends WP_REST_Controller {
      * request containing one foreign id is refused outright rather than
      * partially applied.
      *
+     * Which branch runs is decided by the ROUTE, not by which parameters happen
+     * to be present. Preferring `ids` whenever it was set meant a per-id delete
+     * could be authorised against a completely different id than the one
+     * `delete_item()` goes on to delete. See Ownership::route_subject_id().
+     *
      * @param WP_REST_Request $request Full data about the request.
      * @return WP_Error|boolean
      */
@@ -1261,11 +1286,15 @@ class EventController extends WP_REST_Controller {
             return false;
         }
 
-        if ( ! empty( $request['ids'] ) ) {
-            return Ownership::can_manage_posts( $request['ids'], 'etn' );
+        $subject_id = Ownership::route_subject_id( $request );
+
+        // Per-id route: authorise exactly the id in the path, and nothing else.
+        if ( $subject_id ) {
+            return Ownership::can_manage_post( $subject_id, 'etn' );
         }
 
-        return Ownership::can_manage_post( $request['id'], 'etn' );
+        // Bulk route: every id in the batch must be the caller's.
+        return Ownership::can_manage_posts( $request['ids'], 'etn' );
     }
 
     /**
@@ -2351,12 +2380,15 @@ class EventController extends WP_REST_Controller {
             return false;
         }
     
-        // Check if the request has an 'id' parameter
-        if ( ! isset( $request['id'] ) ) {
+        // Check if the request has an 'id' parameter. Same source the
+        // permission check used — the id in the path.
+        $id = Ownership::route_subject_id( $request );
+
+        if ( ! $id ) {
             return false;
         }
-    
-        $document = \Elementor\Plugin::$instance->documents->get( $request['id'] );
+
+        $document = \Elementor\Plugin::$instance->documents->get( $id );
     
         // Check if the document exists and is built with Elementor
         if ( $document && $document->is_built_with_elementor() ) {
@@ -2425,9 +2457,27 @@ class EventController extends WP_REST_Controller {
             return new WP_Error( 'format_error', __( 'Invalid data format', 'eventin' ) );
         }
 
-        if ( ! $ids ) {
-            $ids = (new Event_Model())->get_ids();
+        // Export is a bulk READ of everything an event holds — including draft
+        // and private events, meeting links and webhook URLs. The no-ids branch
+        // below is already author-scoped by Post_Model::get_ids(), but an
+        // explicit `ids` list was taken on trust, so gating the route on
+        // `etn_manage_event` alone let a Contributor dump any event on the site
+        // and walk straight around the per-id read and write checks.
+        if ( $ids ) {
+            if ( ! Ownership::can_manage_posts( $ids, 'etn' ) ) {
+                return new WP_Error(
+                    'rest_forbidden',
+                    __( 'Sorry, you are not allowed to export these events.', 'eventin' ),
+                    [ 'status' => 403 ]
+                );
+            }
+        } else {
+            $ids = ( new Event_Model() )->get_ids();
         }
+
+        // Keep the shipped demo event out of the file. get_ids() runs no
+        // exclusion, and the pre_get_posts net bails on REST by design.
+        $ids = \Eventin\PreviewPlaceholder\PreviewPlaceholder::strip_post_ids( (array) $ids );
 
         $exporter = new EventExporter();
         $exporter->export( $ids, $format );

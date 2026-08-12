@@ -736,9 +736,19 @@ class User_Model {
         }
 
         if ( $this->has_other_roles( $user->ID ) ) {
-            $user->remove_role('etn-speaker'); 
+            // Keeping the account, dropping the Eventin roles. `hide_user` only
+            // hides speakers/organizers from the WordPress users table
+            // (Etn\Core\Speaker\Hooks::hide_speakers_from_users), so once the
+            // roles are gone it is stale meta — clear it rather than leave the
+            // account marked hidden. Used to live in the bulk-delete branch of
+            // SpeakerController; here it applies to the per-id route too.
+            if ( '1' == get_user_meta( $user->ID, 'hide_user', true ) ) {
+                update_user_meta( $user->ID, 'hide_user', '' );
+            }
+
+            $user->remove_role('etn-speaker');
             $user->remove_role('etn-organizer');
-            
+
             return true;
         }
 

@@ -87,9 +87,15 @@ add_action( "etn_after_single_event_content_wrap", "etn_after_single_event_meta_
  */
 add_action( "etn_after_single_event_meta", "etn_after_single_event_meta_add_to_calendar", 11, 1 );
 
-$post_template  = get_post_meta( $post_id, 'event_layout', true );
+// Confined to a bare slug for the same reason as in
+// etn_single_event_template_select(): these two values are only
+// sanitize_text_field()'d on write. Nothing here builds a path, but this must
+// agree with the template that selector actually includes — otherwise a
+// rejected slug would register no layout hooks against a template that did
+// render.
+$post_template  = \Etn\Utils\Helper::sanitize_template_slug( get_post_meta( $post_id, 'event_layout', true ), '' );
 //get global template settings
-$settings_template  = etn_get_option( 'event_template', 'event-one' );
+$settings_template  = \Etn\Utils\Helper::sanitize_template_slug( etn_get_option( 'event_template', 'event-one' ), 'event-one' );
 $current_template   = ! empty( $post_template ) && ! is_numeric( $post_template ) ? esc_attr( $post_template ) : ( $settings_template ? esc_attr( $settings_template ) : 'event-one' )  ;
 
 if ( ( ETN_DEMO_SITE == true ) || ( ETN_DEMO_SITE === false && "event-one" === $current_template ) ) {

@@ -504,6 +504,16 @@ class OrderController extends WP_REST_Controller {
             return new WP_Error( 'invalid_data', __( 'Invalid event ID or seat IDs.', 'eventin' ), ['status' => 400] );
         }
 
+        // This route is nonce-only (guests hold seats before an order exists) and
+        // takes event_id from the body, then writes pending_seats /
+        // etn_ticket_variations meta onto it. Without this check an anonymous
+        // visitor could write hold state onto any post id (Patchstack 33814,
+        // sibling finding). Require a real event post first.
+        $event_post = $event_id ? get_post( $event_id ) : null;
+        if ( ! $event_post || 'etn' !== $event_post->post_type ) {
+            return new WP_Error( 'invalid_event', __( 'Invalid event.', 'eventin' ), ['status' => 404] );
+        }
+
         $event_tickets = etn_safe_decode( get_post_meta( $event_id, 'etn_ticket_variations', true ) );
         $pending_seats = etn_safe_decode( get_post_meta( $event_id, 'pending_seats', true ));
         if(empty($pending_seats)){

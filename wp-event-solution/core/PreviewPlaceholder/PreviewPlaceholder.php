@@ -106,6 +106,53 @@ class PreviewPlaceholder {
     }
 
     /**
+     * Remove the placeholder event + schedule IDs from a list of post IDs.
+     *
+     * For query paths that cannot use `post__not_in` because they never build a
+     * WP_Query of their own — the Export routes hand a pre-built ID list straight
+     * to an exporter. The pre_get_posts net is no help there: it bails on REST by
+     * design, and export runs over eventin/v2.
+     *
+     * @param int[]|string[] $ids
+     *
+     * @return int[]
+     */
+    public static function strip_post_ids( array $ids ): array {
+        return self::strip( $ids, self::excluded_post_ids() );
+    }
+
+    /**
+     * Remove the placeholder speaker/organizer user IDs from a list of user IDs.
+     *
+     * @param int[]|string[] $ids
+     *
+     * @return int[]
+     */
+    public static function strip_user_ids( array $ids ): array {
+        if ( ! self::event_exists() ) {
+            return array_values( array_map( 'intval', $ids ) );
+        }
+
+        return self::strip( $ids, self::user_ids() );
+    }
+
+    /**
+     * @param int[]|string[] $ids
+     * @param int[]          $excluded
+     *
+     * @return int[]
+     */
+    private static function strip( array $ids, array $excluded ): array {
+        $ids = array_values( array_map( 'intval', $ids ) );
+
+        if ( ! $excluded ) {
+            return $ids;
+        }
+
+        return array_values( array_diff( $ids, $excluded ) );
+    }
+
+    /**
      * Drop the cached registry. Call after seeding or removing placeholder records.
      */
     public static function flush(): void {

@@ -2,14 +2,14 @@
 # This file is distributed under the GPL-2.0+.
 msgid ""
 msgstr ""
-"Project-Id-Version: Eventin 4.1.20\n"
+"Project-Id-Version: Eventin 4.1.21\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/eventin\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-08-04T10:08:15+00:00\n"
+"POT-Creation-Date: 2026-08-11T11:22:44+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: eventin\n"
@@ -242,8 +242,10 @@ msgid "Eventin 4.0, the latest version, includes major changes across different 
 msgstr ""
 
 #: core/Admin/hooks.php:666
-#: core/event/api.php:463
-#: core/event/api.php:506
+#: core/event/api.php:99
+#: core/event/api.php:546
+#: core/event/api.php:555
+#: core/event/api.php:598
 msgid "Event not found."
 msgstr ""
 
@@ -327,7 +329,7 @@ msgstr ""
 msgid "Eventin Customer"
 msgstr ""
 
-#: core/Attendee/Api/AttendeeController.php:73
+#: core/Attendee/Api/AttendeeController.php:74
 #: core/Customer/Api/CustomerController.php:65
 #: core/event/Api/CategoryController.php:70
 #: core/event/Api/CategoryController.php:92
@@ -353,100 +355,104 @@ msgstr ""
 msgid "Unique identifier for the post."
 msgstr ""
 
-#: core/Attendee/Api/AttendeeController.php:416
+#: core/Attendee/Api/AttendeeController.php:439
 msgid "Please select another event. This event is already expired."
 msgstr ""
 
-#: core/Attendee/Api/AttendeeController.php:452
+#: core/Attendee/Api/AttendeeController.php:475
 msgid "Attendee can not be created."
 msgstr ""
 
-#: core/Attendee/Api/AttendeeController.php:499
+#: core/Attendee/Api/AttendeeController.php:539
 msgid "Attendee status can not be success if order status is not completed."
 msgstr ""
 
-#: core/Attendee/Api/AttendeeController.php:510
+#: core/Attendee/Api/AttendeeController.php:550
 msgid "You cannot set attendee status to failed if the order is completed."
 msgstr ""
 
-#: core/Attendee/Api/AttendeeController.php:527
+#: core/Attendee/Api/AttendeeController.php:567
 msgid "Attendee can not be updated."
 msgstr ""
 
-#: core/Attendee/Api/AttendeeController.php:582
+#: core/Attendee/Api/AttendeeController.php:626
 msgid "The attendee cannot be deleted."
 msgstr ""
 
-#: core/Attendee/Api/AttendeeController.php:618
+#: core/Attendee/Api/AttendeeController.php:662
 msgid "Attendee ids can not be empty."
 msgstr ""
 
-#: core/Attendee/Api/AttendeeController.php:652
+#: core/Attendee/Api/AttendeeController.php:696
 msgid "Attendee cannot be deleted."
 msgstr ""
 
 #. translators: %1$d is the number of attendees deleted, %2$d is the total number of attendees selected.
-#: core/Attendee/Api/AttendeeController.php:658
+#: core/Attendee/Api/AttendeeController.php:702
 #, php-format
 msgid "%1$d Attendee are deleted of %2$d"
 msgstr ""
 
-#: core/Attendee/Api/AttendeeController.php:821
+#: core/Attendee/Api/AttendeeController.php:893
 #: core/event/Api/CategoryController.php:490
-#: core/event/Api/EventController.php:2425
+#: core/event/Api/EventController.php:2457
 #: core/event/Api/EventTagController.php:454
-#: core/Order/OrderController.php:1909
-#: core/schedule/Api/ScheduleController.php:608
-#: core/speaker/Api/SpeakerController.php:857
-#: core/speaker/Api/SpeakerController.php:924
+#: core/Order/OrderController.php:1919
+#: core/schedule/Api/ScheduleController.php:659
+#: core/speaker/Api/SpeakerController.php:926
+#: core/speaker/Api/SpeakerController.php:996
 msgid "Invalid data format"
 msgstr ""
 
-#: core/Attendee/Api/AttendeeController.php:898
+#: core/Attendee/Api/AttendeeController.php:909
+msgid "Sorry, you are not allowed to export these attendees."
+msgstr ""
+
+#: core/Attendee/Api/AttendeeController.php:987
 #: core/event/Api/CategoryController.php:522
-#: core/event/Api/EventController.php:2459
+#: core/event/Api/EventController.php:2509
 #: core/event/Api/EventTagController.php:490
-#: core/Order/OrderController.php:2043
-#: core/schedule/Api/ScheduleController.php:640
-#: core/speaker/Api/SpeakerController.php:889
-#: core/speaker/Api/SpeakerController.php:951
+#: core/Order/OrderController.php:2053
+#: core/schedule/Api/ScheduleController.php:705
+#: core/speaker/Api/SpeakerController.php:961
+#: core/speaker/Api/SpeakerController.php:1026
 msgid "You must provide a valid file."
 msgstr ""
 
-#: core/Attendee/Api/AttendeeController.php:909
+#: core/Attendee/Api/AttendeeController.php:998
 msgid "Successfully imported attendee"
 msgstr ""
 
-#: core/Attendee/Api/AttendeeController.php:972
-#: core/Attendee/Api/AttendeeController.php:976
-#: core/Attendee/Api/AttendeeController.php:1105
-#: core/Attendee/Api/AttendeeController.php:1109
+#: core/Attendee/Api/AttendeeController.php:1061
+#: core/Attendee/Api/AttendeeController.php:1065
+#: core/Attendee/Api/AttendeeController.php:1199
+#: core/Attendee/Api/AttendeeController.php:1203
 msgid "Invalid attendee id"
 msgstr ""
 
-#: core/Attendee/Api/AttendeeController.php:983
-#: core/Attendee/Api/AttendeeController.php:1116
+#: core/Attendee/Api/AttendeeController.php:1072
+#: core/Attendee/Api/AttendeeController.php:1210
 msgid "The attendee doesn't have valid email"
 msgstr ""
 
-#: core/Attendee/Api/AttendeeController.php:1000
-#: core/Attendee/Api/AttendeeController.php:1037
+#: core/Attendee/Api/AttendeeController.php:1089
+#: core/Attendee/Api/AttendeeController.php:1126
 msgid "Successfully send ticket email"
 msgstr ""
 
-#: core/Attendee/Api/AttendeeController.php:1132
+#: core/Attendee/Api/AttendeeController.php:1226
 msgid "Successfully send certificate email"
 msgstr ""
 
-#: core/Attendee/Api/AttendeeController.php:1169
+#: core/Attendee/Api/AttendeeController.php:1263
 msgid "Successfully send certificate"
 msgstr ""
 
-#: core/Attendee/Api/AttendeeController.php:1254
+#: core/Attendee/Api/AttendeeController.php:1353
 msgid "The attendee cannot be trashed."
 msgstr ""
 
-#: core/Attendee/Api/AttendeeController.php:1294
+#: core/Attendee/Api/AttendeeController.php:1393
 msgid "The attendee cannot be untrashed."
 msgstr ""
 
@@ -1097,7 +1103,7 @@ msgid "Customer not found"
 msgstr ""
 
 #: core/Customer/Api/CustomerController.php:230
-#: core/event/api.php:522
+#: core/event/api.php:614
 msgid "Successfully deleted"
 msgstr ""
 
@@ -1155,51 +1161,51 @@ msgstr ""
 msgid "Your spot is ready — complete your payment for %s"
 msgstr ""
 
-#: core/event/api.php:32
+#: core/event/api.php:85
 msgid "See Details"
 msgstr ""
 
-#: core/event/api.php:130
+#: core/event/api.php:196
 msgid "Event data retrieve successful"
 msgstr ""
 
-#: core/event/api.php:206
+#: core/event/api.php:272
 msgid "You haven't authorization permission to view settings."
 msgstr ""
 
-#: core/event/api.php:244
-#: core/event/api.php:740
+#: core/event/api.php:310
+#: core/event/api.php:847
 msgid "You haven't authorization permission to update settings."
 msgstr ""
 
-#: core/event/api.php:459
+#: core/event/api.php:542
 msgid "Please enter a event id"
 msgstr ""
 
-#: core/event/api.php:479
+#: core/event/api.php:571
 msgid "Event id is required."
 msgstr ""
 
-#: core/event/api.php:489
-#: core/event/api.php:496
-#: core/event/api.php:512
-#: core/event/api.php:664
+#: core/event/api.php:581
+#: core/event/api.php:588
+#: core/event/api.php:604
+#: core/event/api.php:771
 msgid "Unauthorized user. Sorry you are not allowed to do that"
 msgstr ""
 
-#: core/event/api.php:516
+#: core/event/api.php:608
 msgid "Unable to delete one or more event. Please try again."
 msgstr ""
 
-#: core/event/api.php:668
+#: core/event/api.php:775
 msgid "Something is Wrong"
 msgstr ""
 
-#: core/event/api.php:699
+#: core/event/api.php:806
 msgid "Event Seat Mapping has been saved successfully"
 msgstr ""
 
-#: core/event/api.php:701
+#: core/event/api.php:808
 msgid "Event ID not found"
 msgstr ""
 
@@ -1252,49 +1258,50 @@ msgid "Unique identifier for the event."
 msgstr ""
 
 #: core/event/Api/EventController.php:699
+#: core/event/Api/EventController.php:1142
 msgid "Invalid event id."
 msgstr ""
 
-#: core/event/Api/EventController.php:703
+#: core/event/Api/EventController.php:707
 msgid "You do not have permission to view this event."
 msgstr ""
 
 #. translators: %s is the platform name (e.g. Zoom, Google Meet).
-#: core/event/Api/EventController.php:815
-#: core/event/Api/EventController.php:1801
+#: core/event/Api/EventController.php:819
+#: core/event/Api/EventController.php:1830
 #, php-format
 msgid "%s is not connected"
 msgstr ""
 
-#: core/event/Api/EventController.php:826
+#: core/event/Api/EventController.php:830
 msgid "Event can not be created."
 msgstr ""
 
-#: core/event/Api/EventController.php:1012
+#: core/event/Api/EventController.php:1020
 msgid "Event can not be updated."
 msgstr ""
 
-#: core/event/Api/EventController.php:1145
+#: core/event/Api/EventController.php:1165
 #: core/event/Api/TransactionController.php:281
 msgid "The event cannot be deleted."
 msgstr ""
 
-#: core/event/Api/EventController.php:1169
+#: core/event/Api/EventController.php:1189
 msgid "Event ids can not be empty."
 msgstr ""
 
-#: core/event/Api/EventController.php:1186
+#: core/event/Api/EventController.php:1206
 msgid "Event cannot be deleted."
 msgstr ""
 
 #. translators: %1$d is the number of events deleted, %2$d is the total number of events selected.
-#: core/event/Api/EventController.php:1192
+#: core/event/Api/EventController.php:1212
 #, php-format
 msgid "%1$d events are deleted of %2$d"
 msgstr ""
 
-#: core/event/Api/EventController.php:1216
-#: core/schedule/Api/ScheduleController.php:438
+#: core/event/Api/EventController.php:1236
+#: core/schedule/Api/ScheduleController.php:480
 #: build/chunks/js/828.5540e7a2.js:584
 #: src/pages/template-builder/template-card-grid/hooks/useTemplateActions.js:66
 #: src/pages/template-builder/template-card-grid/hooks/useTemplateActions.js:77
@@ -1302,72 +1309,76 @@ msgstr ""
 msgid "Copy"
 msgstr ""
 
-#: core/event/Api/EventController.php:1285
-#: core/event/Api/EventController.php:2644
+#: core/event/Api/EventController.php:1314
+#: core/event/Api/EventController.php:2694
 msgid "Invalid event ID."
 msgstr ""
 
-#: core/event/Api/EventController.php:1293
+#: core/event/Api/EventController.php:1322
 msgid "Only published event can be set as homepage."
 msgstr ""
 
 #. translators: %s is the event title.
-#: core/event/Api/EventController.php:1308
+#: core/event/Api/EventController.php:1337
 #, php-format
 msgid "Event \"%s\" has been unset from the homepage."
 msgstr ""
 
 #. translators: %s is the event title.
-#: core/event/Api/EventController.php:1313
+#: core/event/Api/EventController.php:1342
 #, php-format
 msgid "Event \"%s\" has been set as the homepage."
 msgstr ""
 
-#: core/event/Api/EventController.php:1319
+#: core/event/Api/EventController.php:1348
 msgid "Failed to update homepage settings."
 msgstr ""
 
-#: core/event/Api/EventController.php:2328
+#: core/event/Api/EventController.php:2357
 msgid "Global ticket capacity must be greater or equal to the total sold tickets"
 msgstr ""
 
-#: core/event/Api/EventController.php:2333
+#: core/event/Api/EventController.php:2362
 msgid "Available ticket must be greater or equal to the sold ticket"
 msgstr ""
 
 #: core/event/Api/EventController.php:2470
+msgid "Sorry, you are not allowed to export these events."
+msgstr ""
+
+#: core/event/Api/EventController.php:2520
 msgid "Successfully imported event"
 msgstr ""
 
-#: core/event/Api/EventController.php:2545
+#: core/event/Api/EventController.php:2595
 msgid "Invalid event id"
 msgstr ""
 
-#: core/event/Api/EventController.php:2549
+#: core/event/Api/EventController.php:2599
 msgid "Invalid author id"
 msgstr ""
 
-#: core/event/Api/EventController.php:2558
+#: core/event/Api/EventController.php:2608
 msgid "Sorry, you are not allowed to reassign the author of this event."
 msgstr ""
 
-#: core/event/Api/EventController.php:2573
+#: core/event/Api/EventController.php:2623
 msgid "Successfully author updated"
 msgstr ""
 
-#: core/event/Api/EventController.php:2632
+#: core/event/Api/EventController.php:2682
 msgid "Status must be Publish OR Draft"
 msgstr ""
 
-#: core/event/Api/EventController.php:2654
+#: core/event/Api/EventController.php:2704
 msgid "Sorry, you are not allowed to update this event."
 msgstr ""
 
-#: core/event/Api/EventController.php:2669
+#: core/event/Api/EventController.php:2719
 msgid "Failed to update event status."
 msgstr ""
 
-#: core/event/Api/EventController.php:2677
+#: core/event/Api/EventController.php:2727
 msgid "Event status updated successfully."
 msgstr ""
 
@@ -1753,7 +1764,7 @@ msgstr ""
 msgid "To enable payments and transactions, WooCommerce is required. Eventin uses WooCommerce to handle bookings, payments, and order management."
 msgstr ""
 
-#: core/event/event-model.php:167
+#: core/event/event-model.php:213
 #: utils/locale/static.php:10
 #: build/chunks/js/279.7f44e510.js:595
 #: build/chunks/js/1097.9f4ecffa.js:193
@@ -1777,8 +1788,8 @@ msgstr ""
 msgid "Expired"
 msgstr ""
 
-#: core/event/event-model.php:173
-#: utils/helper.php:2931
+#: core/event/event-model.php:219
+#: utils/helper.php:2956
 #: build/chunks/js/279.7f44e510.js:595
 #: build/chunks/js/3168.ed2ada72.js:145
 #: build/chunks/js/3168.ed2ada72.js:147
@@ -1791,8 +1802,8 @@ msgstr ""
 msgid "Ongoing"
 msgstr ""
 
-#: core/event/event-model.php:179
-#: utils/helper.php:2930
+#: core/event/event-model.php:225
+#: utils/helper.php:2955
 #: build/chunks/js/279.7f44e510.js:595
 #: build/chunks/js/1658.15f3f6f7.js:331
 #: build/chunks/js/3168.ed2ada72.js:145
@@ -2793,123 +2804,127 @@ msgstr ""
 msgid "Invalid event ID or seat IDs."
 msgstr ""
 
-#: core/Order/OrderController.php:520
+#: core/Order/OrderController.php:514
+msgid "Invalid event."
+msgstr ""
+
+#: core/Order/OrderController.php:530
 msgid "The number of tickets u have selected is not available."
 msgstr ""
 
-#: core/Order/OrderController.php:532
-#: core/Order/OrderController.php:545
+#: core/Order/OrderController.php:542
+#: core/Order/OrderController.php:555
 msgid "Some of selected seats are already booked."
 msgstr ""
 
-#: core/Order/OrderController.php:586
+#: core/Order/OrderController.php:596
 msgid "Seats booked successfully."
 msgstr ""
 
-#: core/Order/OrderController.php:609
+#: core/Order/OrderController.php:619
 msgid "Waiting list is not enabled for this event."
 msgstr ""
 
-#: core/Order/OrderController.php:784
+#: core/Order/OrderController.php:794
 msgid "Payment method is required."
 msgstr ""
 
-#: core/Order/OrderController.php:790
+#: core/Order/OrderController.php:800
 msgid "Invalid order id."
 msgstr ""
 
-#: core/Order/OrderController.php:802
+#: core/Order/OrderController.php:812
 msgid "Invalid status"
 msgstr ""
 
-#: core/Order/OrderController.php:828
+#: core/Order/OrderController.php:838
 msgid "You can't refund a failed order"
 msgstr ""
 
-#: core/Order/OrderController.php:832
+#: core/Order/OrderController.php:842
 msgid "You can't fail a refunded order"
 msgstr ""
 
-#: core/Order/OrderController.php:839
+#: core/Order/OrderController.php:849
 msgid "Partially refunded orders can only be fully refunded or restored to completed."
 msgstr ""
 
-#: core/Order/OrderController.php:891
-#: core/Order/OrderController.php:2332
+#: core/Order/OrderController.php:901
+#: core/Order/OrderController.php:2342
 msgid "Successfully refunded"
 msgstr ""
 
-#: core/Order/OrderController.php:895
+#: core/Order/OrderController.php:905
 msgid "Refund unsuccessful"
 msgstr ""
 
-#: core/Order/OrderController.php:1036
+#: core/Order/OrderController.php:1046
 msgid "The order cannot be deleted."
 msgstr ""
 
-#: core/Order/OrderController.php:1058
+#: core/Order/OrderController.php:1068
 msgid "Order ids can not be empty."
 msgstr ""
 
-#: core/Order/OrderController.php:1071
+#: core/Order/OrderController.php:1081
 msgid "No orders accessible to delete."
 msgstr ""
 
-#: core/Order/OrderController.php:1106
+#: core/Order/OrderController.php:1116
 msgid "Order cannot be deleted."
 msgstr ""
 
 #. translators: %1$d is the number of orders deleted, %2$d is the total number of orders selected.
-#: core/Order/OrderController.php:1112
+#: core/Order/OrderController.php:1122
 #, php-format
 msgid "%1$d orders are deleted of %2$d"
 msgstr ""
 
-#: core/Order/OrderController.php:1332
+#: core/Order/OrderController.php:1342
 msgid "Ticket quantity must be at least 1."
 msgstr ""
 
 #. translators: 1: tickets already purchased, 2: max allowed per email.
-#: core/Order/OrderController.php:1850
+#: core/Order/OrderController.php:1860
 #, php-format
 msgid "You have already purchased %1$d of %2$d allowed tickets for this event with this email."
 msgstr ""
 
 #. translators: 1: tickets already purchased, 2: max allowed per email, 3: tickets the user can still buy.
-#: core/Order/OrderController.php:1865
+#: core/Order/OrderController.php:1875
 #, php-format
 msgid "You have already purchased %1$d of %2$d allowed tickets for this event. You can buy up to %3$d more with this email."
 msgstr ""
 
-#: core/Order/OrderController.php:1995
+#: core/Order/OrderController.php:2005
 msgid "No orders accessible to export."
 msgstr ""
 
-#: core/Order/OrderController.php:2054
+#: core/Order/OrderController.php:2064
 msgid "Successfully imported order"
 msgstr ""
 
-#: core/Order/OrderController.php:2158
-#: core/Order/OrderController.php:2162
-#: core/Order/OrderController.php:2241
-#: core/Order/OrderController.php:2245
-#: core/Order/OrderController.php:2304
+#: core/Order/OrderController.php:2168
+#: core/Order/OrderController.php:2172
+#: core/Order/OrderController.php:2251
+#: core/Order/OrderController.php:2255
+#: core/Order/OrderController.php:2314
 msgid "Invalid order id"
 msgstr ""
 
-#: core/Order/OrderController.php:2208
+#: core/Order/OrderController.php:2218
 msgid "Successfully send ticket email to"
 msgstr ""
 
-#: core/Order/OrderController.php:2253
+#: core/Order/OrderController.php:2263
 msgid "Payment link can only be sent for orders with waiting-list status."
 msgstr ""
 
-#: core/Order/OrderController.php:2277
+#: core/Order/OrderController.php:2287
 msgid "Payment link sent successfully."
 msgstr ""
 
-#: core/Order/OrderController.php:2313
+#: core/Order/OrderController.php:2323
 msgid "No refundable tickets remain."
 msgstr ""
 
@@ -2985,73 +3000,77 @@ msgstr ""
 msgid "Add-ons Total"
 msgstr ""
 
-#: core/Order/PaymentController.php:95
+#: core/Order/PaymentController.php:105
+msgid "Invalid order."
+msgstr ""
+
+#: core/Order/PaymentController.php:132
 msgid "Please activate SureCart and Eventin Surecart Addon"
 msgstr ""
 
-#: core/Order/PaymentController.php:103
+#: core/Order/PaymentController.php:140
 msgid "Please activate Eventin Pro"
 msgstr ""
 
-#: core/Order/PaymentController.php:111
+#: core/Order/PaymentController.php:148
 msgid "WooCommerce is not active"
 msgstr ""
 
-#: core/Order/PaymentController.php:260
-#: core/Order/PaymentController.php:265
+#: core/Order/PaymentController.php:303
+#: core/Order/PaymentController.php:308
 msgid "Invalid payment method."
 msgstr ""
 
-#: core/Order/PaymentController.php:273
-#: core/Order/PaymentController.php:506
-#: core/Order/PaymentController.php:586
-#: core/Order/PaymentController.php:639
+#: core/Order/PaymentController.php:316
+#: core/Order/PaymentController.php:549
+#: core/Order/PaymentController.php:629
+#: core/Order/PaymentController.php:682
 msgid "Payment Update Failed.."
 msgstr ""
 
-#: core/Order/PaymentController.php:358
-#: core/Order/PaymentController.php:382
+#: core/Order/PaymentController.php:401
+#: core/Order/PaymentController.php:425
 msgid "Successfully payment updated"
 msgstr ""
 
-#: core/Order/PaymentController.php:364
+#: core/Order/PaymentController.php:407
 msgid "Failed to completed your order"
 msgstr ""
 
-#: core/Order/PaymentController.php:369
+#: core/Order/PaymentController.php:412
 msgid "Invalid payment"
 msgstr ""
 
-#: core/Order/PaymentController.php:478
-#: core/Order/PaymentController.php:502
-#: core/Order/PaymentController.php:530
+#: core/Order/PaymentController.php:521
+#: core/Order/PaymentController.php:545
+#: core/Order/PaymentController.php:573
 msgid "Unexpected Error"
 msgstr ""
 
-#: core/Order/PaymentController.php:536
+#: core/Order/PaymentController.php:579
 msgid "Payment Update Failed"
 msgstr ""
 
-#: core/Order/PaymentController.php:563
+#: core/Order/PaymentController.php:606
 msgid "SureCart checkout ID is required"
 msgstr ""
 
-#: core/Order/PaymentController.php:574
-#: core/Order/PaymentController.php:580
+#: core/Order/PaymentController.php:617
+#: core/Order/PaymentController.php:623
 msgid "Unable to verify SureCart payment"
 msgstr ""
 
-#: core/Order/PaymentController.php:594
-#: core/Order/PaymentController.php:660
+#: core/Order/PaymentController.php:637
+#: core/Order/PaymentController.php:703
 msgid "Payment does not match this order"
 msgstr ""
 
-#: core/Order/PaymentController.php:615
+#: core/Order/PaymentController.php:658
 msgid "FluentCart cart hash is required"
 msgstr ""
 
-#: core/Order/PaymentController.php:626
-#: core/Order/PaymentController.php:633
+#: core/Order/PaymentController.php:669
+#: core/Order/PaymentController.php:676
 msgid "Unable to verify FluentCart payment"
 msgstr ""
 
@@ -3118,8 +3137,12 @@ msgstr ""
 msgid "You can edit individual recurrences and detach them from this recurring event. It won't effect any other recurrence"
 msgstr ""
 
-#: core/Refund/Api/RefundController.php:49
+#: core/Refund/Api/RefundController.php:66
 msgid "You do not have permission to manage orders."
+msgstr ""
+
+#: core/Refund/Api/RefundController.php:70
+msgid "Sorry, you are not allowed to manage refunds for this order."
 msgstr ""
 
 #: core/Refund/RefundService.php:34
@@ -3171,37 +3194,45 @@ msgstr ""
 msgid "Another refund is being processed on this order. Try again in a few seconds."
 msgstr ""
 
-#: core/schedule/Api/ScheduleController.php:266
+#: core/schedule/Api/ScheduleController.php:290
 msgid "Can not create schedule"
 msgstr ""
 
-#: core/schedule/Api/ScheduleController.php:305
+#: core/schedule/Api/ScheduleController.php:333
 msgid "Can not update schedule"
 msgstr ""
 
-#: core/schedule/Api/ScheduleController.php:367
+#: core/schedule/Api/ScheduleController.php:386
+msgid "Invalid schedule id."
+msgstr ""
+
+#: core/schedule/Api/ScheduleController.php:409
 msgid "The schedule cannot be deleted."
 msgstr ""
 
-#: core/schedule/Api/ScheduleController.php:389
+#: core/schedule/Api/ScheduleController.php:431
 msgid "Schedule ids can not be empty."
 msgstr ""
 
-#: core/schedule/Api/ScheduleController.php:406
+#: core/schedule/Api/ScheduleController.php:448
 msgid "Schedule cannot be deleted."
 msgstr ""
 
 #. translators: %1$d is the number of schedules deleted, %2$d is the total number of schedules selected.
-#: core/schedule/Api/ScheduleController.php:412
+#: core/schedule/Api/ScheduleController.php:454
 #, php-format
 msgid "%1$d Schedule are deleted of %2$d"
 msgstr ""
 
-#: core/schedule/Api/ScheduleController.php:428
+#: core/schedule/Api/ScheduleController.php:470
 msgid "Invalid schedule id"
 msgstr ""
 
-#: core/schedule/Api/ScheduleController.php:651
+#: core/schedule/Api/ScheduleController.php:669
+msgid "Sorry, you are not allowed to export these schedules."
+msgstr ""
+
+#: core/schedule/Api/ScheduleController.php:716
 msgid "Successfully imported schedule"
 msgstr ""
 
@@ -3579,8 +3610,8 @@ msgid "Show End Date"
 msgstr ""
 
 #: core/shortcodes/views/shortcode-list-menu.php:106
-#: utils/helper.php:2889
-#: utils/helper.php:2903
+#: utils/helper.php:2914
+#: utils/helper.php:2928
 #: widgets/event-calendar/event-calendar.php:142
 #: widgets/event-calendar/event-calendar.php:154
 #: widgets/event-calendar/event-calendar.php:165
@@ -3636,8 +3667,8 @@ msgid "Yes"
 msgstr ""
 
 #: core/shortcodes/views/shortcode-list-menu.php:107
-#: utils/helper.php:2890
-#: utils/helper.php:2904
+#: utils/helper.php:2915
+#: utils/helper.php:2929
 #: widgets/event-calendar/event-calendar.php:143
 #: widgets/event-calendar/event-calendar.php:155
 #: widgets/event-calendar/event-calendar.php:166
@@ -4046,60 +4077,67 @@ msgstr ""
 msgid "%1$d terms are deleted of %2$d"
 msgstr ""
 
-#: core/speaker/Api/SpeakerController.php:387
+#: core/speaker/Api/SpeakerController.php:416
 msgid "Speaker can not create from clone id. Please try again"
 msgstr ""
 
-#: core/speaker/Api/SpeakerController.php:474
+#: core/speaker/Api/SpeakerController.php:503
 msgid "User does not exist"
 msgstr ""
 
-#: core/speaker/Api/SpeakerController.php:479
-#: core/speaker/Api/SpeakerController.php:487
+#: core/speaker/Api/SpeakerController.php:508
+#: core/speaker/Api/SpeakerController.php:516
 msgid "Forbidden"
 msgstr ""
 
-#: core/speaker/Api/SpeakerController.php:511
+#: core/speaker/Api/SpeakerController.php:540
 msgid "The email you provided is exist and assign speaker or organizer role"
 msgstr ""
 
-#: core/speaker/Api/SpeakerController.php:521
+#: core/speaker/Api/SpeakerController.php:550
 msgid "Speaker can not updated. Please try again"
 msgstr ""
 
-#: core/speaker/Api/SpeakerController.php:574
-#: core/speaker/Api/SpeakerController.php:607
+#: core/speaker/Api/SpeakerController.php:588
+msgid "Invalid speaker id."
+msgstr ""
+
+#: core/speaker/Api/SpeakerController.php:608
 msgid "The speaker cannot be deleted."
 msgstr ""
 
-#: core/speaker/Api/SpeakerController.php:596
+#: core/speaker/Api/SpeakerController.php:631
 msgid "Speaker ids can not be empty."
 msgstr ""
 
-#: core/speaker/Api/SpeakerController.php:635
+#: core/speaker/Api/SpeakerController.php:674
 msgid "Speaker cannot be deleted."
 msgstr ""
 
 #. translators: %1$d is the number of speakers deleted, %2$d is the total number of speakers selected.
-#: core/speaker/Api/SpeakerController.php:641
+#: core/speaker/Api/SpeakerController.php:680
 #, php-format
 msgid "%1$d speakers are deleted of %2$d"
 msgstr ""
 
-#: core/speaker/Api/SpeakerController.php:899
+#: core/speaker/Api/SpeakerController.php:971
 msgid "Successfully imported speakers"
 msgstr ""
 
-#: core/speaker/Api/SpeakerController.php:961
+#: core/speaker/Api/SpeakerController.php:1036
 msgid "Successfully imported organizers"
 msgstr ""
 
-#: core/speaker/Api/SpeakerController.php:996
+#: core/speaker/Api/SpeakerController.php:1071
 msgid "Sorry, you are not allowed to modify this user."
 msgstr ""
 
-#: core/speaker/Api/SpeakerController.php:1014
+#: core/speaker/Api/SpeakerController.php:1089
 msgid "Speaker or Organizer already exists"
+msgstr ""
+
+#: core/speaker/Api/SpeakerController.php:1113
+msgid "Sorry, you are not allowed to assign roles to this user."
 msgstr ""
 
 #: core/speaker/category.php:34
@@ -4950,7 +4988,7 @@ msgstr ""
 
 #: templates/attendee/update-attendee.php:112
 #: templates/attendee/update-attendee.php:131
-#: utils/helper.php:1679
+#: utils/helper.php:1704
 msgid "Return to homepage"
 msgstr ""
 
@@ -5026,14 +5064,14 @@ msgstr ""
 #: templates/emails/admin-order-email-template.php:338
 #: templates/emails/attendee-certificate-email-template.php:45
 #: templates/emails/attendee-order-email-template.php:43
-#: utils/helper.php:3160
+#: utils/helper.php:3185
 msgid "Ticket name: "
 msgstr ""
 
 #: templates/emails/admin-order-email-template.php:339
 #: templates/emails/attendee-certificate-email-template.php:46
 #: templates/emails/attendee-order-email-template.php:44
-#: utils/helper.php:3161
+#: utils/helper.php:3186
 msgid "Attendee: "
 msgstr ""
 
@@ -5675,7 +5713,7 @@ msgid " attendees so far."
 msgstr ""
 
 #: templates/event/purchase-form/recurring-event-variable-ticket.php:54
-#: utils/helper.php:4670
+#: utils/helper.php:4695
 msgid "To"
 msgstr ""
 
@@ -6620,7 +6658,7 @@ msgid "Sorry, you are not allowed to do that."
 msgstr ""
 
 #: utils/functions.php:735
-#: utils/helper.php:3302
+#: utils/helper.php:3327
 #: build/js/dashboard.js:5000
 #: build/js/index-onboard.js:4464
 #: build/js/packages.js:6908
@@ -6946,23 +6984,23 @@ msgstr ""
 msgid "Twitter"
 msgstr ""
 
-#: utils/helper.php:1676
+#: utils/helper.php:1701
 msgid "Invalid data. "
 msgstr ""
 
-#: utils/helper.php:1776
+#: utils/helper.php:1801
 msgid "Select Location"
 msgstr ""
 
-#: utils/helper.php:1955
+#: utils/helper.php:1980
 msgid "Event filter button"
 msgstr ""
 
-#: utils/helper.php:2733
+#: utils/helper.php:2758
 msgid "Select a Category"
 msgstr ""
 
-#: utils/helper.php:2916
+#: utils/helper.php:2941
 #: build/js/gutenberg-blocks.js:1
 #: src/module-gutten-block/blocks/event-list/edit.js:223
 #: src/module-gutten-block/blocks/schedule-tab/edit.js:132
@@ -6970,7 +7008,7 @@ msgstr ""
 msgid "ASC"
 msgstr ""
 
-#: utils/helper.php:2917
+#: utils/helper.php:2942
 #: build/js/gutenberg-blocks.js:1
 #: src/module-gutten-block/blocks/event-list/edit.js:224
 #: src/module-gutten-block/blocks/schedule-tab/edit.js:133
@@ -6978,7 +7016,7 @@ msgstr ""
 msgid "DESC"
 msgstr ""
 
-#: utils/helper.php:2929
+#: utils/helper.php:2954
 #: widgets/events-calendar/events-calendar.php:128
 #: widgets/events-tab/events-tab.php:158
 #: widgets/events/events.php:143
@@ -7005,47 +7043,47 @@ msgstr ""
 msgid "All"
 msgstr ""
 
-#: utils/helper.php:2932
+#: utils/helper.php:2957
 #: build/js/gutenberg-blocks.js:1
 #: src/module-gutten-block/blocks/event-list/edit.js:208
 msgid "Expire"
 msgstr ""
 
-#: utils/helper.php:3164
+#: utils/helper.php:3189
 msgid "Download Ticket "
 msgstr ""
 
-#: utils/helper.php:3167
+#: utils/helper.php:3192
 msgid " Edit Information"
 msgstr ""
 
 #. translators: %s: Event name
-#: utils/helper.php:3266
+#: utils/helper.php:3291
 #, php-format
 msgid "You have purchased ticket(s) for %s. Attendee ticket details are as follows."
 msgstr ""
 
-#: utils/helper.php:3480
+#: utils/helper.php:3505
 msgid "Date: "
 msgstr ""
 
-#: utils/helper.php:3480
+#: utils/helper.php:3505
 msgid " to "
 msgstr ""
 
-#: utils/helper.php:3481
+#: utils/helper.php:3506
 msgid " Time: "
 msgstr ""
 
-#: utils/helper.php:3481
+#: utils/helper.php:3506
 msgid " - "
 msgstr ""
 
-#: utils/helper.php:3664
+#: utils/helper.php:3689
 msgid "Input field is empty"
 msgstr ""
 
-#: utils/helper.php:4048
+#: utils/helper.php:4073
 #: build/chunks/js/828.5540e7a2.js:236
 #: build/js/dashboard.js:1
 #: build/js/dashboard.js:1142
@@ -7066,15 +7104,15 @@ msgstr ""
 msgid "Default"
 msgstr ""
 
-#: utils/helper.php:4744
+#: utils/helper.php:4769
 msgid "More Events"
 msgstr ""
 
-#: utils/helper.php:4875
+#: utils/helper.php:4900
 msgid "Upgrade to  Pro"
 msgstr ""
 
-#: utils/helper.php:4895
+#: utils/helper.php:4920
 msgid "Install Eventin AI"
 msgstr ""
 

@@ -132,13 +132,37 @@ class ScheduleController extends WP_REST_Controller {
     }
 
     /**
-     * Check if a given request has access to get items.
+     * Check if a given request has access to read schedules.
+     *
+     * This callback serves THREE routes: the collection, `/schedules/{id}` and
+     * `/schedules/{id}/clone`.
+     *
+     * get_items() has always author-scoped its query, and update/delete/export
+     * were scoped in 4.1.20/4.1.21 — but the per-id read stayed on the
+     * capability alone. `etn_manage_schedule` is granted to Contributor by
+     * default (core/AccessControl/Permission.php:299), so walking ids returned
+     * every other user's schedule in full, and the clone route let a
+     * Contributor duplicate one into their own account.
+     *
+     * The capability still gates access to the feature; ownership of the
+     * specific schedule decides whether a per-id call may proceed.
      *
      * @param WP_REST_Request $request Full data about the request.
      * @return WP_Error|boolean
      */
     public function get_item_permissions_check( $request ) {
-        return current_user_can( 'etn_manage_schedule' );
+        if ( ! current_user_can( 'etn_manage_schedule' ) ) {
+            return false;
+        }
+
+        $schedule_id = Ownership::route_subject_id( $request );
+
+        // Collection route: get_items() author-scopes the query itself.
+        if ( ! $schedule_id ) {
+            return true;
+        }
+
+        return Ownership::can_manage_post( $schedule_id, 'etn-schedule' );
     }
 
     /**
@@ -292,13 +316,17 @@ class ScheduleController extends WP_REST_Controller {
      * @return WP_Error|WP_REST_Response
      */
     public function update_item( $request ) {
+        // Same source the permission check used — the id in the path. Reading
+        // `$request['id']` would let a JSON body shadow it.
+        $id = Ownership::route_subject_id( $request );
+
         $data = $this->prepare_item_for_database( $request );
 
         if ( is_wp_error( $data ) ) {
             return $data;
         }
 
-        $schedule = new Schedule_Model( $request['id'] );
+        $schedule = new Schedule_Model( $id );
         $updated  = $schedule->update( $data );
 
         if ( ! $updated ) {
@@ -326,6 +354,11 @@ class ScheduleController extends WP_REST_Controller {
      * this applies the same per-object author test to the write path, which
      * previously checked only the collection-level capability.
      *
+     * The subject is read from the URL, matching update_item(). Both sides must
+     * use the same accessor: `$request['id']` resolves a JSON body key before
+     * the URL one, so a check and a handler that disagree about the source are
+     * the BOLA bypass described in Ownership::route_subject_id().
+     *
      * @param WP_REST_Request $request Full data about the request.
      * @return WP_Error|boolean
      */
@@ -334,7 +367,7 @@ class ScheduleController extends WP_REST_Controller {
             return false;
         }
 
-        return Ownership::can_manage_post( $request['id'], 'etn-schedule' );
+        return Ownership::can_manage_post( Ownership::route_subject_id( $request ), 'etn-schedule' );
     }
 
     /**
@@ -344,7 +377,16 @@ class ScheduleController extends WP_REST_Controller {
      * @return WP_Error|WP_REST_Response
      */
     public function delete_item( $request ) {
-        $id = intval( $request['id'] );
+        // Same source the permission check used — the id in the path.
+        $id = Ownership::route_subject_id( $request );
+
+        if ( ! $id ) {
+            return new WP_Error(
+                'rest_schedule_invalid',
+                __( 'Invalid schedule id.', 'eventin' ),
+                array( 'status' => 404 )
+            );
+        }
 
         $schedule = new Schedule_Model( $id );
         $previous = $this->prepare_item_for_response( $schedule, $request );
@@ -458,6 +500,11 @@ class ScheduleController extends WP_REST_Controller {
      * bulk request containing one foreign id is refused outright rather than
      * partially applied.
      *
+     * Which branch runs is decided by the ROUTE, not by which parameters happen
+     * to be present — otherwise `DELETE /schedules/<victim>` carrying an `ids`
+     * body is authorised against the caller's own schedule and executed against
+     * the victim's. See Ownership::route_subject_id().
+     *
      * @param WP_REST_Request $request Full data about the request.
      * @return WP_Error|boolean
      */
@@ -466,11 +513,15 @@ class ScheduleController extends WP_REST_Controller {
             return false;
         }
 
-        if ( ! empty( $request['ids'] ) ) {
-            return Ownership::can_manage_posts( $request['ids'], 'etn-schedule' );
+        $subject_id = Ownership::route_subject_id( $request );
+
+        // Per-id route: authorise exactly the id in the path, and nothing else.
+        if ( $subject_id ) {
+            return Ownership::can_manage_post( $subject_id, 'etn-schedule' );
         }
 
-        return Ownership::can_manage_post( $request['id'], 'etn-schedule' );
+        // Bulk route: every id in the batch must be the caller's.
+        return Ownership::can_manage_posts( $request['ids'], 'etn-schedule' );
     }
 
     /**
@@ -608,9 +659,23 @@ class ScheduleController extends WP_REST_Controller {
             return new WP_Error( 'format_error', __( 'Invalid data format', 'eventin' ) );
         }
 
-        if ( ! $ids ) {
+        // The no-ids branch is already author-scoped by Post_Model::get_ids();
+        // an explicit list was taken on trust and let a Contributor read other
+        // people's schedules straight past the per-id checks.
+        if ( $ids ) {
+            if ( ! Ownership::can_manage_posts( $ids, 'etn-schedule' ) ) {
+                return new WP_Error(
+                    'rest_forbidden',
+                    __( 'Sorry, you are not allowed to export these schedules.', 'eventin' ),
+                    [ 'status' => 403 ]
+                );
+            }
+        } else {
             $ids = (new Schedule_Model())->get_ids();
         }
+
+        // Keep the demo event's schedules out of the file — see EventController.
+        $ids = \Eventin\PreviewPlaceholder\PreviewPlaceholder::strip_post_ids( (array) $ids );
 
         $exporter = new ScheduleExporter();
         $exporter->export( $ids, $format );

@@ -78,6 +78,35 @@ class SpeakerImporter implements PostImporterInterface {
 		        $row['role'] = 'etn-speaker';
 	        }
 
+            // `etn_speaker_group` and `etn_speaker_category` are different things
+            // that were being fed the same value. The group is the speaker-category
+            // TAXONOMY assignment (term ids, the CSV's `speaker_group` column); the
+            // category is the record TYPE — `speaker` or `organizer` — which is what
+            // User_Model::get_data() reports and the edit form binds to. Copying the
+            // group into the category left every imported record with term ids where
+            // the type belongs.
+            // SpeakerExporter writes a `speaker_category` column, so honour it when
+            // the file came from an export — but never over a forced role, which is
+            // how the Organizers tab imports (the caller has already said what these
+            // rows are). Otherwise derive the type from the role normalised above.
+            $category = ( ! $forced_role && ! empty( $row['speaker_category'] ) ) ? $row['speaker_category'] : '';
+
+            if ( $category && 'text/csv' == $file_type ) {
+                $category = json_decode( $category, true );
+            }
+
+            $category = array_values(
+                array_filter(
+                    (array) $category,
+                    function ( $value ) {
+                        return is_string( $value )
+                            && in_array( strtolower( $value ), [ 'speaker', 'organizer' ], true );
+                    }
+                )
+            );
+
+            $type = $category ? $category : [ str_replace( 'etn-', '', $row['role'] ) ];
+
             $args = [
                 'first_name'                => ! empty( $row['name'] ) ? $row['name'] : '',
                 'etn_speaker_website_email' => ! empty( $row['email'] ) ? $row['email'] : '',
@@ -88,7 +117,7 @@ class SpeakerImporter implements PostImporterInterface {
                 'etn_speaker_company_logo'  => ! empty( $row['company_logo'] ) ? $row['company_logo'] : '',
                 'etn_speaker_url'           => ! empty( $row['company_url'] ) ? $row['company_url'] : '',
                 'etn_speaker_group'         => $group,
-                'etn_speaker_category'      => $group,
+                'etn_speaker_category'      => $type,
                 'etn_company_name'          => ! empty( $row['company_name'] ) ? $row['company_name'] : '',
                 'author_url'                => ! empty( $row['author_url'] ) ? $row['author_url'] : '',
                 'role'                      => ! empty( $row['role'] ) ? $row['role'] : '',

@@ -21,6 +21,59 @@ class Api extends \Etn\Base\Api_Handler {
 	}
 
 	/**
+	 * Actions this endpoint serves without a WordPress account.
+	 *
+	 * Every entry is genuinely used by an anonymous front-end visitor, and every
+	 * entry guards its own data — the three read actions run each event through
+	 * Ownership::can_read_post(), and `list` scopes status and author from the
+	 * session rather than from the request.
+	 *
+	 * Callers, for whoever prunes this later:
+	 *  - get_events          the calendar shortcode (src/helpers/utils/fetch-calendar-events.js)
+	 *  - get_list            Timetics Pro's FRONT-END bundle (assets/js/frontend.js)
+	 *  - get_seatmap_details the seat-map picker, before anyone signs in
+	 *  - get_single_event    no bundled caller found, kept public as it always was
+	 *  - post_subscribe_email the front-end newsletter box (anonymous by design)
+	 *
+	 * @return string[]
+	 */
+	protected function public_actions() {
+		return [
+			'get_events',
+			'get_list',
+			'get_single_event',
+			'get_seatmap_details',
+			'post_subscribe_email',
+		];
+	}
+
+	/**
+	 * Capability required for each non-public action.
+	 *
+	 * These mirror what the handlers already enforce internally, so the router
+	 * refuses earlier without changing who succeeds:
+	 *  - settings  was already the one action gated on manage_options
+	 *  - seatmap   post_seatmap() checks manage_options itself
+	 *  - events    delete_events() requires manage_options OR etn_manage_event,
+	 *              then checks per-event ownership — an organizer deleting their
+	 *              own event must still get through
+	 *
+	 * `post_onboard_mail` is deliberately absent: it has no caller anywhere in
+	 * the plugin, no capability check of its own, and posts to an empty URL, so
+	 * it is dead code that was reachable by anyone. Undeclared means unreachable.
+	 *
+	 * @return array<string,string>
+	 */
+	protected function action_capabilities() {
+		return [
+			'get_settings'  => 'manage_options',
+			'post_settings' => 'manage_options',
+			'post_seatmap'  => 'manage_options',
+			'delete_events' => 'etn_manage_event',
+		];
+	}
+
+	/**
 	 * get user profile when user is logged in
 	* @API Link www.domain.com/wp-json/eventin/v1/events/
 	* @return array status_code, messages, content
@@ -35,6 +88,19 @@ class Api extends \Etn\Base\Api_Handler {
 		if ( ! empty( $request['id'] ) && is_numeric( $request['id'] ) ) {
 			// request for a single event
 			$event_id        = $request['id'];
+
+			// Same exposure as `single_event`: reachable with nothing but a
+			// wp_rest nonce, and this branch dumps the whole post row plus
+			// every meta key. Unpublished events are for their author and for
+			// whoever may edit other people's posts.
+			if ( ! \Eventin\AccessControl\Ownership::can_read_post( $event_id, 'etn' ) ) {
+				return [
+					'status_code' => 0,
+					'messages'    => [ 'error' => esc_html__( 'Event not found.', 'eventin' ) ],
+					'content'     => [],
+				];
+			}
+
 			$event           = (array) get_post( $event_id ); // obj
 			$event_meta      = get_post_meta( $event_id ); // array
 			$serialized_meta = ["etn_event_schedule", "etn_event_socials", "etn_ticket_variations"];
@@ -315,11 +381,13 @@ class Api extends \Etn\Base\Api_Handler {
 		// this route is reachable by any low-privilege user. Non-published
 		// events (drafts, pending, private) are only ever visible to someone
 		// who may read them; everyone else sees the published list.
+		//
+		// `post_status` itself is decided further down, once the author scope
+		// is known — see the note above the assignment.
 		$can_read_unpublished = current_user_can( 'edit_others_posts' ) || current_user_can( 'manage_options' );
 
 		$args = [
 			'post_type'      => 'etn',
-			'post_status'    => $can_read_unpublished ? 'any' : 'publish',
 			'posts_per_page' => $posts_per_page,
 			'paged'          => $paged,
 		];
@@ -362,7 +430,7 @@ class Api extends \Etn\Base\Api_Handler {
 
 			if ( ! $current_user_id ) {
 				// Logged-out callers get the public published list, unscoped by
-				// author. post_status is already forced to publish above.
+				// author. post_status is forced to publish below.
 				$args['author'] = '';
 			} else {
 				$args['author'] = $current_user_id;
@@ -372,6 +440,21 @@ class Api extends \Etn\Base\Api_Handler {
 		if ( empty( $args['author'] ) ) {
 			unset( $args['author'] );
 		}
+
+		// Decide the status filter from the scope the query actually ended up
+		// with, not from the capability alone. `any` is safe when the query
+		// cannot reach anyone else's posts — either the caller may read other
+		// people's unpublished posts, or the author filter is pinned to the
+		// caller's own id, in which case `any` returns nothing but their own
+		// drafts. Gating on the capability alone hid Authors' and Contributors'
+		// own drafts from them, which the pre-4.1.21 route did show.
+		//
+		// `any` never includes trashed or auto-draft posts — WP_Query excludes
+		// every status flagged exclude_from_search.
+		$scoped_to_self = ! empty( $args['author'] )
+			&& (int) $args['author'] === get_current_user_id();
+
+		$args['post_status'] = ( $can_read_unpublished || $scoped_to_self ) ? 'any' : 'publish';
 
 		// Hide the shipped preview-placeholder event from this v1 REST list (the
 		// pre_get_posts exclusion skips REST requests, so exclude at the source).
@@ -463,6 +546,15 @@ class Api extends \Etn\Base\Api_Handler {
 			return new WP_Error( 'event_not_found', __( 'Event not found.', 'eventin' ) );
 		}
 
+		// The central v1 permission check only verifies the wp_rest nonce, so
+		// this route is reachable by any logged-in user — a Subscriber
+		// included. `get_list` was scoped in 4.1.20; this action reads a single
+		// event by id and had no status test at all, so iterating ids returned
+		// every draft and private event on the site.
+		if ( ! \Eventin\AccessControl\Ownership::can_read_post( $event_id, 'etn' ) ) {
+			return new WP_Error( 'event_not_found', __( 'Event not found.', 'eventin' ), [ 'status' => 404 ] );
+		}
+
 		return $this->prepare_event( $event );
 	}
 
@@ -531,6 +623,21 @@ class Api extends \Etn\Base\Api_Handler {
 
 		$request            = $this->request;
 		$event_id           = ! empty( $request['id'] ) ? intval( $request['id'] ) : null;
+
+		// Third sink for the same disclosure as `single_event` and the single-id
+		// branch of `events`. The central v1 check only verifies a wp_rest nonce,
+		// which WordPress also issues to logged-out visitors, so this handler is
+		// unauthenticated in practice. Without a status test it returns an
+		// unpublished event's title, location, start date, permalink and full
+		// ticket price list to anyone walking ids.
+		if ( ! \Eventin\AccessControl\Ownership::can_read_post( $event_id, 'etn' ) ) {
+			return rest_ensure_response( [
+				'success'     => 0,
+				'status_code' => 404,
+				'data'        => [],
+			] );
+		}
+
 		$ticket_details     = get_post_meta( $event_id, 'etn_ticket_variations', true );
 		$is_admin			= isset( $request['is_admin'] ) && filter_var( $request['is_admin'], FILTER_VALIDATE_BOOLEAN );
 

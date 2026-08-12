@@ -154,6 +154,19 @@ abstract class Post_Model {
      * @return  bool
      */
     public function update( $args = [] ) {
+        // Only ever update an existing post that is ALREADY this model's type.
+        // update() re-stamps $this->post_type into wp_update_post(), so without
+        // this gate an id pointing at a page/post/product would be rewritten to
+        // this model's type (Patchstack 33814: any post_type -> etn-order via
+        // the nonce-only /payment route). A missing id would create a new post.
+        // update() is never meant to create a record or change a post's type —
+        // create() does that — so refusing both is safe for every subclass.
+        $existing = $this->id ? get_post( $this->id ) : null;
+
+        if ( ! $existing || $existing->post_type !== $this->post_type ) {
+            return false;
+        }
+
         $defaults = [
             'ID'        => $this->id,
             'post_type' => $this->post_type,

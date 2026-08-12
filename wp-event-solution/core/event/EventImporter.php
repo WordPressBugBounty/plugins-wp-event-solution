@@ -12,6 +12,7 @@ defined( 'ABSPATH' ) || exit;
 use Eventin\Importer\PostImporterInterface;
 use Eventin\Importer\ReaderFactory;
 use Etn\Core\Event\Event_Model;
+use Etn\Utils\Helper;
 
 /**
  * Class Event Importer
@@ -77,9 +78,12 @@ class EventImporter implements PostImporterInterface {
                 'etn_ticket_availability'           => ! empty( $row['ticket_availability'] ) ? sanitize_text_field( $row['ticket_availability'] ) : '',
                 'etn_event_logo'                    => '',
                 'event_banner'                      => ! empty( $row['event_banner'] ) ? esc_url_raw( $row['event_banner'] ) : '',
-                'event_layout'                      => ! empty( $row['event_layout'] ) ? sanitize_text_field( $row['event_layout'] ) : '',
-                'ticket_template'                   => ! empty( $row['ticket_template'] ) ? sanitize_text_field( $row['ticket_template'] ) : '',
-                'certificate_template'              => ! empty( $row['certificate_template'] ) ? sanitize_text_field( $row['certificate_template'] ) : '',
+                // Template slugs, not free text: they are concatenated into an
+                // include path when the event renders, and sanitize_text_field()
+                // preserves `../`. An import file is attacker-supplied content.
+                'event_layout'                      => ! empty( $row['event_layout'] ) ? Helper::sanitize_template_slug( $row['event_layout'], '' ) : '',
+                'ticket_template'                   => ! empty( $row['ticket_template'] ) ? Helper::sanitize_template_slug( $row['ticket_template'], '' ) : '',
+                'certificate_template'              => ! empty( $row['certificate_template'] ) ? Helper::sanitize_template_slug( $row['certificate_template'], '' ) : '',
                 'etn_event_calendar_bg'             => ! empty( $row['calendar_bg'] ) ? sanitize_text_field( $row['calendar_bg'] ) : '',
                 'etn_event_calendar_text_color'     => ! empty( $row['calendar_text_color'] ) ? sanitize_text_field( $row['calendar_text_color'] ) : '',
                 'etn_registration_deadline'         => ! empty( $row['registration_deadline'] ) ? sanitize_text_field( $row['registration_deadline'] ) : '',
@@ -87,7 +91,11 @@ class EventImporter implements PostImporterInterface {
                 'etn_total_avaiilable_tickets'      => ! empty( $row['total_ticket'] ) ? sanitize_text_field( $row['total_ticket'] ) : '',
                 'etn_total_sold_tickets'            => ! empty( $row['sold_tickets'] ) ? sanitize_text_field( $row['sold_tickets'] ) : '',
                 'fluent_crm'                        => ! empty( $row['fluent_crm'] ) ? sanitize_text_field( $row['fluent_crm'] ) : '',
-                'fluent_crm_webhook'                => ! empty( $row['fluent_crm_webhook'] ) ? sanitize_text_field( $row['fluent_crm_webhook'] ) : '',
+                // Webhook targets are fetched server-side, so they need URL
+                // validation, not just text sanitizing — sanitize_text_field()
+                // happily preserves `javascript:` and other non-http schemes.
+                // The REST write path uses esc_url_raw(); this must match.
+                'fluent_crm_webhook'                => ! empty( $row['fluent_crm_webhook'] ) ? esc_url_raw( $row['fluent_crm_webhook'] ) : '',
                 'meeting_link'                      => ! empty( $row['meeting_link'] ) ? esc_url_raw( $row['meeting_link'] ) : '',
                 'etn_event_location_type'           => ! empty( $row['location_type'] ) ? sanitize_text_field( $row['location_type'] ) : '',
             ];

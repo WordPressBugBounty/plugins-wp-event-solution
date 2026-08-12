@@ -426,6 +426,15 @@ if ( ! function_exists( 'etn_single_event_template_select' ) ) {
 		$default_template_name = "event-one";
 		$template_name 		   = etn_get_option('event_template') ?: $default_template_name;
 
+		// Both the setting and the per-event override below are only
+		// sanitize_text_field()'d on write, which preserves `../`, and they are
+		// concatenated into the include_once() calls further down — including
+		// the theme-override branches, which never reach
+		// prepare_event_template_path(). Confine them to a bare slug here so
+		// every branch downstream is safe. A value stored before this fix is
+		// still sitting in the database, so the read side has to re-confine it.
+		$template_name = \Etn\Utils\Helper::sanitize_template_slug( $template_name, $default_template_name );
+
 		$event_template = '';
 
 		$layouts = [
@@ -438,12 +447,15 @@ if ( ! function_exists( 'etn_single_event_template_select' ) ) {
 			$template_name = $layouts[$event_template];
 		}
 
-		$post_template  = get_post_meta( $post_id, 'event_layout', true );
-		
+		// A rejected override collapses to '' so the ! empty() test below skips
+		// it — i.e. a bad value behaves exactly like no override at all and the
+		// global setting still applies, rather than being forced to the default.
+		$post_template  = \Etn\Utils\Helper::sanitize_template_slug( get_post_meta( $post_id, 'event_layout', true ), '' );
+
 		if ( ! empty( $post_template ) && ! is_numeric( $post_template ) ) {
 			$template_name  = $post_template;
 		}
-		
+
 		if ( ETN_DEMO_SITE === true ) {
 
 			switch ( $post_id ) {
@@ -468,8 +480,8 @@ if ( ! function_exists( 'etn_single_event_template_select' ) ) {
 		} else {
 
 			//check if single page template is overriden from theme
-			$post_template  = get_post_meta( $post_id, 'event_layout', true );
-			
+			$post_template  = \Etn\Utils\Helper::sanitize_template_slug( get_post_meta( $post_id, 'event_layout', true ), '' );
+
 			if ( ! empty( $post_template ) && ! is_numeric( $post_template ) ) {
 				$template_name  = $post_template;
 			}
