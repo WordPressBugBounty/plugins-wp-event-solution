@@ -1,4 +1,6 @@
 <?php
+
+defined( 'ABSPATH' ) || exit;
 $elementor_post_types = get_option('elementor_cpt_support', []);
 
 $data = [

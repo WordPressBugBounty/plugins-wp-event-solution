@@ -1,6 +1,8 @@
 <?php
 namespace Etn\Utils;
 
+defined( 'ABSPATH' ) || exit;
+
 use Etn\Utils\Helper;
 
 /*******************************************************************************

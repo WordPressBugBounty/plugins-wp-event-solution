@@ -1,3 +1,4 @@
+<?php defined( 'ABSPATH' ) || exit; ?>
 
 <!-- Deprecated this file, Will be removed in future versions 4.1.8 -->
 <?php

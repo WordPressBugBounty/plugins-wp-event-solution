@@ -78,7 +78,7 @@ if ( is_array( $data ) && ! empty( $data ) ) {
                                 </a>
                             </h3>
                             <p>
-								<?php echo esc_html( Helper::trim_words( $value->post_excerpt, 8 ) ); ?>
+								<?php echo esc_html( Helper::trim_words( etn_readable_post_text( $value, 'post_excerpt' ), 8 ) ); ?>
                             </p>
                             <div class="etn-event-footer">
                                 <div class="etn-event-date">

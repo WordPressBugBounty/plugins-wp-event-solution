@@ -59,10 +59,14 @@ if ( ! empty( $locations_html_data ) ) {
     $locations_html .= $locations_html_data;
     $locations_html .= "</div>";
 }
+
+// $locations_html is markup built above in this same file: every dynamic value is
+// already escaped (esc_html/esc_attr) and the rest is static SVG icon markup that
+// wp_kses_post() would strip. Safe to print as-is.
 ?>
 
 <div class="etn_single_event_map_and_result_wrapper etn_map_at_content">
-    <div class="etn-location-result"><?php echo $locations_html; ?></div>
+    <div class="etn-location-result"><?php echo $locations_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></div>
     <?php if ( $etn_interactive_map ) : ?>
     <div
         class="etn-front-map"

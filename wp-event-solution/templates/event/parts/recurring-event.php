@@ -1,4 +1,6 @@
 <?php
+
+defined( 'ABSPATH' ) || exit;
     use Etn\Utils\Helper;
 
     $single_event_id  = $event_id;

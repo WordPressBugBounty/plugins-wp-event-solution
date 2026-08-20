@@ -1,4 +1,6 @@
 <?php
+
+defined( 'ABSPATH' ) || exit;
 $screen    = get_current_screen();
 $screen_id = $screen->id;
 

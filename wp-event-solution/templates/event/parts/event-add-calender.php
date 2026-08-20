@@ -1,3 +1,4 @@
+<?php defined( 'ABSPATH' ) || exit; ?>
 <div class="etn-widget etn-add-calender-url  <?php echo esc_attr( $container_class ); ?>">
     <div class="container">
         <div class="etn-add-calender">
@@ -31,7 +32,7 @@
             $outlook_event_end   = ! empty( $end_date_raw )   ? date( 'Y-m-d', strtotime( $end_date_raw ) )   . 'T' . date( 'H:i:s', strtotime( $etn_end_time ) )   : '';
 
             $title      = $event->post_title;
-            $plain_desc = html_entity_decode( wp_strip_all_tags( $event->post_content ), ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+            $plain_desc = html_entity_decode( wp_strip_all_tags( etn_readable_post_text( $event ) ), ENT_QUOTES | ENT_HTML5, 'UTF-8' );
             $plain_desc = substr( $plain_desc, 0, 500 );
 
             if ( 'offline' !== $event_type && 'hybrid' !== $event_type ) {

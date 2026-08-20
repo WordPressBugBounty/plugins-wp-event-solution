@@ -1,3 +1,4 @@
+<?php defined( 'ABSPATH' ) || exit; ?>
 <div class="<?php echo esc_attr($container_class); ?> etn-event-attendees">
 
     <div class="eventin-block-container">

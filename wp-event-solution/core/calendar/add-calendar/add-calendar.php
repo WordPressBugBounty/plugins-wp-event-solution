@@ -31,7 +31,7 @@ class Add_Calendar {
         }
 
         $title      = $event->post_title;
-        $plain_desc = html_entity_decode( wp_strip_all_tags( $event->post_content ), ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+        $plain_desc = html_entity_decode( wp_strip_all_tags( etn_readable_post_text( $event ) ), ENT_QUOTES | ENT_HTML5, 'UTF-8' );
         $plain_desc = substr( $plain_desc, 0, 500 );
 
         // Google Calendar — append dates manually to preserve the literal "/" separator.

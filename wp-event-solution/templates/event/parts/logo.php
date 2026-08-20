@@ -1,4 +1,6 @@
 <?php
+
+defined( 'ABSPATH' ) || exit;
 $event_logo             = get_post_meta($event_id, 'etn_event_logo', true);
 ?>
 

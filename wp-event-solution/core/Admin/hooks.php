@@ -673,7 +673,12 @@ class Hooks {
             $start_time    = $event_meta['etn_start_time'][0] ?? '00:00:00';
             $end_time      = $event_meta['etn_end_time'][0] ?? '00:00:00';
             $summary       = $event->post_title;
-            $description   = html_entity_decode( wp_strip_all_tags( $event->post_content ), ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+            // `publish` is not the same as public: a password-protected event is
+            // published too. This download takes no nonce and no login, so the
+            // body has to be blanked for anyone who has not entered the
+            // password. Title, date and location stay — WordPress shows those
+            // publicly as well.
+            $description   = html_entity_decode( wp_strip_all_tags( etn_readable_post_text( $event ) ), ENT_QUOTES | ENT_HTML5, 'UTF-8' );
             $event_type    = get_post_meta( $event_id, 'event_type', true );
             $location_meta = get_post_meta( $event_id, 'etn_event_location', true );
 

@@ -1,3 +1,4 @@
+<?php defined( 'ABSPATH' ) || exit; ?>
 <div class="etn-single-page-ticket-count-text-holder">
     <?php
         if ( !isset($event_options["etn_hide_seats_from_details"]) ) {

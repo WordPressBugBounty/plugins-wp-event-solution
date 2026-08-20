@@ -1,3 +1,4 @@
+<?php defined( 'ABSPATH' ) || exit; ?>
 
 <?php include Wpeventin::templates_dir() . 'emails/header.php'; ?>
     

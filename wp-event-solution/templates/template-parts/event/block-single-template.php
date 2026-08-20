@@ -1,4 +1,6 @@
 <?php
+
+defined( 'ABSPATH' ) || exit;
 use Etn\Core\Event\Event_Model;
 use Eventin\Template\TemplateModel;
 

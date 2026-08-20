@@ -37,8 +37,18 @@ class V_4_1_15 implements UpdateInterface {
 
         $table = $wpdb->postmeta;
 
+        /*
+         * Both statements below interpolate only two values:
+         *   - $table            = $wpdb->postmeta, a WordPress core property.
+         *   - self::INDEX_NAME  = the 'etn_key_value' class constant.
+         * Neither is user input, and MySQL does not accept table or index names
+         * as prepared placeholders, so they must be written into the SQL text.
+         * The one value that can vary (the index name in the SHOW INDEX lookup)
+         * is passed through $wpdb->prepare() with a %s placeholder.
+         */
+        // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+
         // Bail if the index already exists (manual install or a previous run).
-        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.DirectDatabaseQuery.SchemaChange
         $existing = $wpdb->get_results( $wpdb->prepare(
             "SHOW INDEX FROM `{$table}` WHERE Key_name = %s",
             self::INDEX_NAME
@@ -50,9 +60,10 @@ class V_4_1_15 implements UpdateInterface {
 
         // meta_value is LONGTEXT; index a 32-char prefix, which fully covers the
         // short numeric/string values Eventin filters on (ids, statuses, slugs).
-        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.DirectDatabaseQuery.SchemaChange
         $wpdb->query(
             "ALTER TABLE `{$table}` ADD INDEX " . self::INDEX_NAME . " (meta_key(191), meta_value(32))"
         );
+
+        // phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
     }
 }

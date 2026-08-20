@@ -1,5 +1,7 @@
 <?php
 
+defined( 'ABSPATH' ) || exit;
+
 use Eventin\Settings;
 use Eventin\Validation\Validator;
 use Etn\Core\Event\Event_Model;
@@ -1389,6 +1391,7 @@ if ( ! function_exists( 'etn_validate_event_tickets' ) ) {
                 if ( $total_requested > $waiting_remaining ) {
                     return new WP_Error(
                         'waiting_list_limit',
+                        // translators: %d is the number of waiting-list spots still available.
                         sprintf( __( 'Waiting list is full. Only %d spots available.', 'eventin' ), max( 0, $waiting_remaining ) ),
                         ['status' => 422]
                     );
@@ -1398,6 +1401,7 @@ if ( ! function_exists( 'etn_validate_event_tickets' ) ) {
                     $only_left = max( 0, $remaining );
                     return new WP_Error(
                         'global_stock_limit',
+                        // translators: %d is the number of tickets still left for the event.
                         sprintf( __( 'Only %d tickets left for this event.', 'eventin' ), $only_left ),
                         ['status' => 422]
                     );
@@ -1435,6 +1439,7 @@ if ( ! function_exists( 'etn_validate_event_tickets' ) ) {
                 if ( intval( $ticket['ticket_quantity'] ) > $waiting_remaining ) {
                     return new WP_Error(
                         'waiting_list_limit',
+                        // translators: %d is the number of waiting-list spots still available for this ticket type.
                         sprintf( __( 'Waiting list is full for this ticket type. Only %d spots available.', 'eventin' ), max( 0, $waiting_remaining ) ),
                         ['status' => 422]
                     );
@@ -1487,6 +1492,7 @@ if ( ! function_exists( 'etn_validate_ticket_quantity' ) ) {
             if ( $min > 0 && $qty < $min ) {
                 return new WP_Error(
                     'min_ticket_quantity',
+                    // translators: %d is the minimum ticket quantity required for this ticket type.
                     sprintf( __( 'Minimum %d tickets required for this ticket type.', 'eventin' ), $min ),
                     ['status' => 422]
                 );
@@ -1495,6 +1501,7 @@ if ( ! function_exists( 'etn_validate_ticket_quantity' ) ) {
             if ( $max > 0 && $qty > $max ) {
                 return new WP_Error(
                     'max_ticket_quantity',
+                    // translators: %d is the maximum ticket quantity allowed for this ticket type.
                     sprintf( __( 'Maximum %d tickets allowed for this ticket type.', 'eventin' ), $max ),
                     ['status' => 422]
                 );
@@ -1832,5 +1839,40 @@ if ( ! function_exists( 'etn_get_valid_event_socials' ) ) {
         );
 
         return array_values( $valid );
+    }
+}
+
+if ( ! function_exists( 'etn_readable_post_text' ) ) {
+    /**
+     * An event's body or excerpt, blanked when the visitor may not read it.
+     *
+     * Listings show a snippet of each event: the calendar endpoint, the related
+     * events strip, the Elementor calendar widget, the .ics download. A
+     * password-protected event is still `publish`, so it turns up in all of them
+     * like any other event — and printing its text raw handed out exactly what
+     * the password exists to hide.
+     *
+     * WordPress guards its own equivalents this way: get_the_content() returns
+     * the password form and get_the_excerpt() returns a placeholder when
+     * post_password_required() is true. These call sites read the column
+     * directly, so they need the test spelled out.
+     *
+     * @param int|\WP_Post $post  Post or post id.
+     * @param string       $field 'post_content' (default) or 'post_excerpt'.
+     *
+     * @return string Empty string when the visitor may not see it.
+     */
+    function etn_readable_post_text( $post, $field = 'post_content' ) {
+        $post = get_post( $post );
+
+        if ( ! $post ) {
+            return '';
+        }
+
+        if ( ! \Eventin\AccessControl\Ownership::can_read_protected_content( $post ) ) {
+            return '';
+        }
+
+        return (string) ( 'post_excerpt' === $field ? $post->post_excerpt : $post->post_content );
     }
 }

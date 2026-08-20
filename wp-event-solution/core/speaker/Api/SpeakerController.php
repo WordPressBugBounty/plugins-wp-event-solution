@@ -1047,7 +1047,6 @@ class SpeakerController extends WP_REST_Controller {
     private function assign_role_for_existing_user( $data, $is_for_update=false ) {
         $email  = $data['etn_speaker_website_email'];
         $roles  = $data['etn_speaker_category'];
-        $groups = $data['etn_speaker_group'];
 
         $user = get_user_by( 'email', $email );
 

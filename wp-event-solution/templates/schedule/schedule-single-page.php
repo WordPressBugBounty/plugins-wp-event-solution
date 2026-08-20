@@ -1,4 +1,6 @@
-<?php 
+<?php
+
+defined( 'ABSPATH' ) || exit; 
     if( wp_is_block_theme() ){
         block_header_area();
         wp_head();

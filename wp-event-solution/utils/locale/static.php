@@ -1,4 +1,6 @@
 <?php
+
+defined( 'ABSPATH' ) || exit;
 $data = [
     'empty'              => esc_html__( 'Please fill the field', 'eventin' ),
     'invalid'            => esc_html__( 'Invalid input', 'eventin' ),

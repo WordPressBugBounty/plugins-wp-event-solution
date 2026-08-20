@@ -1,3 +1,4 @@
+<?php defined( 'ABSPATH' ) || exit; ?>
 <div class="etn-event-tag-list <?php echo esc_attr( $container_class ); ?>">
     <div class="eventin-block-container">
         <h4 class="etn-tags-title"><?php esc_html_e( 'Tags', 'eventin' ); ?></h4>

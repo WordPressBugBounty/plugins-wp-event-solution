@@ -1,5 +1,7 @@
 <?php
 
+defined( 'ABSPATH' ) || exit;
+
 do_action( 'etn_before_add_to_cart_form', $single_event_id );
 
 $sells_engine="";

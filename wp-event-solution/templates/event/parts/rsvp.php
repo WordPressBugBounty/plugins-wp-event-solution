@@ -1,4 +1,6 @@
-<?php 
+<?php
+
+defined( 'ABSPATH' ) || exit; 
     use \Etn_Pro\Core\Modules\Rsvp\Admin\Admin;
 
 	$single_event_id = isset($single_event_id) ? absint($single_event_id) : 0;

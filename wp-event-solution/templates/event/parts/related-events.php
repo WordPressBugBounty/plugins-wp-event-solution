@@ -1,5 +1,7 @@
 <?php
 
+defined( 'ABSPATH' ) || exit;
+
     use Etn\Utils\Helper;
 
     $desc_limit = 15;
@@ -38,7 +40,7 @@
                                 href="<?php echo esc_url(get_the_permalink($event_item->id)); ?>"><?php echo esc_html($event_item->get_title()); ?></a>
                         </h3>
                         <p>
-                            <?php echo esc_html(Helper::trim_words($event_item->get_description(), $desc_limit)); ?>
+                            <?php echo esc_html(Helper::trim_words(etn_readable_post_text($event_item->id), $desc_limit)); ?>
                         </p>
                         <div class="etn-event-footer">
                             <div class="etn-event-date">

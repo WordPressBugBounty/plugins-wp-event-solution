@@ -2,6 +2,8 @@
 
 namespace Etn\Utils\Font\Unifont;
 
+defined( 'ABSPATH' ) || exit;
+
 /*******************************************************************************
 * TTFontFile class                                                             *
 *                                                                              *

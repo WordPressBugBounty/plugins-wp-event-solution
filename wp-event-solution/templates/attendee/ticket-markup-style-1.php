@@ -1,5 +1,7 @@
 <?php
 
+defined( 'ABSPATH' ) || exit;
+
     // Add meta tag for responsive design in the head
     function etn_viewport_meta() {
         echo '<meta name="viewport" content="width=device-width, initial-scale=1.0"/>';

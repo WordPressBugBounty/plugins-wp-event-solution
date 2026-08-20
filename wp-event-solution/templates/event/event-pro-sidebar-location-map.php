@@ -55,7 +55,7 @@ if ( !empty( $all_locations ) ) {
             }
             ob_start();
         ?>
-        <div class='etn-single-location-item etn-location-item-<?php echo $term_id+1; ?>'>
+        <div class='etn-single-location-item etn-location-item-<?php echo esc_attr( $term_id + 1 ); ?>'>
                 <div class="etn-single-location-item-content">
                         <p class="etn-location-item-address">
                                 <svg width="16" height="18" viewBox="0 0 16 18" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -98,10 +98,14 @@ if ( !empty( $locations_html_data ) ) {
         wp_enqueue_script( 'etn-map' );
         wp_script_add_data( 'etn-map', 'async', true );
         wp_enqueue_script( 'etn-location' );
+
+        // $locations_html is markup built above in this same file: every dynamic value is
+        // already escaped (esc_html/esc_attr) and the rest is static SVG icon markup that
+        // wp_kses_post() would strip. Safe to print as-is.
         ?>
 
                 <div class="etn_single_event_map_and_result_wrapper etn_map_at_sidebar">
-                        <div class="etn-location-result"><?php echo Helper::render($locations_html); ?></div>
+                        <div class="etn-location-result"><?php echo Helper::render( $locations_html ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></div>
                         <div 
                                 class="etn-front-map" 
                                 data-lat="<?php echo esc_attr( $latitudes ); ?>" 

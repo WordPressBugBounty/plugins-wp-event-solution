@@ -1,4 +1,6 @@
 <?php
+
+defined( 'ABSPATH' ) || exit;
 $meeting     			= $settings['meeting_cache'];
 $zoom_meeting_data   	= empty( $meeting ) ? [] : json_decode( $meeting );
 

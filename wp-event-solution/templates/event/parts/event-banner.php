@@ -1,3 +1,4 @@
+<?php defined( 'ABSPATH' ) || exit; ?>
 <div class="eventin-block-container">
     <div class="event-banner">
         <?php if ($event_banner): ?>

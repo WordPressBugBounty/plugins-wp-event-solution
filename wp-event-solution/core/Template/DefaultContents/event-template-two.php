@@ -1,3 +1,4 @@
+<?php defined( 'ABSPATH' ) || exit; ?>
 <!-- wp:group {"className":"attendee-ticket-wrapper","style":{"border":{"width":"2px","style":"solid","color":"#e0e0e0"},"padding":{"top":"30px","right":"30px","bottom":"30px","left":"30px"},"borderRadius":"10px","backgroundColor":"#f9fafb","boxShadow":{"color":"rgba(0,0,0,0.1)","horizontal":"0px","vertical":"5px","blur":"10px","spread":"0px"},"spacing":{"blockGap":"20px"}}} -->
 <div class="wp-block-group attendee-ticket-wrapper" style="border:2px solid #e0e0e0;padding:30px;border-radius:10px;box-shadow:0px 5px 10px rgba(0,0,0,0.1);text-align:center;max-width:600px;">
     <!-- Ticket Header -->

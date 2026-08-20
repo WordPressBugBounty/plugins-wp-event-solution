@@ -1,3 +1,4 @@
+<?php defined( 'ABSPATH' ) || exit; ?>
 <div class="eventin-block-container
 <?php echo esc_attr($container_class); ?>">
     <div class="event-banner">

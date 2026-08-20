@@ -1,5 +1,7 @@
 <?php
 
+defined( 'ABSPATH' ) || exit;
+
 // showing recurring event in widget.
 $i = 0;
 

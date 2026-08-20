@@ -1,3 +1,4 @@
+<?php defined( 'ABSPATH' ) || exit; ?>
 <div class="<?php echo esc_attr($container_class); ?>  etn-related-events-style-1">
     <div class="etn-event-related-post eventin-block-container">
         <?php if ($related_events): ?>

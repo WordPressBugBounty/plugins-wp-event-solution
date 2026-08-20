@@ -1,4 +1,6 @@
 <?php
+
+defined( 'ABSPATH' ) || exit;
     use Etn\Utils\Helper;
 
     $etn_left_tickets      = ! empty($data['etn_left_tickets']) ? $data['etn_left_tickets'] : 0;

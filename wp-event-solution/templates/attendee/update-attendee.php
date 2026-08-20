@@ -1,5 +1,7 @@
 <?php
 
+defined( 'ABSPATH' ) || exit;
+
 use Etn\Utils\Helper;
 
 // Add meta tag for responsive design in the head

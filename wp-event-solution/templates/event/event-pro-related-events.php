@@ -34,7 +34,8 @@ if ( isset( $data ) && ! empty( $data ) ) {
 
 			<?php
 			$related_events_title = apply_filters( 'etn_event_related_event_title', esc_html__( 'Related Events', 'eventin' ) );
-			echo \Etn\Utils\Helper::render( $related_events_title );
+			// wp_kses_post() so themes can still filter in inline markup, minus anything unsafe.
+			echo wp_kses_post( $related_events_title );
 			?>
 
         </h3>

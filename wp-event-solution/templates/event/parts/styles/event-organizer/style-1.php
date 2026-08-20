@@ -1,3 +1,4 @@
+<?php defined( 'ABSPATH' ) || exit; ?>
 <div class="etn-event-organizers etn-organizer-style-1
 <?php echo esc_attr($container_class); ?>">
     <?php if ($event_organizers): ?>

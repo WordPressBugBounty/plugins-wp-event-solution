@@ -3942,7 +3942,10 @@
                             }
 
                             $event->price       = $price;
-                            $event->description = get_post_field('post_content', $event_id);
+                            // This feeds the public [events_calendar] endpoint
+                            // (v1 event/events), so it must not carry the body
+                            // of a password-protected event.
+                            $event->description = etn_readable_post_text($event_id);
                             $event->thumbnail   = get_the_post_thumbnail_url($event_id);
                             $event->category    = $cat_names;
                             $location           = get_post_meta(
@@ -4789,6 +4792,13 @@
 
                     $like = '%' . $wpdb->esc_like( (string) $event_id ) . '%';
 
+                    /*
+                     * $status_placeholders is a generated run of "%s,%s,%s" built from
+                     * array_fill() above — never user input. It is the standard way to
+                     * build an IN () list for $wpdb->prepare(), which then binds every
+                     * real value (the statuses and the LIKE term) as a placeholder.
+                     */
+                    // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
                     $sql = $wpdb->prepare(
                         "SELECT DISTINCT woi.order_id
                         FROM {$wpdb->prefix}woocommerce_order_itemmeta as woim,
@@ -4802,7 +4812,9 @@
                         ORDER BY woi.order_item_id DESC",
                         array_merge( $order_statuses, [ $like ] )
                     );
+                    // phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
+                    // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- $sql is the return value of $wpdb->prepare() directly above.
                     return $wpdb->get_col( $sql );
                 }
 

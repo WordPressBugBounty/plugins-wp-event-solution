@@ -64,7 +64,7 @@ $data           = Helper::post_data_query('etn', $event_count, $order, $event_ca
 												</div>
 
 												<h3 class="etn-title etn-event-title"><a href="<?php echo esc_url(get_the_permalink($value->ID)); ?>"> <?php echo esc_html(get_the_title($value->ID)); ?></a> </h3>
-												<p><?php echo esc_html(Helper::trim_words($value->post_content, $etn_desc_limit)); ?></p>
+												<p><?php echo esc_html(Helper::trim_words(etn_readable_post_text($value), $etn_desc_limit)); ?></p>
 												<div class="etn-event-footer">
 														<div class="etn-event-date">
 																<i class="etn-icon etn-calendar"></i>

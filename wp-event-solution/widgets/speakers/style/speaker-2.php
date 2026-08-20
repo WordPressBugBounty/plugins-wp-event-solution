@@ -1,5 +1,7 @@
 <?php
 
+defined( 'ABSPATH' ) || exit;
+
     use \Etn\Utils\Helper as Helper;
 
     // Ensure variables are defined with defaults

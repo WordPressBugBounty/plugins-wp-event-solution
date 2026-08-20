@@ -1,4 +1,6 @@
 <?php
+
+defined( 'ABSPATH' ) || exit;
     $etn_faqs = get_post_meta($event_id, 'etn_event_faq', true);
     if (! empty($etn_faqs)):
 ?>

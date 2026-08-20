@@ -102,6 +102,16 @@ class Api extends \Etn\Base\Api_Handler {
 			}
 
 			$event           = (array) get_post( $event_id ); // obj
+
+			// This route hands back the raw wp_posts row, so it carries columns
+			// nobody asked for — `post_password` among them, in plaintext. The
+			// check above already refuses a protected event to anyone who may
+			// not see it, but the secret must not be in the array at all: one
+			// day someone widens that check and the password would ride along
+			// again. The event editor reads the password from
+			// GET /eventin/v2/events/<id>, which gates it on `edit_post`.
+			unset( $event['post_password'], $event['post_content_filtered'] );
+
 			$event_meta      = get_post_meta( $event_id ); // array
 			$serialized_meta = ["etn_event_schedule", "etn_event_socials", "etn_ticket_variations"];
 			

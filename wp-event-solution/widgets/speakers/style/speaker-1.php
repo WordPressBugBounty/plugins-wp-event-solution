@@ -1,5 +1,7 @@
 <?php
 
+defined( 'ABSPATH' ) || exit;
+
     use \Etn\Utils\Helper;
 
     $speaker_id              = $settings["speaker_id"];

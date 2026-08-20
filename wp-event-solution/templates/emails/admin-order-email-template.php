@@ -1,4 +1,6 @@
 <?php
+
+defined( 'ABSPATH' ) || exit;
     $tax_display_mode = '';
 
     // For FluentCart orders with tax, always defer to the FC store's tax_inclusion setting -

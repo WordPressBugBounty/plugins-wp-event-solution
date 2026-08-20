@@ -138,7 +138,25 @@ class DefaultTemplate {
         }
 
         if ( file_exists( $file ) ) {
-            return file_get_contents( $file );
+            $content = file_get_contents( $file );
+
+            if ( false === $content ) {
+                return null;
+            }
+
+            /*
+             * These files are block markup that is read as text, never executed.
+             * They still carry a one-line direct-access guard so they cannot be
+             * fetched over HTTP. The guard is not part of the template, so it is
+             * removed here — the returned content is byte-for-byte what it was
+             * before the guard was added.
+             */
+            return preg_replace(
+                '/\A<\?php\s+defined\(\s*\'ABSPATH\'\s*\)\s*\|\|\s*exit;\s*\?>\r?\n?/',
+                '',
+                $content,
+                1
+            );
         }
 
         return null;

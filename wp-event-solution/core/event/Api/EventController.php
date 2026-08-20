@@ -654,6 +654,15 @@ class EventController extends WP_REST_Controller {
             $args['s'] = $search_keyword;
         }
 
+        // Hide the shipped preview-placeholder event, same as the full list does.
+        // This path returns before that filter runs, so it needs its own copy —
+        // without it the demo event shows up in every event-select dropdown
+        // (attendee filter, booking stats, RSVP report).
+        $placeholder_ids = \Eventin\PreviewPlaceholder\PreviewPlaceholder::excluded_post_ids();
+        if ( $placeholder_ids ) {
+            $args['post__not_in'] = $placeholder_ids;
+        }
+
         $posts = ( new WP_Query( $args ) )->posts;
 
         // One batched meta query for every event's start/end date + time instead of N.
@@ -750,10 +759,13 @@ class EventController extends WP_REST_Controller {
      *
      * Admins ( manage_options ) are never restricted. A role is restricted when
      * its publish toggle in Event Settings is off:
-     *  - seller  -> dokan_event_auto_publish (update only, preserves existing
-     *              Dokan approval behavior)
+     *  - seller  -> dokan_event_auto_publish
      *  - author  -> author_can_publish_event
      *  - editor  -> editor_can_publish_event
+     *
+     * The gate applies to create and update alike. Restricting only updates let
+     * a vendor's first Publish go live while the next save silently dropped the
+     * event back to draft.
      *
      * Applies to both wp-admin and the frontend dashboard since both post
      * through this controller.
@@ -761,12 +773,9 @@ class EventController extends WP_REST_Controller {
      * @since 4.0.0
      *
      * @param array|WP_Error $prepared_event Prepared event data.
-     * @param bool           $is_update      Whether this is an update request. The
-     *                                       seller rule only applies on update to
-     *                                       match the original Dokan behavior.
      * @return array|WP_Error
      */
-    protected function maybe_restrict_publish( $prepared_event, $is_update = false ) {
+    protected function maybe_restrict_publish( $prepared_event ) {
         if ( is_wp_error( $prepared_event ) ) {
             return $prepared_event;
         }
@@ -780,7 +789,7 @@ class EventController extends WP_REST_Controller {
         $roles = $user->roles ?? [];
 
         $restricted =
-            ( $is_update && in_array( 'seller', $roles, true ) && Settings::get( 'dokan_event_auto_publish' ) !== 'on' )
+            ( in_array( 'seller', $roles, true ) && Settings::get( 'dokan_event_auto_publish' ) !== 'on' )
             || ( in_array( 'author', $roles, true ) && Settings::get( 'author_can_publish_event' ) !== 'on' )
             || ( in_array( 'editor', $roles, true ) && Settings::get( 'editor_can_publish_event' ) !== 'on' );
 
@@ -948,7 +957,7 @@ class EventController extends WP_REST_Controller {
 
         $prepared_event = $this->prepare_item_for_database( $request );
 
-        $prepared_event = $this->maybe_restrict_publish( $prepared_event, true );
+        $prepared_event = $this->maybe_restrict_publish( $prepared_event );
 
         if ( is_wp_error( $prepared_event ) ) {
             return $prepared_event;
@@ -1464,12 +1473,20 @@ class EventController extends WP_REST_Controller {
 
         $post = get_post( $id );
 
+        // A password-protected event stays `publish`, so it is listed publicly
+        // like any other — WordPress hides the body, not the row. get_item()
+        // refuses the per-id read outright, but the LIST route is open by
+        // design and runs every event through here, so the body and excerpt
+        // have to be blanked per item. Title and permalink stay: WordPress
+        // shows those in its own archives ("Protected: <title>").
+        $show_content = Ownership::can_read_protected_content( $post );
+
         $event_data = [
             'id'                      => $id,
             'title'                   => $post->post_title,
             'event_slug'              => $post->post_name,
-            'description'             => $post->post_content,
-            'excerpt'                 => $post->post_excerpt,
+            'description'             => $show_content ? $post->post_content : '',
+            'excerpt'                 => $show_content ? $post->post_excerpt : '',
             'excerpt_enable'          => get_post_meta( $id, 'excerpt_enable', true ),
             'enable_seatmap'          => $seat_map_switcher,
             'schedule_type'           => get_post_meta( $id, 'etn_select_speaker_schedule_type', true ),

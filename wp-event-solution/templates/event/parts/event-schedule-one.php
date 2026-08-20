@@ -1,4 +1,6 @@
 <?php
+
+defined( 'ABSPATH' ) || exit;
     use \Etn\Utils\Helper as Helper;
 
     $event_options      = get_option("etn_event_options");

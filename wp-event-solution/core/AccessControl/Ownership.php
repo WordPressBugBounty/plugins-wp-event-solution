@@ -79,6 +79,13 @@ class Ownership {
      * administrator's unpublished event to the lowest role that can reach the
      * events screen.
      *
+     * `post_status` on its own is NOT an answer either. A password-protected
+     * post keeps `post_status = publish` — WordPress puts the secret in the
+     * separate `post_password` column — so testing the status alone waved every
+     * protected event through to an anonymous caller, and the handlers behind
+     * this then returned the raw post row: the plaintext password and the
+     * protected body. See can_read_protected_content() for the extra test.
+     *
      * @param int         $post_id   Post id to test.
      * @param string|null $post_type Optional expected post type.
      *
@@ -103,10 +110,10 @@ class Ownership {
 
         $readable = false;
 
-        if ( 'publish' === $post->post_status ) {
+        if ( self::is_unscoped() ) {
             $readable = true;
-        } elseif ( self::is_unscoped() ) {
-            $readable = true;
+        } elseif ( 'publish' === $post->post_status ) {
+            $readable = self::can_read_protected_content( $post );
         } else {
             $user_id = get_current_user_id();
 
@@ -126,6 +133,50 @@ class Ownership {
          * @param \WP_Post $post     The post being tested.
          */
         return (bool) apply_filters( 'eventin_can_read_post', $readable, $post );
+    }
+
+    /**
+     * May the current user see the content of this post?
+     *
+     * This is the post-password test, kept separate from status because the two
+     * are independent: a post can be published AND protected at the same time.
+     *
+     * The rule is WordPress's own, the one core's REST controller applies in
+     * WP_REST_Posts_Controller::can_access_password_content():
+     *
+     *   1. No password on the post — everyone may read it.
+     *   2. The caller may edit the post — they see it on the edit screen
+     *      anyway, so hiding it from an API they are entitled to would only
+     *      break the event editor.
+     *   3. The visitor typed the password on the front end, so WordPress set
+     *      the `wp-postpass_` cookie. post_password_required() is core's own
+     *      check of that cookie, hash and all.
+     *
+     * Anyone else is refused. Deliberately absent: core REST also accepts the
+     * password as a `?password=` request parameter. Eventin's own front end
+     * never needs it — the browser already carries the cookie — and leaving it
+     * out means these routes cannot be used to guess a password.
+     *
+     * @param int|\WP_Post $post Post id or object.
+     *
+     * @return bool
+     */
+    public static function can_read_protected_content( $post ) {
+        $post = get_post( $post );
+
+        if ( ! $post ) {
+            return false;
+        }
+
+        if ( '' === (string) $post->post_password ) {
+            return true;
+        }
+
+        if ( current_user_can( 'edit_post', $post->ID ) ) {
+            return true;
+        }
+
+        return ! post_password_required( $post );
     }
 
     /**

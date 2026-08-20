@@ -1,3 +1,4 @@
+<?php defined( 'ABSPATH' ) || exit; ?>
 <div class="etn-event-speakers etn-single-event-speaker-block eventin-block-container <?php echo esc_attr( $container_class ); ?> ">
     <h3 class="speaker-block-title">
         <?php esc_html_e( 'Speakers', 'eventin' ); ?>

@@ -1,4 +1,6 @@
 <?php
+
+defined( 'ABSPATH' ) || exit;
 $name='DejaVuSansCondensed';
 $type='TTF';
 $desc=array (

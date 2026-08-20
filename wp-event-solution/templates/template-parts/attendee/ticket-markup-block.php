@@ -1,5 +1,7 @@
 <?php
 
+defined( 'ABSPATH' ) || exit;
+
     // Add meta tag for responsive design in the head
 
 use Etn\Core\Event\Event_Model;

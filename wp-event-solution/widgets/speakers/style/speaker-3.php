@@ -1,5 +1,7 @@
 <?php
 
+defined( 'ABSPATH' ) || exit;
+
 use \Etn\Utils\Helper as Helper;
 
 $data = Helper::user_data_query($etn_speaker_count, $etn_speaker_order, $speakers_category, $orderby);

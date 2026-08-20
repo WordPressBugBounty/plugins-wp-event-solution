@@ -1113,11 +1113,12 @@ if ( !function_exists( 'etn_pro_after_single_event_two_content_organizer' ) ) {
                 } else if ( file_exists( get_template_directory() . \Wpeventin::theme_templates_dir() . 'event/event-pro-organizers.php' ) ) {
                     require_once get_template_directory() . \Wpeventin::theme_templates_dir() . 'event/event-pro-organizers.php';
                 } else {
-                    echo Helper::single_template_organizer( $etn_organizer_events );
+                    // Prints the template itself; returns nothing.
+                    Helper::single_template_organizer( $etn_organizer_events );
                 }
-    
+
             }
-    
+
             // etn-organizer end
         }
 
@@ -1146,7 +1147,8 @@ if ( !function_exists( 'etn_after_single_event_meta_speaker' ) ) {
                 } else if ( file_exists( get_template_directory() . \Wpeventin::theme_templates_dir() . 'event/event-pro-speaker.php' ) ) {
                     require_once get_template_directory() . \Wpeventin::theme_templates_dir() . 'event/event-pro-speaker.php';
                 } else {
-                    echo Helper::single_template_speaker( $etn_speaker_events );
+                    // Prints the template itself; returns nothing.
+                    Helper::single_template_speaker( $etn_speaker_events );
                 }
             }
         }
@@ -1258,11 +1260,12 @@ if ( !function_exists( 'etn_pro_after_single_event_three_content_organizer' ) ) 
                 } else if ( file_exists( get_template_directory() . \Wpeventin::theme_templates_dir() . 'event/event-pro-organizers.php' ) ) {
                     require_once get_template_directory() . \Wpeventin::theme_templates_dir() . 'event/event-pro-organizers.php';
                 } else {
-                    echo Helper::single_template_organizer( $etn_organizer_events );
+                    // Prints the template itself; returns nothing.
+                    Helper::single_template_organizer( $etn_organizer_events );
                 }
-    
+
             }
-    
+
             // etn-organizer end
         }
 

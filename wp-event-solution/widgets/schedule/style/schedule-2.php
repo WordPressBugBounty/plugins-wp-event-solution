@@ -1,4 +1,6 @@
 <?php
+
+defined( 'ABSPATH' ) || exit;
 use \Etn\Utils\Helper as Helper;
 
 $post_perpage = 3;

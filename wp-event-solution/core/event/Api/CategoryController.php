@@ -259,7 +259,7 @@ class EventCategoryController extends WP_REST_Controller {
      * @return WP_Error|boolean
      */
     public function create_item_permissions_check( $request ) {
-        return current_user_can( 'etn_manage_event' );
+        return current_user_can( 'etn_manage_event' ) && current_user_can( 'manage_categories' );
     }
 
     /**
@@ -379,7 +379,7 @@ class EventCategoryController extends WP_REST_Controller {
      * @return WP_Error|boolean
      */
     public function update_item_permissions_check( $request ) {
-        return current_user_can( 'etn_manage_event' );
+        return current_user_can( 'etn_manage_event' ) && current_user_can( 'manage_categories' );
     }
 
     /**
@@ -505,7 +505,7 @@ class EventCategoryController extends WP_REST_Controller {
      * @return bool
      */
     public function export_permissions_check( $request ) {
-        return current_user_can( 'etn_manage_event' );
+        return current_user_can( 'etn_manage_event' ) && current_user_can( 'manage_categories' );
     }
 
     /**
@@ -543,6 +543,6 @@ class EventCategoryController extends WP_REST_Controller {
      * @return bool
      */
     public function import_permissions_check( $request ) {
-        return current_user_can( 'etn_manage_event' );
+        return current_user_can( 'etn_manage_event' ) && current_user_can( 'manage_categories' );
     }
 }

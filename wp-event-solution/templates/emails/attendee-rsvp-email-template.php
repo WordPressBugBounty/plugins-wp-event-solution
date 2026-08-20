@@ -1,3 +1,4 @@
+<?php defined( 'ABSPATH' ) || exit; ?>
 <table align="center" role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: auto;">
     <tr>
         <td valign="top" class="bg_white" style="padding: 1em 2.5em 0 2.5em;">

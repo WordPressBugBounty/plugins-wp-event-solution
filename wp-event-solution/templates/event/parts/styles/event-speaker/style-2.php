@@ -1,3 +1,4 @@
+<?php defined( 'ABSPATH' ) || exit; ?>
 <div class="etn-event-speakers etn-single-event-speaker-block eventin-block-container etn-speaker-style-1 etn-speaker-style-2
 <?php echo esc_attr($container_class); ?>">
     <?php if ($event_speakers): ?>

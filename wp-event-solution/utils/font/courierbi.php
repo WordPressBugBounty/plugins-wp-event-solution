@@ -1,4 +1,6 @@
 <?php
+
+defined( 'ABSPATH' ) || exit;
 $type = 'Core';
 $name = 'Courier-BoldOblique';
 $up = -100;

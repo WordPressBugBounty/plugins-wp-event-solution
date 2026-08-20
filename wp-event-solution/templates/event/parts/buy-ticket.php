@@ -1,4 +1,6 @@
-<?php 
+<?php
+
+defined( 'ABSPATH' ) || exit; 
   //echo do_shortcode("[etn_pro_ticket_form id='" . $event_id . "' show_title='no']"); 
 ?>
 <div class="etn-single-event-ticket-wrap" data-preview="<?php echo esc_attr( is_preview() ); ?>" >
