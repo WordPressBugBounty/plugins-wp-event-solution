@@ -3,7 +3,7 @@
         'name' => 'arraytics/eventin',
         'pretty_version' => 'dev-develop',
         'version' => 'dev-develop',
-        'reference' => 'c4a2ccb12ee3b95465dfb57bb9ccd68793243ce9',
+        'reference' => 'b0380d18110a675d891c38446f2b9092285913e5',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -13,7 +13,7 @@
         'arraytics/eventin' => array(
             'pretty_version' => 'dev-develop',
             'version' => 'dev-develop',
-            'reference' => 'c4a2ccb12ee3b95465dfb57bb9ccd68793243ce9',
+            'reference' => 'b0380d18110a675d891c38446f2b9092285913e5',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -31,7 +31,7 @@
         'themewinter/uninstaller_form' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '84c2190a03d30c0661a88a4090905eb785570c4c',
+            'reference' => 'e69c128bc8809322d60d2227f31349d6b86ad7f2',
             'type' => 'library',
             'install_path' => __DIR__ . '/../themewinter/uninstaller_form',
             'aliases' => array(

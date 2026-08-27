@@ -3,7 +3,7 @@ Contributors: arraytics, ehsanriyadh
 Tags: event calendar, events, calendar, event registration, event tickets, event booking, RSVP
 Requires at least: 6.2
 Tested up to: 7.0
-Stable tag: 4.1.22
+Stable tag: 4.1.23
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: [https://www.gnu.org/licenses/gpl-2.0.html](https://www.gnu.org/licenses/gpl-2.0.html)
@@ -175,6 +175,7 @@ Leading WordPress publications and developers recommend Eventin for professional
 🍔 [WPCafe](https://wordpress.org/plugins/wp-cafe/) – Food Ordering & Reservation plugin for WordPress
 📅 [WPTimetics](https://wordpress.org/plugins/timetics/) – AI-powered Appointment Scheduling plugin for WordPress
 🗓️ [Booktics](https://wordpress.org/plugins/booktics/) – Booking plugin for Service Businesses in WordPress
+🗓️ [Pointics](https://wordpress.org/plugins/pointics/) – AI-Powered Loyalty and Rewards Plugin for WordPress
 
 == External Services ==
 This plugin connects to the following external services:
@@ -286,6 +287,10 @@ Yes. Eventin is translation-ready and compatible with WPML and Loco Translate. I
 Please report security bugs found in the source code of the WP Event Solution plugin through the [Patchstack Vulnerability Disclosure Program](https://patchstack.com/database/vdp/5b5e63df-930d-4f15-9bf8-db51f5732488). The Patchstack team will assist you with verification, CVE assignment, and notify the developers of this plugin.
 
 == Changelog ==
+
+= 4.1.23 ( August 27, 2026 ) =
+Tweak: Security - Restricted event API responses so CRM webhooks, meeting links, and revenue are visible only to users who can manage the event.
+Fix: Speaker & Organizer - Fixed the export so a user can only export the speakers and organizers they own. Other users' records are no longer included.
 
 = 4.1.22 ( August 20, 2026 ) =
 Tweak: Security - Hardened permission checks for password-protected events.

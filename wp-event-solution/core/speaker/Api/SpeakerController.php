@@ -933,6 +933,22 @@ class SpeakerController extends WP_REST_Controller {
         // Keep the demo event's speakers out of the file — see EventController.
         $ids = \Eventin\PreviewPlaceholder\PreviewPlaceholder::strip_user_ids( (array) $ids );
 
+        // A supplied `ids` list was taken on trust: `etn_manage_organizer` is
+        // granted to Contributors, so any of them could name someone else's ids
+        // and pull back names and email addresses. Filter every id through the
+        // per-user read check. All-or-nothing, matching
+        // AttendeeController::export_items() — a batch mixing owned and foreign
+        // ids is refused rather than silently trimmed.
+        foreach ( $ids as $id ) {
+            if ( ! Ownership::can_read_user( $id ) ) {
+                return new WP_Error(
+                    'rest_forbidden',
+                    __( 'Sorry, you are not allowed to export these records.', 'eventin' ),
+                    [ 'status' => 403 ]
+                );
+            }
+        }
+
         $exporter = new SpeakerExporter();
         $response = $exporter->export( $ids, $format );
 
@@ -1002,6 +1018,22 @@ class SpeakerController extends WP_REST_Controller {
 
         // Keep the demo event's organizers out of the file — see EventController.
         $ids = \Eventin\PreviewPlaceholder\PreviewPlaceholder::strip_user_ids( (array) $ids );
+
+        // A supplied `ids` list was taken on trust: `etn_manage_organizer` is
+        // granted to Contributors, so any of them could name someone else's ids
+        // and pull back names and email addresses. Filter every id through the
+        // per-user read check. All-or-nothing, matching
+        // AttendeeController::export_items() — a batch mixing owned and foreign
+        // ids is refused rather than silently trimmed.
+        foreach ( $ids as $id ) {
+            if ( ! Ownership::can_read_user( $id ) ) {
+                return new WP_Error(
+                    'rest_forbidden',
+                    __( 'Sorry, you are not allowed to export these records.', 'eventin' ),
+                    [ 'status' => 403 ]
+                );
+            }
+        }
 
         $exporter = new SpeakerExporter();
         $exporter->set_file_name( 'organizer-data' );

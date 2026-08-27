@@ -542,7 +542,7 @@ class Event_Model extends Post_Model {
 
         $args = [
             'post_type'        => $this->post_type,
-            'post_status'      => 'any',
+            'post_status'      => 'publish',
             'posts_per_page'   => $limit,
             'post__not_in'     => [ $this->id ], // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post__not_in
             'suppress_filters' => false, // let WPML scope to current language

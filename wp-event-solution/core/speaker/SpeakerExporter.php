@@ -86,7 +86,11 @@ class SpeakerExporter implements PostExporterInterface {
             $category  = get_user_meta( $id, 'etn_speaker_category', true );
             $user_data = get_userdata( $id );
 
-            if ( ! $user_data ) {
+            // Ids arrive from the request. Without a role gate any user id —
+            // customers, subscribers, administrators — could be named here and
+            // their email address written into the export file.
+            if ( ! $user_data
+                || ! array_intersect( [ 'etn-speaker', 'etn-organizer' ], (array) $user_data->roles ) ) {
                 continue;
             }
 

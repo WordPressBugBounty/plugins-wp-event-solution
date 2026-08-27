@@ -43,18 +43,18 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/themewinter/uninstaller_form.git",
-                "reference": "84c2190a03d30c0661a88a4090905eb785570c4c"
+                "reference": "e69c128bc8809322d60d2227f31349d6b86ad7f2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/themewinter/uninstaller_form/zipball/84c2190a03d30c0661a88a4090905eb785570c4c",
-                "reference": "84c2190a03d30c0661a88a4090905eb785570c4c",
+                "url": "https://api.github.com/repos/themewinter/uninstaller_form/zipball/e69c128bc8809322d60d2227f31349d6b86ad7f2",
+                "reference": "e69c128bc8809322d60d2227f31349d6b86ad7f2",
                 "shasum": ""
             },
             "require-dev": {
                 "phpunit/phpunit": "^10"
             },
-            "time": "2025-10-15T04:18:33+00:00",
+            "time": "2026-08-20T08:43:42+00:00",
             "default-branch": true,
             "type": "library",
             "installation-source": "dist",
@@ -68,6 +68,9 @@
                     "UninstallerForm\\Tests\\": "tests/"
                 }
             },
+            "license": [
+                "GPL-2.0-or-later"
+            ],
             "description": "Reusable WordPress plugin uninstaller feedback form with REST API",
             "support": {
                 "source": "https://github.com/themewinter/uninstaller_form/tree/main",

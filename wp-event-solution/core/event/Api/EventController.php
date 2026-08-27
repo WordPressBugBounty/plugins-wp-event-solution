@@ -586,7 +586,14 @@ class EventController extends WP_REST_Controller {
             }
 
             $post_data             = $this->prepare_item_for_response( $post, $request );
-            $post_data['revenue']  = $revenue_map[ $post->ID ] ?? 0;
+
+            // Revenue is a management figure. It is attached after the
+            // serializer, so the serializer's own strip cannot reach it.
+            if ( Ownership::can_manage_post( $post->ID, 'etn' ) ) {
+                $post_data['revenue'] = $revenue_map[ $post->ID ] ?? 0;
+            } else {
+                unset( $post_data['revenue'] );
+            }
 
             if(isset($post_data['status'])){
                 if($post_data['status'] == 'Expired'){
@@ -717,7 +724,15 @@ class EventController extends WP_REST_Controller {
         }
 
         $item = $this->prepare_item_for_response( $post, $request );
-        $item['revenue'] = RevenueReport::get_total_revenue( [], $id );
+
+        // Revenue is a management figure. This route is reachable with only the
+        // public wp_rest nonce (the guest purchase form reads it), so an
+        // anonymous caller must not get the event's earnings back.
+        if ( Ownership::can_manage_post( $id, 'etn' ) ) {
+            $item['revenue'] = RevenueReport::get_total_revenue( [], $id );
+        } else {
+            unset( $item['revenue'] );
+        }
 
         // Check if event is a recurring event and fetch child events.
         $recurring_enabled = get_post_meta( $id, 'recurring_enabled', true );
@@ -1591,6 +1606,86 @@ class EventController extends WP_REST_Controller {
         $event_data['location']      = $location;
 
         $event_data['wpml_translations'] = $this->get_wpml_translations_data( $id );
+
+        return $this->strip_management_only_fields( $event_data, $id );
+    }
+
+    /**
+     * Fields that only someone who may manage the event is allowed to see.
+     *
+     * The event routes are readable with the public `wp_rest` nonce, because the
+     * guest purchase form on the single-event page fetches the event it is
+     * selling tickets for. WordPress mints that nonce for user id 0 and Eventin
+     * prints it into the page, so it is the same string for every logged-out
+     * visitor — it proves the request came from the site, not that the caller is
+     * staff. Everything below is back-office data that never appears on the
+     * public event page: CRM webhook endpoints (an unauthenticated URL that
+     * writes into the site owner's CRM), private meeting join links, and the
+     * event's earnings. See Patchstack 33814 follow-up.
+     *
+     * @return string[]
+     */
+    private function management_only_fields() {
+        $fields = [
+            // CRM / automation integration config and webhook endpoints.
+            'fluent_crm',
+            'fluent_crm_webhook',
+            'zoho_crm',
+            'zoho_crm_webhook',
+            'mail_mint',
+            'mail_mint_webhook',
+            'mail_mint_send_to',
+            'funnel_kit',
+            'funnel_kit_webhook',
+            'funnel_kit_send_to',
+            'mailpoet',
+            'mailpoet_list_ids',
+            'mailpoet_send_to',
+
+            // Private join links. The public page renders these only to a
+            // ticket holder, never in the event payload.
+            'meeting_link',
+            'google_meet',
+            'google_meet_link',
+            'google_meet_description',
+            'zoom_event',
+            'zoom_id',
+            'attende_page_link',
+
+            // Money and back-office bookkeeping.
+            'revenue',
+            'imported_from',
+            'ticket_template',
+            'certificate_template',
+            'enable_legacy_certificate_template',
+        ];
+
+        /**
+         * Filter the event fields hidden from callers who cannot manage the event.
+         *
+         * Removing a field from this list publishes it to anonymous visitors.
+         *
+         * @param string[] $fields Field keys to strip.
+         */
+        return (array) apply_filters( 'eventin_event_management_only_fields', $fields );
+    }
+
+    /**
+     * Remove management-only fields unless the caller may manage this event.
+     *
+     * @param array $event_data Serialized event.
+     * @param int   $id         Event post id.
+     *
+     * @return array
+     */
+    private function strip_management_only_fields( $event_data, $id ) {
+        if ( Ownership::can_manage_post( $id, 'etn' ) ) {
+            return $event_data;
+        }
+
+        foreach ( $this->management_only_fields() as $field ) {
+            unset( $event_data[ $field ] );
+        }
 
         return $event_data;
     }

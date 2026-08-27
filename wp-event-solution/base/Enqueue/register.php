@@ -380,7 +380,17 @@ class Register {
      * @return  void
      */
     public function admin_helpscout_beacon() {
-        if ( 'on' === etn_get_option( 'hide_helpscout_beacon_widget' ) ) {
+        // Opt-in only. The Beacon script is fetched from beacon-v2.helpscout.net and
+        // the admin's browser then talks to Help Scout, so plugin guideline 7
+        // ("Plugins may not contact external servers without explicit and authorized
+        // consent") requires the admin to switch this on first. The old key was a
+        // *hide* flag, so an unset option meant the script loaded on a fresh install.
+        // A new *enable* key is used rather than inverting the old one, so admins who
+        // had set hide=on are not flipped into enabled by the change.
+        //
+        // Nothing — not even a dns-prefetch or preconnect hint — may be emitted above
+        // this guard, or the opt-in is defeated.
+        if ( 'on' !== etn_get_option( 'enable_support_chat' ) ) {
             return;
         }
 
