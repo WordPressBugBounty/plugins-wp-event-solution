@@ -14,7 +14,9 @@ use Etn\Base\Importer\Post_Importer;
 use Etn\Core\Event\Event_Model;
 use Etn\Traits\Singleton;
 use Eventin\Attendee\Hooks as AttendeeHooks;
+use Eventin\Extensions\Extension;
 use Eventin\Integrations\Zoom\ZoomCredential;
+use Eventin\Settings as EventinSettings;
 use Eventin\Support\DbLock;
 use Eventin\Template\CPT;
 use Eventin\Template\DefaultTemplate;
@@ -349,6 +351,25 @@ class Hooks {
             }
 
             try {
+                // Before the marker is written, so its own fresh-install guard
+                // still sees a site with no history. Covers a reset that wipes
+                // options while leaving the plugin active — activation, and with
+                // it the seeder's other call site, never fires there.
+                Extension::seed_default_module_options();
+                EventinSettings::seed_defaults();
+
+                // No migration marker means no Eventin history at all: a brand
+                // new install, or one whose options were wiped by a reset. Only
+                // such a site is ever offered the guided tour, so record it here
+                // — while `! $db_migration` still means "no history" — rather
+                // than guessing from the event count later. The onboarding
+                // wizard publishes an event of its own, so by the time anyone
+                // reaches the dashboard the count is never zero and the tour
+                // disqualified itself on exactly the installs it is meant for.
+                if ( ! $db_migration ) {
+                    add_option( 'etn_tour_eligible', 'yes' );
+                }
+
                 Upgrade::register();
                 update_option( 'etn_db_migration', $current_version, true );
             } finally {

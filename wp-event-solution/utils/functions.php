@@ -106,6 +106,74 @@ if ( ! function_exists( 'etn_sanitize_faq_array' ) ) {
     }
 }
 
+if ( ! function_exists( 'etn_sanitize_schedule_slots' ) ) {
+    /**
+     * Sanitize an array of schedule slots at input/save time.
+     *
+     * Each slot carries plain-text fields (topic, start/end time, room), one
+     * rich-text field (objective) that is printed as HTML on the event page,
+     * and a list of speaker ids. Plain-text fields are reduced with
+     * sanitize_text_field, the objective is passed through wp_kses_post so that
+     * scripts and event-handler attributes (e.g. onclick=, onerror=) are
+     * stripped before storage, and speaker ids are cast to integers. Any other
+     * key the slot may carry (e.g. is_active) is left untouched so existing
+     * behaviour and data are preserved.
+     *
+     * This neutralizes stored XSS at the source rather than relying on every
+     * downstream render context to escape (CVE-2026-15402), mirroring
+     * etn_sanitize_faq_array() introduced for CVE-2026-12924.
+     *
+     * @since 4.1.24
+     * @param mixed $slots The raw schedule-slot input (expected: array of slots).
+     * @return array The sanitized slot array (empty array for non-array input).
+     */
+    function etn_sanitize_schedule_slots( $slots ) {
+        if ( ! is_array( $slots ) ) {
+            return [];
+        }
+
+        $text_fields = [
+            'etn_schedule_topic',
+            'etn_shedule_start_time',
+            'etn_shedule_end_time',
+            'etn_shedule_room',
+        ];
+
+        return array_map(
+            function ( $slot ) use ( $text_fields ) {
+                // Leave non-array entries (e.g. a null placeholder slot the UI
+                // may submit) exactly as they came in. etn_sanitize_array_input()
+                // did the same, and downstream code auto-vivifies a null slot to
+                // an array — coercing it to a string here would break that.
+                if ( ! is_array( $slot ) ) {
+                    return $slot;
+                }
+
+                foreach ( $text_fields as $field ) {
+                    if ( isset( $slot[ $field ] ) && is_string( $slot[ $field ] ) ) {
+                        $slot[ $field ] = sanitize_text_field( $slot[ $field ] );
+                    }
+                }
+
+                // The objective is the one slot field rendered as HTML on the
+                // event page (schedule-list.php + the event-schedule style-3/4/5
+                // parts). wp_kses_post keeps ordinary formatting (bold, links)
+                // but strips <script> and every event-handler attribute.
+                if ( isset( $slot['etn_shedule_objective'] ) && is_string( $slot['etn_shedule_objective'] ) ) {
+                    $slot['etn_shedule_objective'] = wp_kses_post( $slot['etn_shedule_objective'] );
+                }
+
+                if ( isset( $slot['speakers'] ) && is_array( $slot['speakers'] ) ) {
+                    $slot['speakers'] = array_map( 'absint', $slot['speakers'] );
+                }
+
+                return $slot;
+            },
+            $slots
+        );
+    }
+}
+
 if ( ! function_exists( 'etn_array_csv_column' ) ) {
     /**
      * Convert array to CSV column
@@ -1363,7 +1431,7 @@ if ( ! function_exists( 'etn_validate_event_tickets' ) ) {
         $enable_global_stock = get_post_meta( $event_id, 'etn_enable_global_stock', true );
         $global_stock      = intval( get_post_meta( $event_id, 'etn_global_stock', true ) );
 
-        if ( $enable_global_stock && $global_stock > 0 ) {
+        if ( $enable_global_stock ) {
             $total_requested = 0;
             foreach ( $order_tickets as $ticket ) {
                 $total_requested += intval( $ticket['ticket_quantity'] );
@@ -1434,6 +1502,23 @@ if ( ! function_exists( 'etn_validate_event_tickets' ) ) {
             if ( $is_waiting ) {
                 $waiting_counts       = etn_get_waiting_list_counts_by_slug( $event_id );
                 $ticket_waiting_limit = intval( $event_ticket['etn_ticket_waiting_list_limit'] ?? 0 );
+
+                // A limit of 0 means this ticket type has no waiting list at all,
+                // which is a different situation from one that filled up. Saying
+                // "the waiting list is full" sent visitors looking for a queue
+                // that was never offered.
+                if ( $ticket_waiting_limit < 1 ) {
+                    return new WP_Error(
+                        'waiting_list_unavailable',
+                        sprintf(
+                            /* translators: %s: ticket type name. */
+                            __( 'There is no waiting list for "%s".', 'eventin' ),
+                            $event_ticket['etn_ticket_name'] ?? $ticket['ticket_slug']
+                        ),
+                        ['status' => 422]
+                    );
+                }
+
                 $waiting_for_slug     = $waiting_counts[ $ticket['ticket_slug'] ] ?? 0;
                 $waiting_remaining    = $ticket_waiting_limit - $waiting_for_slug;
                 if ( intval( $ticket['ticket_quantity'] ) > $waiting_remaining ) {
@@ -1445,7 +1530,9 @@ if ( ! function_exists( 'etn_validate_event_tickets' ) ) {
                     );
                 }
             } else {
-                if ( $available > 0 && $ticket['ticket_quantity'] > $ticket_left ) {
+                $is_unlimited = ! empty( $event_ticket['etn_unlimited_tickets'] ) || -1 === intval( $available );
+
+                if ( ! $is_unlimited && $ticket['ticket_quantity'] > $ticket_left ) {
                     return new WP_Error( 'ticket_limit', __( 'The ticket limit has been exceeded', 'eventin' ), ['status' => 422] );
                 }
             }
@@ -1536,6 +1623,14 @@ if ( ! function_exists( 'etn_get_waiting_list_counts_by_slug' ) ) {
                     'key'   => 'is_from_waiting_list',
                     'value' => '1',
                 ],
+                // Only a live signup occupies a spot. Cancelled, failed and
+                // refunded signups release theirs, otherwise a waiting list
+                // fills up permanently with orders that will never convert.
+                [
+                    'key'     => 'status',
+                    'value'   => [ 'waiting', 'pending', 'completed' ],
+                    'compare' => 'IN',
+                ],
             ],
         ] );
 
@@ -1579,7 +1674,7 @@ if ( ! function_exists( 'etn_is_tickets_sold_out' ) ) {
         $enable_global_stock = get_post_meta( $event_id, 'etn_enable_global_stock', true );
         $global_stock        = intval( get_post_meta( $event_id, 'etn_global_stock', true ) );
 
-        if ( $enable_global_stock && $global_stock > 0 ) {
+        if ( $enable_global_stock ) {
             $total_sold    = array_sum( $sold_tickets );
             $ticket_vars   = $event->etn_ticket_variations;
             $total_pending = 0;
@@ -1611,10 +1706,12 @@ if ( ! function_exists( 'etn_is_tickets_sold_out' ) ) {
                 continue;
             }
 
-            $available = intval( $event_ticket['etn_avaiilable_tickets'] ?? 0 );
+            $available    = intval( $event_ticket['etn_avaiilable_tickets'] ?? 0 );
+            $is_unlimited = ! empty( $event_ticket['etn_unlimited_tickets'] ) || -1 === $available;
 
-            // Skip tickets with no capacity limit (unlimited).
-            if ( $available <= 0 ) {
+            // Skip tickets with no capacity limit (unlimited). A capacity of 0
+            // is NOT unlimited - it means no seats, i.e. sold out.
+            if ( $is_unlimited ) {
                 continue;
             }
 
@@ -1874,5 +1971,47 @@ if ( ! function_exists( 'etn_readable_post_text' ) ) {
         }
 
         return (string) ( 'post_excerpt' === $field ? $post->post_excerpt : $post->post_content );
+    }
+}
+
+if ( ! function_exists( 'etn_expand_event_filter_ids' ) ) {
+    /**
+     * Turn a picked event id into the list of event ids a list should match.
+     *
+     * A recurring parent never sells a ticket itself: every booking and every
+     * attendee is stored against one of its child occurrences. Matching the
+     * parent id exactly therefore returned an empty booking/attendee list, and
+     * the organizer had to open each occurrence one at a time to see the series.
+     *
+     * A parent expands to itself plus every occurrence. Its own id stays in the
+     * list so older bookings made directly on the parent still show. Anything
+     * else — a single occurrence, or a plain non-recurring event — expands to
+     * just itself, so filtering by one occurrence keeps showing only that one.
+     *
+     * "Recurring parent" is decided by having child events, the same test the
+     * event-select dropdown uses for its `is_recurring_parent` flag
+     * (EventController::event_has_children()).
+     *
+     * @param   int|string  $event_id  Event id picked in a list filter.
+     *
+     * @return  int[]  Event ids to match, always at least the given id.
+     */
+    function etn_expand_event_filter_ids( $event_id ) {
+        $event_id = absint( $event_id );
+
+        if ( ! $event_id ) {
+            return [];
+        }
+
+        $children = get_posts( [
+            'post_type'      => 'etn',
+            'post_parent'    => $event_id,
+            'post_status'    => 'any',
+            'posts_per_page' => -1,
+            'fields'         => 'ids',
+            'no_found_rows'  => true,
+        ] );
+
+        return array_merge( [ $event_id ], array_map( 'absint', (array) $children ) );
     }
 }

@@ -430,11 +430,45 @@ class TemplateModel extends Post_Model {
     }
 
     /**
-     * Get fully rendered content, handling both Elementor and Gutenberg.
+     * Get fully rendered content, handling Bricks, Elementor and Gutenberg.
      *
      * @return string
      */
     private function get_rendered_content() {
+        // Bricks stores its content in post meta (_bricks_page_content_2), not in
+        // post_content, so render it through Bricks' own frontend renderer.
+        if ( 'bricks' === $this->get_template_builder()
+            && class_exists( '\Bricks\Frontend' )
+            && method_exists( '\Bricks\Frontend', 'render_data' ) ) {
+            $content_key = defined( 'BRICKS_DB_PAGE_CONTENT' ) ? BRICKS_DB_PAGE_CONTENT : '_bricks_page_content_2';
+            $elements    = get_post_meta( $this->id, $content_key, true );
+
+            if ( is_array( $elements ) && ! empty( $elements ) ) {
+                $html = \Bricks\Frontend::render_data( $elements, 'content' );
+
+                // Bricks emits per-element CSS only for the post it treats as the
+                // current Bricks document. When this template is rendered inside
+                // another post (e.g. a single event), that post isn't a Bricks post,
+                // so Bricks never outputs the template's element CSS and the layout
+                // comes through unstyled. Generate that CSS from the template's
+                // elements and prepend it so the design renders on the event page.
+                if ( class_exists( '\Bricks\Assets' )
+                    && method_exists( '\Bricks\Assets', 'generate_css_from_elements' ) ) {
+                    \Bricks\Assets::generate_css_from_elements( $elements, 'content' );
+
+                    $element_css = isset( \Bricks\Assets::$inline_css['content'] )
+                        ? \Bricks\Assets::$inline_css['content']
+                        : '';
+
+                    if ( ! empty( trim( (string) $element_css ) ) ) {
+                        $html = '<style id="eventin-bricks-template-css">' . $element_css . '</style>' . $html;
+                    }
+                }
+
+                return $html;
+            }
+        }
+
         if ( did_action( 'elementor/loaded' ) ) {
             $document = \Elementor\Plugin::$instance->documents->get( $this->id );
 
@@ -518,24 +552,23 @@ class TemplateModel extends Post_Model {
     /**
      * Render html with actual value
      *
-     * @param   array  $data
+     * @param   int        $attendee_id     Attendee post id.
+     * @param   bool|null  $append_add_ons  Append the attendee's add-ons when the
+     *                                      template carries no {{add_ons}} token.
+     *                                      Null defers to the template type.
      *
-     * @return
+     * @return  string|null
      */
-    public function get_rendable_content( $attendee_id ) {
+    public function get_rendable_content( $attendee_id, $append_add_ons = null ) {
         if ( ! $attendee_id ) {
             return null;
         }
 
         $placeholder = $this->get_place_holder( $attendee_id );
 
-        // Expose the attendee's real event to dynamic blocks (event-title,
-        // event-datetime, event-venue, …) so they resolve it instead of the
-        // template's design-time preview / shipped placeholder event while
-        // do_blocks() runs against the template post. Without this, a ticket
-        // whose template is built from blocks (not {{tokens}}) renders the
-        // preview-placeholder event's data. Mirrors get_rendable_event_content();
-        // save/restore keeps nested template renders correct.
+        // Point dynamic blocks at the attendee's event; otherwise do_blocks()
+        // runs against the template post and they render its preview event.
+        // Save/restore keeps nested template renders correct.
         $attendee                 = new Attendee_Model( $attendee_id );
         $previous_event_id        = self::$rendering_event_id;
         self::$rendering_event_id = (int) $attendee->etn_event_id;
@@ -551,12 +584,15 @@ class TemplateModel extends Post_Model {
         // Remove any extra_field tokens that had no matching attendee data.
         $content = preg_replace( '/\{\{extra_field_[^}]+\}\}/', '', $content );
 
-        // Fallback for templates saved before the add-ons feature: they have no
-        // {{add_ons}} token, which would silently drop an attendee's purchased
-        // add-ons. When the token is absent but this attendee has selections,
-        // append the add-ons block so paid add-ons are never lost. Templates that
-        // already position {{add_ons}} are untouched (it was substituted above).
-        if ( false === strpos( (string) $rendered, '{{add_ons}}' ) ) {
+        // Add-ons belong on tickets, never on certificates. Null means the
+        // caller didn't say (older Pro build), so fall back to the type.
+        if ( null === $append_add_ons ) {
+            $append_add_ons = ( 'certificate' !== $this->get_type() );
+        }
+
+        // Ticket templates saved before add-ons carry no {{add_ons}} token;
+        // append the block so purchased add-ons aren't silently dropped.
+        if ( $append_add_ons && false === strpos( (string) $rendered, '{{add_ons}}' ) ) {
             $add_ons = $this->get_add_ons_content( new Attendee_Model( $attendee_id ) );
 
             if ( '' !== $add_ons ) {

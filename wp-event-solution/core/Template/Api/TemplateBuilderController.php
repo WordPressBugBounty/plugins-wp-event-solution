@@ -71,6 +71,11 @@ class TemplateBuilderController extends WP_REST_Controller {
                 'name' => 'Gutenberg',
                 'is_active' => $this->is_template_builder_active_for( 'gutenberg' ),
             ],
+            [
+                'id' => 'bricks',
+                'name' => 'Bricks',
+                'is_active' => $this->is_template_builder_active_for( 'bricks' ),
+            ],
             // Add more builders as needed
         ];
 
@@ -91,13 +96,19 @@ class TemplateBuilderController extends WP_REST_Controller {
         if ( 'elementor' === $template_builder_id ) {
             // Check if Elementor is installed and activated
             $is_elementor_active = did_action( 'elementor/loaded' );
-            
+
             // Additional check in case the action wasn't triggered yet
             if ( ! $is_elementor_active ) {
                 $is_elementor_active = class_exists( '\Elementor\Plugin' );
             }
-            
+
             return (bool) $is_elementor_active;
+        }
+
+        if ( 'bricks' === $template_builder_id ) {
+            // Bricks is a theme; active when it's the (parent) theme in use.
+            $theme = wp_get_theme();
+            return ( 'bricks' === $theme->get( 'Template' ) || 'Bricks' === $theme->get( 'Name' ) );
         }
 
         return false;
@@ -162,6 +173,15 @@ class TemplateBuilderController extends WP_REST_Controller {
             return rest_ensure_response([
                 'builder_id' => $builder_id,
                 'is_active'  => $this->is_template_builder_active_for( 'elementor' ),
+            ]);
+        }
+
+        if ( 'bricks' === $builder_id ) {
+            // Bricks is a theme and cannot be installed via the plugin installer;
+            // simply report whether the Bricks theme is currently active.
+            return rest_ensure_response([
+                'builder_id' => $builder_id,
+                'is_active'  => $this->is_template_builder_active_for( 'bricks' ),
             ]);
         }
 

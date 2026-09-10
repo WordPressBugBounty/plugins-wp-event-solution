@@ -210,10 +210,13 @@ class AttendeeController extends WP_REST_Controller {
         }
 
         if ( ! empty( $event_id ) ) {
+            // A recurring parent holds no attendees of its own — they sit on its
+            // child occurrences. Expand the picked id so the parent shows the
+            // whole series, while one occurrence still shows only itself.
             $meta_query[] = [
                 'key'     => 'etn_event_id',
-                'value'   => $event_id,
-                'compare' => '=',
+                'value'   => etn_expand_event_filter_ids( $event_id ),
+                'compare' => 'IN',
             ];
         }
 

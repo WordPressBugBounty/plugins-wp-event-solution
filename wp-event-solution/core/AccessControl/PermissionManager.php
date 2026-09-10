@@ -38,25 +38,38 @@ class PermissionManager implements HookableInterface {
      */
     public function manage_permissions( $caps, $cap, $user_id, $args ) {
         $permissions = Permission::get_role_permissions();
-        
+
+        // Scope this filter to the plugin's own capabilities. The managed set is
+        // the union of every capability the role-permission map assigns, so caps
+        // added by third parties through the `eventin_role_permissions` filter
+        // (e.g. Pro) keep working. Any capability the plugin does not manage —
+        // every WordPress core cap such as manage_options, edit_plugins,
+        // promote_users — is returned untouched so this filter can never grant a
+        // core privilege to anyone. (CVE-2026-75983)
+        $managed_caps = [];
+        foreach ( $permissions as $role_caps ) {
+            if ( is_array( $role_caps ) ) {
+                $managed_caps = array_merge( $managed_caps, $role_caps );
+            }
+        }
+
+        if ( ! in_array( $cap, $managed_caps, true ) ) {
+            return $caps;
+        }
+
         // Get the user’s roles
         $user = get_user_by('id', $user_id);
         if ( ! $user || empty( $user->roles ) ) {
             return $caps; // No roles assigned
         }
 
-        if ( $cap === 'manage_links' ) {
-            return $caps; // Skip modifying this capability
-        }
-
-        if ( 1 === $user_id ) {
-            return ['exist'];
-        }
-
-        // Iterate through each role to check permissions
+        // Grant a managed capability only when one of the user's real roles is
+        // configured to hold it. User ID 1 gets no special treatment: capability
+        // decisions come from the user's actual roles alone, so a user 1 that has
+        // been demoted cannot regain privileges here. (CVE-2026-75983)
         foreach ( $user->roles as $role ) {
             // If the role has defined permissions in our options
-            if ( isset( $permissions[$role] ) && in_array( $cap, $permissions[$role] ) ) {
+            if ( isset( $permissions[$role] ) && in_array( $cap, $permissions[$role], true ) ) {
                 // Grant the capability by mapping it to 'exist' or any other basic capability
                 return ['exist'];
             }

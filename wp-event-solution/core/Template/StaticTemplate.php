@@ -20,6 +20,18 @@ class StaticTemplate {
     private $data;
 
     /**
+     * Whether this static template has already been added to the site.
+     *
+     * Declared explicitly so that assigning it in TemplateController does not
+     * create a dynamic property (deprecated in PHP 8.2+). The class has a
+     * __get() but no __set(), so the assignment used to fall through to a
+     * dynamic property.
+     *
+     * @var bool
+     */
+    public $is_added = false;
+
+    /**
      * Constructor
      *
      * @param array $data Static template data array

@@ -182,8 +182,11 @@ class SpeakerController extends WP_REST_Controller {
         //
         // `/speakers/{id}/clone` is worse than a read: it creates a NEW user
         // account carrying the victim's details, so it needs the same gate.
-        // Cloning a speaker you created is no more privilege than the create
-        // route already grants, so the read test is the right one here.
+        // This ownership test is no longer the whole story for the clone: it
+        // used to rest on "cloning a speaker you created is no more privilege
+        // than the create route already grants", which stopped being true once
+        // creating an account started requiring `create_users`. clone_item()
+        // now applies that gate itself.
         //
         // can_read_user(), not can_manage_user(): the latter requires
         // `edit_user`, which a Contributor lacks even for speakers they created
@@ -410,6 +413,16 @@ class SpeakerController extends WP_REST_Controller {
         //get data for clone
         $clone = $user->clone_data( $request['id'] );
 
+        // A clone is a NEW WordPress account carrying the speaker role, so it needs the
+        // same gate as the create route (CVE-2026-84905). The ownership check on this
+        // route used to be enough only because /speakers itself was open to Contributor —
+        // now that creating an account requires `create_users`, cloning must too.
+        $creation_error = $this->check_user_creation_permission( $clone );
+
+        if ( is_wp_error( $creation_error ) ) {
+            return $creation_error;
+        }
+
         $created = $user->create( $clone );
 
         if ( ! $created ) {
@@ -456,6 +469,25 @@ class SpeakerController extends WP_REST_Controller {
             return $response;
         }
 
+        // Past this point there is no existing account to attach to, so User_Model::create()
+        // runs wp_insert_user() and a brand new WordPress user comes into being, holding the
+        // etn-speaker / etn-organizer role. That role carries publish_posts, publish_pages,
+        // edit_pages, edit_published_pages, upload_files and delete_published_posts.
+        //
+        // The route itself is gated on etn_manage_organizer / etn_manage_event, which Eventin
+        // grants to Contributor and Author by default. So a Contributor could name an email
+        // they control, receive a working login, and hold capabilities they were never given
+        // (CVE-2026-84905). The sibling branch — attaching an EXISTING account — was closed
+        // earlier with edit_user + promote_user; this one never was.
+        //
+        // Making an account is `create_users` in WordPress, and handing it a role is
+        // `promote_users`. Apply both, exactly as core's own user-new screen does.
+        $creation_error = $this->check_user_creation_permission( $data );
+
+        if ( is_wp_error( $creation_error ) ) {
+            return $creation_error;
+        }
+
         $speaker = new User_Model();
 
         $created = $speaker->create( $data );
@@ -474,6 +506,42 @@ class SpeakerController extends WP_REST_Controller {
         $response->set_status( 201 );
 
         return $response;
+    }
+
+    /**
+     * May the current user bring a new WordPress account into existence here?
+     *
+     * Speakers and organizers are stored as WordPress users, so "add a speaker" for an
+     * unknown email is "add a user account". WordPress reserves that to `create_users`,
+     * and giving that account a role to `promote_users` — on a single site, an
+     * administrator. Anything looser lets a lower role mint a login carrying capabilities
+     * it does not hold itself.
+     *
+     * @param array $data Prepared speaker data.
+     * @return null|WP_Error Null when the account may be created.
+     */
+    private function check_user_creation_permission( $data, $assigns_role = null ) {
+        if ( ! current_user_can( 'create_users' ) ) {
+            return new WP_Error(
+                'rest_forbidden',
+                __( 'Sorry, you are not allowed to create user accounts.', 'eventin' ),
+                [ 'status' => 403 ]
+            );
+        }
+
+        if ( null === $assigns_role ) {
+            $assigns_role = ! empty( $data['etn_speaker_category'] ) || ! empty( $data['category'] );
+        }
+
+        if ( $assigns_role && ! current_user_can( 'promote_users' ) ) {
+            return new WP_Error(
+                'rest_forbidden',
+                __( 'Sorry, you are not allowed to assign roles to users.', 'eventin' ),
+                [ 'status' => 403 ]
+            );
+        }
+
+        return null;
     }
 
     /**
@@ -970,6 +1038,15 @@ class SpeakerController extends WP_REST_Controller {
     }
 
     public function import_items( $request ) {
+        // Every imported row becomes a WordPress account with the speaker role, and the
+        // account's email comes straight from the uploaded file. That is the create route's
+        // escalation in bulk (CVE-2026-84905), so it takes the same gate.
+        $creation_error = $this->check_user_creation_permission( [], true );
+
+        if ( is_wp_error( $creation_error ) ) {
+            return $creation_error;
+        }
+
         $data = $request->get_file_params();
         $file = ! empty( $data['speaker_import'] ) ? $data['speaker_import'] : '';
 
@@ -1051,6 +1128,14 @@ class SpeakerController extends WP_REST_Controller {
      * @return  WP_REST_Response|WP_Error
      */
     public function import_organizers( $request ) {
+        // Same reasoning as import_items(): each row creates a WordPress account, with the
+        // organizer role and an email taken from the uploaded file (CVE-2026-84905).
+        $creation_error = $this->check_user_creation_permission( [], true );
+
+        if ( is_wp_error( $creation_error ) ) {
+            return $creation_error;
+        }
+
         $data = $request->get_file_params();
         $file = ! empty( $data['organizer_import'] ) ? $data['organizer_import'] : '';
 

@@ -32,6 +32,18 @@ class AttendeeExporter implements PostExporterInterface {
     private $extra_fields = [];
 
     /**
+     * Store Optiontics add-on field columns discovered while preparing rows.
+     *
+     * Keyed exactly like $extra_fields: column key => human label. One entry per
+     * distinct option field (e.g. "T-Shirt Size", "Extras") across the exported
+     * attendees, so a multi-choice field gets its own column instead of only
+     * living inside the combined `addons` text.
+     *
+     * @var array
+     */
+    private $addon_fields = [];
+
+    /**
      * Store attendee data
      *
      * @var array
@@ -82,6 +94,8 @@ class AttendeeExporter implements PostExporterInterface {
 
             $attendee['phone'] = get_post_meta( $id, 'etn_phone', true );
 
+            $attendee = array_merge( $attendee, $this->get_addons_data( $id ) );
+
             $attendee = array_merge( $attendee, $this->get_extra_field_data( $id ) );
 
             $filtered_attendee = apply_filters( 'etn_prepare_attendee_data', $attendee, $id );
@@ -114,6 +128,86 @@ class AttendeeExporter implements PostExporterInterface {
         $slug = preg_replace( '/[^a-z0-9 _]/', '', $slug );  // strip non-ASCII-alnum
         $slug = preg_replace( '/[ _]+/', '_', $slug );        // spaces/_ → single _
         return trim( $slug, '_' );
+    }
+
+    /**
+     * Prepare per-attendee Optiontics add-on data (etn_option_selections)
+     * as one readable text column plus a numeric total column.
+     *
+     * @param   integer  $attendee_id
+     *
+     * @return  array
+     */
+    private function get_addons_data( $attendee_id ) {
+        $selections = get_post_meta( $attendee_id, 'etn_option_selections', true );
+
+        if ( is_string( $selections ) ) {
+            $decoded    = json_decode( $selections, true );
+            $selections = is_array( $decoded ) ? $decoded : maybe_unserialize( $selections );
+        }
+
+        if ( ! is_array( $selections ) ) {
+            $selections = [];
+        }
+
+        $lines      = [];
+        $total      = 0.0;
+        $per_field  = [];
+
+        foreach ( $selections as $row ) {
+            $qty        = isset( $row['qty'] ) ? (int) $row['qty'] : 1;
+            $line_total = isset( $row['line_total'] ) ? (float) $row['line_total'] : 0.0;
+            $label      = $row['field_label'] ?? '';
+            $value      = $row['choice_value'] ?? '';
+            $total     += $line_total;
+
+            $lines[] = sprintf(
+                '%s: %s x%d - %s',
+                $label,
+                $value,
+                $qty,
+                $line_total
+            );
+
+            // One column per option field. A multi-choice field (checkbox) sends one
+            // row per selected value, so the values are collected and joined instead
+            // of the last one overwriting the first.
+            $slug = $this->label_to_slug( $label );
+
+            if ( '' === $slug ) {
+                $slug = $this->label_to_slug( (string) ( $row['node_id'] ?? '' ) );
+            }
+
+            if ( '' === $slug || '' === $value ) {
+                continue;
+            }
+
+            $key    = substr( 'etn_addon_field_' . $slug, 0, 255 );
+            $header = '' !== $label ? $label : $slug;
+
+            // label_to_slug() drops punctuation, so two different fields ("Add-ons"
+            // and "Add ons", or same-named fields in two blocks) can slug to the
+            // same key. Keep them apart by qualifying with the node id rather than
+            // merging their values into one cell.
+            if ( isset( $this->addon_fields[ $key ] ) && $this->addon_fields[ $key ] !== $header ) {
+                $key = substr( $key . '_' . $this->label_to_slug( (string) ( $row['node_id'] ?? '' ) ), 0, 255 );
+            }
+
+            $this->addon_fields[ $key ] = $header;
+
+            $per_field[ $key ][] = $qty > 1 ? sprintf( '%s x%d', $value, $qty ) : $value;
+        }
+
+        $data = [
+            'addons'       => implode( '; ', $lines ),
+            'addons_total' => number_format( $total, 2, '.', '' ),
+        ];
+
+        foreach ( $per_field as $key => $values ) {
+            $data[ $key ] = implode( ', ', $values );
+        }
+
+        return $data;
     }
 
     /**
@@ -198,6 +292,8 @@ class AttendeeExporter implements PostExporterInterface {
             'event_id'       => __( 'Event ID', 'eventin' ),
             'event_name'     => __( 'Event Name', 'eventin' ),
             'ticket_price'   => __( 'Ticket Price', 'eventin' ),
+            'addons'         => __( 'Add-ons', 'eventin' ),
+            'addons_total'   => __( 'Add-ons Total', 'eventin' ),
             'payment_status' => __( 'Payment Status', 'eventin' ),
             'ticket_status'  => __( 'Ticket Status', 'eventin' ),
             'ticket_id'      => __( 'Ticket ID', 'eventin' ),
@@ -206,6 +302,6 @@ class AttendeeExporter implements PostExporterInterface {
 
         $columns = apply_filters( 'etn_prepare_attendee_data_columns', $columns );
 
-        return array_merge( $columns, $this->extra_fields );
+        return array_merge( $columns, $this->addon_fields, $this->extra_fields );
     }
 }

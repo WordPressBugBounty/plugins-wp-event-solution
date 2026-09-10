@@ -61,6 +61,21 @@ class BlockLegacySupportHooks implements HookableInterface {
         wp_enqueue_style( 'eventin-block-editor-style-css' );
         wp_enqueue_style( 'eventin-calendar-block-editor-style' );
 
+        // Load the FRONTEND block base stylesheet into the editor canvas so the
+        // native React block previews are styled identically to the public page
+        // (editor == frontend parity). Registered lazily by AbstractBlock on the
+        // frontend, so register it here for the editor context if needed.
+        if ( ! wp_style_is( 'etn-blocks-style', 'registered' ) ) {
+            wp_register_style(
+                'etn-blocks-style',
+                \Wpeventin::plugin_url() . 'build/css/etn-block-styles.css',
+                [],
+                \Wpeventin::version(),
+                'all'
+            );
+        }
+        wp_enqueue_style( 'etn-blocks-style' );
+
         // WP Localized globals. Use dynamic PHP stuff in JavaScript via `cgbGlobal` object.
         wp_localize_script(
             'eventin-block-js',

@@ -24,6 +24,9 @@ class Helper {
 		case 'buddyboss':
 			$enable_module = is_plugin_active('buddyboss-platform/bp-loader.php') && ( ! empty( $addons_options['buddyboss'] ) && $addons_options['buddyboss'] == "on" ) ? true : false;
 			break;
+		case 'fluentcommunity':
+			$enable_module = defined( 'FLUENT_COMMUNITY_PLUGIN_VERSION' ) && ( ! empty( $addons_options['fluentcommunity'] ) && $addons_options['fluentcommunity'] == "on" ) ? true : false;
+			break;
 		case 'certificate_builder':
 			$enable_module = ! empty( $addons_options['certificate_builder'] ) && $addons_options['certificate_builder'] == "on" ? true : false;
 			break;

@@ -33,9 +33,12 @@ add_action( "etn_event_content_after", "etn_after_single_event_content", 10 );
 add_action( "etn_single_event_template", "etn_single_event_template_select", 10 );
 
 /**
- * @see eventin_rich_result_support()
+ * Event structured data is printed in wp_head by Eventin\Schema\Printer, which
+ * replaced the old body-level output. eventin_rich_result_support() survives as
+ * a deprecated shim for themes that call it directly — see template-functions.php.
+ *
+ * @see \Eventin\Schema\Printer::print_single_event()
  */
-add_action( "etn_event_content_after", "eventin_rich_result_support", 10 );
 
 /**
  * @see etn_after_event_archive_content_show_footer()

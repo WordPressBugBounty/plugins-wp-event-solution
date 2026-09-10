@@ -10,7 +10,7 @@ defined('ABSPATH') || exit;
  * Plugin Name:       Eventin
  * Plugin URI:        https://themewinter.com/eventin/
  * Description:       Simple and Easy to use Event Management Solution
- * Version:           4.1.23
+ * Version:           4.1.24
  * Author:            Themewinter
  * Author URI:        https://themewinter.com/
  * License:           GPL-2.0+
@@ -44,7 +44,7 @@ class Wpeventin
 	 * @var string The plugin version.
 	 */
 	public static function version() {
-		return "4.1.23";
+		return "4.1.24";
 	}
     /**
      * Initializes the Wpeventin() class
@@ -117,6 +117,12 @@ class Wpeventin
         Eventin::instance();
 
         if (class_exists('Wpeventin_Pro') && version_compare(Wpeventin_Pro::version(), '4.0.16', '>')) {
+            // Before the action: Pro's Config::active_modules() hangs off it and
+            // decides from `etn_addons_options` whether to boot each module, so
+            // seeding here makes RSVP live in this same request rather than the
+            // next one. No-ops on every boot after the first.
+            \Eventin\Extensions\Extension::seed_pro_default_modules();
+
             do_action('eventin/after_load');
         }
 
@@ -324,6 +330,9 @@ class Wpeventin
         $version         = get_option('etn_version', true);
         $current_version = self::version();
 
+        \Eventin\Extensions\Extension::seed_default_module_options();
+        \Eventin\Settings::seed_defaults();
+
         delete_transient('etn_event_list');
 
         flush_rewrite_rules();
@@ -350,6 +359,46 @@ class Wpeventin
         // check if automation module is on
         if ('on' === $is_automation_module_on) {
             $this->load_automation_package();
+        }
+    }
+
+    /**
+     * Create the default Automation flows once, if they were never created.
+     *
+     * @return void
+     */
+    public function maybe_seed_automation_flows()
+    {
+        if (get_option('etn_email_automation_migrated')) {
+            return;
+        }
+
+        if (
+            !class_exists(\Eventin\Extensions\ImportAutomation::class)
+            || !class_exists(\Eventin\Vendor\Ens\Flow\Flow::class)
+        ) {
+            return;
+        }
+
+        // admin-ajax.php fires admin_init too, so a single admin page load
+        // re-enters this once per background AJAX request. create_automation_flows()
+        // writes etn_email_automation_migrated only after creating all seven flows,
+        // so the guard above cannot arbitrate between concurrent requests — every
+        // one of them would seed a full duplicate set.
+        if (!\Eventin\Support\DbLock::acquire('etn_automation_flow_seed_lock')) {
+            return;
+        }
+
+        try {
+            // Re-check under the lock: a run that finished between the guard above
+            // and acquiring the lock has already created the flows.
+            if (get_option('etn_email_automation_migrated')) {
+                return;
+            }
+
+            \Eventin\Extensions\ImportAutomation::create_automation_flows();
+        } finally {
+            \Eventin\Support\DbLock::release('etn_automation_flow_seed_lock');
         }
     }
 
@@ -425,6 +474,14 @@ class Wpeventin
                 ],
             ])
                 ->init();
+
+            // The default flows are normally created by the Extensions toggle
+            // (ExtensionController). A fresh install has Automation seeded on at
+            // activation and never passes through that toggle, so seed them here
+            // instead — on admin_init, because Flow::save() needs the SDK post
+            // type registered. create_automation_flows() sets the migrated flag,
+            // so this runs at most once.
+            add_action('admin_init', [$this, 'maybe_seed_automation_flows']);
 
             add_filter('ens_eve_available_actions', function ($actions) {
                 $actions = [ // Array of all actions, on which you want to send email

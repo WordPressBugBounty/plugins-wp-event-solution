@@ -45,6 +45,61 @@ class Settings {
     }
 
     /**
+     * Settings that ship enabled on a brand new install.
+     *
+     * @var array
+     */
+    protected static $default_settings = [
+        'attendee_registration' => 'on',
+    ];
+
+    /**
+     * Seed the settings that are on by default, once, on a site with no history.
+     *
+     * These cannot be defaulted on the read side. Switching a toggle off sends
+     * null from the settings form, which sanitizes to '', and self::get() also
+     * returns '' for a key that was never written — the two states are
+     * indistinguishable once stored. A `?? 'on'` fallback anywhere in the read
+     * path would therefore re-enable the feature for every user who deliberately
+     * turned it off. Only a real stored value can express "on by default".
+     *
+     * Guarded on key presence in the raw option array (not self::get(), which
+     * flattens both states to ''), and on `etn_db_migration`, written once the
+     * upgraders have run: its absence means a fresh install or a site whose
+     * options were wiped. An update must not switch a setting on under a site
+     * that has been running without it.
+     *
+     * @return void
+     */
+    public static function seed_defaults() {
+        if ( get_option( 'etn_db_migration' ) ) {
+            return;
+        }
+
+        $settings = get_option( self::$option_name, [] );
+
+        if ( ! is_array( $settings ) ) {
+            $settings = [];
+        }
+
+        $missing = [];
+
+        foreach ( self::$default_settings as $key => $value ) {
+            if ( array_key_exists( $key, $settings ) ) {
+                continue;
+            }
+
+            $missing[$key] = $value;
+        }
+
+        if ( ! $missing ) {
+            return;
+        }
+
+        self::update( $missing );
+    }
+
+    /**
      * Update settings
      *
      * @param   array  $options

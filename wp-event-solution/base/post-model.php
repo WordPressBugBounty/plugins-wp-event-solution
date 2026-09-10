@@ -377,8 +377,18 @@ abstract class Post_Model {
 
         $args  = wp_parse_args( $args, $defaults );
 
-        if ( ! current_user_can( 'manage_options' ) ) {
-            $args['author'] = get_current_user_id(); 
+        // Preserve the historical behaviour for unauthenticated internal
+        // callers. Ownership scoping applies only to logged-in managers.
+        if ( is_user_logged_in() && ! current_user_can( 'manage_options' ) ) {
+            $owner_id = class_exists( '\\Eventin\\AccessControl\\Ownership' )
+                ? \Eventin\AccessControl\Ownership::current_user_owner_id()
+                : get_current_user_id();
+
+            if ( $owner_id ) {
+                $args['author'] = $owner_id;
+            } else {
+                $args['post__in'] = [ 0 ];
+            }
         }
 
         $posts = get_posts( $args );

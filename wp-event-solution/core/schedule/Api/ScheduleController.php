@@ -597,7 +597,11 @@ class ScheduleController extends WP_REST_Controller {
         }
 
         if ( ! empty( $input_data['schedule_slot'] ) ) {
-            $prepared_data['etn_schedule_topics'] = etn_sanitize_array_input( $input_data['schedule_slot'] );
+            // Field-aware sanitizer: the objective is rich text rendered as HTML
+            // on the event page, so it is passed through wp_kses_post while the
+            // other fields are reduced to plain text. Prevents stored XSS
+            // (CVE-2026-15402); etn_sanitize_array_input() returned the array as-is.
+            $prepared_data['etn_schedule_topics'] = etn_sanitize_schedule_slots( $input_data['schedule_slot'] );
         }
         else {
             $prepared_data['etn_schedule_topics'] = [];

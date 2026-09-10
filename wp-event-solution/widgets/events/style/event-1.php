@@ -8,10 +8,13 @@ $posts_to_show = isset($posts_to_show) ? $posts_to_show : -1;
 $etn_paged = isset($etn_paged) ? $etn_paged : 1;
 $enable_pagination = isset($enable_pagination) ? $enable_pagination : 'no';
 $post_parent = isset($post_parent) ? $post_parent : 0;
+// Callers (e.g. the speaker / organizer events shortcodes) may pre-filter the event set.
+$post__in     = isset($post__in) ? $post__in : null;
+$post_not_in  = isset($post_not_in) ? $post_not_in : null;
 
 // Use posts_to_show and paged for pagination
 $data           = Helper::post_data_query('etn', $posts_to_show, $order, $event_cat, 'etn_category',
-null, null, $event_tag, $orderby_meta, $orderby, $filter_with_status, $post_parent, '', $etn_paged);
+$post__in, $post_not_in, $event_tag, $orderby_meta, $orderby, $filter_with_status, $post_parent, '', $etn_paged);
 
 ?>
 <div class='etn-row etn-event-wrapper'>
@@ -161,6 +164,10 @@ if ($enable_pagination === 'yes' && !empty($data)) {
         'post_parent' => $post_parent
     ];
 
+    if (!empty($post__in)) {
+        $args['post__in'] = $post__in;
+    }
+
     // Add category filter
     if (!empty($event_cat)) {
         $args['tax_query'][] = [
@@ -170,38 +177,26 @@ if ($enable_pagination === 'yes' && !empty($data)) {
         ];
     }
 
-    // Add tag filter
+    // Add tag filter — taxonomy slug must match the one used by Helper::post_data_query().
     if (!empty($event_tag)) {
         $args['tax_query'][] = [
-            'taxonomy' => 'etn_tag',
+            'taxonomy' => 'etn_tags',
             'field' => 'term_id',
             'terms' => $event_tag,
         ];
     }
 
-    // Add status filter
-    if (!empty($filter_with_status)) {
-        if ($filter_with_status === 'upcoming') {
-            $args['meta_query'][] = [
-                'key' => 'etn_start_date',
-                'value' => current_time('mysql'),
-                'compare' => '>=',
-                'type' => 'DATETIME',
-            ];
-        } elseif ($filter_with_status === 'expire') {
-            $args['meta_query'][] = [
-                'key' => 'etn_end_date',
-                'value' => current_time('mysql'),
-                'compare' => '<',
-                'type' => 'DATETIME',
-            ];
-        }
+    // Add status filter — reuse the same clauses as the display query so the counts agree.
+    $status_clauses = Helper::get_status_meta_query($filter_with_status);
+    if (!empty($status_clauses)) {
+        $args['meta_query'] = array_merge(['relation' => 'AND'], $status_clauses);
     }
 
     $count_query = new WP_Query($args);
 
     $total_posts = $count_query->found_posts;
-    $posts_per_page_int = max(1, intval($posts_per_page)); // Ensure it's an integer and at least 1
+    // Fall back to the number of posts actually queried when the includer didn't set $posts_per_page.
+    $posts_per_page_int = max(1, intval(isset($posts_per_page) ? $posts_per_page : $posts_to_show)); // Ensure it's an integer and at least 1
     $total_pages = ceil($total_posts / $posts_per_page_int);
 
     if ($total_pages > 1) {

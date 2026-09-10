@@ -3,7 +3,7 @@ Contributors: arraytics, ehsanriyadh
 Tags: event calendar, events, calendar, event registration, event tickets, event booking, RSVP
 Requires at least: 6.2
 Tested up to: 7.0
-Stable tag: 4.1.23
+Stable tag: 4.1.24
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: [https://www.gnu.org/licenses/gpl-2.0.html](https://www.gnu.org/licenses/gpl-2.0.html)
@@ -287,6 +287,28 @@ Yes. Eventin is translation-ready and compatible with WPML and Loco Translate. I
 Please report security bugs found in the source code of the WP Event Solution plugin through the [Patchstack Vulnerability Disclosure Program](https://patchstack.com/database/vdp/5b5e63df-930d-4f15-9bf8-db51f5732488). The Patchstack team will assist you with verification, CVE assignment, and notify the developers of this plugin.
 
 == Changelog ==
+
+= 4.1.24 ( September 10, 2026 ) =
+New: Attendees - Filter attendees by recurring child event.
+New: Attendee Export - Added "Add-ons" and "Add-ons Total" columns to the CSV and JSON export.
+New: Manual Booking - Admins can now pick ticket add-ons when creating a booking by hand.
+New: Uncanny Automator - Connected Eventin to Uncanny Automator so event, booking, and attendee actions can trigger automated recipes across 150+ apps.
+New: LearnDash - Added the LearnDash add-on, so buying a ticket can give access to a course.
+New: FluentCommunity - Integrated FluentCommunity so events appear inside community spaces, with event previews and ticket purchase without leaving the portal.
+
+Tweak: Template - Update template builder experience.
+Fix: Security - Hardened checkout, payment verification and speaker creation.
+Fix: Tickets - Seats held for an unpaid checkout are now released back on sale.
+Fix: Tickets - A capacity of 0 now means sold out instead of unlimited.
+Fix: Waiting List - The waiting count no longer drops twice and never goes below 0.
+Fix: WooCommerce - Booking status now follows the order without the buyer clicking "Return to shop".
+Fix: WooCommerce - Removed the empty billing headings at checkout when "Show Billing Info" is off.
+Fix: Extensions - The RSVP module card is no longer greyed out while its switch is on.
+Fix: Advance Search - "This Weekend" now returns both Saturday and Sunday events.
+Fix: Advance Search - An event with no end date is now treated as expired after its start date.
+Fix: Template Builder - The demo preview event and its image are hidden from event lists, the API and the Media Library.
+Fix: Users - Hidden preview speakers and organizers are no longer counted on the Users screen.
+Fix: Dokan - Vendor staff now see and manage the store's events.
 
 = 4.1.23 ( August 27, 2026 ) =
 Tweak: Security - Restricted event API responses so CRM webhooks, meeting links, and revenue are visible only to users who can manage the event.

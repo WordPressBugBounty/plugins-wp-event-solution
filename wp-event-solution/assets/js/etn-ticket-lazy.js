@@ -91,31 +91,69 @@
 		} );
 	}
 
-	// How long to wait for a delay-JS optimizer to un-park core React before
-	// giving up and un-parking it ourselves.
+	// How long to wait for a delay-JS optimizer to un-park the core globals the
+	// bundle needs before giving up and un-parking them ourselves.
 	var REACT_WAIT_TIMEOUT = 8000;
 
-	// How long to wait for our own un-parked copy of React to finish loading.
+	// How long to wait for our own un-parked copies to finish loading.
 	var REACT_UNPARK_TIMEOUT = 5000;
 
 	/**
-	 * Force-run core WordPress scripts that a delay-JS optimizer has parked on
-	 * the page (outside our template). Last resort: only called when React is
-	 * still missing after REACT_WAIT_TIMEOUT, at which point the alternative is
-	 * a guaranteed crash.
+	 * The core globals module-purchase.js resolves its webpack externals
+	 * against, paired with the script handle that defines each one. React is not
+	 * the only one that can go missing: the bundle also externalises
+	 * window.wp.element (forwardRef/createElement) and window.wp.domReady, and
+	 * either being undefined kills it just as dead.
 	 */
-	function unparkPageScripts() {
-		var unparked = 0;
+	var CORE_GLOBALS = [
+		{
+			id: 'react-js',
+			ready: function () {
+				return !! window.React;
+			},
+		},
+		{
+			id: 'wp-element-js',
+			ready: function () {
+				return !! ( window.wp && window.wp.element );
+			},
+		},
+		{
+			id: 'wp-dom-ready-js',
+			ready: function () {
+				return !! ( window.wp && window.wp.domReady );
+			},
+		},
+	];
+
+	/**
+	 * Core WordPress scripts sitting on the page with a non-executable type,
+	 * i.e. held by a delay-JS optimizer.
+	 *
+	 * @return {Array} Parked <script> nodes we have not replayed yet.
+	 */
+	function getParkedCoreScripts() {
 		var parked = document.querySelectorAll(
 			'script[src*="/wp-includes/js/dist/"]'
 		);
-		Array.prototype.forEach.call( parked, function ( node ) {
-			if (
-				isExecutableScriptType( node.getAttribute( 'type' ) ) ||
-				node.getAttribute( 'data-etn-unparked' )
-			) {
-				return; // Already executable, or we already replayed it.
-			}
+
+		return Array.prototype.filter.call( parked, function ( node ) {
+			return (
+				! isExecutableScriptType( node.getAttribute( 'type' ) ) &&
+				! node.getAttribute( 'data-etn-unparked' )
+			);
+		} );
+	}
+
+	/**
+	 * Force-run core WordPress scripts that a delay-JS optimizer has parked on
+	 * the page (outside our template). Last resort: only called when a required
+	 * global is still missing after REACT_WAIT_TIMEOUT, at which point the
+	 * alternative is a guaranteed crash.
+	 */
+	function unparkPageScripts() {
+		var unparked = 0;
+		Array.prototype.forEach.call( getParkedCoreScripts(), function ( node ) {
 			node.setAttribute( 'data-etn-unparked', '1' );
 			unparked++;
 			var script = document.createElement( 'script' );
@@ -139,14 +177,21 @@
 	}
 
 	/**
-	 * Poll for window.React until it appears or the budget runs out.
+	 * Poll until every entry in `pending` reports ready, or the budget runs out.
 	 *
-	 * @param {number} budget Milliseconds to keep waiting.
-	 * @return {Promise} Resolves with true if React appeared, false on timeout.
+	 * @param {Array}  pending Entries from CORE_GLOBALS still unaccounted for.
+	 * @param {number} budget  Milliseconds to keep waiting.
+	 * @return {Promise} Resolves with true if all appeared, false on timeout.
 	 */
-	function pollForReact( budget ) {
+	function pollForGlobals( pending, budget ) {
+		function allReady() {
+			return pending.every( function ( entry ) {
+				return entry.ready();
+			} );
+		}
+
 		return new Promise( function ( resolve ) {
-			if ( window.React ) {
+			if ( allReady() ) {
 				resolve( true );
 				return;
 			}
@@ -154,7 +199,7 @@
 			var step = 50;
 			var timer = setInterval( function () {
 				waited += step;
-				if ( window.React ) {
+				if ( allReady() ) {
 					clearInterval( timer );
 					resolve( true );
 					return;
@@ -168,41 +213,57 @@
 	}
 
 	/**
-	 * Guarantee window.React exists before the payload is replayed.
+	 * Guarantee the bundle's core externals exist before the payload is replayed.
 	 *
 	 * capture_lazy_script_payload() builds the payload from a clone of
 	 * WP_Scripts and therefore SKIPS any handle already printed on the page.
-	 * When another plugin (Elementor, typically) has already printed core
-	 * react / react-dom, they are omitted from our template — but a delay-JS
-	 * optimizer may still be holding those outer copies parked. Replaying the
-	 * bundle in that window resolves webpack's `window["React"]` external to
-	 * undefined and throws
-	 * "Cannot read properties of undefined (reading 'createContext')",
+	 * When another plugin (Elementor / Metform, typically) has already printed
+	 * core react / react-dom / wp-element, they are omitted from our template —
+	 * but a delay-JS optimizer may still be holding those outer copies parked.
+	 * Replaying the bundle in that window resolves webpack's `window["React"]`
+	 * or `window.wp.element` external to undefined and throws
+	 * "Cannot read properties of undefined (reading 'createContext'/'forwardRef')",
 	 * leaving the purchase form dead.
 	 */
-	function ensureReactAvailable( nodes ) {
-		var payloadHasReact = nodes.some( function ( node ) {
-			return node.id === 'react-js';
+	function ensureCoreGlobalsAvailable( nodes ) {
+		var payloadIds = {};
+		nodes.forEach( function ( node ) {
+			if ( node.id ) {
+				payloadIds[ node.id ] = true;
+			}
 		} );
 
-		// The payload carries React itself, or it is already live — nothing to wait for.
-		if ( payloadHasReact || window.React ) {
+		// Only wait on globals the payload does NOT carry itself and that are
+		// not already live — otherwise every page would pay the poll budget.
+		var pending = CORE_GLOBALS.filter( function ( entry ) {
+			return ! payloadIds[ entry.id ] && ! entry.ready();
+		} );
+
+		// Nothing to wait for: either the payload brings them or they are live.
+		if ( ! pending.length ) {
 			return Promise.resolve();
 		}
 
-		// First, give the optimizer a chance to un-park React on its own.
-		return pollForReact( REACT_WAIT_TIMEOUT ).then( function ( found ) {
+		// A global is missing AND no optimizer is holding core scripts back, so
+		// waiting cannot make it appear — replay immediately rather than stalling
+		// the form for REACT_WAIT_TIMEOUT on a site with no delay-JS plugin.
+		if ( ! getParkedCoreScripts().length ) {
+			return Promise.resolve();
+		}
+
+		// First, give the optimizer a chance to un-park them on its own.
+		return pollForGlobals( pending, REACT_WAIT_TIMEOUT ).then( function ( found ) {
 			if ( found ) {
 				return;
 			}
 			// Last resort: run the parked core scripts ourselves. Appending a
 			// <script> only STARTS the fetch, so keep polling afterwards —
 			// resolving here would hand the replay chain a still-undefined
-			// window.React and cause the very crash this guard prevents.
+			// global and cause the very crash this guard prevents.
 			if ( ! unparkPageScripts() ) {
 				return; // Nothing was parked; waiting longer cannot help.
 			}
-			return pollForReact( REACT_UNPARK_TIMEOUT );
+			return pollForGlobals( pending, REACT_UNPARK_TIMEOUT );
 		} );
 	}
 
@@ -267,7 +328,7 @@
 				script.textContent = node.textContent;
 				document.head.appendChild( script );
 			} );
-		}, ensureReactAvailable( nodes ) );
+		}, ensureCoreGlobalsAvailable( nodes ) );
 
 		return injecting;
 	}

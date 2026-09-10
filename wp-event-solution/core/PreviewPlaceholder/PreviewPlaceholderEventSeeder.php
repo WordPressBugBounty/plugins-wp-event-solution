@@ -250,6 +250,7 @@ class PreviewPlaceholderEventSeeder {
         }
         require_once ABSPATH . 'wp-admin/includes/image.php';
         wp_update_attachment_metadata( $attach_id, wp_generate_attachment_metadata( $attach_id, $target ) );
+        update_post_meta( (int) $attach_id, PreviewPlaceholder::MARKER_META, '1' ); // hidden from media lists
         return [ 'image_url' => wp_get_attachment_url( $attach_id ), 'attach_id' => (int) $attach_id ];
     }
 }

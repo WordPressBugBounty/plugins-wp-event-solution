@@ -34,6 +34,7 @@ class Hooks {
         add_action( 'admin_init', [$this, 'make_speaker_organizer'] );
 
         add_filter( 'users_list_table_query_args', [ $this, 'hide_speakers_from_users' ] );
+        add_filter( 'pre_count_users', [ $this, 'exclude_hidden_from_user_counts' ], 10, 3 );
     }  
 
     /**
@@ -161,6 +162,21 @@ class Hooks {
      * @return  array
      */
     public function hide_speakers_from_users( $query_args ) {
+        $hidden_users = $this->get_hidden_user_ids();
+
+        $existing = wp_parse_id_list( (array) ( $query_args['exclude'] ?? [] ) );
+
+        $query_args['exclude'] = array_values( array_unique( array_merge( $existing, $hidden_users ) ) ); // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_exclude
+
+        return $query_args;
+    }
+
+    /**
+     * IDs of the speakers/organizers hidden from the Users list table.
+     *
+     * @return  int[]
+     */
+    public function get_hidden_user_ids() {
         $args = [
             'role__in'    => ['etn-speaker', 'etn-organizer'],
             'meta_query'  => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
@@ -174,11 +190,59 @@ class Hooks {
             'number'      => -1,   // Retrieve all matching users
         ];
 
-        $users = get_users( $args ); // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_exclude
-        $hidden_users = $users;
+        return wp_parse_id_list( get_users( $args ) ); // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_exclude
+    }
 
-        $query_args['exclude'] = $hidden_users; // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_exclude
+    /**
+     * Keep the Users screen view counts in step with the rows, which
+     * hide_speakers_from_users() already filters. Scoped to users.php because
+     * count_users() is global; the static flag lets the inner call run unfiltered.
+     *
+     * @param   null|array  $result    Short-circuited counts.
+     * @param   string      $strategy  Count strategy.
+     * @param   int|null    $site_id   Site ID.
+     *
+     * @return  null|array
+     */
+    public function exclude_hidden_from_user_counts( $result, $strategy, $site_id ) {
+        static $counting = false;
 
-        return $query_args;
+        if ( $counting || ! is_admin() || 'users.php' !== ( $GLOBALS['pagenow'] ?? '' ) ) {
+            return $result;
+        }
+
+        $hidden = $this->get_hidden_user_ids();
+
+        if ( ! $hidden ) {
+            return $result;
+        }
+
+        $counting = true;
+        $counts   = count_users( $strategy, $site_id );
+        $counting = false;
+
+        foreach ( $hidden as $user_id ) {
+            $user = get_userdata( $user_id );
+
+            if ( ! $user ) {
+                continue;
+            }
+
+            $counts['total_users'] = max( 0, $counts['total_users'] - 1 );
+
+            foreach ( (array) $user->roles as $role ) {
+                if ( empty( $counts['avail_roles'][ $role ] ) ) {
+                    continue;
+                }
+
+                $counts['avail_roles'][ $role ]--;
+
+                if ( ! $counts['avail_roles'][ $role ] ) {
+                    unset( $counts['avail_roles'][ $role ] );
+                }
+            }
+        }
+
+        return $counts;
     }
 }

@@ -111,6 +111,49 @@ class PaymentController extends WP_REST_Controller
 	}
 
 	/**
+	 * Check that the caller is entitled to act on this order.
+	 *
+	 * The permission callback here is nonce-only and has to stay that way: guest checkout
+	 * finalises orders for visitors with no WordPress account, so a logged-in-owner test
+	 * would break ordinary purchases. But nonce-only on its own is not a check at all —
+	 * the nonce is printed for unauthenticated visitors, so anyone could name any order id
+	 * and drive it through this endpoint. Where offline payment is enabled that reset paid
+	 * orders, and every ticket on them, back to pending (CVE-2026-84907).
+	 *
+	 * So this uses the binding the plugin already issues and already enforces on the order
+	 * routes: the per-order access token, handed to the buyer when the order is created.
+	 * Staff who can manage the order (admin, the event's organizer, the customer it
+	 * belongs to) are let through without one, because the admin booking screens have no
+	 * token in hand.
+	 *
+	 * @param WP_REST_Request $request  Full request.
+	 * @param int             $order_id Order being acted on.
+	 *
+	 * @return true|WP_Error
+	 */
+	private function verify_order_access($request, $order_id)
+	{
+		$order_id = intval($order_id);
+
+		if (is_user_logged_in() && \Eventin\AccessControl\Ownership::can_manage_order($order_id)) {
+			return true;
+		}
+
+		$token  = sanitize_text_field((string) $request->get_param('order_token'));
+		$stored = (string) get_post_meta($order_id, '_order_access_token', true);
+
+		if ('' !== $token && '' !== $stored && hash_equals($stored, $token)) {
+			return true;
+		}
+
+		return new WP_Error(
+			'rest_forbidden',
+			__('Sorry, you are not allowed to do that.', 'eventin'),
+			['status' => 403]
+		);
+	}
+
+	/**
 	 * Create payment intents
 	 *
 	 * @param WP_REST_Request $request
@@ -126,6 +169,11 @@ class PaymentController extends WP_REST_Controller
 		$invalid_order = $this->reject_if_not_order($order_id);
 		if (is_wp_error($invalid_order)) {
 			return $invalid_order;
+		}
+
+		$order_access = $this->verify_order_access($request, $order_id);
+		if (is_wp_error($order_access)) {
+			return $order_access;
 		}
 
 		if ($payment_method == 'sure_cart' && (!class_exists('\SureCart') || !class_exists(SureCart::class))) {
@@ -280,6 +328,11 @@ class PaymentController extends WP_REST_Controller
 			return $invalid_order;
 		}
 
+		$order_access = $this->verify_order_access($request, $order_id);
+		if (is_wp_error($order_access)) {
+			return $order_access;
+		}
+
 		$order           = new OrderModel($order_id);
 		$validate_ticket = $order->validate_ticket(true);
 
@@ -319,8 +372,8 @@ class PaymentController extends WP_REST_Controller
 		} else {
 			// if payment_method stripe
 			if ('stripe' === $data['payment_method']) {
-				$stripe_transaction_id = $data['stripe_transaction_id'];
-				$validation = $this->handle_stripe_validation($stripe_transaction_id, $temporary_status);
+				$stripe_transaction_id = isset($data['stripe_transaction_id']) ? sanitize_text_field($data['stripe_transaction_id']) : '';
+				$validation = $this->handle_stripe_validation($stripe_transaction_id, $temporary_status, $order);
 
 				if (is_wp_error($validation)) {
 					return rest_ensure_response([
@@ -332,8 +385,8 @@ class PaymentController extends WP_REST_Controller
 
 			// if payment_method paypal
 			if ('paypal' === $data['payment_method']) {
-				$paypal_transaction_id = $data['paypal_transaction_id'];
-				$validation = $this->handle_paypal_validation($paypal_transaction_id, $temporary_status);
+				$paypal_transaction_id = isset($data['paypal_transaction_id']) ? sanitize_text_field($data['paypal_transaction_id']) : '';
+				$validation = $this->handle_paypal_validation($paypal_transaction_id, $temporary_status, $order);
 
 				if (is_wp_error($validation)) {
 					return rest_ensure_response([
@@ -525,14 +578,120 @@ class PaymentController extends WP_REST_Controller
 	}
 
 	/**
+	 * Tie a gateway transaction id to the order it was created for.
+	 *
+	 * PaymentController::create_payment() asks the gateway to open a transaction for one
+	 * specific order and stores the id it gets back on that order (`payment_id`). The
+	 * front end then hands that exact id back here. So the id posted to payment_complete
+	 * must be the order's own — anything else is a transaction that belongs to a
+	 * different order.
+	 *
+	 * Without this the endpoint only asked the gateway "did this succeed?", which made one
+	 * genuine low-value payment reusable against unpaid orders of any value, repeatedly
+	 * (CVE-2026-84906). The local duplicate guard did not catch it: it skips orders sitting
+	 * at the temporary status, which is exactly where a fresh guest order starts.
+	 *
+	 * @param string     $transaction_id Gateway transaction id supplied in the request.
+	 * @param OrderModel $order          The order being completed.
+	 *
+	 * @return true|WP_Error
+	 */
+	private function verify_transaction_belongs_to_order($transaction_id, $order)
+	{
+		$transaction_id = (string) $transaction_id;
+		$stored         = (string) $order->payment_id;
+
+		if ('' === $transaction_id || '' === $stored || ! hash_equals($stored, $transaction_id)) {
+			return new WP_Error('payment_transaction_mismatch', __('Payment Update Failed..', 'eventin'));
+		}
+
+		return true;
+	}
+
+	/**
+	 * Check that the gateway really charged what this order is asking for.
+	 *
+	 * A success flag alone says nothing about value: a $5 charge and a $500 charge both
+	 * "succeed". Both amount and currency have to match the order, or a cheap payment (or
+	 * a payment taken in a weaker currency) settles an expensive order.
+	 *
+	 * Fails closed on a mismatch, but stays quiet when the gateway response carries no
+	 * amount at all — an unexpected response shape must not break a legitimate checkout,
+	 * and {@see verify_transaction_belongs_to_order()} has already tied the transaction to
+	 * this order by then.
+	 *
+	 * A one-cent tolerance absorbs float rounding; it is far too small to be useful to an
+	 * attacker.
+	 *
+	 * @param OrderModel  $order         The order being completed.
+	 * @param float|null  $paid_amount   Amount the gateway charged, in major units (null = unknown).
+	 * @param string      $paid_currency Currency the gateway charged in ('' = unknown).
+	 *
+	 * @return true|WP_Error
+	 */
+	private function verify_charged_amount($order, $paid_amount, $paid_currency)
+	{
+		$expected_amount = round(floatval($order->total_price), 2);
+
+		if (null !== $paid_amount && round(floatval($paid_amount), 2) + 0.01 < $expected_amount) {
+			return new WP_Error('payment_amount_mismatch', __('Payment Update Failed..', 'eventin'));
+		}
+
+		$expected_currency = (string) $order->currency;
+
+		if ('' === $expected_currency) {
+			$expected_currency = (string) etn_currency();
+		}
+
+		if ('' !== (string) $paid_currency && '' !== $expected_currency
+			&& 0 !== strcasecmp((string) $paid_currency, $expected_currency)) {
+			return new WP_Error('payment_currency_mismatch', __('Payment Update Failed..', 'eventin'));
+		}
+
+		return true;
+	}
+
+	/**
+	 * Convert a Stripe amount into major units.
+	 *
+	 * Stripe quotes amounts in the smallest unit of the currency (cents), except for the
+	 * zero-decimal currencies, where the amount is already the major unit. The list here
+	 * mirrors the one eventin-pro uses when it creates the intent, so the two agree.
+	 *
+	 * @param int|float $amount   Stripe amount.
+	 * @param string    $currency Currency code.
+	 *
+	 * @return float
+	 */
+	private function stripe_amount_to_major($amount, $currency)
+	{
+		$zero_decimal_currencies = ['JPY', 'KRW', 'VND', 'IRR', 'IDR', 'COP', 'CLP', 'PYG'];
+
+		if (in_array(strtoupper((string) $currency), $zero_decimal_currencies, true)) {
+			return floatval($amount);
+		}
+
+		return floatval($amount) / 100;
+	}
+
+	/**
 	 * Validate Stripe payment
 	 *
-	 * @param string $stripe_transaction_id The Stripe transaction ID
-	 * @param string $temporary_status The temporary status
+	 * @param string     $stripe_transaction_id The Stripe transaction ID
+	 * @param string     $temporary_status The temporary status
+	 * @param OrderModel $order The order being completed
 	 * @return bool|WP_Error True if valid, WP_Error on failure
 	 */
-	private function handle_stripe_validation($stripe_transaction_id, $temporary_status)
+	private function handle_stripe_validation($stripe_transaction_id, $temporary_status, $order = null)
 	{
+		if ($order) {
+			$owns_transaction = $this->verify_transaction_belongs_to_order($stripe_transaction_id, $order);
+
+			if (is_wp_error($owns_transaction)) {
+				return $owns_transaction;
+			}
+		}
+
 		$validation = $this->validate_payment_transaction($stripe_transaction_id, $temporary_status);
 
 		if (is_wp_error($validation)) {
@@ -545,8 +704,21 @@ class PaymentController extends WP_REST_Controller
 			return new WP_Error('stripe_error', __('Unexpected Error', 'eventin'));
 		}
 
-		if ($response["status"]["status"] != "succeeded") {
+		$intent = isset($response['status']) && is_array($response['status']) ? $response['status'] : [];
+
+		if (! isset($intent['status']) || 'succeeded' !== $intent['status']) {
 			return new WP_Error('payment_failed', __('Payment Update Failed..', 'eventin'));
+		}
+
+		if ($order) {
+			$currency = isset($intent['currency']) ? (string) $intent['currency'] : '';
+			$paid     = isset($intent['amount']) ? $this->stripe_amount_to_major($intent['amount'], $currency) : null;
+
+			$amount_check = $this->verify_charged_amount($order, $paid, $currency);
+
+			if (is_wp_error($amount_check)) {
+				return $amount_check;
+			}
 		}
 
 		return true;
@@ -555,12 +727,21 @@ class PaymentController extends WP_REST_Controller
 	/**
 	 * Validate PayPal payment
 	 *
-	 * @param string $paypal_transaction_id The PayPal transaction ID
-	 * @param string $temporary_status The temporary status
+	 * @param string     $paypal_transaction_id The PayPal transaction ID
+	 * @param string     $temporary_status The temporary status
+	 * @param OrderModel $order The order being completed
 	 * @return bool|WP_Error True if valid, WP_Error on failure
 	 */
-	private function handle_paypal_validation($paypal_transaction_id, $temporary_status)
+	private function handle_paypal_validation($paypal_transaction_id, $temporary_status, $order = null)
 	{
+		if ($order) {
+			$owns_transaction = $this->verify_transaction_belongs_to_order($paypal_transaction_id, $order);
+
+			if (is_wp_error($owns_transaction)) {
+				return $owns_transaction;
+			}
+		}
+
 		$validation = $this->validate_payment_transaction($paypal_transaction_id, $temporary_status);
 
 		if (is_wp_error($validation)) {
@@ -575,8 +756,22 @@ class PaymentController extends WP_REST_Controller
 
 		$response = $paypalPayment->retrievePaymentCapture($paypal_transaction_id);
 
-		if (!in_array($response["status"]["status"], ["APPROVED", "COMPLETED"])) {
+		$paypal_order = isset($response['status']) && is_array($response['status']) ? $response['status'] : [];
+
+		if (! isset($paypal_order['status']) || ! in_array($paypal_order['status'], ["APPROVED", "COMPLETED"], true)) {
 			return new WP_Error('payment_failed', __('Payment Update Failed', 'eventin'));
+		}
+
+		if ($order) {
+			$unit     = isset($paypal_order['purchase_units'][0]['amount']) ? $paypal_order['purchase_units'][0]['amount'] : [];
+			$currency = isset($unit['currency_code']) ? (string) $unit['currency_code'] : '';
+			$paid     = isset($unit['value']) ? floatval($unit['value']) : null;
+
+			$amount_check = $this->verify_charged_amount($order, $paid, $currency);
+
+			if (is_wp_error($amount_check)) {
+				return $amount_check;
+			}
 		}
 
 		return true;

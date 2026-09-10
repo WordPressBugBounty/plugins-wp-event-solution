@@ -114,67 +114,46 @@ class Hooks {
         $show_remaining_tickets = isset( $attributes['show_remaining_tickets'] ) ? sanitize_text_field( $attributes['show_remaining_tickets'] ) : 'no';
         $filter_with_status     = isset( $attributes['filter_with_status'] ) ? sanitize_text_field( $attributes['filter_with_status'] ) : '';
 
+        // Resolve every event assigned to this user and hand the IDs to the style
+        // template as $post__in. The style templates build their own query and
+        // overwrite $data, so anything filtered only into $data is discarded. Category,
+        // tag, status, order and limit stay the template's job — duplicating them here
+        // would AND two clause sets that resolve dates on different clocks.
         $args = [
             'post_type'      => 'etn',
             'post_status'    => 'publish',
-            'posts_per_page' => $posts_to_show,
-            'order'          => $order,
+            'posts_per_page' => -1,
+            'fields'         => 'ids',
             'meta_query'     => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
-                'relation' => 'AND',
-                [
-                    'relation' => 'OR',
-                    [ 'key' => $meta_key, 'value' => sprintf( '"%d"', $user_id ), 'compare' => 'LIKE' ],
-                    [ 'key' => $meta_key, 'value' => sprintf( 'i:%d;', $user_id ),  'compare' => 'LIKE' ],
-                ],
+                'relation' => 'OR',
+                [ 'key' => $meta_key, 'value' => sprintf( '"%d"', $user_id ), 'compare' => 'LIKE' ],
+                [ 'key' => $meta_key, 'value' => sprintf( 'i:%d;', $user_id ),  'compare' => 'LIKE' ],
             ],
-            'tax_query'      => [ 'relation' => 'AND' ], // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
         ];
 
-        if ( $orderby_meta ) {
-            $args['meta_key'] = $orderby; // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
-            $args['orderby'] = $orderby_meta;
-        } else {
-            $args['orderby'] = $orderby;
-        }
-
-        if ( ! empty( $event_cat ) ) {
-            $args['tax_query'][] = [
-                'taxonomy' => 'etn_category',
-                'field'    => 'term_id',
-                'terms'    => $event_cat,
-                'operator' => 'IN',
-            ];
-        }
-        if ( ! empty( $event_tag ) ) {
-            $args['tax_query'][] = [
-                'taxonomy' => 'etn_tags',
-                'field'    => 'term_id',
-                'terms'    => $event_tag,
-                'operator' => 'IN',
-            ];
-        }
         if ( ! empty( $selected_events ) ) {
             $args['post__in'] = $selected_events;
         }
 
-        if ( 'upcoming' === $filter_with_status ) {
-            $args['meta_query'][] = [
-                'key'     => 'etn_start_date',
-                'value'   => gmdate( 'Y-m-d' ),
-                'compare' => '>=',
-                'type'    => 'DATE',
-            ];
-        } elseif ( 'expire' === $filter_with_status ) {
-            $args['meta_query'][] = [
-                'key'     => 'etn_end_date',
-                'value'   => gmdate( 'Y-m-d' ),
-                'compare' => '<',
-                'type'    => 'DATE',
-            ];
+        $post__in = get_posts( $args );
+        $post__in = is_array( $post__in ) ? array_map( 'intval', $post__in ) : [];
+
+        // The meta_query above is a LIKE prefilter over the serialized array, where a
+        // value ("i:5;") is indistinguishable from an array index. Confirm each match
+        // against the stored IDs so an organizer/speaker is never matched by index.
+        if ( ! empty( $post__in ) ) {
+            update_meta_cache( 'post', $post__in );
         }
 
-        $data = get_posts( $args );
-        $event_count = is_array( $data ) ? count( $data ) : 0;
+        $post__in = array_values( array_filter( $post__in, function ( $event_id ) use ( $meta_key, $user_id ) {
+            $assigned = get_post_meta( $event_id, $meta_key, true );
+
+            return in_array( $user_id, array_map( 'intval', (array) $assigned ), true );
+        } ) );
+
+        // Total events assigned to this user — the profile header badge is a profile
+        // stat, so it is deliberately not narrowed by the grid's limit or filters.
+        $event_count = count( $post__in );
 
         $user_type = ( 'etn_event_speaker' === $meta_key ) ? 'speaker' : 'organizer';
 
@@ -186,7 +165,11 @@ class Hooks {
         echo '<div class="etn-user-events-shortcode etn-user-events--' . esc_attr( $user_type ) . '">';
         echo $this->render_user_profile_header( $user_id, $user_type, $event_count ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
         echo '<div class="etn-user-events-list">';
-        if ( file_exists( \Wpeventin::widgets_dir() . "events/style/{$style}.php" ) ) {
+        // Fail closed: an empty $post__in is treated as "no filter" by WP_Query, which
+        // would list every event instead of none.
+        if ( empty( $post__in ) ) {
+            echo '<p class="etn-not-found-post">' . esc_html__( 'No Post Found', 'eventin' ) . '</p>';
+        } elseif ( file_exists( \Wpeventin::widgets_dir() . "events/style/{$style}.php" ) ) {
             include \Wpeventin::widgets_dir() . "events/style/{$style}.php";
         }
         echo '</div></div>';

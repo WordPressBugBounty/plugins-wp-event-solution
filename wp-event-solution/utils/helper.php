@@ -75,7 +75,9 @@
                     'name'    => [],
                     'id'      => [],
                     'class'   => [],
-                    'onclick' => [],
+                    // No 'onclick' (or any event-handler attribute): this shared
+                    // allow-list is applied to stored, user-supplied content, so
+                    // permitting inline JS here enabled stored XSS (CVE-2026-15402).
                 ],
                 'select'                        => [
                     'value'       => [],
@@ -1025,6 +1027,75 @@
         }
 
         /**
+         * Whether event category and tag output must be hidden on the event page.
+         *
+         * Driven by the "Vendor Event Category & Tags" setting
+         * ( disable_category_and_tags ). Scoped to vendor created events only, so
+         * events authored by admins/editors keep rendering their taxonomy terms.
+         *
+         * Fails open: the setting is Pro gated while these render paths live in the
+         * free plugin, so anything other than an explicit 'on' renders as before.
+         *
+         * @since 4.1.21
+         *
+         * @param   int  $event_id  Event post id. Falls back to the current post.
+         *
+         * @return  bool
+         */
+        public static function should_hide_event_taxonomy($event_id = 0)
+        {
+            if ('on' !== \Eventin\Settings::get('disable_category_and_tags')) {
+                return false;
+            }
+
+            $event_id = $event_id ? intval($event_id) : intval(get_the_ID());
+
+            if (!$event_id) {
+                return false;
+            }
+
+            $author_id = (int) get_post_field('post_author', $event_id);
+
+            $hide = $author_id ? self::is_vendor_user($author_id) : false;
+
+            return (bool) apply_filters('eventin_hide_event_taxonomy', $hide, $event_id);
+        }
+
+        /**
+         * Whether a user is a multivendor seller/vendor.
+         *
+         * Administrators are never treated as vendors so their own events are not
+         * affected by vendor scoped settings.
+         *
+         * @since 4.1.21
+         *
+         * @param   int  $user_id
+         *
+         * @return  bool
+         */
+        public static function is_vendor_user($user_id)
+        {
+            $user_id = intval($user_id);
+
+            if (!$user_id || user_can($user_id, 'manage_options')) {
+                return false;
+            }
+
+            // Role based on purpose. Dokan's own dokan_is_user_seller() resolves to
+            // user_can( 'dokandar' ), a cap Dokan also grants to administrator and
+            // shop_manager, so it would classify store managers as vendors. Dokan
+            // vendors always carry the 'seller' role, so the role list is exact.
+            $user  = get_userdata($user_id);
+            $roles = $user ? (array) $user->roles : [];
+
+            $vendor_roles = apply_filters('eventin_vendor_roles', ['seller', 'vendor', 'vendor_staff', 'wcfm_vendor']);
+
+            $is_vendor = (bool) array_intersect($roles, $vendor_roles);
+
+            return (bool) apply_filters('eventin_is_vendor_user', $is_vendor, $user_id);
+        }
+
+        /**
          * validation for nonce
          */
         public static function is_secured($nonce_field, $action, $post_id = null, $post = [])
@@ -1832,8 +1903,15 @@
             }
 
             // get event search form
-            public static function get_event_search_form($etn_event_input_filed_title = "Find your next event", $etn_event_category_filed_title = "Event Category", $etn_event_location_filed_title = "Event Location", $etn_event_button_title = "Search Now")
+            public static function get_event_search_form($etn_event_input_filed_title = '', $etn_event_category_filed_title = '', $etn_event_location_filed_title = '', $etn_event_button_title = '')
             {
+                // Defaults can't call __() in the signature (PHP forbids function calls in
+                // parameter defaults), so resolve them here or callers that pass nothing
+                // (shortcode, archive template) render untranslated English.
+                $etn_event_input_filed_title    = ! empty($etn_event_input_filed_title) ? $etn_event_input_filed_title : __('Find your next event', 'eventin');
+                $etn_event_category_filed_title = ! empty($etn_event_category_filed_title) ? $etn_event_category_filed_title : __('Event Category', 'eventin');
+                $etn_event_location_filed_title = ! empty($etn_event_location_filed_title) ? $etn_event_location_filed_title : __('Event Location', 'eventin');
+                $etn_event_button_title         = ! empty($etn_event_button_title) ? $etn_event_button_title : __('Search Now', 'eventin');
 
                 $category_data = Helper::get_event_category();
                 $location_data = [];
@@ -2040,11 +2118,16 @@
                         $week_start = gmdate('w', $week_start) == gmdate('w') ? $week_start + 7 * 86400 : $week_start;
                         $weekend    = gmdate('Y-m-d', strtotime(gmdate("Y-m-d", $week_start) . " +6 days"));
 
+                        // Weekend spans Saturday and Sunday. $weekend stays the week end date used by "this-week".
+                        $weekend_start = gmdate('Y-m-d', strtotime(gmdate("Y-m-d", $week_start) . " +5 days"));
+                        $weekend_end   = $weekend;
+
                         $month_start_date = gmdate('Y-m-d', strtotime(gmdate('Y-m')));
                         $month_end_date   = gmdate('Y-m-d', strtotime(gmdate("Y-m-t", strtotime($month_start_date))));
 
                         $event_sorting       = ! empty(etn_get_option('archive_event_sorting')) ? etn_get_option('archive_event_sorting') : "";
                         $event_sorting_order = ! empty(etn_get_option('archive_event_sorting_order')) ? etn_get_option('archive_event_sorting_order') : "";
+                        $show_expired_in_search = etn_get_option('etn_show_expired_in_search');
 
                         $etn_event_location = "";
 
@@ -2139,13 +2222,15 @@
                                     'relation' => 'AND',
                                     [
                                         'key'     => 'etn_end_date',
-                                        'value'   => $weekend,
+                                        'value'   => $weekend_start,
                                         'compare' => '>=',
+                                        'type'    => 'date',
                                     ],
                                     [
                                         'key'     => 'etn_start_date',
-                                        'value'   => $weekend,
+                                        'value'   => $weekend_end,
                                         'compare' => '<=',
+                                        'type'    => 'date',
                                     ],
                                 ];
                             } elseif ($etn_event_date_range === "this-week") {
@@ -2296,6 +2381,59 @@
                             ];
                         }
 
+                        $meta_expired_query = [];
+
+                        if ($show_expired_in_search === 'off') {
+                            $today = gmdate('Y-m-d');
+
+                            $meta_expired_query = [
+                                'relation' => 'OR',
+                                // Ends today or later — still running.
+                                [
+                                    'key'     => 'etn_end_date',
+                                    'value'   => $today,
+                                    'compare' => '>=',
+                                    'type'    => 'DATE',
+                                ],
+                                // No end date stored (single-day events often keep it
+                                // empty, and older events have no row at all): decide
+                                // from the start date instead. Passing every such event
+                                // through unconditionally — which an unqualified
+                                // "end date is empty" branch did — showed events that
+                                // finished years ago while the setting said to hide
+                                // expired ones.
+                                [
+                                    'relation' => 'AND',
+                                    [
+                                        'relation' => 'OR',
+                                        [
+                                            'key'     => 'etn_end_date',
+                                            'value'   => '',
+                                            'compare' => '=',
+                                        ],
+                                        [
+                                            'key'     => 'etn_end_date',
+                                            'compare' => 'NOT EXISTS',
+                                        ],
+                                    ],
+                                    [
+                                        'key'     => 'etn_start_date',
+                                        'value'   => $today,
+                                        'compare' => '>=',
+                                        'type'    => 'DATE',
+                                    ],
+                                ],
+                                // Has not started yet: never expired, whatever shape the
+                                // end date is stored in.
+                                [
+                                    'key'     => 'etn_start_date',
+                                    'value'   => $today,
+                                    'compare' => '>',
+                                    'type'    => 'DATE',
+                                ],
+                            ];
+                        }
+
                         $meta_event_happen_query = [];
 
                         if (! empty($etn_event_will_happen)) {
@@ -2316,6 +2454,10 @@
 
                         if (! empty($meta_date_query)) {
                             $meta_query[] = $meta_date_query;
+                        }
+
+                        if (! empty($meta_expired_query)) {
+                            $meta_query[] = $meta_expired_query;
                         }
 
                         if (! empty($meta_event_happen_query)) {
@@ -2369,6 +2511,10 @@
                     $week_start = strtotime("last monday");
                     $week_start = gmdate('w', $week_start) == gmdate('w') ? $week_start + 7 * 86400 : $week_start;
                     $weekend    = gmdate('Y-m-d', strtotime(gmdate("Y-m-d", $week_start) . " +6 days"));
+
+                    // Weekend spans Saturday and Sunday. $weekend stays the week end date used by "this-week".
+                    $weekend_start = gmdate('Y-m-d', strtotime(gmdate("Y-m-d", $week_start) . " +5 days"));
+                    $weekend_end   = $weekend;
 
                     $month_start_date = gmdate('Y-m-d', strtotime(gmdate('Y-m')));
                     $month_end_date   = gmdate('Y-m-d', strtotime(gmdate("Y-m-t", strtotime($month_start_date))));
@@ -2502,13 +2648,15 @@
                                     'relation' => 'AND',
                                     [
                                         'key'     => 'etn_end_date',
-                                        'value'   => $weekend,
+                                        'value'   => $weekend_start,
                                         'compare' => '>=',
+                                        'type'    => 'date',
                                     ],
                                     [
                                         'key'     => 'etn_start_date',
-                                        'value'   => $weekend,
+                                        'value'   => $weekend_end,
                                         'compare' => '<=',
+                                        'type'    => 'date',
                                     ],
                                 ];
                             } elseif ($etn_event_date_range === "this-week") {
@@ -2641,19 +2789,6 @@
 							<?php
 							endif;
 								?>
-                            <!-- content start-->
-                            <div class="etn-event-content">
-							<?php  
-							if ( ! empty( $location ) ) : ?>
-								<div class="etn-event-location">
-									<i class="etn-icon etn-location"></i>
-									<?php
-										echo esc_html( $location ); 
-									?>
-								</div>
-							<?php
-                                endif;
-                                                ?>
 							<!-- content start-->
 							<div class="etn-event-content">
 								<?php
@@ -2686,7 +2821,6 @@
 
 					</div>
 					<!-- etn event item end-->
-                                </div>
 				<?php
                     }
                                 } else {
@@ -5014,6 +5148,24 @@
             )
         );
 
+        $sold_counts = self::etn_net_sold_counts_from_order_rows( $rows );
+
+        return (object) $sold_counts;
+    }
+
+    /**
+     * Turn raw order rows into a net slug => sold-count map.
+     *
+     * Shared by the single-event and multi-event sold-count readers so both
+     * apply the same rule: the `tickets` meta is the immutable original
+     * purchase, and refunded quantities are subtracted from it per slug.
+     *
+     * @param array $rows Rows with `tickets_raw` and `refunds_raw`.
+     * @return array slug => net sold count
+     */
+    private static function etn_net_sold_counts_from_order_rows( $rows ) {
+        $sold_counts = [];
+
         foreach ( $rows as $row ) {
             $tickets = etn_safe_decode( $row->tickets_raw );
             if ( ! is_array( $tickets ) ) {
@@ -5054,7 +5206,7 @@
             }
         }
 
-        return (object) $sold_counts;
+        return $sold_counts;
     }
 
     /**
@@ -5066,6 +5218,60 @@
     public static function etn_get_sold_tickets_by_event($event_id)
     {
         return self::etn_get_sold_tickets_by_event_legacy($event_id);
+    }
+
+    /**
+     * Net sold ticket count for a group of events, in one query.
+     *
+     * A recurring parent never sells a ticket itself — every booking is made on
+     * one of its child occurrences — so the event list has to add the
+     * occurrences up to show a useful number. Doing that with
+     * etn_get_sold_tickets_by_event() would run one query per occurrence, so
+     * this reads all of them at once.
+     *
+     * Counted statuses and refund handling match
+     * etn_get_sold_tickets_by_event_legacy().
+     *
+     * @param int[] $event_ids Event IDs.
+     * @return int Net sold tickets across every given event.
+     */
+    public static function etn_get_sold_ticket_count_by_events( $event_ids ) {
+        $event_ids = array_filter( array_map( 'intval', (array) $event_ids ) );
+
+        if ( empty( $event_ids ) ) {
+            return 0;
+        }
+
+        // Normalize to original event IDs for WPML, same as the single-event reader.
+        if ( \Etn_Wpml::is_active() ) {
+            $event_ids = array_map( function( $event_id ) {
+                return (int) \Etn_Wpml::original_id( $event_id, 'post_etn' );
+            }, $event_ids );
+        }
+
+        $event_ids = array_values( array_unique( $event_ids ) );
+
+        global $wpdb;
+
+        // `event_id` is a meta_value (varchar), so bind the ids as strings:
+        // comparing that column against numbers makes MySQL drop the index.
+        $placeholders = implode( ', ', array_fill( 0, count( $event_ids ), '%s' ) );
+        $bind_ids     = array_map( 'strval', $event_ids );
+
+        $rows = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+            $wpdb->prepare(
+                "SELECT pm_tickets.meta_value AS tickets_raw, pm_refunds.meta_value AS refunds_raw
+                FROM {$wpdb->posts} p
+                INNER JOIN {$wpdb->postmeta} pm_event    ON p.ID = pm_event.post_id    AND pm_event.meta_key    = 'event_id' AND pm_event.meta_value IN ( {$placeholders} )
+                INNER JOIN {$wpdb->postmeta} pm_status   ON p.ID = pm_status.post_id   AND pm_status.meta_key   = 'status'   AND pm_status.meta_value IN ( 'completed', 'partially_refunded' )
+                INNER JOIN {$wpdb->postmeta} pm_tickets  ON p.ID = pm_tickets.post_id  AND pm_tickets.meta_key  = 'tickets'
+                LEFT  JOIN {$wpdb->postmeta} pm_refunds  ON p.ID = pm_refunds.post_id  AND pm_refunds.meta_key  = 'etn_refunds'
+                WHERE p.post_type = 'etn-order'", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+                $bind_ids
+            )
+        );
+
+        return (int) array_sum( self::etn_net_sold_counts_from_order_rows( $rows ) );
     }
 
     /**

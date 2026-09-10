@@ -2,6 +2,9 @@
 
 defined( 'ABSPATH' ) || exit;
 $elementor_post_types = get_option('elementor_cpt_support', []);
+$current_event_owner_id = class_exists( '\\Eventin\\AccessControl\\Ownership' )
+    ? \Eventin\AccessControl\Ownership::current_user_owner_id()
+    : get_current_user_id();
 
 $data = [
     'ajax_url'                    => admin_url( 'admin-ajax.php' ),
@@ -13,7 +16,9 @@ $data = [
     'locale_name'                 => strtolower( str_replace( '_', '-', get_locale() ) ),
     'start_of_week'               => get_option( 'start_of_week' ),
     'calendar_start_of_week'      => get_option( 'start_of_week' ), // Week start for admin calendar view (0 = Sun, 1 = Mon, ..., 6 = Sat). Override via etn_locale_vars to customize.
-    'author_id'                   => get_current_user_id(),
+    // Dokan staff submit and list events for their store owner, not for the
+    // staff WordPress account. For every other user this remains their own id.
+    'author_id'                   => $current_event_owner_id,
     'ticket_scanner_link'         => admin_url( '/edit.php?post_type=etn-attendee' ),
     'post_id'                     => get_the_ID(),
     'zoom_connection_check_nonce' => wp_create_nonce( 'zoom_connection_check_nonce' ),
@@ -47,6 +52,7 @@ $data = [
     'price_format'                => etn_get_price_format(),
     'currency_position'           => etn_get_currency_position(),
     'elementor_supported'         => class_exists( '\Elementor\Plugin' ) && in_array( 'etn-template', $elementor_post_types ),
+    'bricks_supported'            => ( 'bricks' === wp_get_theme()->get( 'Template' ) || 'Bricks' === wp_get_theme()->get( 'Name' ) ),
     'selected_template_builder'   => etn_get_selected_template_builder(),
     // Ids of the free starter templates, from \Eventin\Template\StaticTemplateConfig.
     // The Template Builder decides lock state from this list (anything not here is
@@ -61,6 +67,12 @@ $data = [
     'is_dokan_enabled'            => ( \Etn\Core\Addons\Helper::instance()->check_active_module( 'dokan' ) ) ? true : false,
     'seat_map'                    => ( \Etn\Core\Addons\Helper::instance()->check_active_module( 'seat_map' ) ) ? true : false,
     'rsvp'                        => ( \Etn\Core\Addons\Helper::instance()->check_active_module( 'rsvp' ) ) ? true : false,
+    // The admin sidebar is rendered by PHP, so toggling Attendees Registration in
+    // the settings SPA cannot add the "Attendees" item without a reload. The SPA
+    // inserts it itself (see syncAttendeeMenu), and needs the same capability the
+    // server would have gated the item on — a user with etn_manage_setting does
+    // not necessarily hold etn_manage_attendee.
+    'can_manage_attendee'         => current_user_can( 'etn_manage_attendee' ),
 ];
 
 // Expose the logged-in user's billing details so the checkout form can prefill them.
@@ -71,6 +83,10 @@ if ( is_user_logged_in() ) {
     $data['current_user'] = [
         'first_name' => $current_user->first_name,
         'last_name'  => $current_user->last_name,
+        // Always populated, unlike first/last name, which most WP accounts leave
+        // blank. The Aisentic consent dialog registers with it — the provider
+        // rejects a nameless account.
+        'display_name' => $current_user->display_name,
         'email'      => $current_user->user_email,
         'phone'      => $billing_phone ? $billing_phone : '',
     ];

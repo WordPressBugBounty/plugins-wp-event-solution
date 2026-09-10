@@ -71,6 +71,8 @@ class PluginManager {
             $result = $upgrader->install( 'https://github.com/themewinter/migration-tool-for-eventin-public/releases/download/v1.0.0/migration-tool-for-eventin.zip' );
         } elseif($slug === 'eventin-addon-for-tutor-lms') {
             $result    = $upgrader->install('https://github.com/themewinter/eventin-addon-for-tutor-lms-public/releases/download/v1.0.0/eventin-addon-for-tutor-lms-1.0.0.zip');
+        } elseif($slug === 'eventin-addon-for-learndash') {
+            $result    = $upgrader->install('https://github.com/themewinter/eventin-addon-for-learndash-public/releases/download/v1.0.0/eventin-addon-for-learndash.zip');
         } elseif($slug === 'eventin-addon-for-fluentcart') {
             $result    = $upgrader->install('https://downloads.wordpress.org/plugin/eventin-addon-for-fluentcart.latest-stable.zip');
         } elseif($slug === 'aisentic') {

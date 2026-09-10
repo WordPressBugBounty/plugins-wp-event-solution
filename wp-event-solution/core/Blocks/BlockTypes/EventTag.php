@@ -4,6 +4,7 @@ namespace Eventin\Blocks\BlockTypes;
 
 defined( 'ABSPATH' ) || exit;
 use Etn\Core\Event\Event_Model;
+use Etn\Utils\Helper;
 use Eventin\Blocks\BlockTypes\AbstractBlock;
 use Wpeventin;
 
@@ -33,8 +34,18 @@ class EventTag extends AbstractBlock {
 
         if ( $this->is_editor() ) {
             $event_id = ! empty( $attributes['eventId'] ) ? intval( $attributes['eventId'] ) : 0;
+        } else if ( 'etn-template' == get_post_type( get_the_ID() ) ) {
+            // do_blocks() runs against the template post, so resolve the event
+            // being rendered through it — same as the event-category block.
+            $template = new \Eventin\Template\TemplateModel( get_the_ID() );
+            $event_id = $template->get_preview_event_id();
         } else {
             $event_id = get_the_ID();
+        }
+
+        // "Vendor Event Category & Tags" setting: hide tags on vendor created events.
+        if ( ! $this->is_editor() && Helper::should_hide_event_taxonomy( $event_id ) ) {
+            return '';
         }
 
         $event = new Event_Model( $event_id );

@@ -204,6 +204,100 @@ class Extension {
     }
 
     /**
+     * Seed the modules that ship enabled on a brand new install.
+     *
+     * The Automation module is advertised as on by default, but every runtime
+     * reader (the SDK gate in eventin.php, OrderEmailTrait, EventReminder, …)
+     * decides from `etn_addons_options` and treats a missing key as off. With no
+     * stored value the Email Automation menu never appears until the user toggles
+     * the module off and back on, which is what actually writes the key.
+     *
+     * Only a site with no history is seeded: `etn_db_migration` is written once
+     * the upgraders have run, so its absence means fresh install (or a site whose
+     * options were wiped). An existing site keeps whatever it has — neither an
+     * upgrade nor a re-activation may flip a site that has deliberately been
+     * running without Automation.
+     *
+     * Called from both the activation hook and the fresh-install branch of
+     * `do_upgrade()`, because a reset that truncates options without touching
+     * plugin activation never fires activation. Idempotent by the key check.
+     *
+     * @return void
+     */
+    public static function seed_default_module_options() {
+        if ( get_option( 'etn_db_migration' ) ) {
+            return;
+        }
+
+        $addons_options = get_option( 'etn_addons_options', [] );
+
+        if ( ! is_array( $addons_options ) ) {
+            $addons_options = [];
+        }
+
+        if ( array_key_exists( 'automation', $addons_options ) ) {
+            return;
+        }
+
+        $addons_options['automation'] = 'on';
+
+        update_option( 'etn_addons_options', $addons_options );
+    }
+
+    /**
+     * Modules that ship enabled as soon as Eventin Pro is active.
+     *
+     * @var array
+     */
+    const PRO_DEFAULT_MODULES = ['rsvp'];
+
+    /**
+     * Seed the modules that are enabled by default once Eventin Pro is active.
+     *
+     * RSVP is a Pro feature with no `deps`, so `should_auto_enable()` never
+     * covers it and nothing writes `etn_addons_options['rsvp']`. Pro's
+     * `Config::active_modules()` boots the module only when the stored value is
+     * 'on' (via `Helper::check_active_module`), so without this the module stays
+     * dead and the card stays off until the user toggles it by hand.
+     *
+     * Never seeds while Pro is inactive — the module is Pro-only, so enabling it
+     * on a free install would advertise a feature the site cannot run.
+     *
+     * Guarded on key presence, not value: once a user switches the module off,
+     * the key exists and holds 'off', and no later boot may turn it back on.
+     *
+     * @return void
+     */
+    public static function seed_pro_default_modules() {
+        if ( ! class_exists( 'Wpeventin_Pro' ) ) {
+            return;
+        }
+
+        $addons_options = get_option( 'etn_addons_options', [] );
+
+        if ( ! is_array( $addons_options ) ) {
+            $addons_options = [];
+        }
+
+        $seeded = false;
+
+        foreach ( self::PRO_DEFAULT_MODULES as $module ) {
+            if ( array_key_exists( $module, $addons_options ) ) {
+                continue;
+            }
+
+            $addons_options[$module] = 'on';
+            $seeded                  = true;
+        }
+
+        if ( ! $seeded ) {
+            return;
+        }
+
+        update_option( 'etn_addons_options', $addons_options );
+    }
+
+    /**
      * Find extension by name
      *
      * @return  array
@@ -247,8 +341,24 @@ class Extension {
 
             $dependencies = ! empty( $extension['deps'] ) ? $extension['deps'] : [];
 
+            // Commercially licensed dependencies are not on wordpress.org, so
+            // PluginManager::install_plugin() would 404 and fail with no
+            // explanation. Tell the admin to install them by hand instead.
+            $manual_install_deps = apply_filters( 'eventin_manual_install_dependencies', [ 'sfwd-lms' => __( 'LearnDash', 'eventin' ) ] );
+
             if ( is_array( $dependencies ) ) {
                 foreach ( $dependencies as $dependency ) {
+                    if ( isset( $manual_install_deps[ $dependency ] ) && ! PluginManager::is_installed( $dependency ) ) {
+                        return new \WP_Error(
+                            'eventin_dependency_missing',
+                            sprintf(
+                                /* translators: %s: name of the required third-party plugin, e.g. LearnDash */
+                                __( '%s is not installed. It is a commercial plugin, so install and activate it manually first, then enable this addon.', 'eventin' ),
+                                $manual_install_deps[ $dependency ]
+                            )
+                        );
+                    }
+
                     if ( ! PluginManager::is_installed( $dependency ) ) {
                         $result = PluginManager::install_plugin( $dependency );
                         if ( ! $result || is_wp_error( $result ) ) {
@@ -265,7 +375,7 @@ class Extension {
                 }
             }
 
-            $one_click_install_addons = [ 'eventin-addon-for-tutor-lms' ];
+            $one_click_install_addons = [ 'eventin-addon-for-tutor-lms', 'eventin-addon-for-learndash' ];
             $is_one_click_addon       = in_array( $slug, $one_click_install_addons, true );
 
             if ( 'install' === $status || $is_one_click_addon ) {
@@ -566,6 +676,24 @@ class Extension {
                 'doc_link'      => 'https://themewinter.com/docs/plugins/plugin-docs/integration/buddyboss-integration/',
                 'badge_tags'    => ['Pro'],
             ],
+            'fluentcommunity' => [
+                'name'          => 'fluentcommunity',
+                'slug'          => 'fluentcommunity',
+                'type'          => 'module',
+                'upgrade'       => true,
+                'upgrade_link'  => 'https://fluentcommunity.co/',
+                'status'        => 'off',
+                'is_pro'        => true,
+                'deps'          => ['fluent-community'],
+                'title'         => __('FluentCommunity', 'eventin'),
+                'description'   => __('It allows community members to browse and create events directly inside the FluentCommunity portal.', 'eventin'),
+                'icon'          => ExtensionIcon::get('fluentcommunity'),
+                'notice'        => __('NB: Need to activate FluentCommunity plugin', 'eventin'),
+                'demo_link'     => 'https://product.themewinter.com/eventin/',
+                'settings_link' => '',
+                'doc_link'      => 'https://themewinter.com/docs/plugins/eventin/how-to-integrate-fluentcommunity-with-eventin/',
+                'badge_tags'    => ['Pro', 'New'],
+            ],
             'certificate_builder' => [
                 'name'          => 'certificate_builder',
                 'slug'          => 'certificate_builder',
@@ -618,7 +746,11 @@ class Extension {
                 'name'          => 'automation',
                 'slug'          => 'automation',
                 'type'          => 'module',
-                'status'        => 'on',
+                // Falls back to off so the card mirrors what the runtime gates
+                // read from `etn_addons_options`. A fresh install has the option
+                // seeded to 'on' at activation, so it still shows enabled there;
+                // a site with no stored value really is off and must say so.
+                'status'        => 'off',
                 'is_pro'        => false,
                 'title'         => __('Automation', 'eventin'),
                 'description'   => __('Skip the manual steps — Enable the Eventin’s automation to send emails for event creation, booking confirmation, reminders, and RSVP updates.', 'eventin'),
@@ -912,6 +1044,28 @@ class Extension {
                 'settings_link' => '',
                 'doc_link'      => 'https://themewinter.com/docs/plugins/plugin-docs/integration/how-to-integrate-zoho-crm-with-eventin/',
             ],
+            'uncanny_automator' => [
+                'name'          => 'uncanny_automator',
+                'slug'          => 'uncanny-automator',
+                'type'          => 'integration',
+                'status'        => ( etn_get_option('uncanny_automator_api') && etn_get_option('uncanny_automator_api') !== 'off' ) ? 'on' : 'off',
+                'is_pro'        => true,
+                // Intentionally no `deps`: a declared dependency makes the card's
+                // status track the dependency plugin instead of the user's toggle,
+                // so `uncanny_automator_api` — which the dispatcher gates on — would
+                // never be written. Zoho CRM has the same shape for the same reason.
+                'deps'          => [],
+                'title'         => __('Uncanny Automator', 'eventin'),
+                'description'   => __('Send purchaser and attendee data to an Uncanny Automator webhook recipe on order create. Requires Eventin Pro and Uncanny Automator Pro.', 'eventin'),
+                'icon'          => ExtensionIcon::get('uncanny_automator'),
+                'notice'        => ( class_exists( 'Wpeventin_Pro' ) && PluginManager::is_activated( 'uncanny-automator' ) )
+                    ? ''
+                    : __( 'NB: Requires Eventin Pro and the Uncanny Automator plugin. The webhook trigger itself is an Uncanny Automator Pro feature.', 'eventin' ),
+                'demo_link'     => 'https://automatorplugin.com/',
+                'settings_link' => '',
+                'doc_link'      => 'https://themewinter.com/docs/plugins/plugin-docs/integration/how-to-integrate-uncanny-automator-with-eventin/',
+                'badge_tags'    => ['Pro'],
+            ],
             'stripe' => [
                 'name'          => 'stripe',
                 'slug'          => 'stripe',
@@ -951,26 +1105,6 @@ class Extension {
                     'paypal_client_id'      => etn_get_option( 'paypal_client_id' ) ? etn_get_option( 'paypal_client_id' ) : '',
                     'paypal_client_secret'  => etn_get_option( 'paypal_client_secret' ) ? etn_get_option( 'paypal_client_secret' ) : '',
                     'paypal_sandbox'        => etn_get_option( 'paypal_sandbox' ) ? true : false,
-                ],
-                'badge_tags'    => ['Pro'],
-            ],
-            'eventin_ai' => [
-                'name'          => 'eventin_ai',
-                'slug'          => 'eventin_ai',
-                'type'          => 'addon',
-                'status'        => (etn_get_option('etn_ai_api') && etn_get_option('etn_ai_api') !== 'off') ? 'on' : 'off',
-                'is_pro'        => true,
-                'title'         => __('Eventin AI', 'eventin'),
-                'description'   => __('Eventin AI Integration for Eventin.', 'eventin'),
-                'icon'          => ExtensionIcon::get('eventin-ai'),
-                'notice'        => '',
-                'demo_link'     => 'https://product.themewinter.com/eventin/',
-                'settings_link' => '',
-                'doc_link'      => 'https://themewinter.com/docs/plugins/plugin-docs/integration/ai-integration/?utm_source=documentations&utm_medium=eventin&utm_campaign=eventin+documentations',
-                'data'          => [
-                    'eventin_ai' => etn_get_option('eventin_ai') ? etn_get_option('eventin_ai') : 'off',
-                    'eventin_ai_auth_key' => !empty(etn_get_option('eventin_ai_auth_key')) ? etn_get_option('eventin_ai_auth_key') : '',
-                    'etn_ai_api' => etn_get_option('etn_ai_api') ? etn_get_option('etn_ai_api') : 'off',
                 ],
                 'badge_tags'    => ['Pro'],
             ],
@@ -1039,6 +1173,23 @@ class Extension {
             'doc_link'      => 'https://themewinter.com/docs/plugins/plugin-docs/integration/how-to-integrate-tutorlms-with-eventin/',
             'notice'        => __( 'NB: Need to activate Tutor LMS plugin', 'eventin' ),
             'badge_tags'    => [ 'Free', 'New', 'Featured' ],
+        ];
+
+        $extensions['eventin-addon-for-learndash'] = [
+            'name'          => 'eventin-addon-for-learndash',
+            'slug'          => 'eventin-addon-for-learndash',
+            'type'          => 'addon',
+            'status'        => 'off',
+            'is_pro'        => false,
+            'deps'          => ['sfwd-lms'],
+            'title'         => __( 'Eventin Addon for LearnDash', 'eventin' ),
+            'description'   => __( 'Auto-enroll Eventin ticket buyers and registered attendees into mapped LearnDash courses.', 'eventin' ),
+            'icon'          => ExtensionIcon::get( 'learndash' ),
+            'demo_link'     => 'https://product.themewinter.com/eventin/',
+            'settings_link' => '',
+            'doc_link'      => 'https://themewinter.com/docs/plugins/plugin-docs/integration/how-to-integrate-learndash-with-eventin/',
+            'notice'        => __( 'NB: Need to activate LearnDash plugin', 'eventin' ),
+            'badge_tags'    => [ 'Free', 'New' ],
         ];
 
         $extensions['aisentic'] = [

@@ -250,28 +250,18 @@ class OrderTicket implements HookableInterface {
             $total_ordered      = array_sum( array_column( (array) $order->tickets, 'ticket_quantity' ) );
 
             if ( $enable_global_stock ) {
+                // A waiting-list conversion is admitted on top of the sold-out
+                // capacity, so the seat has to be granted here.
                 $event_update['etn_global_stock'] = (int) get_post_meta( $order->event_id, 'etn_global_stock', true ) + $total_ordered;
-
-                $current_global_waiting = (int) get_post_meta( $order->event_id, 'etn_global_waiting_list', true );
-                $event_update['etn_global_waiting_list'] = max( 0, $current_global_waiting - $total_ordered );
-            } else {
-                $ordered_qty_by_slug = [];
-                foreach ( (array) $order->tickets as $ordered_ticket ) {
-                    $slug = $ordered_ticket['ticket_slug'] ?? '';
-                    if ( $slug ) {
-                        $ordered_qty_by_slug[ $slug ] = ( $ordered_qty_by_slug[ $slug ] ?? 0 ) + (int) ( $ordered_ticket['ticket_quantity'] ?? 0 );
-                    }
-                }
-
-                foreach ( $event_update['etn_ticket_variations'] as &$variation ) {
-                    $slug = $variation['etn_ticket_slug'] ?? '';
-                    if ( $slug && isset( $ordered_qty_by_slug[ $slug ] ) ) {
-                        $current_limit = (int) ( $variation['etn_ticket_waiting_list_limit'] ?? 0 );
-                        $variation['etn_ticket_waiting_list_limit'] = max( 0, $current_limit - $ordered_qty_by_slug[ $slug ] );
-                    }
-                }
-                unset( $variation );
             }
+
+            // The waiting-list limits (etn_global_waiting_list and the per-ticket
+            // etn_ticket_waiting_list_limit) are configuration, not counters, and
+            // are deliberately left untouched here. Occupancy is derived from the
+            // signup orders themselves - see etn_get_waiting_list_counts_by_slug().
+            // Decrementing the stored limit as well subtracted every converted
+            // signup twice, so the public "spots available" figure drained at
+            // double speed and never recovered.
         }
 
         $event->update( $event_update );

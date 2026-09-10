@@ -19,8 +19,11 @@ use Eventin\Speaker\Api\SpeakerCategoryController;
 use Eventin\Speaker\Api\SpeakerController;
 use Eventin\Extensions\Api\ExtensionController;
 use Eventin\Extensions\Api\TutorLmsSettingsController;
+use Eventin\Extensions\Api\LearnDashSettingsController;
 use Eventin\SetupNotification\Api\SetupNotification;
+use Eventin\Tour\Api\TourController;
 use Eventin\Template\Api\TemplateController;
+use Eventin\Template\Api\PreviewEventController;
 use Eventin\Template\Api\TemplateBuilderController;
 use Eventin\Integrations\MailPoet\Api\MailPoetListController;
 use WP_REST_Controller;
@@ -53,12 +56,15 @@ class ApiManager {
         CustomerController::class,
         ExtensionController::class,
         TutorLmsSettingsController::class,
+        LearnDashSettingsController::class,
         ReportController::class,
         TemplateController::class,
+        PreviewEventController::class,
         SetupNotification::class,
         TemplateBuilderController::class,
         MailPoetListController::class,
         CouponController::class,
+        TourController::class,
     ];
 
     /**

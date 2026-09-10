@@ -93,7 +93,19 @@ class EventTemplate implements HookableInterface {
         $event = new Event_Model( $post->ID );
         $enable_event_template_builder = etn_get_option( 'enable_event_template_builder', true );
 
-        if ( 'etn-template' === get_post_type( $event->event_layout ) ) {
+        $layout_id = $event->event_layout;
+
+        // If the event's assigned template no longer exists (e.g. it was deleted),
+        // fall back to the global default template instead of the legacy layout, so
+        // the event still renders a builder template rather than losing its design.
+        if ( 'etn-template' !== get_post_type( $layout_id ) ) {
+            $default_layout = etn_get_option( 'event_layout' );
+            if ( $default_layout && 'etn-template' === get_post_type( $default_layout ) ) {
+                $layout_id = $default_layout;
+            }
+        }
+
+        if ( 'etn-template' === get_post_type( $layout_id ) ) {
             $template = \Wpeventin::templates_dir() . 'template-parts/event/block-single-template.php';
         } else {
             $template = \Wpeventin::templates_dir() . 'event/event-single-page.php';

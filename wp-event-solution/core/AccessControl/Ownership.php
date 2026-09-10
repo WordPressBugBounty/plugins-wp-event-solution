@@ -115,7 +115,7 @@ class Ownership {
         } elseif ( 'publish' === $post->post_status ) {
             $readable = self::can_read_protected_content( $post );
         } else {
-            $user_id = get_current_user_id();
+            $user_id = self::current_user_owner_id();
 
             if ( $user_id ) {
                 $readable = ( (int) $post->post_author === (int) $user_id )
@@ -172,6 +172,12 @@ class Ownership {
             return true;
         }
 
+        $owner_id = self::current_user_owner_id();
+
+        if ( $owner_id && (int) $post->post_author === (int) $owner_id ) {
+            return true;
+        }
+
         if ( current_user_can( 'edit_post', $post->ID ) ) {
             return true;
         }
@@ -191,12 +197,66 @@ class Ownership {
         /**
          * Filter whether the current user bypasses per-object ownership checks.
          *
-         * Multi-organizer setups (WCFM, Dokan) can widen this to let a store
-         * manager act on their vendors' objects.
+         * This is for genuinely site-wide administrators. Store managers must
+         * remain scoped and map to their store through
+         * eventin_current_user_owner_id; making them unscoped would grant access
+         * to every vendor's objects.
          *
          * @param bool $unscoped Whether ownership checks are skipped.
          */
         return (bool) apply_filters( 'eventin_ownership_is_unscoped', current_user_can( 'manage_options' ) );
+    }
+
+    /**
+     * Get the post author that represents the current management scope.
+     *
+     * Eventin normally treats the logged-in WordPress user as the owner of an
+     * event. In Dokan, vendor staff act on behalf of the store owner and Dokan
+     * stores vendor-owned posts under that owner's user id. Using the staff
+     * account here makes the store look empty and makes object-level ownership
+     * checks fail even though Dokan authorised the staff member for that store.
+     *
+     * Dokan's own resolver is deliberately used instead of request data: it
+     * resolves vendor staff through the server-side `_vendor_id` relation and
+     * returns the current user unchanged for ordinary users. Other multivendor
+     * integrations may provide the same mapping through the filter below.
+     *
+     * This is not an administrator bypass. Administrators remain unscoped only
+     * through is_unscoped(); this method merely identifies which post_author a
+     * scoped user is allowed to manage.
+     *
+     * @return int Effective owner user id, or 0 for a logged-out caller.
+     */
+    public static function current_user_owner_id() {
+        $user_id  = get_current_user_id();
+        $owner_id = $user_id;
+
+        // Never let an integration turn an anonymous request into an owned
+        // scope. Besides being nonsensical, that would expose unpublished posts
+        // if a third-party filter returned a non-zero id for user 0.
+        if ( ! $user_id ) {
+            return 0;
+        }
+
+        if ( function_exists( 'dokan_get_current_user_id' ) ) {
+            $dokan_owner_id = absint( dokan_get_current_user_id() );
+
+            if ( $dokan_owner_id ) {
+                $owner_id = $dokan_owner_id;
+            }
+        }
+
+        /**
+         * Filter the post author that represents the current user's store scope.
+         *
+         * Returning 0 denies scoped access. Collection controllers explicitly
+         * turn that into an empty query rather than letting WP_Query interpret
+         * author=0 as an unscoped request.
+         *
+         * @param int $owner_id Effective post author id.
+         * @param int $user_id  Logged-in WordPress user id.
+         */
+        return absint( apply_filters( 'eventin_current_user_owner_id', $owner_id, $user_id ) );
     }
 
     /**
@@ -231,7 +291,7 @@ class Ownership {
             return true;
         }
 
-        $user_id = get_current_user_id();
+        $user_id = self::current_user_owner_id();
 
         if ( ! $user_id ) {
             return false;
@@ -417,7 +477,8 @@ class Ownership {
             return true;
         }
 
-        $user_id = get_current_user_id();
+        $user_id  = get_current_user_id();
+        $owner_id = self::current_user_owner_id();
 
         if ( ! $user_id ) {
             return false;
@@ -436,7 +497,7 @@ class Ownership {
 
         if ( $event_id ) {
             $event = get_post( $event_id );
-            $owns  = ( $event && (int) $event->post_author === (int) $user_id );
+            $owns  = ( $event && (int) $event->post_author === (int) $owner_id );
         }
 
         /**
@@ -483,7 +544,8 @@ class Ownership {
             return true;
         }
 
-        $user_id = get_current_user_id();
+        $user_id  = get_current_user_id();
+        $owner_id = self::current_user_owner_id();
 
         if ( ! $user_id ) {
             return false;
@@ -495,7 +557,7 @@ class Ownership {
 
         if ( $event_id ) {
             $event = get_post( $event_id );
-            $owns  = ( $event && (int) $event->post_author === (int) $user_id );
+            $owns  = ( $event && (int) $event->post_author === (int) $owner_id );
         }
 
         /**

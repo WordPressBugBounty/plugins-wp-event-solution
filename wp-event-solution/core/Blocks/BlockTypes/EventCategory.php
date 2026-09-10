@@ -4,6 +4,7 @@ namespace Eventin\Blocks\BlockTypes;
 
 defined( 'ABSPATH' ) || exit;
 use Etn\Core\Event\Event_Model;
+use Etn\Utils\Helper;
 use Eventin\Blocks\BlockTypes\AbstractBlock;
 use Wpeventin;
 
@@ -38,6 +39,11 @@ class EventCategory extends AbstractBlock {
             $event_id = $template->get_preview_event_id();
         } else {
             $event_id = get_the_ID();
+        }
+
+        // "Vendor Event Category & Tags" setting: hide categories on vendor created events.
+        if ( ! $this->is_editor() && Helper::should_hide_event_taxonomy( $event_id ) ) {
+            return '';
         }
 
         $event = new Event_Model( $event_id );

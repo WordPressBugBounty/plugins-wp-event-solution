@@ -33,13 +33,29 @@ class EventImporter implements PostImporterInterface {
     private $data;
 
     /**
+     * Emails in the file that would have become new WordPress accounts, but were
+     * left alone because the importer is not allowed to create accounts.
+     *
+     * @var array<string>
+     */
+    private $skipped_users = [];
+
+    /**
+     * Cached answer for {@see can_create_user_accounts()}.
+     *
+     * @var bool|null
+     */
+    private $can_create_users = null;
+
+    /**
      * Event import
      *
      * @return  void
      */
     public function import( $file ) {
-        $this->file  = $file;
-        $file_reader = ReaderFactory::get_reader( $file );
+        $this->file          = $file;
+        $this->skipped_users = [];
+        $file_reader         = ReaderFactory::get_reader( $file );
 
         if ( is_wp_error( $file_reader ) ) {
             return $file_reader;
@@ -47,6 +63,18 @@ class EventImporter implements PostImporterInterface {
 
         $this->data = $file_reader->read_file();
         $this->create_event();
+    }
+
+    /**
+     * Emails the import did not turn into WordPress accounts.
+     *
+     * The events still import; these speakers/organizers are simply not attached,
+     * because attaching them would have meant creating a login.
+     *
+     * @return  array<string>
+     */
+    public function get_skipped_users() {
+        return array_values( array_unique( $this->skipped_users ) );
     }
 
     /**
@@ -64,6 +92,9 @@ class EventImporter implements PostImporterInterface {
             $row = $this->normalize_row_keys( $row );
 
             $args = [
+                // Import into the current management scope. In Dokan this is
+                // the vendor owner for both the owner and assigned staff.
+                'post_author'                       => \Eventin\AccessControl\Ownership::current_user_owner_id(),
                 'post_status'                       => ! empty( $row['status'] ) ? $row['status'] : 'publish',
                 'post_title'                        => ! empty( $row['title'] ) ? sanitize_text_field( $row['title'] ) : '',
                 'post_content'                      => ! empty( $row['description'] ) ? wp_kses_post( $row['description'] ) : '',
@@ -503,6 +534,23 @@ class EventImporter implements PostImporterInterface {
                 continue;
             }
 
+            // Past this point a brand new WordPress account comes into being, holding the
+            // etn-speaker / etn-organizer role — which carries publish_posts, publish_pages,
+            // edit_pages and upload_files. The route above is gated on `etn_manage_event`,
+            // which Eventin grants Contributor and Author by default, and the email comes
+            // straight out of the uploaded file. So a Contributor could name an address they
+            // control and receive a working login they were never given (CVE-2026-84905, the
+            // same escalation the speaker routes were closed for).
+            //
+            // The whole route is not refused here on purpose: importing events is the point
+            // of the feature and works fine without minting logins. Only the account creation
+            // stops. The event still imports; the unknown email is recorded so the caller can
+            // be told which speakers were left off.
+            if ( ! $this->can_create_user_accounts() ) {
+                $this->skipped_users[] = $user;
+                continue;
+            }
+
             $result = wp_insert_user( [
                 'user_email' => $user,
                 'user_login' => $user,
@@ -517,5 +565,24 @@ class EventImporter implements PostImporterInterface {
         }
 
         return $user_ids;
+    }
+
+    /**
+     * May this import bring new WordPress accounts into existence?
+     *
+     * Making an account is `create_users` in WordPress, and handing it a role is
+     * `promote_users` — the pair core's own user-new screen applies, and the pair the
+     * speaker and organizer import routes already apply
+     * ({@see \Eventin\Speaker\Api\SpeakerController::import_items()}). Answering once per
+     * import keeps a large file from re-running the capability map for every row.
+     *
+     * @return  bool
+     */
+    private function can_create_user_accounts() {
+        if ( null === $this->can_create_users ) {
+            $this->can_create_users = current_user_can( 'create_users' ) && current_user_can( 'promote_users' );
+        }
+
+        return $this->can_create_users;
     }
 }

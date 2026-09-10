@@ -20,8 +20,8 @@
                     ?>
                     <img src="<?php echo esc_url($image); ?>"
                         alt="<?php echo esc_attr($organizer->get_speaker_title()); ?>">
+                    <?php endif; ?>
                 </div>
-		                <?php endif; ?>
                 <div class="etn-organizer-content">
                     <h4 class="etn-organizer-name"><?php echo esc_html($organizer->get_speaker_title()); ?></h4>
                     <p class="etn-organizer-email"><?php echo esc_html($organizer_email); ?></p>

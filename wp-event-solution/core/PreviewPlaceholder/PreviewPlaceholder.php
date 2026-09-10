@@ -92,6 +92,15 @@ class PreviewPlaceholder {
     }
 
     /**
+     * Every placeholder attachment ID (the seeded banner).
+     *
+     * @return int[]
+     */
+    public static function attachment_ids(): array {
+        return self::registry()['attachments'];
+    }
+
+    /**
      * Post IDs (events + schedules) to exclude from admin/REST/front-end lists.
      * Empty when the site has no placeholder event, so nothing is hidden spuriously.
      */
@@ -167,7 +176,7 @@ class PreviewPlaceholder {
     /**
      * Resolve every placeholder record on this site.
      *
-     * @return array{events:int[],schedules:int[],users:int[]}
+     * @return array{events:int[],schedules:int[],users:int[],attachments:int[]}
      */
     private static function registry(): array {
         if ( null !== self::$registry ) {
@@ -176,7 +185,7 @@ class PreviewPlaceholder {
 
         $cached = get_transient( self::CACHE_KEY );
 
-        if ( is_array( $cached ) && isset( $cached['events'], $cached['schedules'], $cached['users'] ) ) {
+        if ( is_array( $cached ) && isset( $cached['events'], $cached['schedules'], $cached['users'], $cached['attachments'] ) ) {
             return self::$registry = $cached;
         }
 
@@ -191,7 +200,7 @@ class PreviewPlaceholder {
      * Read the marked records straight from the database and merge in the IDs the
      * seeder recorded, discarding anything that no longer exists.
      *
-     * @return array{events:int[],schedules:int[],users:int[]}
+     * @return array{events:int[],schedules:int[],users:int[],attachments:int[]}
      */
     private static function build_registry(): array {
         global $wpdb;
@@ -202,17 +211,20 @@ class PreviewPlaceholder {
                    FROM {$wpdb->posts} p
              INNER JOIN {$wpdb->postmeta} pm ON pm.post_id = p.ID
                   WHERE pm.meta_key = %s
-                    AND p.post_type IN ( 'etn', 'etn-schedule' )",
+                    AND p.post_type IN ( 'etn', 'etn-schedule', 'attachment' )",
                 self::MARKER_META
             )
         );
 
-        $events    = [];
-        $schedules = [];
+        $events      = [];
+        $schedules   = [];
+        $attachments = [];
 
         foreach ( (array) $marked as $row ) {
             if ( 'etn' === $row->post_type ) {
                 $events[] = (int) $row->ID;
+            } elseif ( 'attachment' === $row->post_type ) {
+                $attachments[] = (int) $row->ID;
             } else {
                 $schedules[] = (int) $row->ID;
             }
@@ -234,10 +246,21 @@ class PreviewPlaceholder {
         $schedules = array_merge( $schedules, array_map( 'intval', (array) get_option( self::OPTION_SCHEDULE_IDS, [] ) ) );
         $users     = array_merge( $users, array_map( 'intval', (array) get_option( self::OPTION_USER_IDS, [] ) ) );
 
+        $events = self::existing_posts( $events, 'etn' );
+
+        // Sites seeded before the banner carried the marker: read it off the event.
+        // Directly marked attachments remain valid placeholder records even when a
+        // failed seed did not get as far as creating the event.
+        foreach ( $events as $event_id ) {
+            $attachments[] = (int) get_post_meta( $event_id, 'event_banner_id', true );
+            $attachments[] = (int) get_post_meta( $event_id, '_thumbnail_id', true );
+        }
+
         return [
-            'events'    => self::existing_posts( $events, 'etn' ),
-            'schedules' => self::existing_posts( $schedules, 'etn-schedule' ),
-            'users'     => self::existing_users( $users ),
+            'events'      => $events,
+            'schedules'   => self::existing_posts( $schedules, 'etn-schedule' ),
+            'users'       => self::existing_users( $users ),
+            'attachments' => self::existing_posts( $attachments, 'attachment' ),
         ];
     }
 

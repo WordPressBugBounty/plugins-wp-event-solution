@@ -23,6 +23,10 @@ class EventDetailsParts {
 	 * @return void
 	 */
 	public static function event_single_tag_list( $single_event_id ) {
+		// "Vendor Event Category & Tags" setting: hide tags on vendor created events.
+		if ( Helper::should_hide_event_taxonomy( $single_event_id ) ) {
+			return;
+		}
 		?>
         <div class="etn-event-tag-list">
 			<?php
@@ -153,6 +157,12 @@ class EventDetailsParts {
 		$etn_event_socials = etn_get_valid_event_socials( isset( $data['etn_event_socials'] ) ? $data['etn_event_socials'] : [] );
 		$etn_cat_terms     = wp_get_post_terms( $single_event_id, 'etn_category' );
 		$is_hide_social    = etn_get_option( 'hide_social_from_details' );
+
+		// "Vendor Event Category & Tags" setting: hide categories on vendor created
+		// events. Social icons share this wrapper, so only the terms are dropped.
+		if ( Helper::should_hide_event_taxonomy( $single_event_id ) ) {
+			$etn_cat_terms = [];
+		}
 		?>
 
 		<?php if( !empty( $etn_event_socials ) || !empty( $etn_cat_terms ) ) : ?>

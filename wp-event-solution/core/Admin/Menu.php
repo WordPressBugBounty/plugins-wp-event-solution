@@ -82,7 +82,23 @@ class Menu implements HookableInterface {
                 'capability' => 'etn_manage_dashboard',
                 'url'        => 'admin.php?page=' . $this->menu_slug . '#/dashboard',
                 'position'   => 1,
-            ],[
+            ],
+            [
+                /*
+                 * Sits between Dashboard (1) and Events (2). Fractional on purpose —
+                 * the usort below compares with <=>, so a float slots in without
+                 * renumbering every item after it.
+                 *
+                 * Reuses etn_manage_dashboard rather than introducing a new cap: caps
+                 * are seeded into roles at install, so a brand new one would be absent
+                 * on every existing site and silently hide the page from non-admins.
+                 */
+                'title'      => __( 'Ask AI', 'eventin' ),
+                'capability' => 'etn_manage_dashboard',
+                'url'        => 'admin.php?page=' . $this->menu_slug . '#/ask-ai',
+                'position'   => 1.5,
+            ],
+            [
                 'title'      => __( 'Events', 'eventin' ),
                 'capability' => 'etn_manage_event',
                 'url'        => 'admin.php?page=' . $this->menu_slug . '#/events',

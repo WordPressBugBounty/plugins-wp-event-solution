@@ -8,7 +8,9 @@ use Eventin\Interfaces\HookableInterface;
 /**
  * Hides the preview-placeholder event and its linked records from the front-end
  * (archives, search, feeds, taxonomy pages, direct single-page access, and the
- * secondary WP_Query/get_posts loops run by shortcodes and Elementor widgets).
+ * secondary WP_Query/get_posts loops run by shortcodes and Elementor widgets),
+ * and from the core `wp/v2/etn` REST collection that backs the Bricks builder's
+ * "Select Preview Event" dropdown.
  *
  * The placeholder's speaker/organizer users are hidden from the WP admin Users
  * list by the existing hide_user filter (core/speaker/hooks.php). This class adds
@@ -29,6 +31,14 @@ class PreviewPlaceholderVisibility implements HookableInterface {
     public function register_hooks(): void {
         add_action( 'pre_get_posts', [ $this, 'hide_from_public_queries' ] );
         add_action( 'pre_get_posts', [ $this, 'hide_from_secondary_queries' ] );
+        add_filter( 'rest_etn_query', [ $this, 'hide_from_rest_collection' ], 10, 2 );
+        add_filter( 'rest_etn-schedule_query', [ $this, 'hide_from_rest_collection' ], 10, 2 );
+        add_filter( 'rest_attachment_query', [ $this, 'hide_from_rest_collection' ], 10, 2 );
+        add_filter( 'ajax_query_attachments_args', [ $this, 'hide_from_media_modal' ] );
+        add_action( 'pre_get_posts', [ $this, 'hide_from_media_library' ] );
+        add_filter( 'wp_count_attachments', [ $this, 'exclude_from_attachment_counts' ], 10, 2 );
+        add_action( 'pre_get_posts', [ $this, 'hide_from_list_table' ] );
+        add_filter( 'wp_count_posts', [ $this, 'exclude_from_post_counts' ], 10, 2 );
         add_action( 'pre_get_users', [ $this, 'hide_from_user_queries' ] );
         add_action( 'template_redirect', [ $this, 'block_direct_access' ] );
     }
@@ -87,6 +97,218 @@ class PreviewPlaceholderVisibility implements HookableInterface {
         }
         $existing = (array) $query->get( 'post__not_in' );
         $query->set( 'post__not_in', array_values( array_unique( array_merge( $existing, $ids ) ) ) );
+    }
+
+    /**
+     * Exclude the placeholder from the core wp/v2 event, schedule and media
+     * collections. Fires in get_items() only, so single-item reads still work.
+     * Requests pinning a placeholder by include=/p are left alone.
+     *
+     * @param array            $args    WP_Query args.
+     * @param \WP_REST_Request $request REST request.
+     *
+     * @return array
+     */
+    public function hide_from_rest_collection( $args, $request ) {
+        if ( ! is_array( $args ) ) {
+            return $args;
+        }
+
+        $ids = array_values( array_unique( array_merge(
+            PreviewPlaceholder::excluded_post_ids(),
+            PreviewPlaceholder::attachment_ids()
+        ) ) );
+        if ( ! $ids ) {
+            return $args;
+        }
+
+        // Don't exclude when the request explicitly targets a placeholder post.
+        $pinned = wp_parse_id_list( (array) ( $args['post__in'] ?? [] ) );
+        if ( ! empty( $args['p'] ) ) {
+            $pinned[] = (int) $args['p'];
+        }
+        if ( array_intersect( $pinned, $ids ) ) {
+            return $args;
+        }
+
+        $existing = wp_parse_id_list( (array) ( $args['post__not_in'] ?? [] ) );
+
+        $args['post__not_in'] = array_values( array_unique( array_merge( $existing, $ids ) ) );
+
+        return $args;
+    }
+
+    /**
+     * Exclude the placeholder banner from the media modal grid.
+     *
+     * @param   array  $args  WP_Query args.
+     *
+     * @return  array
+     */
+    public function hide_from_media_modal( $args ) {
+        $ids = PreviewPlaceholder::attachment_ids();
+
+        if ( ! $ids || ! is_array( $args ) ) {
+            return $args;
+        }
+
+        $existing = wp_parse_id_list( (array) ( $args['post__not_in'] ?? [] ) );
+
+        $args['post__not_in'] = array_values( array_unique( array_merge( $existing, $ids ) ) );
+
+        return $args;
+    }
+
+    /**
+     * Exclude the placeholder banner from the upload.php list table. The modal and
+     * REST have their own filters; queries pinning the banner by ID are left alone.
+     *
+     * @param \WP_Query $query
+     */
+    public function hide_from_media_library( $query ): void {
+        if ( ! is_admin() || 'upload.php' !== ( $GLOBALS['pagenow'] ?? '' ) ) {
+            return;
+        }
+
+        if ( ! in_array( 'attachment', (array) $query->get( 'post_type' ), true ) ) {
+            return;
+        }
+
+        $ids = PreviewPlaceholder::attachment_ids();
+
+        if ( ! $ids ) {
+            return;
+        }
+
+        $pinned = wp_parse_id_list( (array) $query->get( 'post__in' ) );
+        $p      = (int) $query->get( 'p' );
+
+        if ( $p ) {
+            $pinned[] = $p;
+        }
+
+        if ( array_intersect( $pinned, $ids ) ) {
+            return;
+        }
+
+        $existing = wp_parse_id_list( (array) $query->get( 'post__not_in' ) );
+
+        $query->set( 'post__not_in', array_values( array_unique( array_merge( $existing, $ids ) ) ) );
+    }
+
+    /**
+     * Keep the upload.php counts in step with the rows the handler above filters.
+     * Scoped to that screen because wp_count_attachments() is global.
+     *
+     * @param   object  $counts  Per-mime counts.
+     * @param   string  $mime    Mime filter.
+     *
+     * @return  object
+     */
+    public function exclude_from_attachment_counts( $counts, $mime ) {
+        if ( ! is_admin() || 'upload.php' !== ( $GLOBALS['pagenow'] ?? '' ) ) {
+            return $counts;
+        }
+
+        foreach ( PreviewPlaceholder::attachment_ids() as $attachment_id ) {
+            $post = get_post( $attachment_id );
+
+            if ( ! $post ) {
+                continue;
+            }
+
+            $count_key = 'trash' === $post->post_status ? 'trash' : $post->post_mime_type;
+
+            if ( empty( $counts->{$count_key} ) ) {
+                continue;
+            }
+
+            $counts->{$count_key}--;
+        }
+
+        return $counts;
+    }
+
+    /**
+     * Exclude the placeholder event + schedules from the classic list tables at
+     * wp-admin/edit.php.
+     *
+     * is_admin_context() deliberately lets real admin screens through so the
+     * dashboard can still manage the placeholder — but the Eventin dashboard is a
+     * React app reading the `eventin/v2` REST lists, which exclude it in their own
+     * controllers. edit.php is the one admin screen left running a plain WP_Query,
+     * so the demo event was listed there as an ordinary row.
+     *
+     * Queries pinning a placeholder post by ID are left alone, so editing it
+     * directly (post.php, or a filtered list built from explicit IDs) still works.
+     *
+     * @param \WP_Query $query
+     */
+    public function hide_from_list_table( $query ): void {
+        if ( ! is_admin() || 'edit.php' !== ( $GLOBALS['pagenow'] ?? '' ) ) {
+            return;
+        }
+
+        if ( ! array_intersect( [ 'etn', 'etn-schedule' ], (array) $query->get( 'post_type' ) ) ) {
+            return;
+        }
+
+        $ids = PreviewPlaceholder::excluded_post_ids();
+
+        if ( ! $ids ) {
+            return;
+        }
+
+        $pinned = wp_parse_id_list( (array) $query->get( 'post__in' ) );
+        $p      = (int) $query->get( 'p' );
+
+        if ( $p ) {
+            $pinned[] = $p;
+        }
+
+        if ( array_intersect( $pinned, $ids ) ) {
+            return;
+        }
+
+        $existing = wp_parse_id_list( (array) $query->get( 'post__not_in' ) );
+
+        $query->set( 'post__not_in', array_values( array_unique( array_merge( $existing, $ids ) ) ) );
+    }
+
+    /**
+     * Keep the edit.php status links ("All (N)", "Published (N)", "Trash (N)") in
+     * step with the rows the handler above filters out. Scoped to that screen and
+     * to our own post types, because wp_count_posts() is global.
+     *
+     * @param   object  $counts  Per-status counts.
+     * @param   string  $type    Post type being counted.
+     *
+     * @return  object
+     */
+    public function exclude_from_post_counts( $counts, $type ) {
+        if ( ! is_admin() || 'edit.php' !== ( $GLOBALS['pagenow'] ?? '' ) ) {
+            return $counts;
+        }
+
+        if ( ! in_array( $type, [ 'etn', 'etn-schedule' ], true ) ) {
+            return $counts;
+        }
+
+        foreach ( PreviewPlaceholder::excluded_post_ids() as $post_id ) {
+            $post = get_post( $post_id );
+
+            if ( ! $post || $type !== $post->post_type ) {
+                continue;
+            }
+
+            if ( empty( $counts->{$post->post_status} ) ) {
+                continue;
+            }
+
+            $counts->{$post->post_status}--;
+        }
+
+        return $counts;
     }
 
     /**

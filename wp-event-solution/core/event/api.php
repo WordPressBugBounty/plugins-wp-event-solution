@@ -437,13 +437,18 @@ class Api extends \Etn\Base\Api_Handler {
 			}
 		} else {
 			$current_user_id = get_current_user_id();
+			$owner_id        = \Eventin\AccessControl\Ownership::current_user_owner_id();
 
 			if ( ! $current_user_id ) {
 				// Logged-out callers get the public published list, unscoped by
 				// author. post_status is forced to publish below.
 				$args['author'] = '';
+			} elseif ( $owner_id ) {
+				$args['author'] = $owner_id;
 			} else {
-				$args['author'] = $current_user_id;
+				// Invalid store context: force an empty result instead of letting
+				// WP_Query interpret author=0 as an unscoped collection.
+				$args['post__in'] = [ 0 ];
 			}
 		}
 
@@ -455,14 +460,15 @@ class Api extends \Etn\Base\Api_Handler {
 		// with, not from the capability alone. `any` is safe when the query
 		// cannot reach anyone else's posts — either the caller may read other
 		// people's unpublished posts, or the author filter is pinned to the
-		// caller's own id, in which case `any` returns nothing but their own
-		// drafts. Gating on the capability alone hid Authors' and Contributors'
-		// own drafts from them, which the pre-4.1.21 route did show.
+		// caller's effective owner id. For Dokan staff that is the vendor owner;
+		// for ordinary users it is their own id. In either case `any` cannot cross
+		// that boundary. Gating on the capability alone hid Authors' and
+		// Contributors' own drafts, which the pre-4.1.21 route did show.
 		//
 		// `any` never includes trashed or auto-draft posts — WP_Query excludes
 		// every status flagged exclude_from_search.
 		$scoped_to_self = ! empty( $args['author'] )
-			&& (int) $args['author'] === get_current_user_id();
+			&& (int) $args['author'] === \Eventin\AccessControl\Ownership::current_user_owner_id();
 
 		$args['post_status'] = ( $can_read_unpublished || $scoped_to_self ) ? 'any' : 'publish';
 
@@ -608,9 +614,9 @@ class Api extends \Etn\Base\Api_Handler {
 				return new WP_Error( 'event_not_found', __( 'Event not found.', 'eventin' ), [ 'status' => 404 ] );
 			}
 
-			// Non-admins may only delete events they authored. Compare as integers so a
-			// (int) 0 author can never match a truthy user id.
-			if ( ! $is_admin && (int) $event->post_author !== (int) $user_id ) {
+			// The capability is collection-level. The ownership helper maps Dokan
+			// staff to their vendor owner while still rejecting foreign stores.
+			if ( ! $is_admin && ! \Eventin\AccessControl\Ownership::can_manage_post( $event_id, 'etn' ) ) {
 				return new WP_Error( 'unauthorized', __( 'Unauthorized user. Sorry you are not allowed to do that', 'eventin' ), [ 'status' => 403 ] );
 			}
 
@@ -884,4 +890,3 @@ class Api extends \Etn\Base\Api_Handler {
 	}
 
 }
-

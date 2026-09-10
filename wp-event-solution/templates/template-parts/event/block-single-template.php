@@ -27,6 +27,15 @@ if ( wp_is_block_theme() ) {
 
         $template_id = $event->event_layout;
 
+    // If the assigned template no longer exists (e.g. it was deleted), fall back to
+    // the global default template so the event keeps rendering a builder template.
+    if ( 'etn-template' !== get_post_type( $template_id ) ) {
+        $default_layout = etn_get_option( 'event_layout' );
+        if ( $default_layout && 'etn-template' === get_post_type( $default_layout ) ) {
+            $template_id = $default_layout;
+        }
+    }
+
     if ( ! $template_id ) {
         $template_id = etn_get_option( 'event_template', 'event-one' );
     }

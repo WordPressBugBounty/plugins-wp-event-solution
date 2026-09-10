@@ -689,6 +689,10 @@ class Hooks {
         $data['post_title']     = get_the_title($parent_event->id );
         $data['post_content']   = get_post( $parent_event->id )->post_content;
         $data['post_status']    = get_post_status($parent_event->id );
+        // Recurrences belong to the same vendor/store as their parent. Without
+        // this, a Dokan staff request creates children under the staff account
+        // and the store-scoped recurring list immediately hides them.
+        $data['post_author']    = (int) $post->post_author;
         $data['post_parent']    = $args['post_id'];
         $data['etn_start_date'] = $args['etn_start_date'];
         $data['etn_end_date']    = $args['etn_end_date'];

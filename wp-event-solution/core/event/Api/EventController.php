@@ -410,8 +410,19 @@ class EventController extends WP_REST_Controller {
             $args['post_parent'] = 0;
         }
 
-        if ( ! current_user_can( 'manage_options' ) ) {
-            $args['author'] = get_current_user_id();
+        // Public callers keep the existing published-event catalogue. Apply
+        // store ownership only to authenticated non-administrators.
+        if ( is_user_logged_in() && ! current_user_can( 'manage_options' ) ) {
+            $owner_id = Ownership::current_user_owner_id();
+
+            if ( $owner_id ) {
+                $args['author'] = $owner_id;
+            } else {
+                // A resolver may deny a malformed or unauthorized store scope
+                // by returning 0. Never pass author=0: WP_Query can interpret
+                // that as no author restriction and expose the collection.
+                $args['post__in'] = [ 0 ];
+            }
         }
 
         // Category filter (taxonomy query).
@@ -639,22 +650,42 @@ class EventController extends WP_REST_Controller {
         $can_see_drafts = current_user_can( 'etn_manage_event' );
         $search_keyword = ! empty( $request['search_keyword'] ) ? sanitize_text_field( $request['search_keyword'] ) : '';
 
+        // Opt-in: also return recurring child occurrences, each one placed right
+        // after its parent. Off by default so the reporting dropdowns (booking
+        // stats, RSVP report, shortcode select) keep showing only top-level
+        // events. Turned on by the screens that work on a single occurrence:
+        // the attendee-list filter and the bookings-list filter (attendees and
+        // orders store the child occurrence id, so a parent alone cannot
+        // address one date of a series) and the admin Create Booking form (a
+        // manual booking must be able to target one occurrence).
+        $include_children = ! empty( $request['include_children'] ) && rest_sanitize_boolean( $request['include_children'] );
+
         $args = [
             'post_type'              => 'etn',
             'post_status'            => $can_see_drafts
                 ? [ 'publish', 'pending', 'future', 'private', 'inherit', 'draft' ]
                 : [ 'publish' ],
             'posts_per_page'         => -1,
-            'post_parent'            => 0,
             'orderby'                => 'date',
             'order'                  => 'DESC',
             'no_found_rows'          => true,
             'update_post_term_cache' => false,
         ];
 
-        // Non-admins only see their own events (mirrors the full list scoping).
-        if ( ! current_user_can( 'manage_options' ) ) {
-            $args['author'] = get_current_user_id();
+        if ( ! $include_children ) {
+            $args['post_parent'] = 0;
+        }
+
+        // Logged-in non-admins only see their store's events. Anonymous callers
+        // keep the existing public published-event catalogue.
+        if ( is_user_logged_in() && ! current_user_can( 'manage_options' ) ) {
+            $owner_id = Ownership::current_user_owner_id();
+
+            if ( $owner_id ) {
+                $args['author'] = $owner_id;
+            } else {
+                $args['post__in'] = [ 0 ];
+            }
         }
 
         if ( $search_keyword ) {
@@ -675,19 +706,36 @@ class EventController extends WP_REST_Controller {
         // One batched meta query for every event's start/end date + time instead of N.
         update_meta_cache( 'post', wp_list_pluck( $posts, 'ID' ) );
 
+        if ( $include_children ) {
+            $posts = $this->sort_events_parent_first( $posts );
+        }
+
+        // Which parents actually have an occurrence in this result set. Used to
+        // flag the parent row so the dropdown can label it, without a second query.
+        $parents_with_children = [];
+        if ( $include_children ) {
+            foreach ( $posts as $post ) {
+                if ( $post->post_parent ) {
+                    $parents_with_children[ (int) $post->post_parent ] = true;
+                }
+            }
+        }
+
         $items = [];
 
         foreach ( $posts as $post ) {
             $event = new Event_Model( $post->ID );
 
             $items[] = [
-                'id'         => $post->ID,
-                'title'      => $post->post_title,
-                'status'     => $event->get_status(),
-                'start_date' => get_post_meta( $post->ID, 'etn_start_date', true ),
-                'end_date'   => get_post_meta( $post->ID, 'etn_end_date', true ),
-                'start_time' => get_post_meta( $post->ID, 'etn_start_time', true ),
-                'end_time'   => get_post_meta( $post->ID, 'etn_end_time', true ),
+                'id'                  => $post->ID,
+                'title'               => $post->post_title,
+                'status'              => $event->get_status(),
+                'start_date'          => get_post_meta( $post->ID, 'etn_start_date', true ),
+                'end_date'            => get_post_meta( $post->ID, 'etn_end_date', true ),
+                'start_time'          => get_post_meta( $post->ID, 'etn_start_time', true ),
+                'end_time'            => get_post_meta( $post->ID, 'etn_end_time', true ),
+                'parent'              => (int) $post->post_parent,
+                'is_recurring_parent' => isset( $parents_with_children[ (int) $post->ID ] ),
             ];
         }
 
@@ -699,6 +747,70 @@ class EventController extends WP_REST_Controller {
         $response->header( 'X-WP-Total', count( $items ) );
 
         return $response;
+    }
+
+    /**
+     * Order a flat event list so every recurring child follows its own parent.
+     *
+     * Parents keep the order WP_Query gave them (newest first). Each parent is
+     * immediately followed by its occurrences, oldest occurrence first, so the
+     * dropdown reads like a calendar under each event. Children whose parent is
+     * missing from the set (excluded by author scoping, or trashed) are appended
+     * at the end instead of being dropped.
+     *
+     * @param   WP_Post[]  $posts
+     *
+     * @return  WP_Post[]
+     */
+    protected function sort_events_parent_first( $posts ) {
+        $children = [];
+
+        foreach ( $posts as $post ) {
+            if ( $post->post_parent ) {
+                $children[ (int) $post->post_parent ][] = $post;
+            }
+        }
+
+        // Oldest occurrence first within each parent.
+        foreach ( $children as $parent_id => $group ) {
+            usort( $group, function ( $a, $b ) {
+                $a_date = (string) get_post_meta( $a->ID, 'etn_start_date', true );
+                $b_date = (string) get_post_meta( $b->ID, 'etn_start_date', true );
+
+                return strcmp( $a_date, $b_date );
+            } );
+
+            $children[ $parent_id ] = $group;
+        }
+
+        $sorted   = [];
+        $placed   = [];
+
+        foreach ( $posts as $post ) {
+            if ( $post->post_parent ) {
+                continue;
+            }
+
+            $sorted[] = $post;
+
+            $id = (int) $post->ID;
+
+            if ( ! empty( $children[ $id ] ) ) {
+                foreach ( $children[ $id ] as $child ) {
+                    $sorted[]                    = $child;
+                    $placed[ (int) $child->ID ] = true;
+                }
+            }
+        }
+
+        // Orphans: parent not in this result set.
+        foreach ( $posts as $post ) {
+            if ( $post->post_parent && empty( $placed[ (int) $post->ID ] ) ) {
+                $sorted[] = $post;
+            }
+        }
+
+        return $sorted;
     }
 
     /**
@@ -800,7 +912,10 @@ class EventController extends WP_REST_Controller {
             return $prepared_event;
         }
 
-        $user  = get_userdata( get_current_user_id() ?: -1 );
+        // Vendor staff act under their store owner's publishing policy. Looking
+        // only at the staff role would bypass dokan_event_auto_publish because
+        // vendor_staff itself is not the seller role that setting checks.
+        $user  = get_userdata( Ownership::current_user_owner_id() ?: -1 );
         $roles = $user->roles ?? [];
 
         $restricted =
@@ -831,6 +946,23 @@ class EventController extends WP_REST_Controller {
 
         if ( is_wp_error( $prepared_event ) ) {
             return $prepared_event;
+        }
+
+        // Dokan vendor staff create events on behalf of their store. Keep the
+        // store owner in post_author so existing author-scoped data and queries
+        // continue to work; ordinary Eventin users still resolve to themselves.
+        $owner_id = Ownership::current_user_owner_id();
+
+        if ( ! current_user_can( 'manage_options' ) ) {
+            if ( ! $owner_id ) {
+                return new WP_Error(
+                    'rest_forbidden',
+                    __( 'You do not have permission to create an event for this store.', 'eventin' ),
+                    [ 'status' => 403 ]
+                );
+            }
+
+            $prepared_event['post_author'] = $owner_id;
         }
 
         if ( 'online' === $prepared_event['event_type'] || 'hybrid' === $prepared_event['event_type'] ) {
@@ -1261,7 +1393,13 @@ class EventController extends WP_REST_Controller {
 
         // Update the title of the cloned event.
         $clone_event->update( [
-            'post_title' => $clone_title,
+            'post_title'  => $clone_title,
+            // clone() initially uses the logged-in account. The source already
+            // passed store ownership, so preserve its vendor owner for staff;
+            // administrators keep the existing behaviour and own their clone.
+            'post_author' => current_user_can( 'manage_options' )
+                ? get_current_user_id()
+                : (int) $original_post->post_author,
         ] );
 
 
@@ -1440,6 +1578,7 @@ class EventController extends WP_REST_Controller {
         $seat_plan       = get_post_meta( $id, 'seat_plan', true );
         $enable_seatmap  = get_post_meta( $id, 'enable_seatmap', true );
         $sold_tickets      = (array) Helper::etn_get_sold_tickets_by_event( $id );
+        $child_tickets     = $this->get_children_ticket_summary( $id );
         $ticket_variations = etn_safe_decode( get_post_meta( $id, 'etn_ticket_variations', true ) );
 
         if(empty($ticket_variations) || !is_array($ticket_variations)){
@@ -1559,6 +1698,9 @@ class EventController extends WP_REST_Controller {
             'funnel_kit'              => get_post_meta( $id, 'funnel_kit', true ),
             'funnel_kit_webhook'      => get_post_meta( $id, 'funnel_kit_webhook', true ),
             'funnel_kit_send_to'      => get_post_meta( $id, 'funnel_kit_send_to', true ) ?: [ 'purchaser', 'attendee' ],
+            'uncanny_automator'         => get_post_meta( $id, 'uncanny_automator', true ),
+            'uncanny_automator_webhook' => get_post_meta( $id, 'uncanny_automator_webhook', true ),
+            'uncanny_automator_send_to' => get_post_meta( $id, 'uncanny_automator_send_to', true ) ?: [ 'purchaser', 'attendee' ],
             'faq'                     => get_post_meta( $id, 'etn_event_faq', true ),
             'external_link'           => get_post_meta( $id, 'external_link', true ),
             'ticket_template'         => get_post_meta( $id, 'ticket_template', true ),
@@ -1574,7 +1716,12 @@ class EventController extends WP_REST_Controller {
             'category_names'          => $category_names,
             'meeting_link'            => $meeting_link,
             'parent'                  => $parent,
-            'has_children'            => $this->event_has_children( $id ),
+            'has_children'            => null !== $child_tickets,
+            // Roll-up of every child occurrence, so a recurring parent row can
+            // show "sold / capacity" of the whole series. 0 / 0 when the event
+            // has no occurrences; -1 total means at least one is unlimited.
+            'child_sold_tickets'      => $child_tickets ? $child_tickets['sold'] : 0,
+            'child_total_tickets'     => $child_tickets ? $child_tickets['total'] : 0,
             'event_type'              => get_post_meta( $id, 'event_type', true ),
             '_virtual'                => get_post_meta( $id, '_virtual', true ),
             'etn_event_logo_url'      => get_post_meta( $id, 'etn_event_logo_url', true ),
@@ -1875,16 +2022,72 @@ class EventController extends WP_REST_Controller {
      * Whether this event currently has any recurring child events attached.
      */
     protected function event_has_children( $post_id ) {
+        return ! empty( $this->get_children_ids( $post_id ) );
+    }
+
+    /**
+     * IDs of every child occurrence of an event.
+     *
+     * @param   integer  $post_id  Parent event ID.
+     *
+     * @return  int[]
+     */
+    protected function get_children_ids( $post_id ) {
         $children = get_posts( [
             'post_type'      => 'etn',
             'post_parent'    => (int) $post_id,
             'post_status'    => 'any',
-            'posts_per_page' => 1,
+            'posts_per_page' => -1,
             'fields'         => 'ids',
             'no_found_rows'  => true,
         ] );
 
-        return ! empty( $children );
+        return array_map( 'intval', (array) $children );
+    }
+
+    /**
+     * Sold and total tickets added up over every child occurrence.
+     *
+     * A recurring parent sells nothing itself: each booking is made on one
+     * occurrence, and each occurrence carries its own capacity. Its own
+     * numbers are therefore always "0 / template capacity", which tells the
+     * organizer nothing. The list shows the series instead.
+     *
+     * @param   integer  $post_id  Parent event ID.
+     *
+     * @return  array|null  [ 'sold' => int, 'total' => int ], or null when the
+     *                      event has no occurrences. A total of -1 means at
+     *                      least one occurrence has unlimited tickets.
+     */
+    protected function get_children_ticket_summary( $post_id ) {
+        $child_ids = $this->get_children_ids( $post_id );
+
+        if ( empty( $child_ids ) ) {
+            return null;
+        }
+
+        // One meta round-trip for the whole series, so get_total_ticket()
+        // below reads from the cache instead of querying per occurrence.
+        update_meta_cache( 'post', $child_ids );
+
+        $total = 0;
+
+        foreach ( $child_ids as $child_id ) {
+            $child_total = intval( ( new Event_Model( $child_id ) )->get_total_ticket() );
+
+            // One unlimited occurrence makes the whole series unlimited.
+            if ( -1 === $child_total ) {
+                $total = -1;
+                break;
+            }
+
+            $total += $child_total;
+        }
+
+        return [
+            'sold'  => Helper::etn_get_sold_ticket_count_by_events( $child_ids ),
+            'total' => $total,
+        ];
     }
 
     protected function assign_categories( $post_id, $new_categories ) {
@@ -2265,6 +2468,15 @@ class EventController extends WP_REST_Controller {
             $event_data['funnel_kit_send_to'] = array_values( array_intersect( $allowed, array_map( 'sanitize_key', $input_data['funnel_kit_send_to'] ) ) );
         }
 
+        if ( isset( $input_data['uncanny_automator'] ) ) {
+            $event_data['uncanny_automator'] = $input_data['uncanny_automator'];
+        }
+
+        if ( isset( $input_data['uncanny_automator_send_to'] ) && is_array( $input_data['uncanny_automator_send_to'] ) ) {
+            $allowed                                 = [ 'purchaser', 'attendee' ];
+            $event_data['uncanny_automator_send_to'] = array_values( array_intersect( $allowed, array_map( 'sanitize_key', $input_data['uncanny_automator_send_to'] ) ) );
+        }
+
         if ( isset( $input_data['location_type'] ) ) {
             $event_data['etn_event_location_type'] = $input_data['location_type'];
         }
@@ -2337,6 +2549,10 @@ class EventController extends WP_REST_Controller {
 
         if ( isset( $input_data['funnel_kit_webhook'] ) ) {
             $event_data['funnel_kit_webhook'] = esc_url_raw( $input_data['funnel_kit_webhook'] );
+        }
+
+        if ( isset( $input_data['uncanny_automator_webhook'] ) ) {
+            $event_data['uncanny_automator_webhook'] = esc_url_raw( $input_data['uncanny_automator_webhook'] );
         }
 
         // Recurring event data.
@@ -2444,15 +2660,28 @@ class EventController extends WP_REST_Controller {
           $event_data['menu_order'] = $input_data['_etn_buddy_group_id'];
         }
 
+        // On create there is no id yet, so the meta fallback must not be attempted.
+        $existing_event_id = isset( $input_data['id'] ) ? intval( $input_data['id'] ) : 0;
+
         $is_global_stock_enabled = isset( $event_data['etn_enable_global_stock'] )
             ? rest_sanitize_boolean( $event_data['etn_enable_global_stock'] )
-            : rest_sanitize_boolean( get_post_meta( $input_data['id'], 'etn_enable_global_stock', true ) );
+            : ( $existing_event_id && rest_sanitize_boolean( get_post_meta( $existing_event_id, 'etn_enable_global_stock', true ) ) );
 
-        $sold_tickets = (array) Helper::etn_get_sold_tickets_by_event( $input_data['id'] );
+        $sold_tickets = $existing_event_id ? (array) Helper::etn_get_sold_tickets_by_event( $existing_event_id ) : [];
 
         foreach ( $event_data['etn_ticket_variations'] as &$ticket ) {
-            $ticket['etn_sold_tickets']       = ! empty( $sold_tickets[ $ticket['etn_ticket_slug'] ] ) ? $sold_tickets[ $ticket['etn_ticket_slug'] ] : 0;
-            $ticket['etn_avaiilable_tickets'] = (int) $ticket['etn_avaiilable_tickets'];
+            $ticket['etn_sold_tickets'] = ! empty( $sold_tickets[ $ticket['etn_ticket_slug'] ] ) ? $sold_tickets[ $ticket['etn_ticket_slug'] ] : 0;
+
+            if ( $is_global_stock_enabled ) {
+                // Global stock owns capacity: per-ticket numbers are meaningless
+                // and the admin UI hides the field, so normalise them to 0 rather
+                // than persisting whatever the form last held.
+                $ticket['etn_avaiilable_tickets'] = 0;
+                $ticket['etn_unlimited_tickets']  = false;
+            } else {
+                $ticket['etn_avaiilable_tickets'] = (int) ( $ticket['etn_avaiilable_tickets'] ?? 0 );
+            }
+
             $ticket['optiontics_block_ids']   = isset( $ticket['optiontics_block_ids'] )
                 ? array_values( array_map( 'absint', (array) $ticket['optiontics_block_ids'] ) )
                 : [];
@@ -2462,7 +2691,7 @@ class EventController extends WP_REST_Controller {
         if ( $is_global_stock_enabled ) {
             $global_capacity = isset( $event_data['etn_global_stock'] )
                 ? (int) $event_data['etn_global_stock']
-                : (int) get_post_meta( $input_data['id'], 'etn_global_stock', true );
+                : (int) get_post_meta( $existing_event_id, 'etn_global_stock', true );
             $total_sold      = array_sum( array_map( 'intval', $sold_tickets ) );
 
             if ( $global_capacity > 0 && $total_sold > $global_capacity ) {
@@ -2632,6 +2861,21 @@ class EventController extends WP_REST_Controller {
             'message' => __( 'Successfully imported event', 'eventin' ),
         ];
 
+        // Speakers and organizers are WordPress users, and creating one is `create_users`.
+        // A user without it still imports the events; the addresses that had no account yet
+        // are simply not attached. Say so, so nobody is left wondering where the speaker
+        // went. See EventImporter::resolve_user_emails() (CVE-2026-84905).
+        $skipped_users = $importer->get_skipped_users();
+
+        if ( ! empty( $skipped_users ) ) {
+            $response['skipped_users'] = $skipped_users;
+            $response['warning']       = sprintf(
+                /* translators: %s: comma separated list of email addresses. */
+                __( 'These speakers or organizers were not added, because you are not allowed to create user accounts: %s. Ask an administrator to add them first, then import again.', 'eventin' ),
+                implode( ', ', $skipped_users )
+            );
+        }
+
         return rest_ensure_response( $response );
     }
 
@@ -2643,7 +2887,8 @@ class EventController extends WP_REST_Controller {
      * @return  bool
      */
     public function import_permissions_check( $request ) {
-        return current_user_can( 'etn_manage_event' );
+        return current_user_can( 'etn_manage_event' )
+            && ( current_user_can( 'manage_options' ) || (bool) Ownership::current_user_owner_id() );
     }
 
     /**

@@ -230,10 +230,19 @@ if ( ! function_exists( 'etn_after_single_event_meta_ticket_form' ) ) {
 			return true;
 		}
 	
+		// Only a recurring PARENT withholds its own ticket form - its occurrences
+		// each sell their own. An occurrence is always a child post, so decide
+		// parent-ness by post_parent instead of by recurring_enabled alone: that
+		// meta is only *supposed* to be absent on children, and events created
+		// before it was stripped from them (plus clones/imports that copy every
+		// parent meta key) carry it on occurrences that must still sell.
+		$is_recurring_parent = 'yes' === $recurring_enabled
+			&& 0 === (int) wp_get_post_parent_id( $single_event_id );
+
 		// Whether to show ticket selector and sell tickets, are controlled in frontend now.
 		?>
 			<div class="etn-single-event-ticket-wrap">
-				<?php if ($recurring_enabled !== 'yes') { 
+				<?php if ( ! $is_recurring_parent ) {
 							Helper::eventin_ticket_widget( $single_event_id, "", "", "style-1" );
 						} ?>
 			</div>
@@ -712,90 +721,33 @@ if ( ! function_exists( 'etn_event_archive_pagination_links' ) ) {
 
 
 /**
- * Add LD+JSON script with event data in single event page
+ * Print the event's structured data (JSON-LD).
  *
- * @param [type] $single_event_id
+ * @deprecated 4.1.20 Structured data is printed in `wp_head` by
+ *             \Eventin\Schema\Printer. Kept as a shim for themes and child
+ *             themes that call this function directly; the schema classes keep a
+ *             per-request registry, so calling it after the head has already
+ *             described this event is a safe no-op rather than a duplicate blob.
  *
- * @return string
+ * @param int|string $single_event_id Event ID. Falls back to the current post.
+ *
+ * @return void
  */
-
 if ( ! function_exists( "eventin_rich_result_support" ) ) {
-	function eventin_rich_result_support( $single_event_id ) {
-
-		// Return if the setting is disabled
-		$event_options = get_option( "etn_event_options" );
-		if ( empty( $event_options["disable_rich_snippets_for_event"] ) ) {
-
+	function eventin_rich_result_support( $single_event_id = 0 ) {
+		if ( ! \Eventin\Schema\Printer::is_enabled() ) {
 			return;
 		}
 
-		$single_event_id   = ! empty( $single_event_id ) ? $single_event_id : get_the_ID();
-		$single_event_data = Helper::single_template_options( $single_event_id );
+		$single_event_id = ! empty( $single_event_id ) ? absint( $single_event_id ) : get_the_ID();
 
-		// Check location type for changing data set
-		$event_terms    = ! empty( get_the_terms( $single_event_id, "etn_location" ) ) ? get_the_terms( $single_event_id, "etn_location" ) : [];
-		$event_location = $single_event_data["etn_event_location"];
-
-		if ( "new_location" === $single_event_data["etn_event_location_type"] ) {
-			foreach ( $event_terms as $term ) {
-				$event_location = $term->name;
-			}
+		if ( ! $single_event_id ) {
+			return;
 		}
 
-		$event_start_date   = $single_event_data["event_start_date"];
-		$event_end_date     = $single_event_data["event_end_date"];
-		$event_start_time   = $single_event_data["event_start_time"];
-		$event_end_time     = $single_event_data["event_end_time"];
-		$event_reg_deadline = ! empty( $single_event_data["etn_deadline_value"] ) ? $single_event_data["etn_deadline_value"] : $event_end_date;
-		$event_image        = ! empty( get_the_post_thumbnail_url( $single_event_id, "large" ) ) ? get_the_post_thumbnail_url( $single_event_id, "large" ) : "";
- 
+		$schema = new \Eventin\Schema\EventSchema();
 
-		// Generate ticket variation
-		$ticket_variations = ! empty( get_post_meta( $single_event_id, "etn_ticket_variations", true ) ) ? get_post_meta( $single_event_id, "etn_ticket_variations", true ) : [];
-
-		$ticket_variation = [];
-		foreach ( $ticket_variations as $variation ) {
-
-			$event_total_ticket = isset( $variation['etn_available_tickets'] ) ? absint( $variation['etn_available_tickets'] ) : 0;
-			$event_sold_ticket  = isset( $variation["etn_sold_tickets"] ) ? absint( $variation["etn_sold_tickets"] ) : 0;
-			$event_left_ticket  = $event_total_ticket - $event_sold_ticket;
-			$stock_status       = $event_left_ticket <= 0 ? "SoldOut" : "InStock";
- 			$new_variation = [
-				"@type"         => "Offer",
-				"name"          => $variation['etn_ticket_name'],
-				"price"         => $variation['etn_ticket_price'],
-				"priceCurrency" => \Etn\Core\Event\Helper::instance()->get_currency(),
-				"validFrom"     => $event_reg_deadline,
-				"url"           => get_the_permalink(),
-				"availability"  => 'https://schema.org/' . $stock_status,
-			];
-
-			$ticket_variation[] = $new_variation;
-		}
-
-		// Generate event schema array
-		$event_data = [
-			"@context"            => "http://schema.org",
-			"@type"               => "Event",
-			"name"                => get_the_title(),
-			"image"               => $event_image,
-			"description"         => get_the_excerpt(),
-			"startDate"           => $event_start_date . "T" . $event_start_time,
-			"endDate"             => $event_end_date . "T" . $event_end_time,
-			"eventStatus"         => "https://schema.org/EventScheduled",
-			"eventAttendanceMode" => "https://schema.org/OfflineEventAttendanceMode",
-			"location"            => [
-				"@type"   => "Place",
-				"address" => $event_location,
-				"name"    => $event_location,
-			],
-			"offers"              => [
-				$ticket_variation
-			]
-		];
-
-		// Convert schema array into ld+json file and add into the DOM
-		echo '<script type="application/ld+json">' . wp_json_encode( $event_data ) . '</script>';
+		echo $schema->get_markup( $single_event_id ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- JSON-LD built and encoded by EventSchema::get_markup().
 	}
 }
 
@@ -823,7 +775,12 @@ if ( !function_exists( 'etn_pro_before_single_event_content_title_show_categorie
 
         if( ( ETN_DEMO_SITE === false ) || ( ETN_DEMO_SITE == true && ( ETN_EVENT_TEMPLATE_TWO_ID == get_the_ID(  ) || ETN_EVENT_TEMPLATE_THREE_ID == get_the_ID(  ) )) ){
             $single_event_id = !empty( $single_event_id ) ? $single_event_id : get_the_ID();
-    
+
+            // "Vendor Event Category & Tags" setting: hide categories on vendor created events.
+            if ( Helper::should_hide_event_taxonomy( $single_event_id ) ) {
+                return;
+            }
+
             if ( file_exists( get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'event/event-two-category-list.php' ) ) {
                 require_once get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'event/event-two-category-list.php';
             } else if ( file_exists( get_template_directory() . \Wpeventin::theme_templates_dir() . 'event/event-two-category-list.php' ) ) {
@@ -960,7 +917,12 @@ if ( !function_exists( 'etn_pro_after_single_event_content_body_show_tags' ) ) {
 
         if( ( ETN_DEMO_SITE === false ) || ( ETN_DEMO_SITE == true && ( ETN_EVENT_TEMPLATE_TWO_ID == get_the_ID(  ) || ETN_EVENT_TEMPLATE_THREE_ID == get_the_ID(  ) )) ){
             $single_event_id = !empty( $single_event_id ) ? $single_event_id : get_the_ID();
-    
+
+            // "Vendor Event Category & Tags" setting: hide tags on vendor created events.
+            if ( Helper::should_hide_event_taxonomy( $single_event_id ) ) {
+                return;
+            }
+
             if ( file_exists( get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'event/event-two-tag-list.php' ) ) {
                 require_once get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'event/event-two-tag-list.php';
             } else if ( file_exists( get_template_directory() . \Wpeventin::theme_templates_dir() . 'event/event-two-tag-list.php' ) ) {

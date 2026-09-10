@@ -28,8 +28,28 @@ class Hooks {
         // Calculate total price to show on cart page.
         add_action('woocommerce_before_calculate_totals', [ $this, 'set_cart_total' ] , 90, 1);
 
-        // Modify checkout fields.
+        // Modify checkout fields (classic `[woocommerce_checkout]` shortcode checkout).
         add_filter( 'woocommerce_checkout_fields', [$this, 'hide_checkout_fields'] );
+
+        // Emptying the field arrays above removes the inputs but not the section
+        // headings WooCommerce prints around them, so a checkout with billing
+        // info turned off still showed "Billing details" and "Additional
+        // information" over blank space.
+        add_action( 'woocommerce_checkout_before_customer_details', [$this, 'hide_checkout_customer_details'], 5 );
+
+        // The WooCommerce Checkout block does not read `woocommerce_checkout_fields`
+        // at all — its address forms are rendered entirely client-side by React and
+        // ignore server-side field removal. Serve it the classic shortcode markup
+        // instead so the hiding above actually takes effect.
+        //
+        // Registered only when WooCommerce is present. Every other hook in this
+        // class is a `woocommerce_*` one that simply never fires without Woo,
+        // but `the_content` runs on every post on every site — an unguarded
+        // Woo-only callback there breaks sites that do not use WooCommerce.
+        if ( class_exists( 'WooCommerce' ) ) {
+            add_filter( 'the_content', [$this, 'force_classic_checkout_markup'], 20 );
+        }
+        add_filter( 'woocommerce_cart_needs_shipping', [$this, 'disable_cart_needs_shipping'] );
 
         add_filter( 'woocommerce_checkout_posted_data', [$this, 'modify_order_data'] );
 
@@ -2749,19 +2769,25 @@ class Hooks {
     }
 
     /**
-     * Hide all fields from checkout page
+     * Whether billing/shipping/order fields should be hidden on the WooCommerce
+     * checkout for the current cart: the "Show Billing Info" setting is off and
+     * the cart is an Eventin ticket order.
      *
-     * @param   array  $fields
-     *
-     * @return  array
+     * @return  bool
      */
-    public function hide_checkout_fields( $fields ) {
+    private function should_hide_woo_checkout_fields() {
+        // Reached from `the_content`, which fires with or without WooCommerce.
+        // WC() is Woo's own function, so answer "nothing to hide" rather than
+        // fataling when it does not exist.
+        if ( ! function_exists( 'WC' ) ) {
+            return false;
+        }
+
         $settings = Helper::get_settings();
         $etn_show_woo_billing_info = isset( $settings['etn_show_woo_billing_info'] ) && !empty( $settings['etn_show_woo_billing_info'] ) ? $settings['etn_show_woo_billing_info'] : '';
-        
-        // show all fields from checkout page
+
         if ( $etn_show_woo_billing_info ) {
-            return $fields;
+            return false;
         }
 
         if ( ! WC()->session ) {
@@ -2769,8 +2795,18 @@ class Hooks {
             WC()->session->init();
         }
 
-        $session_data = WC()->session->get( 'event_order_id' );
-        if ( ! $session_data ) {
+        return (bool) WC()->session->get( 'event_order_id' );
+    }
+
+    /**
+     * Hide all fields from checkout page (classic `[woocommerce_checkout]` shortcode checkout).
+     *
+     * @param   array  $fields
+     *
+     * @return  array
+     */
+    public function hide_checkout_fields( $fields ) {
+        if ( ! $this->should_hide_woo_checkout_fields() ) {
             return $fields;
         }
 
@@ -2782,6 +2818,91 @@ class Hooks {
         $fields['order'] = array();
 
         return $fields;
+    }
+
+    /**
+     * Drop the whole customer-details column when billing info is hidden.
+     *
+     * `hide_checkout_fields()` empties the billing, shipping and order field
+     * arrays, but the headings above them are printed by WooCommerce's own
+     * templates — `form-billing.php` writes "Billing details" with no filter
+     * around it, and `form-shipping.php` writes "Additional information". So a
+     * checkout with billing info turned off kept two headings standing over
+     * nothing, which reads as a half-loaded page.
+     *
+     * Unhooking WooCommerce's own renderers removes heading and fields
+     * together. Only the core callbacks are removed, so anything a theme or
+     * another plugin hooks to the same actions still runs. Fires on
+     * `woocommerce_checkout_before_customer_details`, which form-checkout.php
+     * runs immediately before the two `do_action()` calls being emptied.
+     *
+     * @return void
+     */
+    public function hide_checkout_customer_details() {
+        if ( ! function_exists( 'WC' ) || ! $this->should_hide_woo_checkout_fields() ) {
+            return;
+        }
+
+        $checkout = WC()->checkout();
+
+        // Both renderers are removed from both hooks on purpose. Themes move
+        // them around: Astra re-hooks `checkout_form_shipping` onto
+        // `woocommerce_checkout_billing` and drops it from
+        // `woocommerce_checkout_shipping`, so removing each renderer only from
+        // the hook WooCommerce itself registered it on left the shipping and
+        // "Additional information" markup still rendering.
+        foreach ( [ 'woocommerce_checkout_billing', 'woocommerce_checkout_shipping' ] as $hook ) {
+            remove_action( $hook, [ $checkout, 'checkout_form_billing' ] );
+            remove_action( $hook, [ $checkout, 'checkout_form_shipping' ] );
+        }
+    }
+
+    /**
+     * Skip shipping address collection so the Checkout block doesn't also
+     * block on "No shipping options are available" for ticket-only carts.
+     *
+     * @param   bool  $needs_shipping
+     *
+     * @return  bool
+     */
+    public function disable_cart_needs_shipping( $needs_shipping ) {
+        return $this->should_hide_woo_checkout_fields() ? false : $needs_shipping;
+    }
+
+    /**
+     * The WooCommerce Checkout block's address forms are rendered entirely
+     * client-side by React from cart/order data — there is no server-side hook
+     * that removes a field from it, so `hide_checkout_fields()` above has no
+     * effect there. Serve the classic `[woocommerce_checkout]` shortcode markup
+     * for the checkout page instead when fields need hiding, since that path
+     * does respect it.
+     *
+     * @param   string  $content
+     *
+     * @return  string
+     */
+    public function force_classic_checkout_markup( $content ) {
+        // `the_content` is a WordPress hook, not a WooCommerce one: unlike every
+        // other filter in this class it fires on sites where WooCommerce is not
+        // active at all, and every conditional below is a WooCommerce function.
+        // Without this guard a single missing plugin turns every post and event
+        // page into a fatal ("Call to undefined function is_checkout()").
+        if ( ! function_exists( 'is_checkout' ) || ! function_exists( 'is_wc_endpoint_url' ) ) {
+            return $content;
+        }
+
+        if (
+            ! is_checkout() ||
+            is_wc_endpoint_url() ||
+            ! in_the_loop() ||
+            ! is_main_query() ||
+            ! has_block( 'woocommerce/checkout' ) ||
+            ! $this->should_hide_woo_checkout_fields()
+        ) {
+            return $content;
+        }
+
+        return do_shortcode( '[woocommerce_checkout]' );
     }
 
     /**

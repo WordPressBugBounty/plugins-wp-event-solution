@@ -266,10 +266,13 @@ class OrderController extends WP_REST_Controller {
         $meta_query = [];
 
         if ( ! empty( $event_id ) ) {
+            // A recurring parent sells nothing itself — every booking is made on
+            // one of its child occurrences. Expand the picked id so the parent
+            // shows the whole series, while one occurrence still shows only itself.
             $meta_query[] = [
                 'key'     => 'event_id',
-                'value'   => $event_id,
-                'compare' => '=',
+                'value'   => etn_expand_event_filter_ids( $event_id ),
+                'compare' => 'IN',
             ];
         }
 
@@ -338,34 +341,42 @@ class OrderController extends WP_REST_Controller {
         // one member of the top-level AND array, the query becomes
         // (ownership) AND (fname LIKE … OR … OR payment_method LIKE …).
         if ( $search && ! is_numeric( $search ) ) {
-            $meta_query[] = array(
-                'relation' => 'OR', // any of these fields may match the keyword
-                array(
-                    'key'     => 'customer_fname',
-                    'value'   => $search,
-                    'compare' => 'LIKE'
-                ),
-                array(
-                    'key'     => 'customer_lname',
-                    'value'   => $search,
-                    'compare' => 'LIKE'
-                ),
-                array(
-                    'key'     => 'customer_email',
-                    'value'   => $search,
-                    'compare' => 'LIKE'
-                ),
-                array(
-                    'key'     => 'customer_phone',
-                    'value'   => $search,
-                    'compare' => 'LIKE'
-                ),
-                array(
-                    'key'     => 'payment_method',
-                    'value'   => $search,
-                    'compare' => 'LIKE'
-                ),
-            );
+            /*
+             * Search each word separately.
+             *
+             * A buyer's name is stored split across `customer_fname` and
+             * `customer_lname`, so no single field ever holds "Shafayat Hossain" —
+             * matching the whole phrase against one field at a time found nothing
+             * the moment the admin typed a space, while either word alone worked.
+             *
+             * Every word must match one of the fields, so a full name narrows the
+             * list instead of widening it: "Shafayat Hossain" answers with that
+             * customer rather than with every other Hossain as well. Word order does
+             * not matter, and each word may match a different field.
+             */
+            $search_fields = [
+                'customer_fname',
+                'customer_lname',
+                'customer_email',
+                'customer_phone',
+                'payment_method',
+            ];
+
+            $search_words = preg_split( '/\s+/', $search, -1, PREG_SPLIT_NO_EMPTY );
+
+            foreach ( (array) $search_words as $search_word ) {
+                $word_query = [ 'relation' => 'OR' ]; // any of these fields may match this word
+
+                foreach ( $search_fields as $search_field ) {
+                    $word_query[] = [
+                        'key'     => $search_field,
+                        'value'   => $search_word,
+                        'compare' => 'LIKE',
+                    ];
+                }
+
+                $meta_query[] = $word_query;
+            }
         }
 
         if ( ! empty( $meta_query ) ) {
@@ -512,6 +523,15 @@ class OrderController extends WP_REST_Controller {
         $event_post = $event_id ? get_post( $event_id ) : null;
         if ( ! $event_post || 'etn' !== $event_post->post_type ) {
             return new WP_Error( 'invalid_event', __( 'Invalid event.', 'eventin' ), ['status' => 404] );
+        }
+
+        // Seats live on the occurrence, never on the recurring parent.
+        if ( $this->is_recurring_parent_event( $event_id ) ) {
+            return new WP_Error(
+                'eventin_recurring_parent_not_bookable',
+                __( 'This is a recurring event. Please book one of its occurrences instead.', 'eventin' ),
+                [ 'status' => 400 ]
+            );
         }
 
         $event_tickets = etn_safe_decode( get_post_meta( $event_id, 'etn_ticket_variations', true ) );
@@ -759,12 +779,25 @@ class OrderController extends WP_REST_Controller {
     /**
      * Checks if a given request has access to create an order.
      *
-     * Intentionally nonce-only: ticket purchases are made by unauthenticated guests
-     * who have no WordPress account. Login must not be required to buy a ticket.
-     * The nonce (injected into the page via localized_data_obj.nonce) confirms the
-     * request originates from a real page load, providing CSRF protection without
-     * requiring authentication. This is a write-only operation — no existing order
-     * data is exposed.
+     * Two independent ways in:
+     *
+     * 1. Staff. Anyone holding `etn_manage_order` (the capability the Manage Access
+     *    screen's "Orders" toggle grants) may create a booking, scoped to an event
+     *    they own — the same shape AttendeeController::create_item_permissions_check
+     *    uses. This path was missing before: the check was nonce-only, so an
+     *    administrator authenticating with an Application Password (WP-CLI, the
+     *    Eventin MCP server, any non-browser client) sent no `X-WP-Nonce` and was
+     *    refused with `rest_forbidden`, no matter what capabilities they held.
+     *
+     * 2. Guests. Ticket purchases are made by unauthenticated visitors who have no
+     *    WordPress account, so login must not be required to buy a ticket. The nonce
+     *    (injected into the page via localized_data_obj.nonce) confirms the request
+     *    originates from a real page load, providing CSRF protection without
+     *    requiring authentication. This is a write-only operation — no existing order
+     *    data is exposed.
+     *
+     * The capability path only widens access for users who already hold
+     * `etn_manage_order`; the guest path is unchanged.
      *
      * @since 4.0.0
      *
@@ -772,7 +805,21 @@ class OrderController extends WP_REST_Controller {
      * @return true|WP_Error True if the request has access to create items, WP_Error object otherwise.
      */
     public function create_item_permissions_check( $request ) {
-        return wp_verify_nonce( $request->get_header( 'X-Wp-Nonce' ), 'wp_rest' );
+        if ( current_user_can( 'etn_manage_order' ) ) {
+            $event_id = absint( $request->get_param( 'event_id' ) );
+
+            // No event named: let create_item() return its own validation error.
+            if ( ! $event_id || Ownership::can_manage_post( $event_id, 'etn' ) ) {
+                return true;
+            }
+        }
+
+        // Deliberately a fall-through, not an else. A logged-in visitor may hold
+        // etn_manage_order (the Manage Access screen can grant it to any role) and
+        // still be buying a ticket to somebody else's event from the front end.
+        // Failing the staff branch must never take the normal checkout path away
+        // from them, so the nonce is still the last word for everyone.
+        return (bool) wp_verify_nonce( $request->get_header( 'X-Wp-Nonce' ), 'wp_rest' );
     }
 
     /**
@@ -798,6 +845,18 @@ class OrderController extends WP_REST_Controller {
 
             if ( ! $order->id ) {
                 return new WP_Error( 'invalid_order', __( 'Invalid order id.', 'eventin' ), [ 'status' => 404 ] );
+            }
+
+            // This branch sets the order back to `pending`, which is right for a buyer
+            // picking a payment method but wrong for an order that is already paid — it
+            // would invalidate tickets that have been bought. Staff may still do it; a
+            // guest token holder may not.
+            if ( ! $this->user_can_access_order( $id ) ) {
+                $settled = $this->guest_order_is_settled( $order );
+
+                if ( is_wp_error( $settled ) ) {
+                    return $settled;
+                }
             }
 
             $order->update( [ 'payment_method' => $payment_method, 'status' => 'pending' ] );
@@ -933,10 +992,33 @@ class OrderController extends WP_REST_Controller {
 	    }
 	    
 	    $id = intval( $request['id'] );
-        $prepared_order = $this->prepare_item_for_database( $request );
+
+        // Everything below this point is reachable by a guest holding only the order
+        // access token. That token is handed out at checkout, before payment, and is
+        // meant for fixing your own details — not for deciding what the order costs.
+        $is_owner_staff = $this->user_can_access_order( $id );
+
+        if ( ! $is_owner_staff ) {
+            $pinned = $this->pin_guest_order_fields( $request, $id );
+
+            if ( is_wp_error( $pinned ) ) {
+                return $pinned;
+            }
+        }
+
+        $prepared_order = $this->prepare_item_for_database( $request, false, true );
 
         if ( is_wp_error( $prepared_order ) ) {
             return new WP_Error( 'order_create_error', $prepared_order->get_error_message(), ['status' => 400] );
+        }
+
+        if ( ! $is_owner_staff ) {
+            // prepare_item_for_database() always writes a status: the submitted one for
+            // staff, the "temporary" one (failed/pending) for everyone else. On the guest
+            // path that silently knocked a live order back to `failed` on an ordinary
+            // detail edit. Leave the stored status alone instead — status changes belong
+            // to staff and to the gateway-verified payment flow.
+            unset( $prepared_order['status'] );
         }
 
         // Create order.
@@ -954,6 +1036,148 @@ class OrderController extends WP_REST_Controller {
 		
 		
         return rest_ensure_response( $response );
+    }
+
+    /**
+     * Refuse a guest edit of an order that has already been settled.
+     *
+     * A paid, refunded or cancelled order is finished business. Re-opening one through the
+     * order access token is the "buy a cheap ticket, then upgrade it for free" half of
+     * CVE-2026-77702, and re-opening a paid one also invalidates a ticket somebody already
+     * holds. Buyers who need a change after payment go through the organizer.
+     *
+     * Staff are never routed here — callers check user_can_access_order() first.
+     *
+     * @param OrderModel $order Order being edited.
+     * @return null|WP_Error Null when the order may still be edited.
+     */
+    private function guest_order_is_settled( $order ) {
+        $settled_statuses = [ 'completed', 'refunded', 'partially_refunded', 'cancelled' ];
+
+        if ( in_array( (string) $order->status, $settled_statuses, true ) ) {
+            return new WP_Error(
+                'rest_forbidden',
+                __( 'This order can no longer be changed.', 'eventin' ),
+                [ 'status' => 403 ]
+            );
+        }
+
+        return null;
+    }
+
+    /**
+     * Take the money fields away from a guest order update.
+     *
+     * update_item()'s default branch hands the request to prepare_item_for_database(),
+     * which reads `tickets` from the body and recomputes `total_price` from it, and reads
+     * each attendee's `ticket_slug` from the body with nothing checking it against what
+     * the order actually bought.
+     *
+     * Held by a guest with only the order access token, that was CVE-2026-77702: point the
+     * order's `tickets` at a free ticket so the total drops to zero, leave the attendees on
+     * the paid ticket, finalise the order as free, and keep a valid paid ticket. The same
+     * opening also allowed a straight upgrade of the ticket after paying for a cheaper one.
+     *
+     * So on the guest path every field that decides the price is pinned back to what is
+     * stored: the event, the ticket lines, the seats and the coupon. Attendees may still be
+     * corrected, but each one stays on the ticket it was sold and only attendees that
+     * already belong to this order can be touched. Everything the token is actually for —
+     * names, emails, phone, address, extra fields — passes through untouched.
+     *
+     * @param WP_REST_Request $request  Request whose body is rewritten in place.
+     * @param int             $order_id Order being edited.
+     * @return null|WP_Error Null when the (now pinned) request may proceed.
+     */
+    private function pin_guest_order_fields( $request, $order_id ) {
+        $order = new OrderModel( $order_id );
+
+        if ( ! $order->id ) {
+            return new WP_Error( 'invalid_order', __( 'Invalid order id.', 'eventin' ), [ 'status' => 404 ] );
+        }
+
+        $settled = $this->guest_order_is_settled( $order );
+
+        if ( is_wp_error( $settled ) ) {
+            return $settled;
+        }
+
+        $body = json_decode( $request->get_body(), true );
+
+        if ( ! is_array( $body ) ) {
+            // No usable body; prepare_item_for_database() will reject it on its own.
+            return null;
+        }
+
+        $stored_tickets = etn_safe_decode( get_post_meta( $order_id, 'tickets', true ) );
+
+        $body['event_id']       = (int) get_post_meta( $order_id, 'event_id', true );
+        $body['tickets']        = is_array( $stored_tickets ) ? $stored_tickets : [];
+        $body['seat_ids']       = etn_safe_decode( get_post_meta( $order_id, 'seat_ids', true ) );
+        $body['attendee_seats'] = etn_safe_decode( get_post_meta( $order_id, 'attendee_seats', true ) );
+
+        // A coupon is priced at order creation and frozen on the order. Re-submitting one
+        // here would re-run apply_coupon() against the pinned tickets and move the total.
+        unset( $body['coupon_code'], $body['status'] );
+
+        if ( isset( $body['attendees'] ) && is_array( $body['attendees'] ) ) {
+            $body['attendees'] = $this->pin_guest_attendee_tickets( $body['attendees'], $order_id );
+        }
+
+        $request->set_body( wp_json_encode( $body ) );
+
+        return null;
+    }
+
+    /**
+     * Pin each submitted attendee to the ticket it was actually sold.
+     *
+     * The attendee record is what becomes the printable ticket, so its `ticket_slug` is a
+     * price field in disguise. Rows are matched to this order's existing attendees by id;
+     * a row naming an attendee that belongs to another order (or no order) is dropped
+     * rather than silently written.
+     *
+     * @param array $attendees Attendee rows from the request body.
+     * @param int   $order_id  Order being edited.
+     * @return array Attendee rows safe to hand to prepare_attendee_data().
+     */
+    private function pin_guest_attendee_tickets( $attendees, $order_id ) {
+        $own_attendee_ids = array_map( 'intval', (array) $this->attendee_ids_for_order( $order_id ) );
+        $pinned           = [];
+
+        foreach ( $attendees as $attendee ) {
+            if ( ! is_array( $attendee ) ) {
+                continue;
+            }
+
+            $attendee_id = isset( $attendee['id'] ) ? intval( $attendee['id'] ) : 0;
+
+            if ( ! $attendee_id || ! in_array( $attendee_id, $own_attendee_ids, true ) ) {
+                continue;
+            }
+
+            $attendee['ticket_slug'] = (string) get_post_meta( $attendee_id, 'ticket_slug', true );
+
+            $pinned[] = $attendee;
+        }
+
+        return $pinned;
+    }
+
+    /**
+     * Ids of the attendees attached to an order.
+     *
+     * @param int $order_id Order id.
+     * @return array<int>
+     */
+    private function attendee_ids_for_order( $order_id ) {
+        $attendees = ( new Attendee_Model() )->get_attendees_model_by_eventin_order_id( intval( $order_id ) );
+
+        return array_map(
+            static function ( $attendee ) {
+                return (int) $attendee->ID;
+            },
+            (array) $attendees
+        );
     }
 
     /**
@@ -1305,12 +1529,33 @@ class OrderController extends WP_REST_Controller {
     }
 
     /**
+     * Check whether an event is a recurring parent.
+     *
+     * Recurring parents carry the 'recurring_enabled' = 'yes' meta; their
+     * generated occurrences are child posts without it. Only the occurrences
+     * are bookable.
+     *
+     * @param   int|string  $event_id
+     *
+     * @return  bool
+     */
+    protected function is_recurring_parent_event( $event_id ) {
+        $event_id = intval( $event_id );
+
+        if ( ! $event_id ) {
+            return false;
+        }
+
+        return 'yes' === get_post_meta( $event_id, 'recurring_enabled', true );
+    }
+
+    /**
      * Prepare the item for create or update operation.
      *
      * @param WP_REST_Request $request Request object.
      * @return WP_Error|object $prepared_item
      */
-    protected function prepare_item_for_database( $request, $is_waiting = false ) {
+    protected function prepare_item_for_database( $request, $is_waiting = false, $is_update = false ) {
         $input_data = json_decode( $request->get_body(), true ) ?? [];
 
         // Get settings to check if phone is required
@@ -1332,6 +1577,21 @@ class OrderController extends WP_REST_Controller {
             return $validate;
         }
 
+        // A recurring parent event sells no tickets of its own - every ticket
+        // belongs to a generated occurrence, which is why the single-event
+        // template hides the purchase form on the parent
+        // (core/Event/template-functions.php). An order booked against the
+        // parent has no real date and holds no occurrence stock, so reject it
+        // on every create path (checkout, admin manual booking, waiting list).
+        // Updates are left alone so orders created before this check can still
+        // be edited.
+        if ( ! $is_update && $this->is_recurring_parent_event( $input_data['event_id'] ) ) {
+            return new WP_Error(
+                'eventin_recurring_parent_not_bookable',
+                __( 'This is a recurring event. Please book one of its occurrences instead.', 'eventin' ),
+                [ 'status' => 400 ]
+            );
+        }
 
         // Validate ticket quantities: each must be a positive integer.
         foreach ( $input_data['tickets'] as $ticket ) {
@@ -1345,10 +1605,22 @@ class OrderController extends WP_REST_Controller {
             }
         }
 
-        $ticket_validation = etn_validate_event_tickets( $input_data['event_id'], $input_data['tickets'], true, $is_waiting );
+        // Waiting-list requests are validated by add_to_waiting_list() itself,
+        // after its sold-out check has run. Repeating the ticket validation here
+        // made the waiting-list limit error win over the sold-out error, so a
+        // visitor queuing for a genuinely sold-out ticket was told the waiting
+        // list was full when the real reason was another ticket still on sale.
+        if ( ! $is_waiting ) {
+            // $is_for_update credits the requested quantity back into the
+            // remaining stock, because an update re-submits tickets the order
+            // already holds. Passing it unconditionally disabled stock
+            // enforcement on the create path entirely - any quantity passed, at
+            // any capacity.
+            $ticket_validation = etn_validate_event_tickets( $input_data['event_id'], $input_data['tickets'], $is_update, $is_waiting );
 
-        if ( is_wp_error( $ticket_validation ) ) {
-            return $ticket_validation;
+            if ( is_wp_error( $ticket_validation ) ) {
+                return $ticket_validation;
+            }
         }
 
         $email_limit_check = $this->validate_email_purchase_limit(

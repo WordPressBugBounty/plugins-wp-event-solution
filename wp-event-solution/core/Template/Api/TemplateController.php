@@ -366,7 +366,78 @@ class TemplateController extends WP_REST_Controller {
             ], admin_url( 'post.php' ) );
         }
 
+        if ( $this->should_use_bricks_editor( $post_id ) && current_user_can( 'edit_post', $post_id ) ) {
+            return $this->get_bricks_edit_link( $post_id );
+        }
+
         return get_edit_post_link( $post_id, 'raw' );
+    }
+
+    /**
+     * Check if the Bricks editor should be used for the given post.
+     *
+     * @param  int  $post_id
+     * @return bool true when the post was built with Bricks and Bricks is active
+     */
+    private function should_use_bricks_editor( $post_id ) {
+        $template            = new TemplateModel( $post_id );
+        $made_with_bricks    = $template->get_template_builder() === 'bricks';
+        $theme               = wp_get_theme();
+        $bricks_is_active    = ( 'bricks' === $theme->get( 'Template' ) || 'Bricks' === $theme->get( 'Name' ) );
+
+        return $bricks_is_active && $made_with_bricks;
+    }
+
+    /**
+     * Build the Bricks builder URL for the template.
+     *
+     * Mirrors \Bricks\Helpers::get_builder_edit_link(): the post permalink with
+     * the `bricks=run` query arg. Also ensures `etn-template` is registered as a
+     * Bricks-supported post type, otherwise the builder refuses to open it.
+     *
+     * @param  int    $post_id
+     * @return string
+     */
+    private function get_bricks_edit_link( $post_id ) {
+        $this->maybe_enable_bricks_for_etn_template();
+
+        if ( class_exists( '\Bricks\Helpers' ) && method_exists( '\Bricks\Helpers', 'get_builder_edit_link' ) ) {
+            return \Bricks\Helpers::get_builder_edit_link( $post_id );
+        }
+
+        $param = defined( 'BRICKS_BUILDER_PARAM' ) ? BRICKS_BUILDER_PARAM : 'bricks';
+
+        return add_query_arg( $param, 'run', get_permalink( $post_id ) );
+    }
+
+    /**
+     * Ensure `etn-template` is in Bricks' supported post types.
+     *
+     * Bricks only opens its builder for post types listed in the
+     * `postTypes` key of the `bricks_global_settings` option. Idempotent.
+     *
+     * @return void
+     */
+    private function maybe_enable_bricks_for_etn_template() {
+        $option_name = defined( 'BRICKS_DB_GLOBAL_SETTINGS' ) ? BRICKS_DB_GLOBAL_SETTINGS : 'bricks_global_settings';
+        $settings    = get_option( $option_name, [] );
+
+        if ( ! is_array( $settings ) ) {
+            $settings = [];
+        }
+
+        $post_types = isset( $settings['postTypes'] ) && is_array( $settings['postTypes'] )
+            ? $settings['postTypes']
+            : [];
+
+        if ( in_array( 'etn-template', $post_types, true ) ) {
+            return;
+        }
+
+        $post_types[]           = 'etn-template';
+        $settings['postTypes']  = array_values( array_unique( $post_types ) );
+
+        update_option( $option_name, $settings );
     }
 
     /**

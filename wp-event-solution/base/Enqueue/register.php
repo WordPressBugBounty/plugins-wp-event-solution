@@ -188,11 +188,24 @@ class Register {
     }
 
     /**
-     * Get file path from url
+     * Get the on-disk path of a script's sibling *.asset.php file.
+     *
+     * The mapping used to be `$_SERVER['DOCUMENT_ROOT'] . <url path>`, which is
+     * only correct when DOCUMENT_ROOT happens to be the web root the URL path is
+     * relative to. It is not, on a subdirectory install served by its own
+     * vhost/alias, a symlinked docroot, a reverse proxy, or on CLI (where
+     * DOCUMENT_ROOT is unset). When it failed, get_file_assets() returned an
+     * empty array, so every bundle silently lost BOTH its declared WP script
+     * dependencies (react, wp-element, wp-dom-ready, ...) and its content-hash
+     * version — the purchase form then died on `window.wp.domReady` /
+     * `window.wp.element` being undefined and never left its skeleton.
+     *
+     * Resolve against WordPress' own url→dir pairs instead, most specific first,
+     * and keep DOCUMENT_ROOT only as a final fallback.
      *
      * @param   string  $url
      *
-     * @return string
+     * @return  string|false
      */
     private function get_file_path( $url ) {
         // Check if the URL is valid
@@ -210,7 +223,33 @@ class Register {
 
         $clean_path = str_replace( '.js', '.asset.php', $url_parts['path'] );
 
-        // Get the file path from the URL path
+        // [ url prefix, matching directory ], most specific first so a plugin URL
+        // is never resolved through the broader content or site map. A list of
+        // pairs, not a url-keyed map: content_url() and site_url() can be equal
+        // (WP_CONTENT_URL filtered, domain mapping), and duplicate array keys
+        // would silently drop WP_CONTENT_DIR.
+        $bases = [
+            [ \Wpeventin::plugin_url(), \Wpeventin::plugin_dir() ],
+            [ content_url(), WP_CONTENT_DIR ],
+            [ site_url(), ABSPATH ],
+        ];
+
+        foreach ( $bases as list( $base_url, $base_dir ) ) {
+            $base_path = wp_parse_url( $base_url, PHP_URL_PATH );
+            $base_path = trailingslashit( null === $base_path ? '/' : $base_path );
+
+            if ( 0 !== strpos( $clean_path, $base_path ) ) {
+                continue;
+            }
+
+            $file_path = trailingslashit( $base_dir ) . substr( $clean_path, strlen( $base_path ) );
+
+            if ( file_exists( $file_path ) ) {
+                return $file_path;
+            }
+        }
+
+        // Fallback for srcs that belong to none of the maps above.
         $file_path = ( isset( $_SERVER['DOCUMENT_ROOT'] ) ? sanitize_text_field( wp_unslash( $_SERVER['DOCUMENT_ROOT'] ) ) : '' ) . $clean_path; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput -- DOCUMENT_ROOT is a trusted server variable used only to build a file path, not output or stored.
 
         // Check if the file exists
