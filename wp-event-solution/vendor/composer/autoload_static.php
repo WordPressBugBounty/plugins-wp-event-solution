@@ -286,6 +286,7 @@ class ComposerStaticInit51060d1ef7b9244f23975c06b5e403b1
         'Eventin\\Order\\PaymentFactory' => __DIR__ . '/../..' . '/core/Order/PaymentFactory.php',
         'Eventin\\Order\\PaymentInterface' => __DIR__ . '/../..' . '/core/Order/PaymentInterface.php',
         'Eventin\\Order\\TaxCalculator' => __DIR__ . '/../..' . '/core/Order/TaxCalculator.php',
+        'Eventin\\Order\\TicketHold' => __DIR__ . '/../..' . '/core/Order/TicketHold.php',
         'Eventin\\PreviewPlaceholder\\PreviewPlaceholder' => __DIR__ . '/../..' . '/core/PreviewPlaceholder/PreviewPlaceholder.php',
         'Eventin\\PreviewPlaceholder\\PreviewPlaceholderCleanup' => __DIR__ . '/../..' . '/core/PreviewPlaceholder/PreviewPlaceholderCleanup.php',
         'Eventin\\PreviewPlaceholder\\PreviewPlaceholderEventSeeder' => __DIR__ . '/../..' . '/core/PreviewPlaceholder/PreviewPlaceholderEventSeeder.php',

@@ -67,6 +67,11 @@ class CouponValidator {
             return $this->fail( 'invalid', __( 'This coupon code is invalid.', 'eventin' ) );
         }
 
+        // Lets an integration that mints its own codes refuse one to anyone but its holder.
+        if ( ! apply_filters( 'eventin_coupon_is_usable', true, $coupon, $p ) ) {
+            return $this->fail( 'invalid', __( 'This coupon code is invalid.', 'eventin' ) );
+        }
+
         if ( 'expired' === $coupon['status'] ) {
             return $this->fail( 'expired', __( 'This coupon has expired.', 'eventin' ) );
         }

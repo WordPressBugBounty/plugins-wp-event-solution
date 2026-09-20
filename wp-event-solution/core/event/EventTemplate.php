@@ -90,20 +90,9 @@ class EventTemplate implements HookableInterface {
             }
         }
 
-        $event = new Event_Model( $post->ID );
         $enable_event_template_builder = etn_get_option( 'enable_event_template_builder', true );
 
-        $layout_id = $event->event_layout;
-
-        // If the event's assigned template no longer exists (e.g. it was deleted),
-        // fall back to the global default template instead of the legacy layout, so
-        // the event still renders a builder template rather than losing its design.
-        if ( 'etn-template' !== get_post_type( $layout_id ) ) {
-            $default_layout = etn_get_option( 'event_layout' );
-            if ( $default_layout && 'etn-template' === get_post_type( $default_layout ) ) {
-                $layout_id = $default_layout;
-            }
-        }
+        $layout_id = self::resolve_layout_id( $post->ID );
 
         if ( 'etn-template' === get_post_type( $layout_id ) ) {
             $template = \Wpeventin::templates_dir() . 'template-parts/event/block-single-template.php';
@@ -112,6 +101,49 @@ class EventTemplate implements HookableInterface {
         }
 
         return $template;
+    }
+
+    /**
+     * Work out which layout an event should render.
+     *
+     * `event_layout` holds one of two different kinds of value:
+     *   - a POST ID  — an `etn-template` builder template;
+     *   - a SLUG     — a PHP layout that ships as a file ('event-one',
+     *                  'event-two', 'event-three', a Pro layout, or a theme
+     *                  override).
+     *
+     * Only the first kind can go missing, so only the first kind may fall back
+     * to the global default template. Treating a slug as a missing template
+     * would silently override every event the site owner switched to a PHP
+     * layout.
+     *
+     * @param   int  $event_id
+     *
+     * @return  string  A template post id, or a layout slug.
+     */
+    public static function resolve_layout_id( $event_id ) {
+        $event     = new Event_Model( $event_id );
+        $layout_id = (string) $event->event_layout;
+
+        // A slug is the event's own choice — keep it.
+        if ( '' !== $layout_id && ! is_numeric( $layout_id ) ) {
+            return $layout_id;
+        }
+
+        // A live builder template — keep it.
+        if ( '' !== $layout_id && 'etn-template' === get_post_type( $layout_id ) ) {
+            return $layout_id;
+        }
+
+        // No choice at all, or a builder template that was deleted: use the
+        // global default template when there is one.
+        $default_layout = etn_get_option( 'event_layout' );
+
+        if ( $default_layout && 'etn-template' === get_post_type( $default_layout ) ) {
+            return (string) $default_layout;
+        }
+
+        return $layout_id;
     }
 
     // check if the archive page is build with Elementor theme builder - archive template

@@ -16,6 +16,13 @@ class EnsHooks {
     private $attendee;
     private $event;
     private $order;
+
+    /**
+     * Attendee name for the email being rendered, reused by the subject filter.
+     *
+     * @var string
+     */
+    private $attendee_name = '';
     /**
      * Store email body
      *
@@ -31,6 +38,7 @@ class EnsHooks {
     public function __construct() {
         add_filter( 'notification_sdk_email_message', array($this, 'get_latest_email_content'), 10, 5 );
         add_filter( 'notification_sdk_to_emails', array($this, 'get_to_attendee_emails'), 10, 3 );
+        add_filter( 'wp_mail', array($this, 'replace_attendee_placeholder_in_subject') );
     }
 
     /**
@@ -44,9 +52,10 @@ class EnsHooks {
      */
     public function get_latest_email_content( $message, $receiver_type, $action_name, $action_data, $count ) {
         // Reset per-call state so a missing/invalid id never reuses the previous email's object.
-        $this->attendee = null;
-        $this->event    = null;
-        $this->order    = null;
+        $this->attendee      = null;
+        $this->event         = null;
+        $this->order         = null;
+        $this->attendee_name = '';
 
         if($action_name == 'event_ticket_purchase' && $receiver_type == 'attendee_email') {
             $this->email_body = $message;
@@ -58,7 +67,7 @@ class EnsHooks {
                 $this->event = new \Etn\Core\Event\Event_Model( $action_data['event_id'] );
             }
 
-            return $this->content();
+            return $this->replace_attendee_placeholders( $this->content() );
         }
         elseif($action_name == 'event_ticket_purchase' && ($receiver_type == 'customer_email' || $receiver_type == 'admin_email')) {
             $this->email_body = $message;
@@ -70,11 +79,12 @@ class EnsHooks {
                 $this->event = new \Etn\Core\Event\Event_Model( $action_data['event_id'] );
             }
 
-            return $this->email_content_for_customer_and_admin();
+            return $this->replace_attendee_placeholders( $this->email_content_for_customer_and_admin() );
         }
         elseif($action_name == 'event_rsvp_email') {
             $this->email_body = $message;
-            return $this->email_body;
+
+            return $this->replace_attendee_placeholders( $this->email_body );
         }
         elseif($action_name == 'event_reminder_email' && $receiver_type == 'attendee_email') {
             $this->email_body = $message;
@@ -91,7 +101,7 @@ class EnsHooks {
                 $this->event = new \Etn\Core\Event\Event_Model( $action_data['event_id'] );
             }
 
-            return $this->get_content_for_attendee_reminder_email();
+            return $this->replace_attendee_placeholders( $this->get_content_for_attendee_reminder_email() );
         }
         elseif($action_name == 'send_certificate' && $receiver_type == 'attendee_email') {
             $this->email_body = $message;
@@ -108,9 +118,76 @@ class EnsHooks {
                 $this->event = new \Etn\Core\Event\Event_Model( $action_data['event_id'] );
             }
 
-            return $this->get_certificate_email_content();
+            return $this->replace_attendee_placeholders( $this->get_certificate_email_content() );
         }
-        return $message;
+        elseif($action_name == 'send_email_to_all_attendees' && $receiver_type == 'attendee_email') {
+            $this->email_body = $message;
+
+            // Fires with empty attendee arrays, so rebuild the ids the same way
+            // get_to_attendee_emails() does to stay index-aligned by $count.
+            if(empty($action_data['attendee_id'])) {
+                $action_data['attendee_id'] = $this->get_to_attendee_ids($action_data);
+            }
+
+            if(!empty($action_data['attendee_id'][$count])) {
+                $this->attendee = new \Etn\Core\Attendee\Attendee_Model( $action_data['attendee_id'][$count] );
+            }
+
+            return $this->replace_attendee_placeholders( $this->email_body );
+        }
+
+        return $this->replace_attendee_placeholders( $message );
+    }
+
+    /**
+     * Replace attendee placeholders in an automation email body.
+     *
+     * The SDK only substitutes flat payload scalars, so per-attendee values are
+     * resolved here. Called on every return path so receivers without an
+     * attendee (customer / admin) empty the token instead of shipping it.
+     *
+     * @param   string  $content
+     *
+     * @return  string
+     */
+    private function replace_attendee_placeholders( $content ) {
+        // Local first: Post_Model has __get() without __isset().
+        $attendee_name = $this->attendee ? (string) $this->attendee->etn_name : '';
+
+        $this->attendee_name = $attendee_name;
+
+        return strtr( $content, [
+            '{%attendee_name%}' => esc_html( $attendee_name ),
+            '{{attendee_name}}' => esc_html( $attendee_name ),
+        ] );
+    }
+
+    /**
+     * Replace the attendee name placeholder in an automation email subject.
+     *
+     * The SDK has no subject filter, so the token reaches wp_mail() intact. The
+     * message filter runs first and has already resolved the attendee. Gated on
+     * the token and cleared after, so other site mail is untouched.
+     *
+     * @param   array  $args  wp_mail() arguments.
+     *
+     * @return  array
+     */
+    public function replace_attendee_placeholder_in_subject( $args ) {
+        if ( empty( $args['subject'] ) || false === strpos( $args['subject'], 'attendee_name' ) ) {
+            return $args;
+        }
+
+        $attendee_name = wp_strip_all_tags( $this->attendee_name );
+
+        $args['subject'] = strtr( $args['subject'], [
+            '{%attendee_name%}' => $attendee_name,
+            '{{attendee_name}}' => $attendee_name,
+        ] );
+
+        $this->attendee_name = '';
+
+        return $args;
     }
 
     public function get_to_attendee_emails( $to_emails, $action_data, $action_name ) {

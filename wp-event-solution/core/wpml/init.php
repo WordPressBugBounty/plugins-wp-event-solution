@@ -147,6 +147,12 @@ function etn_update_event_meta( $meta_id, $post_id, $meta_key, $meta_value ) {
         'etn_enable_global_stock',
         'enable_attendee_waiting_list',
         'pending_seats',
+        // Must travel with `pending_seats` and `etn_ticket_variations`. Those two
+        // are mirrored to every translation, but the holds behind them live in
+        // this key. If it stayed on one language only, syncing a sibling would
+        // find no holds there and reset the mirrored counters to zero — wiping a
+        // real visitor's hold.
+        'eventin_ticket_holds',
         '_etn_seat_unique_id',
 
         // Schedule / dates

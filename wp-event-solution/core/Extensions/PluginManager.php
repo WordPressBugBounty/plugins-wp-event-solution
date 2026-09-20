@@ -18,6 +18,15 @@ class PluginManager {
      * @return bool True if installed, false otherwise.
      */
     public static function is_installed( $slug ) {
+        // An empty slug must never match. `$plugin['TextDomain'] === ''` is true
+        // for every installed plugin whose header omits `Text Domain:`, so an
+        // empty slug would silently "find" an unrelated plugin. Callers that
+        // resolve an optional dependency can legitimately hand us an empty
+        // value; treat it as "nothing to look for".
+        if ( ! is_string( $slug ) || '' === $slug ) {
+            return false;
+        }
+
         if ( ! function_exists( 'get_plugins' ) ) {
             require_once ABSPATH . 'wp-admin/includes/plugin.php';
         }
@@ -145,6 +154,11 @@ class PluginManager {
      * @return string The path to the plugin file.
      */
     private static function get_plugin_path( $slug ) {
+        // Same guard as is_installed(): an empty slug matches header-less plugins.
+        if ( ! is_string( $slug ) || '' === $slug ) {
+            return false;
+        }
+
         $plugins = get_plugins();
 
         if ( is_array( $plugins ) ) {

@@ -282,6 +282,11 @@ class CouponModel {
                 continue;
             }
 
+            // An integration's private codes must not open the coupon field for everyone.
+            if ( ! apply_filters( 'eventin_coupon_is_listed', true, $c ) ) {
+                continue;
+            }
+
             if ( in_array( $event_id, array_map( 'intval', $c['excluded_events'] ), true ) ) {
                 continue;
             }

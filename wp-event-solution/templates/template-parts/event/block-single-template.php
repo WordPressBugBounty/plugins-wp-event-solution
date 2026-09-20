@@ -1,7 +1,6 @@
 <?php
 
 defined( 'ABSPATH' ) || exit;
-use Etn\Core\Event\Event_Model;
 use Eventin\Template\TemplateModel;
 
 if ( wp_is_block_theme() ) {
@@ -23,29 +22,24 @@ if ( wp_is_block_theme() ) {
     if ( post_password_required( $event_id ) ) {
         echo get_the_password_form( $event_id ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- get_the_password_form() is a trusted WP core function.
     } else {
-        $event = new Event_Model( $event_id );
+        // Same rule as the template_include callback: a layout slug is the
+        // event's own choice, only a missing template post falls back.
+        $template_id = \Eventin\Event\EventTemplate::resolve_layout_id( $event_id );
 
-        $template_id = $event->event_layout;
-
-    // If the assigned template no longer exists (e.g. it was deleted), fall back to
-    // the global default template so the event keeps rendering a builder template.
-    if ( 'etn-template' !== get_post_type( $template_id ) ) {
-        $default_layout = etn_get_option( 'event_layout' );
-        if ( $default_layout && 'etn-template' === get_post_type( $default_layout ) ) {
-            $template_id = $default_layout;
+        if ( ! $template_id ) {
+            $template_id = etn_get_option( 'event_template', 'event-one' );
         }
-    }
-
-    if ( ! $template_id ) {
-        $template_id = etn_get_option( 'event_template', 'event-one' );
-    }
 
         $template = new TemplateModel( $template_id );
 
         if ( $template && get_post_type( $template_id ) == 'etn-template' ) {
             $template->render_content( '', $event_id );
         } else {
-            $template->render_content( $default_template_name[$template_id], $event_id );
+            $default_name = isset( $default_template_name[ $template_id ] )
+                ? $default_template_name[ $template_id ]
+                : $default_template_name['event-one'];
+
+            $template->render_content( $default_name, $event_id );
         }
     }
 

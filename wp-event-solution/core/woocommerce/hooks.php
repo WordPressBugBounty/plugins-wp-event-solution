@@ -306,7 +306,7 @@ class Hooks {
     public function show_eventin_ticket_details( $order_id ) {
         if ( ! $order_id ) return;
 
-        $eventin_order_id = get_post_meta($order_id, 'eventin_order_id', true);
+        $eventin_order_id = $this->get_eventin_order_id( $order_id );
         if (! $eventin_order_id) return;
 
         $event_order = new OrderModel($eventin_order_id);
@@ -394,6 +394,71 @@ class Hooks {
     }
 
     /**
+     * Read the linked Eventin order id from a WooCommerce order.
+     *
+     * Deliberately does not use get_post_meta(): with HPOS enabled the id lives in
+     * wp_wc_orders_meta, and a gateway notification (Tpay ITN, PayPal IPN, …) is a
+     * server-to-server request with no WooCommerce session to fall back on. Both of
+     * those are why an off-site payment left the Eventin order stuck on "pending"
+     * whenever the buyer closed the gateway instead of clicking "Return to shop".
+     *
+     * @param   \WC_Order|integer  $wc_order  WooCommerce order or its id.
+     *
+     * @return  integer  Eventin order id, 0 when the order is not an Eventin order.
+     */
+    private function get_eventin_order_id( $wc_order ) {
+        if ( ! $wc_order instanceof \WC_Order ) {
+            $wc_order = wc_get_order( $wc_order );
+        }
+
+        if ( ! $wc_order ) {
+            return 0;
+        }
+
+        $eventin_order_id = $wc_order->get_meta( 'eventin_order_id' );
+
+        // Orders linked by redirect_success_page() before this fix stored the id with
+        // update_post_meta() only, which the HPOS order store never reads back. Read
+        // the legacy row and heal the link so later hooks find it the fast way.
+        if ( ! $eventin_order_id ) {
+            $eventin_order_id = get_post_meta( $wc_order->get_id(), 'eventin_order_id', true );
+
+            if ( $eventin_order_id ) {
+                $wc_order->update_meta_data( 'eventin_order_id', $eventin_order_id );
+                $wc_order->save();
+            }
+        }
+
+        return absint( $eventin_order_id );
+    }
+
+    /**
+     * Link an Eventin order to a WooCommerce order in both meta stores.
+     *
+     * The WooCommerce store is what get_eventin_order_id() reads. wp_postmeta is kept
+     * in step because several lookups still query it directly — the order metabox,
+     * OrderModel::get_wc_order() and WCPayment::refund() all run meta_query/get_post_meta
+     * against 'eventin_order_id'.
+     *
+     * @param   \WC_Order  $wc_order          WooCommerce order.
+     * @param   integer    $eventin_order_id  Eventin order id.
+     *
+     * @return  void
+     */
+    private function link_eventin_order( $wc_order, $eventin_order_id ) {
+        if ( ! $wc_order instanceof \WC_Order || ! $eventin_order_id ) {
+            return;
+        }
+
+        if ( $wc_order->get_meta( 'eventin_order_id' ) != $eventin_order_id ) {
+            $wc_order->update_meta_data( 'eventin_order_id', $eventin_order_id );
+            $wc_order->save();
+        }
+
+        update_post_meta( $wc_order->get_id(), 'eventin_order_id', $eventin_order_id );
+    }
+
+    /**
      * Handle WooCommerce order status changes.
      *
      * @param   integer  $order_id  WooCommerce order ID.
@@ -402,7 +467,7 @@ class Hooks {
      * @return  void
      */
     public function handle_wc_status_match( $order_id, $order ) {
-        $event_order_id = get_post_meta( $order_id, 'eventin_order_id', true );
+        $event_order_id = $this->get_eventin_order_id( $order ? $order : $order_id );
 
         if ( ! $event_order_id ) return;
 
@@ -434,63 +499,70 @@ class Hooks {
 			return;
 		}
 		
-		if ( !is_admin() && !wp_doing_cron() ) {
-			$event_order_id = (WC() && WC()->session && WC()->session) ? WC()->session->get('event_order_id') : null;
-		} else {
-			$event_order_id = get_post_meta($order_id, 'eventin_order_id', true);
-		}
-		
-		if ( ! $event_order_id ) {
-			return;
-		}
-		
-		
-		$eventin_order_id = get_post_meta( $order_id, 'eventin_order_id', true );
-		$event_order      = new OrderModel( $eventin_order_id );
-		
+		// Resolved from the order itself, never from WC()->session: this hook also runs
+		// on gateway notifications, which carry no session and are neither admin nor cron.
+		$eventin_order_id = $this->get_eventin_order_id( $order );
+
 		if ( ! $eventin_order_id ) {
 			return;
 		}
-		
-		switch ($order->get_status()) {
-			case in_array( $order->get_status(), etn_get_option('wc_order_statuses') ):
-				 if ( 'completed' === $event_order->status ) {
-				    return;
-				}
-				$event_order->update([
-					'status' => 'completed'
-				]);
 
-				do_action( 'eventin_order_completed', $event_order );
+		$event_order = new OrderModel( $eventin_order_id );
+		$wc_status   = $order->get_status();
 
-				// Persist the WC tax/discount before the email goes out (see sync_wc_order_totals).
-				$this->sync_wc_order_totals( $event_order, $order );
-
-				$event_order->send_email();
-				break;
-			
-			case "refunded":
-				// Already refunded (e.g. the refund was initiated inside Eventin,
-				// which set this status before pushing it to WooCommerce): bail so
-				// the refund cascade and its side effects don't run a second time.
-				if ( 'refunded' === $event_order->status ) {
-					return;
-				}
-
-				$event_order->update([
-					'status' => 'refunded',
-				]);
-
-				do_action( 'eventin_order_refund', $event_order );
-				break;
-			default:
-				$event_order->update([
-					'status' => 'failed',
-				]);
-				
-				do_action( 'eventin_order_failed', $event_order );
+		// A payment that has not been decided yet is not a failed payment. Off-site
+		// methods (Tpay bank transfer, BLIK) can sit on pending/on-hold for hours
+		// before the gateway confirms, and this hook now runs on those notifications
+		// too, so treating "not paid yet" as failure would show the buyer a failed
+		// booking for a payment that is still in flight.
+		if ( in_array( $wc_status, [ 'pending', 'on-hold', 'checkout-draft' ], true ) ) {
+			return;
 		}
-		
+
+		// etn_get_wc_order_statuses() rather than etn_get_option(): the raw option is
+		// false until an admin saves the setting, and in_array() against false is a
+		// TypeError on PHP 8 — which would take down the gateway notification itself.
+		if ( in_array( $wc_status, (array) etn_get_wc_order_statuses(), true ) ) {
+			if ( 'completed' === $event_order->status ) {
+				return;
+			}
+
+			$event_order->update([
+				'status' => 'completed'
+			]);
+
+			do_action( 'eventin_order_completed', $event_order );
+
+			// Persist the WC tax/discount before the email goes out (see sync_wc_order_totals).
+			$this->sync_wc_order_totals( $event_order, $order );
+
+			$event_order->send_email();
+
+			return;
+		}
+
+		if ( 'refunded' === $wc_status ) {
+			// Already refunded (e.g. the refund was initiated inside Eventin,
+			// which set this status before pushing it to WooCommerce): bail so
+			// the refund cascade and its side effects don't run a second time.
+			if ( 'refunded' === $event_order->status ) {
+				return;
+			}
+
+			$event_order->update([
+				'status' => 'refunded',
+			]);
+
+			do_action( 'eventin_order_refund', $event_order );
+
+			return;
+		}
+
+		$event_order->update([
+			'status' => 'failed',
+		]);
+
+		do_action( 'eventin_order_failed', $event_order );
 	}
 	
 	/**
@@ -508,8 +580,8 @@ class Hooks {
         }
         
         // Get the Eventin order ID from meta
-        $eventin_order_id = get_post_meta( $order_id, 'eventin_order_id', true );
-        
+        $eventin_order_id = $this->get_eventin_order_id( $order );
+
         if ( ! $eventin_order_id ) {
             return;
         }
@@ -541,23 +613,27 @@ class Hooks {
      * @return  void
      */
     public function attatch_eventin_order_id( $wc_order_id ) {
-        if ( !is_admin() && !wp_doing_cron() ) {
-            $event_order_id = WC()->session->get('event_order_id');
-        } else {
-            $event_order_id = get_post_meta($wc_order_id, 'eventin_order_id', true);
+        $order = wc_get_order( $wc_order_id );
+
+        if ( ! $order ) {
+            return;
+        }
+
+        // An already stored link wins, so re-saving an order can never unlink it.
+        // The session is only the source for the checkout that is creating this order.
+        $event_order_id = $this->get_eventin_order_id( $order );
+
+        if ( ! $event_order_id && WC()->session ) {
+            $event_order_id = absint( WC()->session->get( 'event_order_id' ) );
         }
 
         if ( ! $event_order_id ) {
             return;
         }
 
-        $order = wc_get_order( $wc_order_id );
-
-        // Update meta data
-        $order->update_meta_data( 'eventin_order_id', $event_order_id );
-
-        // Save
-        $order->save();
+        // Write to both meta stores so the gateway notification can find the link
+        // without the buyer ever returning to the thank-you page.
+        $this->link_eventin_order( $order, $event_order_id );
 
         // Link the WooCommerce-created customer back to the Eventin order.
         // For guest checkouts paid via WooCommerce, Eventin defers account creation
@@ -759,8 +835,8 @@ class Hooks {
 		$statuses = etn_get_wc_order_statuses();
 		
 		WC()->session->__unset( 'event_order_id' );
-		update_post_meta( $wc_order_id, 'eventin_order_id', $order_id );
-		
+		$this->link_eventin_order( $wc_order, $order_id );
+
 		// Stay to woo thank you page
 		$thankyou_redirect   =  etn_get_option( "order_thank_you_redirect" );
 		$thankyou_redirect   = isset( $thankyou_redirect ) ? $thankyou_redirect : '';
@@ -2273,7 +2349,7 @@ class Hooks {
             $order_id = $order->get_id();
         }
 
-        $eventin_order_id = get_post_meta( $order_id, 'eventin_order_id', true );
+        $eventin_order_id = $this->get_eventin_order_id( $order_id );
 
         $args = array(
             'post_type'      => 'etn-attendee',

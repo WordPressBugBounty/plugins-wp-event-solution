@@ -253,6 +253,7 @@ return array(
     'Eventin\\Order\\PaymentFactory' => $baseDir . '/core/Order/PaymentFactory.php',
     'Eventin\\Order\\PaymentInterface' => $baseDir . '/core/Order/PaymentInterface.php',
     'Eventin\\Order\\TaxCalculator' => $baseDir . '/core/Order/TaxCalculator.php',
+    'Eventin\\Order\\TicketHold' => $baseDir . '/core/Order/TicketHold.php',
     'Eventin\\PreviewPlaceholder\\PreviewPlaceholder' => $baseDir . '/core/PreviewPlaceholder/PreviewPlaceholder.php',
     'Eventin\\PreviewPlaceholder\\PreviewPlaceholderCleanup' => $baseDir . '/core/PreviewPlaceholder/PreviewPlaceholderCleanup.php',
     'Eventin\\PreviewPlaceholder\\PreviewPlaceholderEventSeeder' => $baseDir . '/core/PreviewPlaceholder/PreviewPlaceholderEventSeeder.php',

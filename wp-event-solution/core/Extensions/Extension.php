@@ -117,23 +117,31 @@ class Extension {
                     }
                 }
 
+                // Only resolve install/activate state for modules that actually
+                // declare a dependency. Modules without one (e.g. rsvp) used to
+                // fall through with an empty slug, which PluginManager matched
+                // against any plugin missing a `Text Domain:` header, rewriting
+                // their status from 'on' to 'install'/'activate'.
                 if ( 'module' === $extension['type'] ) {
                     $dependencies = self::get_depencies( $extension['slug'] );
-                    $dependency   = is_array( $dependencies ) ? $dependencies[0] : '';
 
-                    if (
-                        self::is_need_upgrade( $extension['name'] )
-                        && ! PluginManager::is_installed( $dependency )
-                    ) {
-                        $extension['status'] = 'upgrade';
-                    }
+                    if ( ! empty( $dependencies ) ) {
+                        $dependency = $dependencies[0];
 
-                    if ( PluginManager::is_installed( $dependency ) ) {
-                        $extension['status'] = 'install';
-                    }
+                        if (
+                            self::is_need_upgrade( $extension['name'] )
+                            && ! PluginManager::is_installed( $dependency )
+                        ) {
+                            $extension['status'] = 'upgrade';
+                        }
 
-                    if ( PluginManager::is_activated( $dependency ) ) {
-                        $extension['status'] = 'activate';
+                        if ( PluginManager::is_installed( $dependency ) ) {
+                            $extension['status'] = 'install';
+                        }
+
+                        if ( PluginManager::is_activated( $dependency ) ) {
+                            $extension['status'] = 'activate';
+                        }
                     }
                 }
 

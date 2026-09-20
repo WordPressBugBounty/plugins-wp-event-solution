@@ -10,7 +10,7 @@ defined('ABSPATH') || exit;
  * Plugin Name:       Eventin
  * Plugin URI:        https://themewinter.com/eventin/
  * Description:       Simple and Easy to use Event Management Solution
- * Version:           4.1.24
+ * Version:           4.1.25
  * Author:            Themewinter
  * Author URI:        https://themewinter.com/
  * License:           GPL-2.0+
@@ -44,7 +44,7 @@ class Wpeventin
 	 * @var string The plugin version.
 	 */
 	public static function version() {
-		return "4.1.24";
+		return "4.1.25";
 	}
     /**
      * Initializes the Wpeventin() class
@@ -524,6 +524,11 @@ class Wpeventin
                                 "value" => "event_location",
                                 "type"  => "string",
                             ],
+                            [
+                                "label" => "Attendee Name",
+                                "value" => "attendee_name",
+                                "type"  => "string",
+                            ],
                         ],
                         "conditional_dependencies" => [ // Data you have after the event happened
                             [
@@ -607,6 +612,10 @@ class Wpeventin
                                 "label" => "Attendee",
                                 "value" => "attendee_email",
                             ],
+                            [
+                                "label" => "Admin",
+                                "value" => "admin_email",
+                            ],
                         ],
                     ],
                     [
@@ -641,6 +650,11 @@ class Wpeventin
                             [
                                 "label" => "Event Location",
                                 "value" => "event_location",
+                                "type"  => "string",
+                            ],
+                            [
+                                "label" => "Attendee Name",
+                                "value" => "attendee_name",
                                 "type"  => "string",
                             ],
                         ],
@@ -708,6 +722,11 @@ class Wpeventin
                             [
                                 "label" => "Event Location",
                                 "value" => "event_location",
+                                "type"  => "string",
+                            ],
+                            [
+                                "label" => "Attendee Name",
+                                "value" => "attendee_name",
                                 "type"  => "string",
                             ],
                         ],
@@ -785,6 +804,11 @@ class Wpeventin
                             [
                                 "label" => "Ticket Link",
                                 "value" => "ticket_link",
+                                "type"  => "string",
+                            ],
+                            [
+                                "label" => "Attendee Name",
+                                "value" => "attendee_name",
                                 "type"  => "string",
                             ],
                         ],

@@ -534,7 +534,11 @@ class OrderController extends WP_REST_Controller {
             );
         }
 
-        $event_tickets = etn_safe_decode( get_post_meta( $event_id, 'etn_ticket_variations', true ) );
+        // Drop holds whose timer already ran out before checking availability, so a
+        // stale hold never blocks a real buyer — this also keeps the counts correct
+        // on hosts where wp-cron does not run.
+        TicketHold::sync( $event_id );
+
         $pending_seats = etn_safe_decode( get_post_meta( $event_id, 'pending_seats', true ));
         if(empty($pending_seats)){
             $pending_seats = [];
@@ -579,37 +583,26 @@ class OrderController extends WP_REST_Controller {
             }
         }
 
-        if ( is_array($event_tickets) ) {
-            foreach ( $event_tickets as &$ticket ) {
-                foreach( $booked_tickets as $booked_ticket ) {
-                    if ( !empty($booked_ticket['ticket_slug']) && $ticket['etn_ticket_slug'] === $booked_ticket['ticket_slug'] ) {
-                        if ( ! isset( $ticket['pending'] ) ) {
-                            $ticket['pending'] = 0;
-                        }
+        // Record the hold as its own row and let the ledger write the `pending`
+        // counts. Incrementing them here instead would drift: the release below
+        // can run more than once, and before 4.1.23 it could not run at all.
+        $ticket_purchase_timer = (int) etn_get_option( 'ticket_purchase_timer', 10 ) + 1;
+        $ttl                   = $ticket_purchase_timer * MINUTE_IN_SECONDS;
 
-                        $ticket['pending'] += $booked_ticket['ticket_quantity'];
-                    }
-                }
-            }
+        $hold_id = TicketHold::add( $event_id, $seat_ids, $booked_tickets, $ttl );
+
+        // The hold id keeps these arguments unique. With the old
+        // [ $event_id, $seat_ids, $booked_tickets ] arguments, two visitors
+        // buying the same ticket produced an identical job, and WordPress drops
+        // a duplicate job scheduled within 10 minutes — so the second visitor's
+        // hold was never released and the event slowly looked sold out.
+        if ( $hold_id ) {
+            wp_schedule_single_event(
+                time() + $ttl,
+                'eventin_release_held_seats_and_tickets',
+                [ $event_id, $hold_id ]
+            );
         }
-
-        // update ticket variations pending count
-        if(is_array($event_tickets)){
-            update_post_meta( $event_id, 'etn_ticket_variations', $event_tickets );
-        }
-
-        // update pending seats
-        if ( is_array( $seat_ids ) && count( $seat_ids ) > 0 ) {
-            update_post_meta( $event_id, 'pending_seats', array_merge(
-                $pending_seats,
-                $seat_ids
-            ) );
-        }
-
-        $ticket_purchase_timer = etn_get_option( 'ticket_purchase_timer', 10 ) + 1;
-        $data = [ $event_id, $seat_ids, $booked_tickets ];
-
-        wp_schedule_single_event( time() + ( $ticket_purchase_timer * MINUTE_IN_SECONDS ), 'eventin_release_held_seats_and_tickets', $data );
 
         $response = [
             'success' => true,
@@ -617,6 +610,7 @@ class OrderController extends WP_REST_Controller {
             'event_id' => $event_id,
             'seat_ids' => $seat_ids,
             'booked_tickets' => $booked_tickets,
+            'hold_id' => $hold_id,
         ];
         return rest_ensure_response( $response );
     }

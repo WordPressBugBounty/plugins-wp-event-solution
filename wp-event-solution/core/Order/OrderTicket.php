@@ -67,153 +67,60 @@ class OrderTicket implements HookableInterface {
     }
 
     /**
-     * Release pending seats and tickets
+     * Hourly safety net: bring every event's `pending` counters back in line
+     * with the holds that are actually still live.
+     *
+     * Before 4.1.23 this walked failed orders and guessed. It had a hole: a stuck
+     * hold on ticket A was skipped whenever the event had *any* failed order for
+     * ticket B, because the reset sat in an `elseif` that only ran when the event
+     * had no failed orders at all. Sites hit that hole permanently and their
+     * tickets stayed "sold out" with stock left.
+     *
+     * The ledger removes the guesswork: every live hold is a row with an expiry,
+     * so syncing an event is enough. It also repairs counters left behind by
+     * older versions, which have no rows and therefore sync down to zero.
      *
      * @return void
      */
     public function eventin_release_pending_seats_and_tickets() {
-        // Calculate timestamp for 20 minutes ago
-        $twenty_minutes_ago = gmdate( 'Y-m-d H:i:s', strtotime( '-20 minutes' ) );
-
-        // Fetch all failed bookings from the last 20 minutes using WP_Query
-        $args = [
-            'post_type'      => 'etn-order',
-            'post_status'    => 'any',
-            'posts_per_page' => -1,
-            'date_query'     => [
+        // Every event that holds something, or carries a counter written before
+        // the ledger existed. No limit: the old version walked *every* published
+        // event and did work on each, so this is strictly less. Ids only, and
+        // TicketHold::sync() returns without a write when nothing is out of step.
+        $events = get_posts( [
+            'post_type'        => 'etn',
+            'post_status'      => 'any',
+            'posts_per_page'   => -1,
+            'fields'           => 'ids',
+            'no_found_rows'    => true,
+            'suppress_filters' => false,
+            'meta_query'       => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+                'relation' => 'OR',
+                // A live hold.
                 [
-                    'after'     => $twenty_minutes_ago,
-                    'inclusive' => true,
-                    'column'    => 'post_modified',
+                    'key'     => TicketHold::META_KEY,
+                    'compare' => 'EXISTS',
+                ],
+                // Seats marked as held, with or without a ledger behind them.
+                [
+                    'key'     => 'pending_seats',
+                    'compare' => 'EXISTS',
+                ],
+                // Any variation carrying a `pending` key at all. This matches
+                // zero counters too — narrowing it further would mean matching
+                // on serialized text, which breaks as soon as the value type
+                // changes (i:17 vs s:2:"17"). sync() no-ops on those.
+                [
+                    'key'     => 'etn_ticket_variations',
+                    'value'   => '"pending"',
+                    'compare' => 'LIKE',
                 ],
             ],
-            'meta_query'     => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
-                [
-                    'key'   => 'status',
-                    'value' => 'failed',
-                ],
-            ],
-        ];
+        ] );
 
-        $failed_orders_query = new \WP_Query( $args );
-
-        // Group orders by event_id for efficient processing
-        $event_orders = [];
-
-        if ( $failed_orders_query->have_posts() ) {
-            while ( $failed_orders_query->have_posts() ) {
-                $failed_orders_query->the_post();
-                $order_id = get_the_ID();
-                $event_id = get_post_meta( $order_id, 'event_id', true );
-
-                if ( ! $event_id ) {
-                    continue;
-                }
-
-                if ( ! isset( $event_orders[$event_id] ) ) {
-                    $event_orders[$event_id] = [];
-                }
-                $event_orders[$event_id][] = $order_id;
-            }
-
-            wp_reset_postdata();
+        foreach ( $events as $event_id ) {
+            TicketHold::sync( $event_id );
         }
-
-        // Get all events to process
-        $events_args = [
-            'post_type'      => 'etn',
-            'post_status'    => 'publish',
-            'posts_per_page' => -1,
-        ];
-
-        $events_query = new \WP_Query( $events_args );
-
-        if ( ! $events_query->have_posts() ) {
-            return;
-        }
-
-        // Process each event
-        while ( $events_query->have_posts() ) {
-            $events_query->the_post();
-            $event_id = get_the_ID();
-            $allocated_seats = [];
-            $allocated_tickets = [];
-
-            // Collect allocated seats and tickets from failed orders for this event (if any)
-            if ( isset( $event_orders[$event_id] ) ) {
-                foreach ( $event_orders[$event_id] as $order_id ) {
-                    // Get allocated seats
-                    $order_seats = etn_safe_decode( get_post_meta( $order_id, 'seat_ids', true ) );
-                    if ( is_array( $order_seats ) && ! empty( $order_seats ) ) {
-                        $allocated_seats = array_merge( $allocated_seats, $order_seats );
-                    }
-
-                    // Get allocated tickets
-                    $order_tickets = etn_safe_decode( get_post_meta( $order_id, 'tickets', true ) );
-                    if ( is_array( $order_tickets ) && ! empty( $order_tickets ) ) {
-                        foreach ( $order_tickets as $ticket ) {
-                            $ticket_slug = $ticket['ticket_slug'];
-                            $ticket_quantity = isset( $ticket['ticket_quantity'] ) ? (int) $ticket['ticket_quantity'] : 0;
-
-                            if ( ! isset( $allocated_tickets[$ticket_slug] ) ) {
-                                $allocated_tickets[$ticket_slug] = 0;
-                            }
-                            $allocated_tickets[$ticket_slug] += $ticket_quantity;
-                        }
-                    }
-                }
-
-                // Remove duplicate seats
-                $allocated_seats = array_unique( $allocated_seats );
-            }
-
-            // Get event's pending seats
-            $pending_seats = etn_safe_decode( get_post_meta( $event_id, 'pending_seats', true ) );
-            if ( ! is_array( $pending_seats ) ) {
-                $pending_seats = [];
-            }
-
-            // If there are allocated seats from failed orders, remove them from pending seats
-            // Otherwise, clear all pending seats
-            if ( ! empty( $allocated_seats ) && ! empty( $pending_seats ) ) {
-                $seats_to_remove = array_intersect( $pending_seats, $allocated_seats );
-                if ( ! empty( $seats_to_remove ) ) {
-                    $pending_seats = array_diff( $pending_seats, $seats_to_remove );
-                    update_post_meta( $event_id, 'pending_seats', array_values( $pending_seats ) );
-                }
-            } elseif ( empty( $allocated_seats ) && ! empty( $pending_seats ) ) {
-                // No failed bookings for this event, clear all pending seats
-                update_post_meta( $event_id, 'pending_seats', [] );
-            }
-
-            // Get event tickets
-            $event_tickets = etn_safe_decode( get_post_meta( $event_id, 'etn_ticket_variations', true ) );
-
-            if ( is_array( $event_tickets ) ) {
-                $tickets_updated = false;
-
-                foreach ( $event_tickets as &$ticket ) {
-                    $ticket_slug = isset( $ticket['etn_ticket_slug'] ) ? $ticket['etn_ticket_slug'] : '';
-
-                    if ( ! empty( $allocated_tickets ) && isset( $allocated_tickets[$ticket_slug] ) ) {
-                        // Decrease pending count by allocated tickets from failed orders
-                        $pending_count = isset( $ticket['pending'] ) ? (int) $ticket['pending'] : 0;
-                        $ticket['pending'] = max( 0, $pending_count - $allocated_tickets[$ticket_slug] );
-                        $tickets_updated = true;
-                    } elseif ( empty( $allocated_tickets ) && isset( $ticket['pending'] ) && $ticket['pending'] > 0 ) {
-                        // No failed bookings for this event, set pending to 0
-                        $ticket['pending'] = 0;
-                        $tickets_updated = true;
-                    }
-                }
-
-                if ( $tickets_updated ) {
-                    update_post_meta( $event_id, 'etn_ticket_variations', $event_tickets );
-                }
-            }
-        }
-
-        wp_reset_postdata();
     }
 
     /**
@@ -282,15 +189,17 @@ class OrderTicket implements HookableInterface {
         }
 
         \Etn\Utils\Helper::increase_count_by_ticket_slug($formatted_booked_tickets,$event->id);
-        
 
-        $data = [
-            $event->id,
-            $booked_seats,
-            $formatted_booked_tickets,
-        ];
-
-        $this->clear_hold_seats_and_tickets_cron($data);
+        // These tickets are sold now, so the hold behind them has to go — otherwise
+        // they would be counted twice (once sold, once held) until the timer ran out.
+        //
+        // We do not know which hold row this buyer created, and we do not need to:
+        // rows for the same tickets hold the same thing, so releasing any matching
+        // row keeps the total right. `sync()` then rewrites the counters, which is
+        // also what corrects the numbers written by the pre-4.1.23 code path above.
+        if ( ! TicketHold::remove_matching( $event->id, $formatted_booked_tickets, is_array( $booked_seats ) ? $booked_seats : [] ) ) {
+            TicketHold::sync( $event->id );
+        }
     }
 
     /**
@@ -684,37 +593,20 @@ class OrderTicket implements HookableInterface {
      *
      * @return  void
      */
-    public function release_held_seats_and_tickets( $event_id, $seat_ids = [], $booked_tickets = [] ) {
-        $event_tickets = etn_safe_decode( get_post_meta( $event_id, 'etn_ticket_variations', true ) );
-        $pending_seats = etn_safe_decode( get_post_meta( $event_id, 'pending_seats', true ));
+    public function release_held_seats_and_tickets( $event_id, $hold_or_seats = [], $booked_tickets = [] ) {
+        // Since 4.1.23 the job carries the hold id, so it releases exactly the one
+        // hold it was scheduled for and can safely run twice.
+        if ( is_string( $hold_or_seats ) && '' !== $hold_or_seats ) {
+            TicketHold::remove( $event_id, $hold_or_seats );
 
-        if ( ! is_array( $pending_seats ) ) {
-            $pending_seats = [];
+            return;
         }
 
-        if ( is_array( $event_tickets ) ) {
-            foreach( $event_tickets as &$ticket ) {
-                foreach( $booked_tickets as $booked_ticket ) {
-                    if ( $ticket['etn_ticket_slug'] === $booked_ticket['ticket_slug'] ) {
-                        $ticket['pending'] -= $booked_ticket['ticket_quantity'];
-                        if($ticket['pending'] < 0){
-                            $ticket['pending'] = 0;
-                        }
-                    }
-                }
-            }
-        }
-        
-        // update ticket variations pending count
-        if(is_array($event_tickets)){
-            update_post_meta( $event_id, 'etn_ticket_variations', $event_tickets );
-        }
-
-        if ( is_array( $seat_ids ) && count( $seat_ids ) > 0 ) {
-            update_post_meta( $event_id, 'pending_seats', array_diff(
-                $pending_seats,
-                $seat_ids
-            ) );
+        // Jobs queued by 4.1.22 and older still carry [ $event_id, $seat_ids,
+        // $booked_tickets ]. Release the matching hold if one was recorded, then
+        // sync — which alone clears the counters those versions left behind.
+        if ( ! TicketHold::remove_matching( $event_id, $booked_tickets, $hold_or_seats ) ) {
+            TicketHold::sync( $event_id );
         }
     }
 
@@ -729,6 +621,15 @@ class OrderTicket implements HookableInterface {
     //     wp_clear_scheduled_hook( 'eventin_release_held_tickets', [ $order->id ] );
     // }
 
+    /**
+     * @deprecated 4.1.23 Holds are released through TicketHold, which is keyed by
+     *             hold id. Clearing by argument list deleted other visitors' jobs
+     *             too, because their arguments were identical.
+     *
+     * @param array $data Legacy [ $event_id, $seat_ids, $booked_tickets ] arguments.
+     *
+     * @return void
+     */
     public function clear_hold_seats_and_tickets_cron( $data ) {
         wp_clear_scheduled_hook( 'eventin_release_held_seats_and_tickets', $data );
     }

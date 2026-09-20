@@ -3,7 +3,7 @@ Contributors: arraytics, ehsanriyadh
 Tags: event calendar, events, calendar, event registration, event tickets, event booking, RSVP
 Requires at least: 6.2
 Tested up to: 7.0
-Stable tag: 4.1.24
+Stable tag: 4.1.25
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: [https://www.gnu.org/licenses/gpl-2.0.html](https://www.gnu.org/licenses/gpl-2.0.html)
@@ -287,6 +287,9 @@ Yes. Eventin is translation-ready and compatible with WPML and Loco Translate. I
 Please report security bugs found in the source code of the WP Event Solution plugin through the [Patchstack Vulnerability Disclosure Program](https://patchstack.com/database/vdp/5b5e63df-930d-4f15-9bf8-db51f5732488). The Patchstack team will assist you with verification, CVE assignment, and notify the developers of this plugin.
 
 == Changelog ==
+
+= 4.1.25 ( September 20, 2026 ) =
+New: Integration - Integrate Pointics to earn reward points on ticket booking.
 
 = 4.1.24 ( September 10, 2026 ) =
 New: Attendees - Filter attendees by recurring child event.
