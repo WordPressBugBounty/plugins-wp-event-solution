@@ -99,7 +99,7 @@ class ImportAutomation {
                         ]
                     ]
                 ],
-                "status" => "draft"
+                "status" => "publish"
             ],
             [
                 'name' => 'Purchase Email Automation For Attendee',
@@ -175,7 +175,7 @@ class ImportAutomation {
                         ],
                     ],
                 ],
-                'status' => 'draft',
+                'status' => 'publish',
             ],
             [
                 'name' => 'Purchase Email Automation For Customer',
@@ -251,7 +251,7 @@ class ImportAutomation {
                         ],
                     ],
                 ],
-                'status' => 'draft',
+                'status' => 'publish',
             ],
             [
                 'name' => 'Purchase Email Automation For Admin',
@@ -327,7 +327,7 @@ class ImportAutomation {
                         ],
                     ],
                 ],
-                'status' => 'draft',
+                'status' => 'publish',
             ],
             [
                 'name' => 'RSVP Automation',
@@ -403,7 +403,7 @@ class ImportAutomation {
                         ],
                     ],
                 ],
-                'status' => 'draft',
+                'status' => 'publish',
             ],
             [
                 'name' => 'Event Reminder',
@@ -506,9 +506,10 @@ class ImportAutomation {
                         ],
                     ],
                 ],
-                'status' => 'draft',
+                'status' => 'publish',
             ],
             self::send_certificate_flow_definition(),
+            self::reminder_all_attendees_flow_definition(),
         ];
         try {
             foreach ( $automation_flows as $key => $automation_flow ) {
@@ -524,6 +525,8 @@ class ImportAutomation {
             // Send Certificate is part of this seed, so mark its dedicated guard too
             // to keep the update back-fill (V_4_1_16) a no-op for new customers.
             update_option( 'etn_send_certificate_automation_migrated', true );
+            // Same for the on-demand reminder flow and its back-fill (V_4_1_26).
+            update_option( 'etn_reminder_all_attendees_automation_migrated', true );
         } catch ( Exception $e ) {
             $result['errors'][] = 'Failed to create service: ' . $e->getMessage();
         }
@@ -628,6 +631,147 @@ class ImportAutomation {
             ],
             'status'      => 'publish',
         ];
+    }
+
+    /**
+     * Default "Send Reminder To All Attendees" automation flow definition.
+     *
+     * Two things set this flow apart from every other seeded flow, and both are
+     * deliberate:
+     *
+     *  - **No delay node.** The flow is driven by an explicit click in the event
+     *    list, not by the event date. A delay would make the click schedule
+     *    something instead of sending it, which is exactly the behaviour that
+     *    ruled out reusing the scheduled `event_reminder_email` trigger.
+     *  - **Status `publish`, not `draft`.** The other flows ship as drafts because
+     *    the admin opts into a scheduled automation. Here a draft means the button
+     *    warns "publish the reminder flow" on a fresh install and never works
+     *    until someone hunts the flow down.
+     *
+     * Public because it is the single source of truth for the flow's shape; the
+     * release test asserts on it directly.
+     *
+     * Contains exactly the four keys the Flow model persists
+     * ( name, trigger, flow_config, status ) — any extra key would be written
+     * as junk post-meta by Flow::save_metadata().
+     *
+     * @return array
+     */
+    public static function reminder_all_attendees_flow_definition() {
+        $trigger = \Eventin\Emails\ReminderAutomation::TRIGGER;
+
+        return [
+            'name'        => 'Send Reminder To All Attendees',
+            'trigger'     => $trigger,
+            'flow_config' => [
+                'nodes' => [
+                    [
+                        'id'       => 'node_1',
+                        'type'     => 'trigger',
+                        'name'     => 'trigger',
+                        'data'     => [
+                            'label'        => 'trigger: ' . $trigger,
+                            'subtitle'     => 'On "Send Reminder To All Attendees" event fires',
+                            'triggerValue' => $trigger,
+                        ],
+                        'position' => [
+                            'x' => 300,
+                            'y' => 100,
+                        ],
+                    ],
+                    [
+                        'id'       => 'end_1',
+                        'type'     => 'end',
+                        'name'     => 'end',
+                        'data'     => [
+                            'label'    => 'end_flow',
+                            'subtitle' => 'Automation stops here',
+                        ],
+                        'position' => [
+                            'x' => 318.38084617295419,
+                            'y' => 460,
+                        ],
+                    ],
+                    [
+                        'id'       => 'node_3',
+                        'type'     => 'action',
+                        'name'     => 'email',
+                        'data'     => [
+                            'actionType'            => 'send_email',
+                            'label'                 => 'send_email',
+                            'subtitle'              => 'Send reminder email to attendee',
+                            'operator'              => '=',
+                            'value'                 => '',
+                            'receiverType'          => 'attendee_email',
+                            'from'                  => '',
+                            'subject'               => 'Reminder: {%event_title%} is coming up',
+                            'body'                  => '<p>Hi {%attendee_name%},</p><p>This is a reminder about "{%event_title%}".</p><p>Date: {%event_date%} at {%event_time%}<br>Location: {%event_location%}</p><p>See you there.</p>',
+                            'processed_session_ids' => [],
+                        ],
+                        'position' => [
+                            'x' => 309.1904230864771,
+                            'y' => 280,
+                        ],
+                    ],
+                ],
+                'edges' => [
+                    [
+                        'id'        => 'edge_node_1-node_3',
+                        'type'      => 'smoothstep',
+                        'markerEnd' => [
+                            'type' => 'arrowclosed',
+                        ],
+                        'source'    => 'node_1',
+                        'target'    => 'node_3',
+                        'data'      => [
+                            'animated' => false,
+                        ],
+                    ],
+                    [
+                        'id'        => 'edge_node_3-end_1',
+                        'type'      => 'smoothstep',
+                        'markerEnd' => [
+                            'type' => 'arrowclosed',
+                        ],
+                        'source'    => 'node_3',
+                        'target'    => 'end_1',
+                        'data'      => [
+                            'animated' => false,
+                        ],
+                    ],
+                ],
+            ],
+            'status'      => 'publish',
+        ];
+    }
+
+    /**
+     * Create only the "Send Reminder To All Attendees" flow.
+     *
+     * Used by the V_4_1_26 upgrader to back-fill existing customers who already
+     * ran the full seeder ( create_automation_flows() ) before this flow existed.
+     *
+     * @return array { flow_ids: int[], errors: string[] }
+     */
+    public static function create_reminder_all_attendees_flow() {
+        $result = array(
+            'flow_ids' => array(),
+            'errors'   => array(),
+        );
+
+        try {
+            $flow = new Flow( 'eve', 0 );
+            $flow->set_props( self::reminder_all_attendees_flow_definition() );
+            $flow_id = $flow->save();
+
+            if ( $flow_id ) {
+                $result['flow_ids'][] = $flow_id;
+            }
+        } catch ( Exception $e ) {
+            $result['errors'][] = 'Failed to create service: ' . $e->getMessage();
+        }
+
+        return $result;
     }
 
     /**

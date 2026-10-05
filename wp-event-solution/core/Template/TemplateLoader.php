@@ -20,6 +20,33 @@ class TemplateLoader implements HookableInterface {
      */
     public function register_hooks(): void {
         add_filter( 'template_include', [ $this, 'etn_template_single_page' ], 99 );
+        add_filter( 'bricks/supported_post_types', [ $this, 'add_bricks_post_type_support' ] );
+    }
+
+    /**
+     * Tell Bricks it may open `etn-template`, without writing to Bricks' options.
+     *
+     * The builder only opens post types it considers supported. This was previously
+     * arranged by pushing 'etn-template' into the persisted `bricks_global_settings`
+     * option while *building an edit link* — so listing templates, a read-only GET,
+     * silently rewrote another plugin's site-wide configuration. Declaring support at
+     * runtime achieves the same thing, changes nothing on disk, and disappears
+     * cleanly when Eventin is deactivated.
+     *
+     * @param   array  $post_types  Post types Bricks supports.
+     *
+     * @return  array
+     */
+    public function add_bricks_post_type_support( $post_types ) {
+        if ( ! is_array( $post_types ) ) {
+            return $post_types;
+        }
+
+        if ( ! in_array( 'etn-template', $post_types, true ) ) {
+            $post_types[] = 'etn-template';
+        }
+
+        return $post_types;
     }
 
     /**

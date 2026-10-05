@@ -58,8 +58,13 @@ class Event_Model extends Post_Model {
         'mailpoet_send_to'                  => [],
         'funnel_kit'                        => '',
         'funnel_kit_send_to'                => [],
+        'zapier'                            => '',
+        'zapier_send_to'                    => [],
         'uncanny_automator'                 => '',
         'uncanny_automator_send_to'         => [],
+        'hubspot'                           => '',
+        'hubspot_send_to'                   => [],
+        'hubspot_track_event'               => '',
         'etn_event_location_type'           => '',
         'etn_event_location'                => '',
         'etn_event_socials'                 => [],
@@ -85,6 +90,7 @@ class Event_Model extends Post_Model {
         'zoho_crm_webhook'                  => '',
         'mail_mint_webhook'                 => '',
         'funnel_kit_webhook'                => '',
+        'zapier_webhook'                    => '',
         'uncanny_automator_webhook'         => '',
         'attende_page_link'                 => '',
         'event_banner'                      => '',
@@ -310,6 +316,26 @@ class Event_Model extends Post_Model {
         }
 
         return $address;
+    }
+
+    /**
+     * Location text for email placeholders. Unlike get_address() it reads string
+     * locations and legacy events without event_type, and labels online events.
+     *
+     * @return  string
+     */
+    public function get_location_label() {
+        if ( 'online' === $this->event_type ) {
+            return __( 'Online', 'eventin' );
+        }
+
+        $location = $this->etn_event_location;
+
+        if ( is_array( $location ) ) {
+            return ! empty( $location['address'] ) ? trim( (string) $location['address'] ) : '';
+        }
+
+        return is_string( $location ) ? trim( $location ) : '';
     }
 
     /**

@@ -11,7 +11,70 @@ class Hooks {
 
     use \Etn\Traits\Singleton;
 
+    /**
+     * Version stamp mixed into the speaker/organizer event-list cache key.
+     *
+     * @return int
+     */
+    public static function assignment_cache_version() {
+        return (int) get_option( 'etn_user_events_cache_version', 1 );
+    }
+
+    /**
+     * Invalidate every cached speaker/organizer event list.
+     *
+     * @return void
+     */
+    public function flush_assignment_cache() {
+        update_option( 'etn_user_events_cache_version', self::assignment_cache_version() + 1, false );
+    }
+
+    /**
+     * Invalidate on a real event save only.
+     *
+     * `save_post_etn` also fires for autosaves and revisions, which cannot change a
+     * speaker/organizer assignment. Bumping on those would retire the cached list so
+     * often that the cache stopped paying for itself.
+     *
+     * @param   int       $post_id  Saved post id.
+     * @param   \WP_Post  $post     Saved post.
+     *
+     * @return  void
+     */
+    public function flush_assignment_cache_on_save( $post_id, $post = null ) {
+        if ( wp_is_post_autosave( $post_id ) || wp_is_post_revision( $post_id ) ) {
+            return;
+        }
+
+        $this->flush_assignment_cache();
+    }
+
+    /**
+     * Invalidate only when the deleted post was an event.
+     *
+     * `deleted_post` fires for every post type, revisions included, so flushing
+     * unconditionally would bump the version constantly on a busy site.
+     *
+     * @param   int           $post_id  Deleted post id.
+     * @param   \WP_Post|null  $post     Deleted post object.
+     *
+     * @return  void
+     */
+    public function flush_assignment_cache_on_delete( $post_id, $post = null ) {
+        $post_type = $post instanceof \WP_Post ? $post->post_type : get_post_type( $post_id );
+
+        if ( 'etn' === $post_type ) {
+            $this->flush_assignment_cache();
+        }
+    }
+
     public function Init() { 
+        // Any event save can change a speaker/organizer assignment, so bump the
+        // version the cached ID lists are keyed on rather than tracking which
+        // user's list went stale.
+        add_action( 'save_post_etn', [ $this, 'flush_assignment_cache_on_save' ], 10, 2 );
+        add_action( 'deleted_post', [ $this, 'flush_assignment_cache_on_delete' ], 10, 2 );
+
         //[events limit='1' event_cat_ids='1,2' event_tag_ids='1,2' /]
         add_shortcode( "events", [$this, "etn_events_widget"] );
 
@@ -135,21 +198,35 @@ class Hooks {
             $args['post__in'] = $selected_events;
         }
 
-        $post__in = get_posts( $args );
-        $post__in = is_array( $post__in ) ? array_map( 'intval', $post__in ) : [];
+        // Resolving this list means a LIKE scan over every published event plus one
+        // meta read per candidate, and it runs on every render of the widget. The
+        // result only changes when an event's speaker/organizer assignment changes,
+        // so it is cached per user + role + explicit event selection. Invalidated
+        // wholesale by the `etn` save handler registered in Init().
+        $cache_key = 'etn_user_events_' . md5( $meta_key . '|' . $user_id . '|' . wp_json_encode( $selected_events ) . '|' . self::assignment_cache_version() );
+        $cached    = get_transient( $cache_key );
 
-        // The meta_query above is a LIKE prefilter over the serialized array, where a
-        // value ("i:5;") is indistinguishable from an array index. Confirm each match
-        // against the stored IDs so an organizer/speaker is never matched by index.
-        if ( ! empty( $post__in ) ) {
-            update_meta_cache( 'post', $post__in );
+        if ( is_array( $cached ) ) {
+            $post__in = $cached;
+        } else {
+            $post__in = get_posts( $args );
+            $post__in = is_array( $post__in ) ? array_map( 'intval', $post__in ) : [];
+
+            // The meta_query above is a LIKE prefilter over the serialized array, where a
+            // value ("i:5;") is indistinguishable from an array index. Confirm each match
+            // against the stored IDs so an organizer/speaker is never matched by index.
+            if ( ! empty( $post__in ) ) {
+                update_meta_cache( 'post', $post__in );
+            }
+
+            $post__in = array_values( array_filter( $post__in, function ( $event_id ) use ( $meta_key, $user_id ) {
+                $assigned = get_post_meta( $event_id, $meta_key, true );
+
+                return in_array( $user_id, array_map( 'intval', (array) $assigned ), true );
+            } ) );
+
+            set_transient( $cache_key, $post__in, HOUR_IN_SECONDS );
         }
-
-        $post__in = array_values( array_filter( $post__in, function ( $event_id ) use ( $meta_key, $user_id ) {
-            $assigned = get_post_meta( $event_id, $meta_key, true );
-
-            return in_array( $user_id, array_map( 'intval', (array) $assigned ), true );
-        } ) );
 
         // Total events assigned to this user — the profile header badge is a profile
         // stat, so it is deliberately not narrowed by the grid's limit or filters.

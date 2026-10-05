@@ -1092,6 +1092,48 @@ if ( ! function_exists( 'etn_currency' ) ) {
     }
 }
 
+if ( ! function_exists( 'etn_order_currency_symbol' ) ) {
+    /**
+     * Get the currency symbol an order was paid in
+     *
+     * WooCommerce orders read the WooCommerce order's own currency, because the
+     * symbol saved on the Eventin order can be the Eventin currency (it is saved
+     * from etn_currency_symbol(), which only knows the old `payment_method`
+     * setting, not `wc_enabled`). Other orders use the saved symbol. Orders
+     * with no saved symbol (old or free orders) use the current setting.
+     *
+     * @param   integer  $order_id  Eventin order id.
+     *
+     * @return  string  Decoded symbol, e.g. "£".
+     */
+    function etn_order_currency_symbol( $order_id ) {
+        $order_id = (int) $order_id;
+        $symbol   = '';
+
+        if ( $order_id && 'wc' === get_post_meta( $order_id, 'payment_method', true ) && function_exists( 'wc_get_orders' ) ) {
+            $wc_orders = wc_get_orders( [
+                'limit'      => 1,
+                'meta_key'   => 'eventin_order_id', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+                'meta_value' => $order_id, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+            ] );
+
+            if ( ! empty( $wc_orders[0] ) ) {
+                $symbol = get_woocommerce_currency_symbol( $wc_orders[0]->get_currency() );
+            }
+        }
+
+        if ( ! $symbol && $order_id ) {
+            $symbol = get_post_meta( $order_id, 'currency_symbol', true );
+        }
+
+        if ( ! $symbol ) {
+            $symbol = etn_currency_symbol();
+        }
+
+        return html_entity_decode( $symbol, ENT_QUOTES, 'UTF-8' );
+    }
+}
+
 if ( ! function_exists( 'etn_currency_symbol' ) ) {
     /**
      * Get currency symbol

@@ -151,6 +151,10 @@ class SettingsController extends WP_REST_Controller {
             'zoom_client_id',
             'zoom_client_secret',
             'zoom_token',
+            // HubSpot — a private-app token with CRM write access. The `_token`
+            // suffix below already catches it; naming it here keeps the protection
+            // from depending on the spelling of the option key.
+            'hubspot_token',
             // Stripe
             'stripe_live_publishable_key',
             'stripe_live_secret_key',

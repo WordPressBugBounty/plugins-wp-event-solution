@@ -859,7 +859,17 @@ class OrderController extends WP_REST_Controller {
         }
 
 		// if request for status update
-	    if ( isset( $request['action'] ) && $request['action'] == "update_booking_status" ) {
+	    // Strict compare, same as the guard in update_item_permissions_check(). With
+	    // `==` a JSON boolean `true` matched here while failing the guard's `===`,
+	    // so a guest token holder could mark their own unpaid order completed.
+	    if ( isset( $request['action'] ) && 'update_booking_status' === $request['action'] ) {
+		    // Booking status is a staff action. Check it here too, where the change
+		    // happens, so this branch never depends on the permission callback
+		    // reading `action` the same way.
+		    if ( ! $this->user_can_access_order( intval( $request['id'] ) ) ) {
+			    return new WP_Error( 'rest_forbidden', __( 'Sorry, you are not allowed to do that.', 'eventin' ), [ 'status' => 403 ] );
+		    }
+
 		    $status = $request['status'];
 			if ( !in_array($status, ["failed", "completed", "refunded", "partially_refunded"]) ) {
 				return new WP_Error( 'order_update_booking_status_error', __( 'Invalid status', 'eventin' ), ['status' => 400] );
@@ -1599,6 +1609,21 @@ class OrderController extends WP_REST_Controller {
             }
         }
 
+        // New orders only: updates carry lines and attendees that were already
+        // checked at creation, and guest updates are pinned to the stored order.
+        if ( ! $is_update ) {
+            $input_data['tickets'] = $this->merge_duplicate_ticket_lines( $input_data['tickets'] );
+
+            $attendee_check = $this->validate_attendees_match_tickets(
+                $input_data['tickets'],
+                isset( $input_data['attendees'] ) ? $input_data['attendees'] : []
+            );
+
+            if ( is_wp_error( $attendee_check ) ) {
+                return $attendee_check;
+            }
+        }
+
         // Waiting-list requests are validated by add_to_waiting_list() itself,
         // after its sold-out check has run. Repeating the ticket validation here
         // made the waiting-list limit error win over the sold-out error, so a
@@ -1910,6 +1935,90 @@ class OrderController extends WP_REST_Controller {
         }
 
         return [ $attendees, $aggregate, $adapter->options_total( $aggregate ) ];
+    }
+
+    /**
+     * Merge order lines that name the same ticket into one line.
+     *
+     * The stock and per-order limit checks look at one line at a time. Sending the
+     * same ticket as two lines of 1 passed a "max 1 per order" limit and could sell
+     * more tickets than the event has (Patchstack report, September 2026). The checkout never sends
+     * duplicate lines, so real buyers see no change.
+     *
+     * @param array $tickets Ticket lines from the request.
+     * @return array Ticket lines, one per ticket slug, in first-seen order.
+     */
+    protected function merge_duplicate_ticket_lines( $tickets ) {
+        $merged = [];
+
+        foreach ( $tickets as $ticket ) {
+            $slug = isset( $ticket['ticket_slug'] ) ? (string) $ticket['ticket_slug'] : '';
+
+            if ( ! isset( $merged[ $slug ] ) ) {
+                $merged[ $slug ] = $ticket;
+                continue;
+            }
+
+            $merged[ $slug ]['ticket_quantity'] = intval( $merged[ $slug ]['ticket_quantity'] ) + intval( $ticket['ticket_quantity'] );
+
+            if ( ! empty( $ticket['seats'] ) && is_array( $ticket['seats'] ) ) {
+                $seats = isset( $merged[ $slug ]['seats'] ) && is_array( $merged[ $slug ]['seats'] ) ? $merged[ $slug ]['seats'] : [];
+                $merged[ $slug ]['seats'] = array_merge( $seats, $ticket['seats'] );
+            }
+        }
+
+        return array_values( $merged );
+    }
+
+    /**
+     * Check that every attendee belongs to a ticket the order buys.
+     *
+     * Price and stock come from the ticket lines, but each attendee becomes a real
+     * ticket. Without this check a visitor could buy 1 ticket and get 3 attendees,
+     * or buy a free ticket and put the attendee on a paid one (Patchstack report, September 2026).
+     *
+     * Fewer attendees than tickets is still allowed, as before, so no existing
+     * checkout is refused. An order without attendees (attendee form turned off)
+     * is also allowed.
+     *
+     * @param array $tickets   Ticket lines, already merged by slug.
+     * @param array $attendees Attendees from the request.
+     * @return true|WP_Error
+     */
+    protected function validate_attendees_match_tickets( $tickets, $attendees ) {
+        if ( empty( $attendees ) || ! is_array( $attendees ) ) {
+            return true;
+        }
+
+        $bought = [];
+        foreach ( $tickets as $ticket ) {
+            $bought[ (string) $ticket['ticket_slug'] ] = intval( $ticket['ticket_quantity'] );
+        }
+
+        $used = [];
+        foreach ( $attendees as $attendee ) {
+            $slug = is_array( $attendee ) && isset( $attendee['ticket_slug'] ) ? (string) $attendee['ticket_slug'] : '';
+
+            if ( ! isset( $bought[ $slug ] ) ) {
+                return new WP_Error(
+                    'attendee_ticket_mismatch',
+                    __( 'An attendee is assigned to a ticket that is not in this order.', 'eventin' ),
+                    [ 'status' => 422 ]
+                );
+            }
+
+            $used[ $slug ] = ( $used[ $slug ] ?? 0 ) + 1;
+
+            if ( $used[ $slug ] > $bought[ $slug ] ) {
+                return new WP_Error(
+                    'attendee_ticket_mismatch',
+                    __( 'There are more attendees than tickets in this order.', 'eventin' ),
+                    [ 'status' => 422 ]
+                );
+            }
+        }
+
+        return true;
     }
 
     /**

@@ -14,6 +14,9 @@ defined( 'ABSPATH' ) || exit;
     $ticket_file_name = sanitize_title_with_dashes($attendee_name);
     $payment_status =  get_post_meta( $attendee_id, 'etn_status', true);
 
+    // Show the currency the order was paid in, not the gateway that is on today.
+    $etn_ticket_currency = etn_order_currency_symbol( get_post_meta( $attendee_id, 'eventin_order_id', true ) );
+
     $all_payment_status = [
         'success' => esc_html__('Success', 'eventin'),
         'failed'  => esc_html__('Failed', 'eventin')
@@ -117,7 +120,7 @@ defined( 'ABSPATH' ) || exit;
                                             <?php echo esc_html__( "PRICE :", "eventin" ); ?>
                                             <p>
                                                 <?php
-                                                    printf( '%s %s', esc_html( etn_currency_symbol() ), esc_html( $ticket_price ) );
+                                                    printf( '%s %s', esc_html( $etn_ticket_currency ), esc_html( $ticket_price ) );
                                                 ?>
                                             </p>
                                         </li>
@@ -200,18 +203,18 @@ defined( 'ABSPATH' ) || exit;
                                         <?php if ( $ticket_price !== "" ) { ?>
                                             <li class="etn-ticket-body-top-li flex-100">
                                                 <?php echo esc_html__( "PRICE :", "eventin" ); ?>
-                                                <p><?php printf( '%s %s', esc_html( etn_currency_symbol() ), esc_html( $ticket_price ) ); ?></p>
+                                                <p><?php printf( '%s %s', esc_html( $etn_ticket_currency ), esc_html( $ticket_price ) ); ?></p>
                                             </li>
                                         <?php } ?>
                                         <?php foreach ( $etn_addon_rows as $etn_addon ) { ?>
                                             <li class="etn-ticket-body-top-li flex-100">
                                                 <?php printf( '%s: %s &times; %s', esc_html( $etn_addon['field_label'] ?? '' ), esc_html( $etn_addon['choice_value'] ?? '' ), esc_html( $etn_addon['qty'] ?? 1 ) ); ?>
-                                                <p><?php printf( '%s %s', esc_html( etn_currency_symbol() ), esc_html( number_format( (float) ( $etn_addon['line_total'] ?? 0 ), 2 ) ) ); ?></p>
+                                                <p><?php printf( '%s %s', esc_html( $etn_ticket_currency ), esc_html( number_format( (float) ( $etn_addon['line_total'] ?? 0 ), 2 ) ) ); ?></p>
                                             </li>
                                         <?php } ?>
                                         <li class="etn-ticket-body-top-li flex-100">
                                             <?php echo esc_html__( "TOTAL :", "eventin" ); ?>
-                                            <p><?php printf( '%s %s', esc_html( etn_currency_symbol() ), esc_html( number_format( (float) $ticket_price + $etn_addon_total, 2 ) ) ); ?></p>
+                                            <p><?php printf( '%s %s', esc_html( $etn_ticket_currency ), esc_html( number_format( (float) $ticket_price + $etn_addon_total, 2 ) ) ); ?></p>
                                         </li>
                                     </ul>
                                 </div>

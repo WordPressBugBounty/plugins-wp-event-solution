@@ -30,5 +30,6 @@ class AdminProvider extends Provider {
         WebhookIntegration::class,
         RoleManager::class,
         PermissionManager::class,
+        ColorMode::class,
     ];
 }

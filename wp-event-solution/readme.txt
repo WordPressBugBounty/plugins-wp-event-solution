@@ -1,14 +1,14 @@
-===Eventin – Event Calendar, Tickets, Registration, Booking & WooCommerce===
+===Eventin – Events Calendar, Tickets, Registration, Booking & WooCommerce===
 Contributors: arraytics, ehsanriyadh
-Tags: event calendar, events, calendar, event registration, event tickets, event booking, RSVP
+Tags: events calendar, events, calendar, event registration, event tickets, event booking, RSVP
 Requires at least: 6.2
 Tested up to: 7.0
-Stable tag: 4.1.25
+Stable tag: 4.1.26
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: [https://www.gnu.org/licenses/gpl-2.0.html](https://www.gnu.org/licenses/gpl-2.0.html)
 
-Event calendar plugin for event registration, event tickets, bookings, RSVP, recurring and virtual events with WooCommerce and Zoom (AI-powered).
+Events calendar plugin for event registration, event tickets, bookings, RSVP, recurring and virtual events with WooCommerce and Zoom (AI-powered).
 
 == Description ==
 
@@ -287,6 +287,20 @@ Yes. Eventin is translation-ready and compatible with WPML and Loco Translate. I
 Please report security bugs found in the source code of the WP Event Solution plugin through the [Patchstack Vulnerability Disclosure Program](https://patchstack.com/database/vdp/5b5e63df-930d-4f15-9bf8-db51f5732488). The Patchstack team will assist you with verification, CVE assignment, and notify the developers of this plugin.
 
 == Changelog ==
+
+= 4.1.26 ( October 05, 2026 ) =
+
+New: Admin - Light, dark and system colour modes for the Eventin dashboard.
+New: Automation - The Event Title condition now suggests your event names as you type.
+
+Tweak: Elementor - Event widgets with the "All" filter now follow the "Show Expired Events in Search" setting.
+Tweak: Performance - Faster speaker and organizer shortcodes.
+
+Fix: Email - Order emails now show the currency of the order's payment method.
+Fix: Email - {%event_location%} now works for online events and text locations.
+Fix: Optiontics - Number, text and swatch add-on fields now display correctly.
+Fix: Optiontics - Add-on sale prices at checkout now match Optiontics.
+Fix: Elementor - The calendar widget now respects the "Show Upcoming Events" setting when it is turned off.
 
 = 4.1.25 ( September 20, 2026 ) =
 New: Integration - Integrate Pointics to earn reward points on ticket booking.

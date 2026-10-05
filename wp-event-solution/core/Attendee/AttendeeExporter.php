@@ -100,10 +100,56 @@ class AttendeeExporter implements PostExporterInterface {
 
             $filtered_attendee = apply_filters( 'etn_prepare_attendee_data', $attendee, $id );
 
-            array_push( $exported_data, $filtered_attendee );
+            array_push( $exported_data, $this->neutralize_formulas( $filtered_attendee ) );
         }
 
         return $exported_data;
+    }
+
+    /**
+     * Defuse spreadsheet formula injection across every exported column.
+     *
+     * Attendee names, extra-field answers and add-on labels are all supplied through
+     * public-facing forms and land in the export verbatim. A cell opening with =, +,
+     * -, @, tab or carriage return is executed as a formula the moment the organiser
+     * opens the file in Excel or Sheets. Prefixing an apostrophe marks the cell as
+     * literal text; spreadsheet software hides the prefix on display.
+     *
+     * Applied to the whole row rather than the new add-on columns alone, because the
+     * pre-existing extra-field columns carry the same exposure.
+     *
+     * @param   array  $row  One attendee row.
+     *
+     * @return  array
+     */
+    private function neutralize_formulas( $row ) {
+        if ( ! is_array( $row ) ) {
+            return $row;
+        }
+
+        foreach ( $row as $key => $value ) {
+            if ( is_array( $value ) ) {
+                $row[ $key ] = $this->neutralize_formulas( $value );
+                continue;
+            }
+
+            if ( ! is_string( $value ) || '' === $value ) {
+                continue;
+            }
+
+            // A plain negative number ("-12.50" on a refund) starts with one of the
+            // dangerous characters but cannot be a formula, and prefixing it would
+            // turn a numeric column into text.
+            if ( is_numeric( $value ) ) {
+                continue;
+            }
+
+            if ( 1 === preg_match( '/^[=+\-@\t\r]/', $value ) ) {
+                $row[ $key ] = "'" . $value;
+            }
+        }
+
+        return $row;
     }
 
     /**
@@ -142,8 +188,12 @@ class AttendeeExporter implements PostExporterInterface {
         $selections = get_post_meta( $attendee_id, 'etn_option_selections', true );
 
         if ( is_string( $selections ) ) {
+            // get_post_meta() has already unserialized once. Running maybe_unserialize()
+            // over the result is a second pass on a value that reached the meta table
+            // from the public add-on form, so a crafted `O:` payload would instantiate
+            // arbitrary classes during an export. A non-JSON string is simply no data.
             $decoded    = json_decode( $selections, true );
-            $selections = is_array( $decoded ) ? $decoded : maybe_unserialize( $selections );
+            $selections = is_array( $decoded ) ? $decoded : [];
         }
 
         if ( ! is_array( $selections ) ) {

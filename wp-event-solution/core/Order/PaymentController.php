@@ -435,15 +435,29 @@ class PaymentController extends WP_REST_Controller
 			// it stays correct across retries.
 			$this->apply_native_tax($order);
 
+			// Save the currency too, like create_payment() does for the other
+			// gateways, so emails and the booking list keep this order's symbol
+			// even after the site switches to another gateway.
 			$order->update([
-				'payment_method' => $payment_method,
-				'status'         => 'pending',
+				'payment_method'  => $payment_method,
+				'status'          => 'pending',
+				'currency'        => etn_currency(),
+				'currency_symbol' => etn_currency_symbol(),
 			]);
 
 			foreach ($order->get_attendees() as $attendee_data) {
 				$attendee = new Attendee_Model($attendee_data['id']);
 				$attendee->update(['etn_status' => 'pending']);
 			}
+
+			/**
+			 * Fires when a local-payment order is placed. The order stays
+			 * pending until an admin marks it paid, so eventin_order_completed
+			 * does not fire here.
+			 *
+			 * @param OrderModel $order The pending order.
+			 */
+			do_action('eventin_local_payment_order_placed', $order);
 
 			return rest_ensure_response(['success' => true]);  // ← return early
 		}

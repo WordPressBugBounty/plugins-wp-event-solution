@@ -18,6 +18,22 @@ defined( 'ABSPATH' ) || exit;
 class OptionticsAddons {
 
     /**
+     * Field types priced per stored choice; the shopper picks one of the choice values.
+     * Mirrors Optiontics' own Selection_Authority type sets.
+     */
+    const CHOICE_TYPES = [ 'checkbox', 'radio', 'select', 'toggle', 'switch', 'button-group', 'button_group', 'font-picker', 'color_swatch', 'image_swatch' ];
+
+    /**
+     * Numeric inputs charged the first choice's price once, whatever number is entered.
+     */
+    const FLAT_TYPES = [ 'number', 'range' ];
+
+    /**
+     * Free-text inputs: the entered value is kept, the price is always zero.
+     */
+    const TEXT_TYPES = [ 'textfield', 'text', 'textarea', 'email', 'telephone', 'tel' ];
+
+    /**
      * Optional test seam: fn(int $block_id): array<field>.
      *
      * @var callable|null
@@ -286,19 +302,39 @@ class OptionticsAddons {
                 continue;
             }
 
+            // Layout-only / unsupported types (heading, divider, date picker, upload…)
+            // would otherwise render as an empty checkbox group.
+            if ( ! $this->is_supported_type( $def->field_type ) ) {
+                continue;
+            }
+
+            $show_sale = (bool) $def->get( 'showsaleprice', false );
+
             $out[] = [
                 'node_id'     => $def->node_id,
                 'title'       => $def->title,
                 'field_type'  => $def->field_type,
                 'is_required' => $def->is_required,
+                'placeholder' => (string) $def->get( 'placeholder', '' ),
+                'min'         => $def->get( 'min', '' ),
+                'max'         => $def->get( 'max', '' ),
+                'multiple'    => (bool) $def->get( 'allowMultiple', false ) || 'multiple' === $def->get( 'selection', '' ),
                 'choices'     => array_map(
-                    function ( $choice ) {
-                        $sale = isset( $choice['sale'] ) ? (float) $choice['sale'] : 0.0;
+                    function ( $choice ) use ( $show_sale ) {
+                        $regular = (float) ( $choice['regular'] ?? 0 );
+                        // "Show sales price" off = sale disabled: charge the regular price.
+                        $sale    = $show_sale ? (float) ( $choice['sale'] ?? 0 ) : 0.0;
+                        $price   = $this->effective_price( $regular, $sale );
 
                         return [
                             'value'      => $choice['value'] ?? '',
-                            'price'      => $sale > 0 ? $sale : (float) ( $choice['regular'] ?? 0 ),
+                            'price'      => $price,
+                            'regular'    => $regular,
+                            'sale'       => $sale,
+                            'on_sale'    => $price < $regular,
                             'price_type' => $choice['type'] ?? 'no_cost',
+                            'image'      => (string) ( $choice['image'] ?? '' ),
+                            'color'      => (string) ( $choice['color'] ?? '' ),
                         ];
                     },
                     $def->choices
@@ -352,16 +388,26 @@ class OptionticsAddons {
                 continue;
             }
 
-            $choice = null;
-            foreach ( $field['choices'] as $candidate ) {
-                if ( $candidate['value'] === $value ) {
-                    $choice = $candidate;
-                    break;
+            $type = (string) $field['field_type'];
+
+            if ( in_array( $type, self::FLAT_TYPES, true ) ) {
+                $value  = $this->clean_number( $value, $field );
+                $choice = $field['choices'][0] ?? [ 'value' => '', 'price' => 0.0, 'price_type' => 'no_cost' ];
+            } elseif ( in_array( $type, self::TEXT_TYPES, true ) ) {
+                $value  = $this->clean_text( $value, $type );
+                $choice = [ 'value' => '', 'price' => 0.0, 'price_type' => 'no_cost' ];
+            } else {
+                $choice = null;
+                foreach ( $field['choices'] as $candidate ) {
+                    if ( $candidate['value'] === $value ) {
+                        $choice = $candidate;
+                        break;
+                    }
                 }
             }
 
-            if ( null === $choice ) {
-                // Tampered / unknown choice → drop.
+            if ( null === $choice || '' === $value ) {
+                // Tampered / unknown choice or invalid typed value → drop.
                 continue;
             }
 
@@ -383,6 +429,69 @@ class OptionticsAddons {
     }
 
     /**
+     * Price actually charged for a choice. As in Optiontics' Pricing_Result, a
+     * sale only applies when it is below the regular price.
+     *
+     * @param float $regular Regular price (or percentage).
+     * @param float $sale    Sale price (or percentage), 0 when unset.
+     * @return float
+     */
+    private function effective_price( float $regular, float $sale ): float {
+        return ( $sale > 0 && $sale < $regular ) ? $sale : $regular;
+    }
+
+    /**
+     * Whether Eventin can render and price a given Optiontics field type.
+     *
+     * @param string $type Optiontics field type slug.
+     * @return bool
+     */
+    private function is_supported_type( string $type ): bool {
+        return in_array( $type, array_merge( self::CHOICE_TYPES, self::FLAT_TYPES, self::TEXT_TYPES ), true );
+    }
+
+    /**
+     * Normalize a typed number; '' when not numeric, not positive, or outside min/max.
+     *
+     * @param string $value Submitted value.
+     * @param array  $field Normalized field def.
+     * @return string
+     */
+    private function clean_number( string $value, array $field ): string {
+        if ( ! is_numeric( $value ) || (float) $value <= 0 ) {
+            return '';
+        }
+
+        $number = (float) $value;
+        $min    = $field['min'] ?? '';
+        $max    = $field['max'] ?? '';
+
+        if ( ( is_numeric( $min ) && $number < (float) $min ) || ( is_numeric( $max ) && $number > (float) $max ) ) {
+            return '';
+        }
+
+        return (string) ( $number + 0 );
+    }
+
+    /**
+     * Sanitize typed text (tags stripped, capped at 500 chars); '' for an invalid email.
+     *
+     * @param string $value Submitted value.
+     * @param string $type  Field type slug.
+     * @return string
+     */
+    private function clean_text( string $value, string $type ): string {
+        $value = 'textarea' === $type ? sanitize_textarea_field( $value ) : sanitize_text_field( $value );
+        $value = trim( mb_substr( $value, 0, 500 ) );
+
+        if ( 'email' === $type && ! is_email( $value ) ) {
+            return '';
+        }
+
+        return $value;
+    }
+
+    /**
      * Sum of line totals.
      *
      * @param array $rows Repriced rows from reprice().
@@ -398,7 +507,7 @@ class OptionticsAddons {
      * Uses Optiontics' Pricing_Engine when available; otherwise (test path /
      * Optiontics absent) computes from the normalized stored price directly.
      *
-     * @param array      $choice Normalized choice { value, price, price_type }.
+     * @param array      $choice Normalized choice { value, price, regular, sale, price_type }.
      * @param float      $base   Base price for percentage pricing.
      * @param int        $qty    Quantity.
      * @param mixed|null $engine Optiontics Pricing_Engine instance or null.
@@ -406,12 +515,13 @@ class OptionticsAddons {
      */
     private function resolve_unit_price( array $choice, float $base, int $qty, $engine ): float {
         if ( $engine ) {
+            // Raw regular + sale, so the engine applies its own sale rule.
             $result = $engine->resolve_for_choice(
                 [
                     'type'    => $choice['price_type'],
-                    'regular' => $choice['price'],
-                    'sale'    => 0.0,
-                    'value'   => $choice['value'],
+                    'regular' => $choice['regular'] ?? $choice['price'],
+                    'sale'    => $choice['sale'] ?? 0.0,
+                    'value'   => $choice['value'] ?? '',
                 ],
                 $base,
                 $qty

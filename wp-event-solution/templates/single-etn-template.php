@@ -100,6 +100,9 @@ if ( $is_bricks_template ) {
         </div>
         <?php
     }
+    // the_post() leaves the global $post pointing at the template; anything rendered
+    // after this block (footer widgets, related content) would inherit it.
+    wp_reset_postdata();
 } elseif ( $is_elementor_template ) {
     // Set up the WordPress loop for Elementor
     while ( have_posts() ) {
@@ -112,6 +115,7 @@ if ( $is_bricks_template ) {
         </div>
         <?php
     }
+    wp_reset_postdata();
 } else {
     $template_html = $template->get_demo_content();
     ?>

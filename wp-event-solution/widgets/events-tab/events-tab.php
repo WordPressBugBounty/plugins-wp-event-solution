@@ -915,7 +915,7 @@ class Etn_Events_Tab extends Widget_Base {
         $order              = (isset($settings["order"]) ? $settings["order"] : 'DESC');
         $orderby            = $settings["orderby"];
         $orderby_meta       = null;
-        $filter_with_status       = $settings['filter_with_status'];
+        $filter_with_status       = Helper::resolve_widget_status( $settings['filter_with_status'] );
         $widget_id      = $this->get_id();
         $show_child_event   = $settings["show_child_event"];
         $show_event_location = (isset($settings["show_event_location"]) ? $settings["show_event_location"] : 'yes');

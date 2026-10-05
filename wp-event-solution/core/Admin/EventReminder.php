@@ -35,6 +35,11 @@ class EventReminder implements HookableInterface {
     const RESYNC_FALLBACK_LEAD = 30 * DAY_IN_SECONDS;
 
     /**
+     * resync_batch() mode that only repairs reminders whose job was lost.
+     */
+    const RESYNC_MODE_REPAIR = 'repair';
+
+    /**
      * Register service
      *
      * @return  void
@@ -46,7 +51,7 @@ class EventReminder implements HookableInterface {
         // Toggling the Automation module has to re-decide the reminder route for
         // events that already exist; the decision used to be frozen at creation.
         add_action( 'eventin_automation_module_toggled', [$this, 'resync_all'] );
-        add_action( 'eventin_resync_reminder_schedules', [$this, 'resync_batch'] );
+        add_action( 'eventin_resync_reminder_schedules', [$this, 'resync_batch'], 10, 2 );
 
         add_action( 'run_event_scheduler', [$this, 'run_event_schedule'] );
 
@@ -104,21 +109,49 @@ class EventReminder implements HookableInterface {
     }
 
     /**
+     * Queue a re-sync that only repairs reminders whose job was lost
+     *
+     * Used by the upgrader, which runs without anyone asking for it. Unlike
+     * resync_all() it never registers an event that had no reminder job before,
+     * so an update changes nothing for events the customer didn't already expect
+     * a reminder for.
+     *
+     * @return  void
+     */
+    public function queue_lost_reminder_repair() {
+        $args = [0, self::RESYNC_MODE_REPAIR];
+
+        if ( ! wp_next_scheduled( 'eventin_resync_reminder_schedules', $args ) ) {
+            wp_schedule_single_event( time() + 5, 'eventin_resync_reminder_schedules', $args );
+        }
+    }
+
+    /**
      * Back-fill reminder schedules for one batch of ongoing/upcoming events
      *
      * Only meaningful while Automation owns reminders: the default route needs no
      * back-fill, since its cron is (re)armed from the event itself.
      *
      * @param   integer  $offset
+     * @param   string   $mode    Empty for a full re-sync, RESYNC_MODE_REPAIR to
+     *                            only repair lost jobs.
      *
      * @return  void
      */
-    public function resync_batch( $offset = 0 ) {
+    public function resync_batch( $offset = 0, $mode = '' ) {
         if ( 'on' !== $this->is_automation_on() ) {
             return;
         }
 
+        // Re-dispatching the trigger runs the flow from the start. If a flow can
+        // reach a send without first waiting for the event date, that means an
+        // email to every attendee right now. Better to repair nothing.
+        if ( ! $this->reminder_flows_wait_for_event_date() ) {
+            return;
+        }
+
         $offset = (int) $offset;
+        $mode   = self::RESYNC_MODE_REPAIR === $mode ? $mode : '';
 
         // An event is only safe to back-fill if BOTH reminder windows are still
         // ahead of us:
@@ -155,17 +188,30 @@ class EventReminder implements HookableInterface {
             return;
         }
 
+        $flow_manager = $this->get_flow_manager();
+
+        // An SDK without get_pending_jobs() can't tell a working job from a lost
+        // one: keep the old rule (skip anything with `ens_flow_id`), and there is
+        // nothing to repair.
+        if ( ! $flow_manager && $mode ) {
+            return;
+        }
+
+        $jobs = $flow_manager ? $this->get_reminder_job_index( $flow_manager ) : null;
+
         foreach ( $event_ids as $event_id ) {
-            $this->backfill_reminder_schedule( new Event_Model( $event_id ), $threshold );
+            $this->backfill_reminder_schedule( new Event_Model( $event_id ), $threshold, $jobs, $flow_manager, $mode );
         }
 
         // Only chain another batch if this one filled up.
         if ( count( $event_ids ) === self::RESYNC_BATCH_SIZE ) {
-            wp_schedule_single_event(
-                time() + 30,
-                'eventin_resync_reminder_schedules',
-                [$offset + self::RESYNC_BATCH_SIZE]
-            );
+            $next = [$offset + self::RESYNC_BATCH_SIZE];
+
+            if ( $mode ) {
+                $next[] = $mode;
+            }
+
+            wp_schedule_single_event( time() + 30, 'eventin_resync_reminder_schedules', $next );
         }
     }
 
@@ -311,7 +357,7 @@ class EventReminder implements HookableInterface {
             // Both timestamps so the flow's delay node can key off event start OR end.
             'event_start_date_timestamp' => $this->get_event_date_timestamp( $event->get_start_date(), $event->get_start_time( 'H:i' ) ),
             'event_end_date_timestamp' => $this->get_event_date_timestamp( $event->get_end_date(), $event->get_end_time( 'H:i' ) ),
-            'event_location'           => $event->get_address(),
+            'event_location'           => $event->get_location_label(),
             'attendee_id'              => [],
             'attendee_email'           => [],
             'event_id'                 => $event->id,
@@ -342,7 +388,7 @@ class EventReminder implements HookableInterface {
             'event_start_date_timestamp' => $start,
             'event_end_date_timestamp'   => $this->get_event_date_timestamp( $event->get_end_date(), $event->get_end_time() ),
             'previous_event_date'  => $start,
-            'event_location'       => $event->get_address(),
+            'event_location'       => $event->get_location_label(),
             'attendee_id'          => [],
             'attendee_email'       => [],
             'event_id'             => $event->id,
@@ -361,17 +407,48 @@ class EventReminder implements HookableInterface {
      *    re-triggering it mails every attendee immediately.
      *  - Events whose delay window has already passed are skipped, for the same
      *    reason (see FlowManager: `if ( time() >= $resume_time )` sends at once).
-     *  - Events the SDK has already registered are skipped, so repeated toggles
-     *    don't create duplicate flows.
+     *  - Events that still have a working reminder job are skipped, so repeated
+     *    toggles don't create duplicate flows.
+     *  - Events whose last job is gone from cron are skipped: that job already ran
+     *    (or was cleared on purpose), and re-registering would send again. The
+     *    last job is read from `ens_flow_id`; a delayed certificate flow can
+     *    overwrite it, which is why a pending job there doesn't count as proof
+     *    the reminder is fine.
+     *
+     * An event whose job is still in cron but lost its checkpoint IS registered
+     * again. Before 4.1.26 the SDK kept checkpoints in transients capped at 30
+     * days, so any reminder due more than ~30 days after the event was saved
+     * resumed to nothing and sent no email. Those cron entries can never send.
      *
      * @param   Event_Model  $event
      * @param   integer      $threshold  Earliest start time considered safe.
+     * @param   array|null   $jobs          Index from get_reminder_job_index(),
+     *                                      null when the SDK can't provide one.
+     * @param   object|null  $flow_manager  The notification SDK's FlowManager.
+     * @param   string       $mode          RESYNC_MODE_REPAIR: only events whose
+     *                                      last job is dead.
      *
      * @return  bool  Whether the event was registered.
      */
-    private function backfill_reminder_schedule( $event, $threshold ) {
-        if ( get_post_meta( $event->id, 'ens_flow_id', true ) ) {
-            return false;
+    private function backfill_reminder_schedule( $event, $threshold, $jobs, $flow_manager, $mode = '' ) {
+        $flow_id = get_post_meta( $event->id, 'ens_flow_id', true );
+
+        if ( null === $jobs ) {
+            if ( $flow_id ) {
+                return false;
+            }
+        } else {
+            if ( isset( $jobs['live'][ $event->id ] ) ) {
+                return false;
+            }
+
+            if ( $flow_id && ! isset( $jobs['pending'][ $flow_id ] ) ) {
+                return false;
+            }
+
+            if ( self::RESYNC_MODE_REPAIR === $mode && ! ( $flow_id && isset( $jobs['dead'][ $flow_id ] ) ) ) {
+                return false;
+            }
         }
 
         $start = $this->get_event_date_timestamp( $event->get_start_date(), $event->get_start_time() );
@@ -384,7 +461,139 @@ class EventReminder implements HookableInterface {
 
         wp_clear_scheduled_hook( 'send_reminder_email', [$event->id] );
 
+        // The dead entry does nothing when it runs; drop it so cron stays clean.
+        if ( $flow_manager && $flow_id && isset( $jobs['dead'][ $flow_id ] ) ) {
+            foreach ( $jobs['dead'][ $flow_id ] as $resume_time ) {
+                $flow_manager->unschedule_job( $flow_id, $resume_time );
+            }
+        }
+
         do_action( 'global_notification_hook', 'event_reminder_email', $this->reminder_payload( $event ) );
+
+        return true;
+    }
+
+    /**
+     * Sort the SDK's pending resume jobs into working and dead ones
+     *
+     * @param   object  $flow_manager  The notification SDK's FlowManager.
+     *
+     * @return  array {
+     *     @type array $live     Event IDs (as keys) with a working reminder job.
+     *     @type array $dead     Job ID => resume times, for jobs with no checkpoint.
+     *     @type array $pending  Job IDs (as keys) of every job still in cron.
+     * }
+     */
+    private function get_reminder_job_index( $flow_manager ) {
+        $index = [ 'live' => [], 'dead' => [], 'pending' => [] ];
+
+        foreach ( $flow_manager->get_pending_jobs() as $job ) {
+            $index['pending'][ $job['flow_id'] ] = true;
+
+            if ( ! $job['alive'] ) {
+                $index['dead'][ $job['flow_id'] ][] = $job['resume_time'];
+                continue;
+            }
+
+            if ( 'event_reminder_email' === $job['action'] && $job['post_id'] ) {
+                $index['live'][ $job['post_id'] ] = true;
+            }
+        }
+
+        return $index;
+    }
+
+    /**
+     * The notification SDK's FlowManager, when the Automation package is loaded
+     *
+     * @return  object|null
+     */
+    private function get_flow_manager() {
+        $class = \Eventin\Vendor\Ens\Flow\FlowManager::class;
+
+        if ( ! class_exists( $class ) || ! method_exists( $class, 'get_pending_jobs' ) ) {
+            return null;
+        }
+
+        return new $class( self::AUTOMATION_PREFIX );
+    }
+
+    /**
+     * Whether every published reminder flow waits for the event date before sending
+     *
+     * Walks each path from the trigger. A path is safe once it passes a delay
+     * tied to an event date (`before_…` / `after_…`). A delay with no condition
+     * counts from "now", so it is not enough. Any other action reached first —
+     * an email, a WhatsApp message — would go out as soon as the trigger fires.
+     *
+     * @return  bool
+     */
+    private function reminder_flows_wait_for_event_date() {
+        $prefix = self::AUTOMATION_PREFIX;
+
+        $flows = get_posts( [
+            'post_type'      => $prefix . '-flow',
+            'post_status'    => 'publish',
+            'posts_per_page' => -1,
+            'meta_key'       => '_' . $prefix . '_notification_flow_trigger', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+            'meta_value'     => 'event_reminder_email',                       // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+        ] );
+
+        foreach ( $flows as $flow ) {
+            $config = get_post_meta( $flow->ID, '_' . $prefix . '_notification_flow_flow_config', true );
+
+            if ( ! is_array( $config ) || empty( $config['nodes'] ) || ! is_array( $config['nodes'] ) ) {
+                continue;
+            }
+
+            $nodes = [];
+            foreach ( $config['nodes'] as $node ) {
+                if ( isset( $node['id'] ) ) {
+                    $nodes[ $node['id'] ] = $node;
+                }
+            }
+
+            $next = [];
+            foreach ( (array) ( $config['edges'] ?? [] ) as $edge ) {
+                if ( isset( $edge['source'], $edge['target'] ) ) {
+                    $next[ $edge['source'] ][] = $edge['target'];
+                }
+            }
+
+            $stack = [];
+            foreach ( $nodes as $id => $node ) {
+                if ( 'trigger' === ( $node['name'] ?? '' ) ) {
+                    $stack[] = $id;
+                }
+            }
+
+            $seen = [];
+
+            while ( $stack ) {
+                $id = array_pop( $stack );
+
+                if ( isset( $seen[ $id ] ) || ! isset( $nodes[ $id ] ) ) {
+                    continue;
+                }
+
+                $seen[ $id ] = true;
+                $name        = $nodes[ $id ]['name'] ?? '';
+
+                if ( 'delay' === $name ) {
+                    $condition = (string) ( $nodes[ $id ]['data']['delayCondition'] ?? '' );
+
+                    if ( preg_match( '/^(before|after)_\w+/', $condition ) ) {
+                        continue; // This path waits for a date; nothing after it is sent early.
+                    }
+                } elseif ( ! in_array( $name, [ 'trigger', 'condition', 'end' ], true ) ) {
+                    return false;
+                }
+
+                foreach ( $next[ $id ] ?? [] as $target ) {
+                    $stack[] = $target;
+                }
+            }
+        }
 
         return true;
     }
@@ -516,7 +725,7 @@ class EventReminder implements HookableInterface {
                 'event_start_date_timestamp'    => $current_event_date,
                 'event_end_date_timestamp'      => $this->get_event_date_timestamp( $event->get_end_date(), $event->get_end_time( 'H:i' ) ),
                 'previous_event_date_timestamp' => $previous_event_date,
-                'event_location'                => $event->get_address(),
+                'event_location'                => $event->get_location_label(),
                 'attendee_id'                   => [],
                 'attendee_email'                => [],
                 'event_id'                      => $event->id,

@@ -180,8 +180,25 @@ class ExtensionController extends WP_REST_Controller {
             etn_update_option( 'zoho_crm_api', $status ?? null );
         }
 
+        if ( 'zapier' === $name ) {
+            etn_update_option( 'zapier_api', 'off' === $status ? 'off' : 'on' );
+        }
+
         if ( $name == 'uncanny_automator' ) {
             etn_update_option( 'uncanny_automator_api', $status ?? null );
+        }
+
+        if ( $name == 'hubspot' ) {
+            etn_update_option( 'hubspot_api', $status ?? null );
+        }
+        // Normalised to on/off: the allow-list above also admits install/activate/
+        // deactivate, and readers of this option test it as on/off.
+        if ( 'rank_math' === $name ) {
+            etn_update_option( 'rank_math_api', 'off' === $status ? 'off' : 'on' );
+        }
+
+        if ( 'yoast' === $name ) {
+            etn_update_option( 'yoast_api', 'off' === $status ? 'off' : 'on' );
         }
 
         if ( $name == 'eventin-addon-for-surecart' ) {
@@ -285,11 +302,14 @@ class ExtensionController extends WP_REST_Controller {
 	    
 	    // Dokan Event Publish Approval
 	    // Automatically publish Dokan Vendor/Seller Event when an event is created.
-	    if ( $status == "on" ) {
-		    Settings::update(["dokan_event_auto_publish" => "on"]);
-	    }
-	    if ( $status == "off" ) {
-		    Settings::update(["dokan_event_auto_publish" => ""]);
+	    // Scoped to the Dokan card: keyed on $status alone this fired for every
+	    // extension toggle. install/activate/deactivate leave the setting alone.
+	    if ( 'dokan' === $name ) {
+		    if ( 'on' === $status ) {
+			    Settings::update( [ 'dokan_event_auto_publish' => 'on' ] );
+		    } elseif ( 'off' === $status ) {
+			    Settings::update( [ 'dokan_event_auto_publish' => '' ] );
+		    }
 	    }
 		
         

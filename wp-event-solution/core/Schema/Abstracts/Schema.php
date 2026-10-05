@@ -139,9 +139,12 @@ abstract class Schema {
             return false;
         }
 
-        $capability = 'private' === $post->post_status ? 'read_private_posts' : 'read';
-
-        return current_user_can( $capability, $post->ID );
+        // `read_post` is the meta capability, and the only form that resolves against
+        // the post it is given: WordPress maps it to `read_private_posts`, the post's
+        // own `edit_post`, and so on. The primitive `read` ignores the id handed to it
+        // and every logged-in user holds it, so drafts, pending and scheduled events
+        // were serialised into JSON-LD for Subscribers.
+        return current_user_can( 'read_post', $post->ID );
     }
 
     /**

@@ -199,7 +199,25 @@ class Api extends \Etn\Base\Api_Handler {
 			$content['etn_event_faq']             = get_post_meta( $event_id, 'etn_event_faq', true );
 			$content['etn_faq']                   = !empty( $content['etn_event_faq'] ) ? "yes" : "no";
 			$content['etn_recurrence_timestamps'] = get_post_meta( $event_id, 'etn_recurrence_timestamps', true );
-			
+
+			// `$event_meta` above is every meta key of the event, and this route
+			// answers to the anonymous nonce printed on every public page. Drop
+			// CRM webhooks, private meeting links and earnings for anyone who
+			// cannot manage the event — the same list GET /eventin/v2/events/<id>
+			// strips. Patchstack 36114.
+			if ( ! \Eventin\AccessControl\Ownership::can_manage_post( $event_id, 'etn' ) ) {
+				foreach ( \Eventin\Event\Api\EventController::management_only_meta_keys() as $key ) {
+					unset( $content[ $key ] );
+				}
+
+				// A "Custom URL" event keeps its join link inside the location.
+				foreach ( [ 'etn_event_location', 'location' ] as $key ) {
+					if ( isset( $content[ $key ] ) ) {
+						$content[ $key ] = \Eventin\Event\Api\EventController::strip_private_location( $content[ $key ] );
+					}
+				}
+			}
+
 			return [
 				'status_code' => 200,
 				'messages'    => [
@@ -514,7 +532,8 @@ class Api extends \Etn\Base\Api_Handler {
 		$event_image           = wp_get_attachment_url( get_post_thumbnail_id( $event->ID ) );
 		$locations             = wp_get_post_terms( $event->ID, 'etn_location', ['fields' => 'all'] );
 		$selected_etn_location = is_array( $locations ) ? array_column( $locations, 'name' ) : [];
-		$location              = get_post_meta( $event->ID, 'etn_event_location', true );
+		// Public route: an old CSV import may have put the join link in `address`.
+		$location              = \Eventin\Event\Api\EventController::strip_private_location( get_post_meta( $event->ID, 'etn_event_location', true ) );
 		$location_type         = get_post_meta( $event->ID, 'etn_event_location_type', true );
 		$location              = 'new_location' === $location_type ? $selected_etn_location : $location;
 		$event_type			   = get_post_meta( $event->ID, 'event_type', true );
@@ -719,7 +738,8 @@ class Api extends \Etn\Base\Api_Handler {
 				'id'                 => $etn_booked_seats,
 				'link'         		 => get_the_permalink( $event_id ),
 				'title'				 => $post->post_title,
-				'location'			 => get_post_meta( $event_id, 'etn_event_location', true ),			
+				// Public seat picker: show the venue, never the Custom URL join link.
+				'location'			 => \Eventin\Event\Api\EventController::strip_private_location( get_post_meta( $event_id, 'etn_event_location', true ) ),
 				'start_date'	     => get_post_meta( $event_id, 'etn_start_date', true ),			
 				'start_time'	     => get_post_meta( $event_id, 'etn_start_time', true ),			
 			],

@@ -31,6 +31,14 @@ class ActionListener {
         add_action( $general_prefix . '_resume_flow_after_delay', function ( $flow_id, $resume_time ) {
             $this->flow_manager->resume_flow_callback( $flow_id, $resume_time );
         }, 10, 2 );
+
+        // Checkpoints written by versions that stored them in transients would
+        // still expire before their job runs. Move them once.
+        if ( did_action( 'init' ) ) {
+            $this->flow_manager->maybe_migrate_legacy_checkpoints();
+        } else {
+            add_action( 'init', [$this->flow_manager, 'maybe_migrate_legacy_checkpoints'] );
+        }
     }
 
     /**

@@ -916,7 +916,7 @@ class Etn_Events extends Widget_Base {
         }
         
         // Pass all necessary variables to the template
-        $filter_with_status = isset( $settings['filter_with_status'] ) ? $settings['filter_with_status'] : '';
+        $filter_with_status = Helper::resolve_widget_status( isset( $settings['filter_with_status'] ) ? $settings['filter_with_status'] : '' );
         $post_parent = Helper::show_parent_child( $show_parent_event, $show_child_event );
         
         // Include the template with all required variables in scope

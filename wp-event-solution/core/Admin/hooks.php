@@ -484,12 +484,25 @@ class Hooks {
     public function update_clone_event_sold_tickets( $event ) {
         $tickets = $event->etn_ticket_variations;
 
+        // With Global Capacity on, the admin form hides the per-ticket quantity, so a
+        // number left over from the source event could not be seen or changed. The
+        // WooCommerce checkout used to read it and refuse sales while the shared pool
+        // still had seats. Saving the event already clears it (EventController); do
+        // the same here so a clone never starts with a hidden limit.
+        $is_global_stock = rest_sanitize_boolean( get_post_meta( $event->id, 'etn_enable_global_stock', true ) );
+
         if ( is_array( $tickets ) ) {
             foreach( $tickets as &$ticket ) {
                 $ticket['etn_sold_tickets'] = 0;
+
+                if ( $is_global_stock ) {
+                    $ticket['etn_avaiilable_tickets'] = 0;
+                    $ticket['etn_unlimited_tickets']  = false;
+                }
             }
+            unset( $ticket );
         }
-        
+
         $event->update([
             'etn_ticket_variations' => $tickets
         ]);

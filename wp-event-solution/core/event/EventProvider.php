@@ -17,5 +17,6 @@ class EventProvider extends Provider {
      */
     protected $services = [
         EventTemplate::class,
+        EventLocation::class,
     ];
 }

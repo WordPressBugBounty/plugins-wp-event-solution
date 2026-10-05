@@ -26,6 +26,7 @@ use Eventin\Template\Api\TemplateController;
 use Eventin\Template\Api\PreviewEventController;
 use Eventin\Template\Api\TemplateBuilderController;
 use Eventin\Integrations\MailPoet\Api\MailPoetListController;
+use Eventin\Integrations\HubSpot\Api\HubSpotController;
 use WP_REST_Controller;
 use Eventin\Integrations\Optiontics\TicketAddonsController;
 
@@ -63,6 +64,7 @@ class ApiManager {
         SetupNotification::class,
         TemplateBuilderController::class,
         MailPoetListController::class,
+        HubSpotController::class,
         CouponController::class,
         TourController::class,
     ];

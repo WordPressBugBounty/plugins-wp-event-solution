@@ -104,6 +104,11 @@ class FlowManager {
         $flow = get_post_meta( $flow_post_id, '_' . $prefix_for_cpt . '_notification_flow_flow_config', true );
 
         $this->execute_flow( $flow, $hook_data, $action, null, $flow_post_id );
+
+        // Used up: a later delay node saves its own checkpoint under a new key, so
+        // nothing here is needed again. Dropping it also stops a re-fired cron from
+        // sending the same email twice.
+        $this->delete_user_flow_checkpoint( $resume_time, $flow_id );
     }
 
     /**
@@ -202,7 +207,7 @@ class FlowManager {
                 $delayUnit            = $node['data']['delayUnit'] ?? 'seconds';
                 $delay                = isset( $node['data']['delay'] ) ? (int) $node['data']['delay'] : 60;
 
-                $delay_depeneds_on    = $node['data']['delayCondition'] ?? null;
+                $delay_depeneds_on    = (string) ( $node['data']['delayCondition'] ?? '' );
                 $delay_condition      = 'after';
                 $dependent_key        = $delay_depeneds_on;
                 
@@ -236,6 +241,9 @@ class FlowManager {
                 case 'days':
                     $seconds *= 60 * 60 * 24;
                     break;
+                case 'weeks':
+                    $seconds *= 60 * 60 * 24 * 7;
+                    break;
                 }
 
                 // Calculate resume time
@@ -268,18 +276,25 @@ class FlowManager {
 
                     if( $previous_resume_time != $resume_time ) {
                         $hook = $general_prefix . '_resume_flow_after_delay';
-                        $previous_flow_id = get_post_meta( $post_id, 'ens_flow_id', true );
+                        $previous_flow_id = $this->get_post_job_id( $post_id, $flow_post_id );
 
                         if(wp_next_scheduled( $hook, [ 'flow_id' => $previous_flow_id, 'resume_time' => $previous_resume_time ] )){
-                            $key = sprintf( 'flow_checkpoint_%s_%s', $previous_flow_id, $previous_resume_time );
-                            delete_transient( $key );
+                            $this->delete_user_flow_checkpoint( $previous_resume_time, $previous_flow_id );
                             wp_clear_scheduled_hook( $hook, [ 'flow_id' => $previous_flow_id, 'resume_time' => $previous_resume_time ] ); 
                         }
                     }
                 }
 
                 if(isset( $post_id )) {
+                    // `ens_flow_id` holds whichever flow scheduled last, so a second
+                    // delayed flow on the same post overwrites the first. It stays for
+                    // hosts that already read it; the per-flow key is what this class
+                    // uses to find a post's own job again.
                     update_post_meta( $post_id, 'ens_flow_id', $flow_id );
+
+                    if ( $flow_post_id ) {
+                        update_post_meta( $post_id, 'ens_flow_id_' . $flow_post_id, $flow_id );
+                    }
                 }
 
                 // Save checkpoint
@@ -477,18 +492,270 @@ class FlowManager {
             return;
         }
 
-        // Set a minimum expiration of 1 hour and maximum of 30 days
-        $expiration = max( HOUR_IN_SECONDS, min( $data['resume_after'] - time() + DAY_IN_SECONDS, 30 * DAY_IN_SECONDS ) );
-        $key = sprintf( 'flow_checkpoint_%s_%s', $flow_id, $resume_time );
-        
         // Store the flow_id and resume_time in the data for verification
         $data['_flow_id'] = $flow_id;
         $data['_resume_time'] = $resume_time;
-        
+
         // Store the current timestamp to help with debugging
         $data['_saved_at'] = time();
-        
-        set_transient( $key, $data, $expiration );
+
+        // Kept in an option, not a transient. A transient has a lifetime, and the
+        // lifetime was capped at 30 days, so any delay longer than that resumed to
+        // an empty checkpoint and the flow stopped without sending anything. An
+        // external object cache can drop a transient even sooner. An option has no
+        // lifetime; checkpoints are deleted once the flow resumes, and anything
+        // left behind is swept by purge_stale_checkpoints().
+        update_option( $this->get_checkpoint_key( $flow_id, $resume_time ), $data, false );
+
+        $this->purge_stale_checkpoints();
+    }
+
+    /**
+     * Delete a stored checkpoint.
+     *
+     * @since 1.0.0
+     *
+     * @param int    $resume_time The resume time.
+     * @param string $flow_id     The flow ID.
+     *
+     * @return void
+     */
+    public function delete_user_flow_checkpoint( $resume_time, $flow_id ) {
+        delete_option( $this->get_checkpoint_key( $flow_id, $resume_time ) );
+
+        // Checkpoints written before checkpoints moved out of transients.
+        delete_transient( $this->get_legacy_checkpoint_key( $flow_id, $resume_time ) );
+    }
+
+    /**
+     * Option name a checkpoint is stored under.
+     *
+     * The resume time is the last segment, so a sweep can read it straight off the
+     * name without unserializing every row.
+     *
+     * @since 1.0.0
+     *
+     * @param string $flow_id     The flow ID.
+     * @param int    $resume_time The resume time.
+     *
+     * @return string
+     */
+    protected function get_checkpoint_key( $flow_id, $resume_time ) {
+        return sprintf( '%s_flow_checkpoint_%s_%s', $this->identifier, $flow_id, $resume_time );
+    }
+
+    /**
+     * Transient name used by earlier versions.
+     *
+     * @since 1.0.0
+     *
+     * @param string $flow_id     The flow ID.
+     * @param int    $resume_time The resume time.
+     *
+     * @return string
+     */
+    protected function get_legacy_checkpoint_key( $flow_id, $resume_time ) {
+        return sprintf( 'flow_checkpoint_%s_%s', $flow_id, $resume_time );
+    }
+
+    /**
+     * Delete checkpoints whose resume time is well past.
+     *
+     * Runs at most once a day. A checkpoint is only needed until its cron has run,
+     * so a week of slack covers a site whose cron is running late.
+     *
+     * @since 1.0.0
+     *
+     * @return void
+     */
+    protected function purge_stale_checkpoints() {
+        global $wpdb;
+
+        $marker = $this->identifier . '_flow_checkpoints_purged_at';
+
+        if ( (int) get_option( $marker, 0 ) > time() - DAY_IN_SECONDS ) {
+            return;
+        }
+
+        update_option( $marker, time(), false );
+
+        $cutoff = time() - WEEK_IN_SECONDS;
+
+        $names = $wpdb->get_col(
+            $wpdb->prepare(
+                "SELECT option_name FROM {$wpdb->options} WHERE option_name LIKE %s LIMIT 1000",
+                $wpdb->esc_like( $this->identifier . '_flow_checkpoint_' ) . '%'
+            )
+        );
+
+        foreach ( $names as $name ) {
+            $resume_time = (int) substr( strrchr( $name, '_' ), 1 );
+
+            // An unreadable name is left alone rather than guessed at.
+            if ( $resume_time && $resume_time < $cutoff ) {
+                delete_option( $name );
+            }
+        }
+    }
+
+    /**
+     * Job ID a flow last scheduled for a post
+     *
+     * Falls back to the shared `ens_flow_id` for jobs scheduled before the
+     * per-flow key existed.
+     *
+     * @since 1.0.0
+     *
+     * @param int      $post_id      The post the job belongs to.
+     * @param int|null $flow_post_id The flow post that scheduled it.
+     *
+     * @return string
+     */
+    protected function get_post_job_id( $post_id, $flow_post_id ) {
+        $job_id = $flow_post_id ? get_post_meta( $post_id, 'ens_flow_id_' . $flow_post_id, true ) : '';
+
+        return $job_id ? $job_id : get_post_meta( $post_id, 'ens_flow_id', true );
+    }
+
+    /**
+     * Every delayed job still waiting in cron for this identifier
+     *
+     * A job is `alive` when its checkpoint can still be read. A dead job has a
+     * cron entry but no checkpoint; when it runs, resume_flow_callback() finds
+     * nothing and sends nothing. Before checkpoints moved out of transients, any
+     * delay longer than ~30 days ended up like this.
+     *
+     * @since 1.0.0
+     *
+     * @return array[] {
+     *     @type string      $flow_id      Job ID (the `flow_id` cron argument).
+     *     @type int         $resume_time  When the job runs.
+     *     @type bool        $alive        Whether the checkpoint still exists.
+     *     @type string|null $action       Trigger that scheduled it; null when dead.
+     *     @type int|null    $post_id      `post_id` from the trigger data; null when dead.
+     *     @type int|null    $flow_post_id Flow post that scheduled it; null when dead.
+     * }
+     */
+    public function get_pending_jobs() {
+        $hook = $this->identifier . '_resume_flow_after_delay';
+        $jobs = [];
+
+        foreach ( (array) _get_cron_array() as $hooks ) {
+            if ( empty( $hooks[ $hook ] ) || !is_array( $hooks[ $hook ] ) ) {
+                continue;
+            }
+
+            foreach ( $hooks[ $hook ] as $event ) {
+                $flow_id     = $event['args']['flow_id'] ?? '';
+                $resume_time = (int) ( $event['args']['resume_time'] ?? 0 );
+
+                if ( !$flow_id || !$resume_time ) {
+                    continue;
+                }
+
+                $checkpoint = $this->get_user_flow_checkpoint( $resume_time, $flow_id );
+                $post_id    = $checkpoint['hook_data']['post_id'] ?? null;
+
+                $jobs[] = [
+                    'flow_id'      => $flow_id,
+                    'resume_time'  => $resume_time,
+                    'alive'        => is_array( $checkpoint ),
+                    'action'       => $checkpoint['action'] ?? null,
+                    'post_id'      => null === $post_id ? null : (int) $post_id,
+                    'flow_post_id' => isset( $checkpoint['flow_post_id'] ) ? (int) $checkpoint['flow_post_id'] : null,
+                ];
+            }
+        }
+
+        return $jobs;
+    }
+
+    /**
+     * Remove a delayed job and its checkpoint
+     *
+     * @since 1.0.0
+     *
+     * @param string $flow_id     Job ID.
+     * @param int    $resume_time When the job runs.
+     *
+     * @return void
+     */
+    public function unschedule_job( $flow_id, $resume_time ) {
+        wp_clear_scheduled_hook( $this->identifier . '_resume_flow_after_delay', [
+            'flow_id'     => $flow_id,
+            'resume_time' => (int) $resume_time,
+        ] );
+
+        $this->delete_user_flow_checkpoint( $resume_time, $flow_id );
+    }
+
+    /**
+     * Move checkpoints still kept in legacy transients into options
+     *
+     * A legacy transient expires at most 30 days after it was written, often
+     * before its job runs. Only jobs of this identifier are touched; the legacy
+     * key carries no identifier, so other plugins' transients look the same.
+     *
+     * @since 1.0.0
+     *
+     * @return int Number of checkpoints moved.
+     */
+    public function migrate_legacy_checkpoints() {
+        $hook  = $this->identifier . '_resume_flow_after_delay';
+        $moved = 0;
+
+        foreach ( (array) _get_cron_array() as $hooks ) {
+            if ( empty( $hooks[ $hook ] ) || !is_array( $hooks[ $hook ] ) ) {
+                continue;
+            }
+
+            foreach ( $hooks[ $hook ] as $event ) {
+                $flow_id     = $event['args']['flow_id'] ?? '';
+                $resume_time = $event['args']['resume_time'] ?? 0;
+
+                if ( !$flow_id || !$resume_time ) {
+                    continue;
+                }
+
+                $option_key = $this->get_checkpoint_key( $flow_id, $resume_time );
+
+                if ( is_array( get_option( $option_key ) ) ) {
+                    continue;
+                }
+
+                $legacy = get_transient( $this->get_legacy_checkpoint_key( $flow_id, $resume_time ) );
+
+                if ( !is_array( $legacy ) ) {
+                    continue;
+                }
+
+                update_option( $option_key, $legacy, false );
+                delete_transient( $this->get_legacy_checkpoint_key( $flow_id, $resume_time ) );
+                $moved++;
+            }
+        }
+
+        return $moved;
+    }
+
+    /**
+     * Run migrate_legacy_checkpoints() once per identifier
+     *
+     * @since 1.0.0
+     *
+     * @return void
+     */
+    public function maybe_migrate_legacy_checkpoints() {
+        $marker = $this->identifier . '_legacy_checkpoints_migrated';
+
+        if ( get_option( $marker ) ) {
+            return;
+        }
+
+        // Set first: a fatal half-way must not retry on every request.
+        update_option( $marker, time() );
+
+        $this->migrate_legacy_checkpoints();
     }
 
     /**
@@ -502,9 +769,13 @@ class FlowManager {
      * @return array|null
      */
     public function get_user_flow_checkpoint( $resume_time, $flow_id ) {
-        $key = sprintf( 'flow_checkpoint_%s_%s', $flow_id, $resume_time );
-        $checkpoint = get_transient( $key );
-        
+        $checkpoint = get_option( $this->get_checkpoint_key( $flow_id, $resume_time ) );
+
+        if ( !is_array( $checkpoint ) ) {
+            // Checkpoints written before checkpoints moved out of transients.
+            $checkpoint = get_transient( $this->get_legacy_checkpoint_key( $flow_id, $resume_time ) );
+        }
+
         if (!is_array($checkpoint)) {
             // Log additional debug info
             return null;

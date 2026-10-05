@@ -50,7 +50,10 @@ class LearnDashSettingsController extends WP_REST_Controller {
     }
 
     public function update_items( $request ) {
-        $input = json_decode( $request->get_body(), true );
+        // get_params() covers JSON bodies, form-encoded bodies and query args alike.
+        // Decoding get_body() by hand accepted only the first, so a valid
+        // form-encoded request was rejected as an invalid payload.
+        $input = $request->get_params();
 
         if ( ! is_array( $input ) ) {
             return new WP_Error(

@@ -80,8 +80,7 @@ class AttendeeOrderEmail extends Mailable {
         $event      = $this->event;
 
         $post       = get_post( $event->id );
-        $location   = get_post_meta( $event->id, 'etn_event_location', true );
-        $address    = ! empty( $location['address'] ) ? $location['address'] : '';
+        $address    = $event->get_location_label();
 
         // Attendee details
         $attendee_name  = $this->attendee->etn_name;

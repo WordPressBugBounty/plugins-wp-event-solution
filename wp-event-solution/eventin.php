@@ -10,7 +10,7 @@ defined('ABSPATH') || exit;
  * Plugin Name:       Eventin
  * Plugin URI:        https://themewinter.com/eventin/
  * Description:       Simple and Easy to use Event Management Solution
- * Version:           4.1.25
+ * Version:           4.1.26
  * Author:            Themewinter
  * Author URI:        https://themewinter.com/
  * License:           GPL-2.0+
@@ -44,7 +44,7 @@ class Wpeventin
 	 * @var string The plugin version.
 	 */
 	public static function version() {
-		return "4.1.25";
+		return "4.1.26";
 	}
     /**
      * Initializes the Wpeventin() class
@@ -844,9 +844,73 @@ class Wpeventin
                             ],
                         ],
                     ],
+                    [
+                        // On-demand reminder, fired by the "Send Reminder to All
+                        // Attendees" button in the event list. Kept separate from
+                        // "Event Reminder Email" on purpose: that flow carries a
+                        // "before event start" delay, so reusing it would make the
+                        // click schedule instead of send, or duplicate the reminder
+                        // the attendee already got. See Eventin\Emails\ReminderAutomation.
+                        "trigger_label"            => "Send Reminder To All Attendees",        // Name of the event
+                        "trigger_value"            => \Eventin\Emails\ReminderAutomation::TRIGGER, // Event slug
+                        "trigger_data"             => [                                        // Data you have after the event happened
+                            [
+                                "label" => "Site Name",
+                                "value" => "site_name",
+                                "type"  => "string",
+                            ],
+                            [
+                                "label" => "Site Link",
+                                "value" => "site_link",
+                                "type"  => "string",
+                            ],
+                            [
+                                "label" => "Event Title",
+                                "value" => "event_title",
+                                "type"  => "string",
+                            ],
+                            [
+                                "label" => "Event Date",
+                                "value" => "event_date",
+                                "type"  => "date",
+                            ],
+                            [
+                                "label" => "Event Time",
+                                "value" => "event_time",
+                                "type"  => "string",
+                            ],
+                            [
+                                "label" => "Event Location",
+                                "value" => "event_location",
+                                "type"  => "string",
+                            ],
+                            [
+                                "label" => "Attendee Name",
+                                "value" => "attendee_name",
+                                "type"  => "string",
+                            ],
+                        ],
+                        "conditional_dependencies" => [ // Data you have after the event happened
+                            [
+                                "label" => "Event Title",
+                                "value" => "event_title",
+                                "type"  => "string",
+                            ],
+                        ],
+                        // No delay dependencies: this trigger exists so one click is
+                        // one immediate send. Offering a delay here would re-create
+                        // exactly the behaviour it was split off to avoid.
+                        "delay_dependencies"       => [],
+                        "email_receivers"          => [
+                            [
+                                "label" => "Attendee",
+                                "value" => "attendee_email",
+                            ],
+                        ],
+                    ],
                 ];
 
-                return $actions;
+                return \Etn\Core\Event\Helper::add_event_title_options($actions);
             });
         }
     }

@@ -13,6 +13,7 @@ use Error;
 use Eventin\AccessControl\Ownership;
 use Eventin\Event\EventExporter;
 use Eventin\Event\EventImporter;
+use Eventin\Event\EventLocation;
 use Etn\Core\Event\Event_Model;
 use Eventin\Event\MeetingPlatforms\MeetingPlatform;
 use Eventin\Input;
@@ -1698,9 +1699,15 @@ class EventController extends WP_REST_Controller {
             'funnel_kit'              => get_post_meta( $id, 'funnel_kit', true ),
             'funnel_kit_webhook'      => get_post_meta( $id, 'funnel_kit_webhook', true ),
             'funnel_kit_send_to'      => get_post_meta( $id, 'funnel_kit_send_to', true ) ?: [ 'purchaser', 'attendee' ],
+            'zapier'                  => get_post_meta( $id, 'zapier', true ),
+            'zapier_webhook'          => get_post_meta( $id, 'zapier_webhook', true ),
+            'zapier_send_to'          => self::zapier_send_to( $id ),
             'uncanny_automator'         => get_post_meta( $id, 'uncanny_automator', true ),
             'uncanny_automator_webhook' => get_post_meta( $id, 'uncanny_automator_webhook', true ),
             'uncanny_automator_send_to' => get_post_meta( $id, 'uncanny_automator_send_to', true ) ?: [ 'purchaser', 'attendee' ],
+            'hubspot'                 => get_post_meta( $id, 'hubspot', true ),
+            'hubspot_send_to'         => get_post_meta( $id, 'hubspot_send_to', true ) ?: [ 'purchaser', 'attendee' ],
+            'hubspot_track_event'     => get_post_meta( $id, 'hubspot_track_event', true ),
             'faq'                     => get_post_meta( $id, 'etn_event_faq', true ),
             'external_link'           => get_post_meta( $id, 'external_link', true ),
             'ticket_template'         => get_post_meta( $id, 'ticket_template', true ),
@@ -1772,7 +1779,7 @@ class EventController extends WP_REST_Controller {
      *
      * @return string[]
      */
-    private function management_only_fields() {
+    public static function management_only_fields() {
         $fields = [
             // CRM / automation integration config and webhook endpoints.
             'fluent_crm',
@@ -1788,6 +1795,12 @@ class EventController extends WP_REST_Controller {
             'mailpoet',
             'mailpoet_list_ids',
             'mailpoet_send_to',
+            'zapier',
+            'zapier_webhook',
+            'zapier_send_to',
+            'uncanny_automator',
+            'uncanny_automator_webhook',
+            'uncanny_automator_send_to',
 
             // Private join links. The public page renders these only to a
             // ticket holder, never in the event payload.
@@ -1830,11 +1843,100 @@ class EventController extends WP_REST_Controller {
             return $event_data;
         }
 
-        foreach ( $this->management_only_fields() as $field ) {
+        foreach ( self::management_only_fields() as $field ) {
             unset( $event_data[ $field ] );
         }
 
+        if ( isset( $event_data['location'] ) ) {
+            $event_data['location'] = self::strip_private_location( $event_data['location'] );
+        }
+
         return $event_data;
+    }
+
+    /**
+     * Remove the private join link from an event location.
+     *
+     * An online or hybrid event on the "Custom URL" meeting platform stores its
+     * join link inside the location: `custom_url`, or `online.custom_url` on
+     * older hybrid events. Public pages only show the platform label, built
+     * from `integration`, so the link is dropped and everything else is kept.
+     * Callers decide who is an outsider; this only edits the value.
+     *
+     * Events imported from CSV before 4.1.26 can hold the link inside
+     * `integration` or `address` instead (see EventLocation), so the value is
+     * repaired first and `integration` is cut back to the platform name.
+     *
+     * @param mixed $location Location array, or its serialized form from a raw meta dump.
+     *
+     * @return mixed
+     */
+    public static function strip_private_location( $location ) {
+        // Raw meta dumps (v1) pass the serialized string straight from the database.
+        $location = EventLocation::repair( maybe_unserialize( $location ) );
+
+        if ( ! is_array( $location ) ) {
+            return $location;
+        }
+
+        $location = self::strip_join_link( $location );
+
+        if ( isset( $location['online'] ) && is_array( $location['online'] ) ) {
+            $location['online'] = self::strip_join_link( $location['online'] );
+        }
+
+        return $location;
+    }
+
+    /**
+     * Drop `custom_url` and keep only the platform name in `integration`.
+     *
+     * @param array $location One level of a location array.
+     *
+     * @return array
+     */
+    private static function strip_join_link( array $location ) {
+        unset( $location['custom_url'] );
+
+        // A platform name is a slug such as `zoom` or `custom_url`; anything
+        // after it is data that does not belong there.
+        if ( isset( $location['integration'] ) && is_string( $location['integration'] ) ) {
+            $location['integration'] = preg_replace( '/[^a-z0-9_\-].*$/is', '', trim( $location['integration'] ) );
+        }
+
+        return $location;
+    }
+
+    /**
+     * Raw post meta keys behind the management-only fields.
+     *
+     * Most fields are stored under their own name. These few are renamed by
+     * prepare_item_for_response(), so a caller that dumps get_post_meta() — the
+     * legacy v1 route — needs the stored key as well.
+     *
+     * @return string[]
+     */
+    public static function management_only_meta_keys() {
+        $renamed = [
+            'zoom_event'              => 'etn_zoom_event',
+            'zoom_id'                 => 'etn_zoom_id',
+            'google_meet'             => 'etn_google_meet',
+            'google_meet_link'        => 'etn_google_meet_link',
+            'google_meet_description' => 'etn_google_meet_short_description',
+            'certificate_template'    => 'etn_event_certificate',
+        ];
+
+        $keys = [];
+
+        foreach ( self::management_only_fields() as $field ) {
+            $keys[] = $field;
+
+            if ( isset( $renamed[ $field ] ) ) {
+                $keys[] = $renamed[ $field ];
+            }
+        }
+
+        return $keys;
     }
 
     /**
@@ -2264,6 +2366,21 @@ class EventController extends WP_REST_Controller {
      * @param WP_REST_Request $request Request object.
      * @return WP_Error|object $prepared_item
      */
+    /**
+     * Constrain an integration on/off flag to the two values it is ever stored as.
+     *
+     * The event form sends these as the strings 'yes' or 'no'
+     * (see src/layouts/events/prepareBackendPayload.js). Anything else in the request
+     * body is not a toggle, so it is stored as 'no' rather than written through.
+     *
+     * @param   mixed  $value  Raw value from the request body.
+     *
+     * @return  string  'yes' or 'no'.
+     */
+    private function sanitize_toggle_meta( $value ) {
+        return ( is_string( $value ) && 'yes' === strtolower( trim( $value ) ) ) ? 'yes' : 'no';
+    }
+
     protected function prepare_item_for_database( $request ) {
         $input_data = is_a( $request, 'WP_REST_Request' ) ? json_decode( $request->get_body(), true ) : $request;
 		$validate   = etn_validate( $input_data, [
@@ -2459,8 +2576,25 @@ class EventController extends WP_REST_Controller {
             $event_data['mailpoet_send_to']  = array_values( array_intersect( $allowed, array_map( 'sanitize_key', $input_data['mailpoet_send_to'] ) ) );
         }
 
+        // These four are yes/no switches written straight to post meta. The
+        // *_send_to arrays beside them are already intersected against an allowlist;
+        // without the same treatment here any string in the request body was stored
+        // verbatim. sanitize_toggle_meta() keeps only 'yes' or 'no'.
         if ( isset( $input_data['funnel_kit'] ) ) {
-            $event_data['funnel_kit'] = $input_data['funnel_kit'];
+            $event_data['funnel_kit'] = $this->sanitize_toggle_meta( $input_data['funnel_kit'] );
+        }
+
+        if ( isset( $input_data['hubspot'] ) ) {
+            $event_data['hubspot'] = $this->sanitize_toggle_meta( $input_data['hubspot'] );
+        }
+
+        if ( isset( $input_data['hubspot_track_event'] ) ) {
+            $event_data['hubspot_track_event'] = $this->sanitize_toggle_meta( $input_data['hubspot_track_event'] );
+        }
+
+        if ( isset( $input_data['hubspot_send_to'] ) && is_array( $input_data['hubspot_send_to'] ) ) {
+            $allowed                       = [ 'purchaser', 'attendee' ];
+            $event_data['hubspot_send_to'] = array_values( array_intersect( $allowed, array_map( 'sanitize_key', $input_data['hubspot_send_to'] ) ) );
         }
 
         if ( isset( $input_data['funnel_kit_send_to'] ) && is_array( $input_data['funnel_kit_send_to'] ) ) {
@@ -2468,8 +2602,21 @@ class EventController extends WP_REST_Controller {
             $event_data['funnel_kit_send_to'] = array_values( array_intersect( $allowed, array_map( 'sanitize_key', $input_data['funnel_kit_send_to'] ) ) );
         }
 
+        // Server-side mirror of the UI gate: with the extension off the card is
+        // hidden, so a request still carrying these fields is not a normal save.
+        if ( self::zapier_enabled() ) {
+            if ( isset( $input_data['zapier'] ) ) {
+                $event_data['zapier'] = ( 'yes' === $input_data['zapier'] ) ? 'yes' : 'no';
+            }
+
+            if ( isset( $input_data['zapier_send_to'] ) && is_array( $input_data['zapier_send_to'] ) ) {
+                $allowed                      = [ 'purchaser', 'attendee' ];
+                $event_data['zapier_send_to'] = array_values( array_intersect( $allowed, array_map( 'sanitize_key', $input_data['zapier_send_to'] ) ) );
+            }
+        }
+
         if ( isset( $input_data['uncanny_automator'] ) ) {
-            $event_data['uncanny_automator'] = $input_data['uncanny_automator'];
+            $event_data['uncanny_automator'] = $this->sanitize_toggle_meta( $input_data['uncanny_automator'] );
         }
 
         if ( isset( $input_data['uncanny_automator_send_to'] ) && is_array( $input_data['uncanny_automator_send_to'] ) ) {
@@ -2549,6 +2696,10 @@ class EventController extends WP_REST_Controller {
 
         if ( isset( $input_data['funnel_kit_webhook'] ) ) {
             $event_data['funnel_kit_webhook'] = esc_url_raw( $input_data['funnel_kit_webhook'] );
+        }
+
+        if ( self::zapier_enabled() && isset( $input_data['zapier_webhook'] ) ) {
+            $event_data['zapier_webhook'] = self::sanitize_zapier_webhook( $input_data['zapier_webhook'] );
         }
 
         if ( isset( $input_data['uncanny_automator_webhook'] ) ) {
@@ -2706,6 +2857,63 @@ class EventController extends WP_REST_Controller {
         }
 		
         return $event_data;
+    }
+
+    /**
+     * Whether the Zapier extension is switched on.
+     *
+     * @return  bool
+     */
+    private static function zapier_enabled() {
+        $status = etn_get_option( 'zapier_api' );
+
+        return $status && 'off' !== $status;
+    }
+
+    /**
+     * Validate an outbound Zapier webhook URL.
+     *
+     * Whoever can edit an event picks where this server later POSTs purchaser
+     * and attendee data, and `etn_manage_event` reaches down to Author. So
+     * require https and let WordPress reject private and loopback hosts, the
+     * same class of fix applied to the FluentCRM webhook in 4.1.20.
+     *
+     * @param   mixed  $url
+     *
+     * @return  string  Empty string when the URL is unusable.
+     */
+    private static function sanitize_zapier_webhook( $url ) {
+        if ( ! is_string( $url ) ) {
+            return '';
+        }
+
+        $url = esc_url_raw( trim( $url ), [ 'https' ] );
+
+        if ( ! $url ) {
+            return '';
+        }
+
+        return wp_http_validate_url( $url ) ? $url : '';
+    }
+
+    /**
+     * Recipients for the Zapier payload.
+     *
+     * An empty array is a real choice - "send nothing" - so only fall back to
+     * both recipients when the key was never written.
+     *
+     * @param   int  $id
+     *
+     * @return  array
+     */
+    private static function zapier_send_to( $id ) {
+        if ( ! metadata_exists( 'post', $id, 'zapier_send_to' ) ) {
+            return [ 'purchaser', 'attendee' ];
+        }
+
+        $send_to = get_post_meta( $id, 'zapier_send_to', true );
+
+        return is_array( $send_to ) ? $send_to : [];
     }
 
     /**

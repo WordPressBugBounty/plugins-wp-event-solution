@@ -98,7 +98,16 @@ class Banner
     }
     private function init_banner($content, $instance, $inline_css)
     {
-    
+        // New styles: the banner server sends finished HTML. It is printed
+        // through wp_kses_post() by the Notice class, same as before.
+        if (!empty($content->data->html)) {
+            $instance->set_gutter(false)
+                     ->set_class(' wpmet-jhanda-float')
+                     ->set_html($content->data->html)
+                     ->call();
+            return;
+        }
+
         $html = '<a target="_blank" ' . $inline_css . ' class="wpmet-jhanda-href" href="' . $content->data->banner_link . '"><img style="display: block;margin: 0 auto;" src="' . $content->data->banner_image . '" /></a>';
         $instance->set_gutter(false)->set_html($html)->call();
     }

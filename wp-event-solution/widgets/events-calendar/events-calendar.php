@@ -708,7 +708,7 @@ class Etn_Events_Calendar extends Widget_Base {
             $orderby_meta       = null;
         }
 
-        $filter_with_status       = $settings['filter_with_status'];
+        $filter_with_status       = Helper::resolve_widget_status( $settings['filter_with_status'] );
 
 				$post_parent = Helper::show_parent_child( $show_parent_event , $show_child_event  );
 

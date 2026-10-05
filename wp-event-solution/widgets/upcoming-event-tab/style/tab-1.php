@@ -45,7 +45,7 @@ $i = 0;
 								$event_tag = $event_cats["etn_event_tag"];
 								$order     = (isset($event_cats["order"]) ? $event_cats["order"] : 'DESC');
 								$orderby   = $event_cats["orderby"];
-								$filter_with_status = $event_cats['filter_with_status'];
+								$filter_with_status = \Etn\Utils\Helper::resolve_widget_status( $event_cats['filter_with_status'] );
 
 								if ( $orderby == "etn_start_date" || $orderby == "etn_end_date" ) {
 										$orderby_meta       = "meta_value";

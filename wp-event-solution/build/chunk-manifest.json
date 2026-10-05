@@ -25,6 +25,7 @@
   "event-manager-admin": [],
   "index-ai-style": [],
   "feedback-modal-styles": [],
+  "admin-color-mode": [],
   "etn-block-styles": [],
   "index-calendar": [
     "js/vendor-rc.js",

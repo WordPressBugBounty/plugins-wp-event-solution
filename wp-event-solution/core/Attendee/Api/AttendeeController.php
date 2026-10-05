@@ -1118,7 +1118,7 @@ class AttendeeController extends WP_REST_Controller {
             'event_date_timestamp'   => $event_start_date_timestamp,
             'event_time'             => $event->get_start_time( etn_time_format() ),
             'booking_time_timestamp' => current_time( 'timestamp' ),
-            'event_location'         => $event->get_address(),
+            'event_location'         => $event->get_location_label(),
             'attendee_id'            => [ $attendee->id ],
             'attendee_email'         => [ $attendee->etn_email ],
             'event_id'               => $event->id,
@@ -1254,7 +1254,7 @@ class AttendeeController extends WP_REST_Controller {
             // Both timestamps so the flow's delay node can key off event start OR end.
             'event_start_date_timestamp' => $this->get_event_date_timestamp( $event->get_start_date(), $event->get_start_time( 'H:i' ) ),
             'event_end_date_timestamp'   => $this->get_event_date_timestamp( $event->get_end_date(), $event->get_end_time( 'H:i' ) ),
-            'event_location'             => $event->get_address(),
+            'event_location'             => $event->get_location_label(),
             'attendee_id'                => [ $attendee->id ],
             'attendee_email'             => [ $attendee->etn_email ],
             'event_id'                   => $event->id,

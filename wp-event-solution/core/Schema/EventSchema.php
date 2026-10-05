@@ -251,23 +251,39 @@ class EventSchema extends Schema {
      * @return object|null
      */
     protected function get_virtual_location( Event_Model $event ) {
-        $candidates = [
-            $event->meeting_link,
-            $event->etn_zoom_event,
-            $event->etn_google_meet,
-            $event->external_link,
-        ];
+        $type = $event->event_type;
 
-        foreach ( $candidates as $candidate ) {
-            if ( is_string( $candidate ) && filter_var( $candidate, FILTER_VALIDATE_URL ) ) {
-                return (object) [
-                    '@type' => 'VirtualLocation',
-                    'url'   => esc_url_raw( $candidate ),
-                ];
+        /**
+         * Whether to publish the real join link as the VirtualLocation URL.
+         *
+         * Off by default, and deliberately so: this markup goes into the page head of
+         * a public page, so emitting the Zoom/Meet/external URL handed the join link
+         * to anyone viewing source — no ticket required — and to every crawler that
+         * indexed the page. schema.org only requires *a* URL, so the event permalink
+         * below satisfies it without leaking paid access.
+         *
+         * A site running free online events can opt back in per event.
+         *
+         * @param bool        $expose Whether to emit the real meeting link.
+         * @param Event_Model $event  Event model.
+         */
+        if ( apply_filters( 'eventin_schema_expose_meeting_link', false, $event ) ) {
+            $candidates = [
+                $event->meeting_link,
+                $event->etn_zoom_event,
+                $event->etn_google_meet,
+                $event->external_link,
+            ];
+
+            foreach ( $candidates as $candidate ) {
+                if ( is_string( $candidate ) && filter_var( $candidate, FILTER_VALIDATE_URL ) ) {
+                    return (object) [
+                        '@type' => 'VirtualLocation',
+                        'url'   => esc_url_raw( $candidate ),
+                    ];
+                }
             }
         }
-
-        $type = $event->event_type;
 
         // Online events must carry a location; the event page is where the
         // visitor goes to join, so it is a truthful last resort.
@@ -390,7 +406,15 @@ class EventSchema extends Schema {
         $data = apply_filters( 'eventin_schema_event_data', $data, $args );
 
         $data = array_values( $data );
-        $json = wp_json_encode( 1 === count( $data ) ? reset( $data ) : $data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
+        // JSON_HEX_TAG escapes < and > so no value can close this <script> element,
+        // and JSON_HEX_AMP does the same for &. The built-in fields are all stripped
+        // of tags before they get here, but four public filters inject into this same
+        // blob, and so will the next field added. Search engines parse the escaped
+        // form identically, so this costs nothing.
+        $json = wp_json_encode(
+            1 === count( $data ) ? reset( $data ) : $data,
+            JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP
+        );
 
         if ( ! $json ) {
             return '';

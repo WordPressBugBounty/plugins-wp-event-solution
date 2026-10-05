@@ -120,6 +120,25 @@ class EnsHooks {
 
             return $this->replace_attendee_placeholders( $this->get_certificate_email_content() );
         }
+        elseif($action_name == ReminderAutomation::TRIGGER && $receiver_type == 'attendee_email') {
+            // On-demand reminder. Same rendering as the scheduled reminder above —
+            // it is the same email, only the moment it is sent differs.
+            $this->email_body = $message;
+
+            if(empty($action_data['attendee_id'])) {
+                $action_data['attendee_id'] = $this->get_to_attendee_ids($action_data);
+            }
+
+            if(isset($action_data['attendee_id']) && !empty($action_data['attendee_id']) && !empty($action_data['attendee_id'][$count])) {
+                $this->attendee = new \Etn\Core\Attendee\Attendee_Model( $action_data['attendee_id'][$count] );
+            }
+
+            if(isset($action_data['event_id']) && !empty($action_data['event_id'])) {
+                $this->event = new \Etn\Core\Event\Event_Model( $action_data['event_id'] );
+            }
+
+            return $this->replace_attendee_placeholders( $this->get_content_for_attendee_reminder_email() );
+        }
         elseif($action_name == 'send_email_to_all_attendees' && $receiver_type == 'attendee_email') {
             $this->email_body = $message;
 
@@ -191,7 +210,7 @@ class EnsHooks {
     }
 
     public function get_to_attendee_emails( $to_emails, $action_data, $action_name ) {
-        if($action_name == 'event_reminder_email' || $action_name == 'send_email_to_all_attendees' || $action_name == 'send_certificate') {
+        if($action_name == 'event_reminder_email' || $action_name == 'send_email_to_all_attendees' || $action_name == 'send_certificate' || $action_name == ReminderAutomation::TRIGGER) {
             // Honor an explicitly targeted recipient list. The per-attendee
             // "Send Certificate" action passes a single attendee_email, so send
             // to only that attendee instead of re-querying every success

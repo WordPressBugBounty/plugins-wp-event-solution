@@ -19,6 +19,7 @@ class WebhookIntegration implements HookableInterface {
         FluentCRM::class,
         MailMint::class,
         MailPoet::class,
+        Zapier::class,
     ];
 
     /**

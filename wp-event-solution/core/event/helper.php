@@ -19,20 +19,15 @@ class Helper {
 		$symbol = class_exists('WooCommerce') ? get_woocommerce_currency_symbol() : '$';
 	
 		$settings = \Etn\Utils\Helper::get_settings();
-		$currency = $settings['etn_settings_country_currency'] ?? '$';
-	
+
 		if (!empty($settings['sell_tickets']) && $settings['sell_tickets'] === 'woocommerce') {
 			return $symbol;
 		}
 	
-		if (
-			(!empty($settings['etn_sells_engine_stripe']) && $settings['etn_sells_engine_stripe'] === 'stripe') ||
-			(!empty($settings['paypal_status']) && $settings['paypal_status'] === true)
-		) {
-			return etn_get_currency_symbol($currency);
-		}
-	
-		return $symbol;
+		// Use the same symbol as the rest of the site (ticket form, order list, order details).
+		// The old check needed paypal_status === true, but it is saved as "1", so PayPal
+		// sites fell back to the WooCommerce symbol ($).
+		return etn_currency_symbol();
 	}
 
 	/**
@@ -43,8 +38,6 @@ class Helper {
 	 * @return string Formatted price with currency symbol
 	 */
 	public function currency_with_position( $price, $order = null ) {
-		$payment_method = $order->payment_method ?? '';
-
 		$currency_symbol = $this->get_currency();
 
 		$currency_position = 'left';
@@ -52,10 +45,12 @@ class Helper {
 			$currency_position = get_option( 'woocommerce_currency_pos', 'left' );
 		}
 
-		// If order is provided and has currency_symbol meta, use it
-		// This ensures the correct currency is used for orders paid via SureCart or other gateways
-		if ( $payment_method == 'sure_cart' || $payment_method == 'fluentcart' ) {
-			$currency_symbol = get_post_meta( $order->id, 'currency_symbol', true );
+		// Use the symbol saved on the order when it was paid (every gateway saves one).
+		// The gateway that is on today can be a different one: a WooCommerce order paid
+		// in $ must not show £ just because the site later switched to PayPal.
+		$order_id = $order->id ?? 0;
+		if ( $order_id ) {
+			$currency_symbol = etn_order_currency_symbol( $order_id );
 		}
 
 		if ( $currency_position === 'left_space' ) {
@@ -362,6 +357,53 @@ class Helper {
 		}
 
 		return $timestamp;
+	}
+
+	/**
+	 * Give every "Event Title" condition a list of event names.
+	 *
+	 * The Automation Builder shows them as suggestions under the Value box,
+	 * so the admin can pick an event instead of typing its name.
+	 *
+	 * @param array $actions Automation triggers.
+	 *
+	 * @return array
+	 */
+	public static function add_event_title_options( $actions ) {
+		$events = get_posts( [
+			'post_type'              => 'etn',
+			'post_status'            => [ 'publish', 'future', 'private' ],
+			'post_parent'            => 0, // Recurring child events have the same title as their parent.
+			'post__not_in'           => \Eventin\PreviewPlaceholder\PreviewPlaceholder::excluded_post_ids(),
+			'posts_per_page'         => -1,
+			'orderby'                => 'title',
+			'order'                  => 'ASC',
+			'no_found_rows'          => true,
+			'update_post_meta_cache' => false,
+			'update_post_term_cache' => false,
+		] );
+
+		$titles = array_unique( array_filter( wp_list_pluck( $events, 'post_title' ) ) );
+
+		$options = array_map( function ( $title ) {
+			return [ 'label' => $title, 'value' => $title ];
+		}, array_values( $titles ) );
+
+		foreach ( $actions as &$action ) {
+			if ( empty( $action['conditional_dependencies'] ) ) {
+				continue;
+			}
+
+			foreach ( $action['conditional_dependencies'] as &$condition ) {
+				if ( 'event_title' === ( $condition['value'] ?? '' ) ) {
+					$condition['options'] = $options;
+				}
+			}
+			unset( $condition );
+		}
+		unset( $action );
+
+		return $actions;
 	}
 
 }

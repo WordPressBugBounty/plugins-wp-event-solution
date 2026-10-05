@@ -364,7 +364,7 @@ class Notice
     public static function init()
     {
         add_action('wp_ajax_wpmet-notices', array(__CLASS__, 'dismiss_ajax_call'));
-        add_action('admin_head', array(__CLASS__, 'enqueue_scripts'));
+        add_action('admin_enqueue_scripts', array(__CLASS__, 'enqueue_scripts'));
     }
     public static function dismiss_ajax_call()
     {
@@ -390,9 +390,59 @@ class Notice
     }
     public static function enqueue_scripts()
     {
-        echo '
-            <script>
+        /* No file to load. An empty handle carries the inline code. */
+        wp_register_script('wpmet-notices', false, array('jquery'), '1.0.0', true);
+        wp_enqueue_script('wpmet-notices');
+        wp_add_inline_script('wpmet-notices', '
             jQuery(document).ready(function ($) {
+                /* Show each banner-server popup when it is time:
+                   data-nb-delay  = wait this many seconds,
+                   data-nb-scroll = wait until this % of the page is scrolled.
+                   When both are set, wait for both. When neither is set,
+                   show right away. The animation comes from the CSS. */
+                $("[data-nb-popup]").each(function () {
+                    var box      = this;
+                    var delay    = parseInt(box.getAttribute("data-nb-delay"), 10) || 0;
+                    var scroll   = parseInt(box.getAttribute("data-nb-scroll"), 10) || 0;
+                    var timeOk   = delay <= 0;
+                    var scrollOk = scroll <= 0;
+
+                    function tryShow() {
+                        if (timeOk && scrollOk) {
+                            box.classList.add("nb-show");
+                        }
+                    }
+
+                    function scrolledPercent() {
+                        var room = document.documentElement.scrollHeight - window.innerHeight;
+                        /* A page too short to scroll counts as fully scrolled. */
+                        return room <= 0 ? 100 : (window.scrollY / room) * 100;
+                    }
+
+                    function onScroll() {
+                        if (scrolledPercent() >= scroll) {
+                            scrollOk = true;
+                            window.removeEventListener("scroll", onScroll);
+                            tryShow();
+                        }
+                    }
+
+                    if (!timeOk) {
+                        setTimeout(function () { timeOk = true; tryShow(); }, delay * 1000);
+                    }
+
+                    if (!scrollOk) {
+                        window.addEventListener("scroll", onScroll, { passive: true });
+                    }
+
+                    /* Wait one frame, so the browser draws the hidden state
+                       first and the fade-in really plays. */
+                    requestAnimationFrame(function () {
+                        if (!scrollOk) { onScroll(); }
+                        tryShow();
+                    });
+                });
+
                 $(".wpmet-notice.is-dismissible").on("click", ".notice-dismiss", function () {
                             
                     let _this          = $(this).parents(".wpmet-notice").eq(0);
@@ -414,9 +464,41 @@ class Notice
                     });
                 });
             });
-            </script>
+        ');
 
-            <style>
+        wp_register_style('wpmet-notices', false, array(), '1.0.0');
+        wp_enqueue_style('wpmet-notices');
+        wp_add_inline_style('wpmet-notices', '
+            /* Floating banner from the banner server. The banner itself is
+               position:fixed, so hide the empty notice bar around it. */
+            .wpmet-notice.wpmet-jhanda-float {
+                background: transparent !important;
+                border: 0 !important;
+                box-shadow: none !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                display: block !important;
+            }
+            .wpmet-notice.wpmet-jhanda-float > .notice-dismiss { display: none !important; }
+            .wpmet-notice.wpmet-jhanda-float > div[style*="clear"] { display: none !important; }
+            /* The close mark inside the banner draws its own cross. Turn off
+               the WordPress core icon, position and padding. */
+            .wpmet-jhanda-float .notice-dismiss:before { content: none !important; }
+            .wpmet-jhanda-float .notice-dismiss { position: static; padding: 0; margin: 0; top: auto; right: auto; }
+            /* Popups from the banner server start hidden, then fade and rise
+               in. The script below adds nb-show when it is time. */
+            [data-nb-popup] {
+                opacity: 0;
+                visibility: hidden;
+                transform: translateY(14px);
+                transition: opacity .45s ease-out, transform .45s ease-out, visibility 0s linear .45s;
+            }
+            [data-nb-popup].nb-show {
+                opacity: 1;
+                visibility: visible;
+                transform: none;
+                transition: opacity .45s ease-out, transform .45s ease-out, visibility 0s;
+            }
             .wpmet-notice {
                 margin-bottom: 15px;
                 padding: 0 !important;
@@ -480,8 +562,7 @@ class Notice
                 color: #1d2327;
                 font-size: 1.2rem;
             }
-            </style>
-            ';
+        ');
     }
     private static $instance;
     /**

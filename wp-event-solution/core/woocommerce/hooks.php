@@ -875,19 +875,46 @@ class Hooks {
         }
 
 		// Redirect to Eventin  thank you page
-		$url = '';
-		
-		if ( $wc_order && in_array( $wc_order->get_status(), $statuses ) ) {
-			$url = 'eventin-purchase/checkout/#/success';
-		} elseif( 'on-hold' === $wc_order->get_status() ) {
-			$url = '/eventin-purchase/checkout/#/hold';
-		}else {
-			$url = 'eventin-purchase/checkout/#/failed';
-		}
-		
-		wp_redirect( site_url( $url ) );
+		wp_redirect( site_url( $this->get_thankyou_redirect_path( $wc_order ) ) );
 		exit();
 	}
+
+    /**
+     * Pick the Eventin page the buyer lands on after the WooCommerce thank-you page.
+     *
+     * Only a WooCommerce order that is really "failed" or "cancelled" goes to the
+     * failed page. Stripe, WooPayments, PayPal Payments and similar gateways often
+     * send the buyer here before their webhook marks the order paid, so the order is
+     * still "pending" although the money is taken. Showing "Your last payment was
+     * unsuccessful — Try Again" at that moment made buyers pay twice. Those orders go
+     * to the success page, which shows "processing" until the order is completed by
+     * eventin_payment_complete() / eventin_order_update().
+     *
+     * @param   \WC_Order|false  $wc_order  WooCommerce order.
+     *
+     * @return  string  Path relative to the site URL.
+     */
+    private function get_thankyou_redirect_path( $wc_order ) {
+        if ( ! $wc_order ) {
+            return 'eventin-purchase/checkout/#/failed';
+        }
+
+        $wc_status = $wc_order->get_status();
+
+        if ( in_array( $wc_status, (array) etn_get_wc_order_statuses(), true ) ) {
+            return 'eventin-purchase/checkout/#/success';
+        }
+
+        if ( 'on-hold' === $wc_status ) {
+            return 'eventin-purchase/checkout/#/hold';
+        }
+
+        if ( in_array( $wc_status, [ 'failed', 'cancelled' ], true ) ) {
+            return 'eventin-purchase/checkout/#/failed';
+        }
+
+        return 'eventin-purchase/checkout/#/success';
+    }
  
     /**
      * Include Additional Ticket Variation Data
@@ -1677,6 +1704,8 @@ class Hooks {
             $sold_tickets   = $event_id ? (array)Helper::etn_get_sold_tickets_by_event( $event_id ) : [];
             $event_name = get_the_title( $event_id );
             $ticket_variations = !empty( get_post_meta( $event_id, "etn_ticket_variations", true ) ) ? get_post_meta( $event_id, "etn_ticket_variations", true ) : [];
+            $global_remaining  = $this->get_global_stock_remaining( $event_id );
+            $global_picked_qty = 0;
 
             if ( !WC()->cart->is_empty() ) {
                 $cart_contents = WC()->cart->get_cart();
@@ -1688,6 +1717,10 @@ class Hooks {
                         foreach ( $picked_ticket_variations as $picked_index => $picked_ticket_variation ) {
                             $variation_picked_qty   = absint( $picked_ticket_variation['etn_ticket_qty'] );
                             $variation_picked_slug  = $picked_ticket_variation['etn_ticket_slug'];
+
+                            if ( absint( $cart_data['event_id'] ?? $cart_data['product_id'] ?? 0 ) === absint( $event_id ) ) {
+                                $global_picked_qty += $variation_picked_qty;
+                            }
 
                             if ( !isset( $cart_picked_data[ $event_id ][ $variation_picked_slug ]['variation_total_picked_qty'] ) ) {
                                 $cart_picked_data[ $event_id ][ $variation_picked_slug ]['variation_total_picked_qty'] = $variation_picked_qty;
@@ -1709,9 +1742,12 @@ class Hooks {
                         $ticket_index = $this->search_array_by_value( $ticket_variations, $post_contents['ticket_slug'][ $quantity_index ] );
                         if ( isset( $ticket_variations[ $ticket_index ] ) ) {
                             $error_cat = [];
+                            $global_picked_qty += absint( $variation_picked_qty );
 
                             $raw_available      = $ticket_variations[ $ticket_index ]['etn_avaiilable_tickets'];
-                            $is_unlimited       = ! empty( $ticket_variations[ $ticket_index ]['etn_unlimited_tickets'] ) || intval( $raw_available ) === -1;
+                            // Global Capacity owns the limit; the per-ticket number is hidden
+                            // in the admin form and checked against the shared pool below.
+                            $is_unlimited       = null !== $global_remaining || ! empty( $ticket_variations[ $ticket_index ]['etn_unlimited_tickets'] ) || intval( $raw_available ) === -1;
                             $total_tickets      = $is_unlimited ? PHP_INT_MAX : absint( $raw_available );
                             $etn_sold_tickets   = $sold_tickets[$post_contents['ticket_slug'][ $quantity_index ]] ?? 0;
                             $remaining_ticket   = $is_unlimited ? PHP_INT_MAX : ( $total_tickets - $etn_sold_tickets );
@@ -1790,6 +1826,11 @@ class Hooks {
                 }
             }
 
+            // Only when this request picked tickets; an empty pick checks nothing above either.
+            if ( null !== $global_remaining && ! empty( $post_contents['ticket_quantity'] ) && $global_picked_qty > $global_remaining ) {
+                $error_messages[] = $this->global_stock_error_message( $event_name, $global_remaining, $global_picked_qty );
+            }
+
             $cart_item_quantities = WC()->cart->get_cart_item_quantities();
             if ( is_array( $cart_item_quantities ) && !empty( $cart_item_quantities ) ) {
                 if ( array_key_exists( $product_id, $cart_item_quantities ) ) {
@@ -1854,6 +1895,11 @@ class Hooks {
                     if ( !isset( $events_data[ $event_id ] ) ) {
                         $variations                             = !empty( get_post_meta( $event_id, "etn_ticket_variations", true ) ) ? get_post_meta( $event_id, "etn_ticket_variations", true ) : [];
                         $events_data[ $event_id ]['variations'] = $variations;
+                        // Counted from completed orders. The etn_sold_tickets number saved
+                        // on each ticket can stay too high (e.g. after a cancelled order).
+                        $events_data[ $event_id ]['sold']             = (array) Helper::etn_get_sold_tickets_by_event( $event_id );
+                        $events_data[ $event_id ]['global_remaining'] = $this->get_global_stock_remaining( $event_id );
+                        $events_data[ $event_id ]['global_picked']    = 0;
                     }
                     // check if event is expired
                     $deadline_expired =  \Etn\Core\Event\Helper::instance()->event_registration_deadline( array('single_event_id' => $event_id ) );
@@ -1882,10 +1928,17 @@ class Hooks {
                                 } else {
                                     $cart_picked_data[ $event_id ][ $ticket_index ]['variation_total_picked_qty'] += $variation_picked_qty;
                                 }
+                                $is_global_stock    = null !== $events_data[ $event_id ]['global_remaining'];
+                                if ( $is_global_stock ) {
+                                    $events_data[ $event_id ]['global_picked'] += $variation_picked_qty;
+                                }
+
                                 $raw_available      = $ticket_variations[ $ticket_index ]['etn_avaiilable_tickets'];
-                                $is_unlimited       = ! empty( $ticket_variations[ $ticket_index ]['etn_unlimited_tickets'] ) || intval( $raw_available ) === -1;
+                                // Global Capacity owns the limit; the per-ticket number is hidden
+                                // in the admin form and checked against the shared pool below.
+                                $is_unlimited       = $is_global_stock || ! empty( $ticket_variations[ $ticket_index ]['etn_unlimited_tickets'] ) || intval( $raw_available ) === -1;
                                 $total_tickets      = $is_unlimited ? PHP_INT_MAX : ( ! empty( $raw_available ) ? absint( $raw_available ) : 100000 );
-                                $etn_sold_tickets   = absint( $ticket_variations[ $ticket_index ]['etn_sold_tickets'] );
+                                $etn_sold_tickets   = absint( $events_data[ $event_id ]['sold'][ $item_variation['etn_ticket_slug'] ] ?? 0 );
                                 $remaining_ticket   = $is_unlimited ? PHP_INT_MAX : ( $total_tickets - $etn_sold_tickets );
 
                                 $etn_min_ticket     = ! empty( $ticket_variations[ $ticket_index ]['etn_min_ticket'] ) ? absint( $ticket_variations[ $ticket_index ]['etn_min_ticket'] ) : 0;
@@ -1955,9 +2008,57 @@ class Hooks {
                     }
                 }
             }
+
+            foreach ( $events_data as $event_id => $event_data ) {
+                if ( null !== $event_data['global_remaining'] && $event_data['global_picked'] > $event_data['global_remaining'] ) {
+                    $error_messages[] = $this->global_stock_error_message( get_the_title( $event_id ), $event_data['global_remaining'], $event_data['global_picked'] );
+                }
+            }
         }
 
         return $error_messages;
+    }
+
+    /**
+     * Seats left in an event's shared pool (Global Capacity).
+     *
+     * Ticket holds ("pending") are not subtracted: the buyer's own tickets are one of
+     * those holds while they sit on the checkout page, so subtracting them would refuse
+     * the last seats to the person holding them. Holds were already checked when the
+     * Eventin order was created (etn_validate_event_tickets()).
+     *
+     * @param   integer  $event_id  Event id.
+     *
+     * @return  integer|null  Seats left, or null when the event does not use Global Capacity.
+     */
+    private function get_global_stock_remaining( $event_id ) {
+        if ( ! rest_sanitize_boolean( get_post_meta( $event_id, 'etn_enable_global_stock', true ) ) ) {
+            return null;
+        }
+
+        $capacity   = intval( get_post_meta( $event_id, 'etn_global_stock', true ) );
+        $total_sold = array_sum( array_map( 'intval', (array) Helper::etn_get_sold_tickets_by_event( $event_id ) ) );
+
+        return max( 0, $capacity - $total_sold );
+    }
+
+    /**
+     * Error shown when the cart asks for more tickets than the shared pool has left.
+     *
+     * @param   string   $event_name  Event title.
+     * @param   integer  $remaining   Seats left in the pool.
+     * @param   integer  $picked      Tickets in the cart for this event.
+     *
+     * @return  string
+     */
+    private function global_stock_error_message( $event_name, $remaining, $picked ) {
+        return sprintf(
+            /* translators: 1: event name, 2: tickets left for the event, 3: tickets in the cart. */
+            esc_html__( 'Sorry, event "%1$s" has only %2$d ticket(s) left. You attempted to add %3$d ticket(s) to the cart.', 'eventin' ),
+            esc_html( $event_name ),
+            $remaining,
+            $picked
+        );
     }
 
      /**
@@ -2859,19 +2960,61 @@ class Hooks {
             return false;
         }
 
-        $settings = Helper::get_settings();
-        $etn_show_woo_billing_info = isset( $settings['etn_show_woo_billing_info'] ) && !empty( $settings['etn_show_woo_billing_info'] ) ? $settings['etn_show_woo_billing_info'] : '';
+        // `the_content` and `woocommerce_cart_needs_shipping` both fire on ordinary
+        // page views, so this runs far more often than checkout does. Read the
+        // settings once per request instead of on every call.
+        static $etn_show_woo_billing_info = null;
+
+        if ( null === $etn_show_woo_billing_info ) {
+            $settings                  = Helper::get_settings();
+            $etn_show_woo_billing_info = ! empty( $settings['etn_show_woo_billing_info'] )
+                ? $settings['etn_show_woo_billing_info']
+                : '';
+        }
 
         if ( $etn_show_woo_billing_info ) {
             return false;
         }
 
-        if ( ! WC()->session ) {
-            WC()->session = new \WC_Session_Handler();
-            WC()->session->init();
+        // Never instantiate a session here. Creating one sets a cookie for anonymous
+        // visitors on any page this filter touches, which defeats full-page caching.
+        // A real ticket buyer always has a session by the time they reach checkout.
+        if ( ! WC()->session || ! WC()->session->get( 'event_order_id' ) ) {
+            return false;
         }
 
-        return (bool) WC()->session->get( 'event_order_id' );
+        return $this->cart_has_only_eventin_tickets();
+    }
+
+    /**
+     * Whether every line in the current cart is an Eventin ticket.
+     *
+     * `event_order_id` only records that this session once started a ticket order —
+     * it says nothing about what is in the cart now. Suppressing on the session flag
+     * alone stripped shipping and the shipping address from a mixed cart, so a ticket
+     * plus a physical product shipped free and collected no delivery address.
+     *
+     * @return  bool
+     */
+    private function cart_has_only_eventin_tickets() {
+        $cart = WC()->cart;
+
+        if ( ! $cart || $cart->is_empty() ) {
+            return false;
+        }
+
+        foreach ( $cart->get_cart() as $cart_item ) {
+            $product = isset( $cart_item['data'] ) ? $cart_item['data'] : null;
+
+            $is_ticket = ( $product instanceof \WC_Product && 'etn' === $product->get_type() )
+                || ! empty( $cart_item['etn_ticket_variations'] );
+
+            if ( ! $is_ticket ) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -2975,6 +3118,20 @@ class Hooks {
             ! has_block( 'woocommerce/checkout' ) ||
             ! $this->should_hide_woo_checkout_fields()
         ) {
+            return $content;
+        }
+
+        /**
+         * Swapping the page for the classic shortcode discards every other block the
+         * merchant placed on it — express payment, order notes, custom fields. That is
+         * an acceptable trade only because `should_hide_woo_checkout_fields()` now
+         * restricts this to carts that are exclusively Eventin tickets, where Eventin
+         * owns the checkout anyway. A merchant who has customised the block checkout
+         * can return false here and keep their own layout.
+         *
+         * @param bool $force Whether to replace the block checkout with the shortcode.
+         */
+        if ( ! apply_filters( 'eventin_force_classic_checkout', true ) ) {
             return $content;
         }
 

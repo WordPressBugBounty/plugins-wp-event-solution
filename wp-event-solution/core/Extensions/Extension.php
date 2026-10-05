@@ -9,12 +9,38 @@ namespace Eventin\Extensions;
 
 defined( 'ABSPATH' ) || exit;
 
+use Eventin\Integrations\HubSpot\EventDefinition;
+use Eventin\Integrations\HubSpot\HubSpotClient;
 use Eventin\Integrations\Zoom\Zoom;
 
 /**
  * Class extention
  */
 class Extension {
+
+    /**
+     * Modules that ship enabled as soon as Eventin Pro is active.
+     *
+     * @var array
+     */
+    const PRO_DEFAULT_MODULES = [ 'rsvp' ];
+
+    /**
+     * Resolve an integration card's on/off status from its option.
+     *
+     * The option holds 'on', 'off' or nothing at all, and "not set yet" means off.
+     * Reading it once here also avoids the two etn_get_option() calls per card that
+     * the inline ternary form needs.
+     *
+     * @param   string  $option  Option name, e.g. 'hubspot_api'.
+     *
+     * @return  string  'on' or 'off'.
+     */
+    private static function card_status( $option ) {
+        $status = etn_get_option( $option );
+
+        return ( $status && 'off' !== $status ) ? 'on' : 'off';
+    }
 
     /**
      * Get all modules
@@ -251,13 +277,6 @@ class Extension {
 
         update_option( 'etn_addons_options', $addons_options );
     }
-
-    /**
-     * Modules that ship enabled as soon as Eventin Pro is active.
-     *
-     * @var array
-     */
-    const PRO_DEFAULT_MODULES = ['rsvp'];
 
     /**
      * Seed the modules that are enabled by default once Eventin Pro is active.
@@ -648,6 +667,8 @@ class Extension {
      * @return  array
      */
     private static function extensions() {
+        $zapier_status = etn_get_option( 'zapier_api' );
+
         $extensions = [
             'dokan' => [
                 'name'          => 'dokan',
@@ -1052,11 +1073,61 @@ class Extension {
                 'settings_link' => '',
                 'doc_link'      => 'https://themewinter.com/docs/plugins/plugin-docs/integration/how-to-integrate-zoho-crm-with-eventin/',
             ],
+            'hubspot' => [
+                'name'          => 'hubspot',
+                'slug'          => 'hubspot',
+                'type'          => 'integration',
+                'status'        => self::card_status( 'hubspot_api' ),
+                'is_pro'        => true,
+                // Intentionally no `deps`: HubSpot is a hosted CRM reached with a
+                // private app token, so no companion WordPress plugin is involved
+                // (HubSpot's own "leadin" plugin is unrelated to this integration).
+                // A non-empty `deps` would also make the card's status track that
+                // plugin instead of the user's toggle, so `hubspot_api` — which the
+                // dispatcher gates on — would never be written. Same shape and same
+                // reason as Zoho CRM and Uncanny Automator above.
+                'deps'          => [],
+                'title'         => __('HubSpot', 'eventin'),
+                'description'   => __('Sync ticket purchasers and attendees to HubSpot contacts with Eventin properties, and log a ticket purchase on the contact timeline. Requires Eventin Pro.', 'eventin'),
+                'icon'          => ExtensionIcon::get('hubspot'),
+                'notice'        => class_exists( 'Wpeventin_Pro' )
+                    ? ''
+                    : __( 'NB: Requires Eventin Pro', 'eventin' ),
+                'demo_link'     => 'https://www.hubspot.com/products/crm',
+                'settings_link' => '',
+                'doc_link'      => 'https://themewinter.com/docs/plugins/plugin-docs/integration/how-to-integrate-hubspot-with-eventin/',
+                'data'          => [
+                    // Never the token itself — this payload is readable by anyone
+                    // with `etn_manage_addons`, and the token is a CRM write
+                    // credential. The modal renders from the flag and the hint.
+                    'hubspot_connected'             => HubSpotClient::has_token(),
+                    'hubspot_token_hint'            => HubSpotClient::mask_token( HubSpotClient::get_token() ),
+                    'hubspot_custom_events_support' => EventDefinition::get_support_flag(),
+                ],
+                'badge_tags'    => ['Pro', 'New'],
+            ],
+            'zapier' => [
+                'name'          => 'zapier',
+                'slug'          => 'zapier',
+                'type'          => 'integration',
+                'status'        => ( $zapier_status && 'off' !== $zapier_status ) ? 'on' : 'off',
+                'is_pro'        => true,
+                'deps'          => [],
+                'title'         => __( 'Zapier', 'eventin' ),
+                'description'   => __( 'Send purchaser and attendee data to a Zapier Catch Hook on order create and automate workflows with thousands of apps.', 'eventin' ),
+                'icon'          => ExtensionIcon::get('zapier'),
+                'notice'        => class_exists( 'Wpeventin_Pro' )
+                    ? ''
+                    : __( 'NB: Requires Eventin Pro', 'eventin' ),
+                'demo_link'     => 'https://zapier.com/apps/webhook/integrations',
+                'settings_link' => '',
+                'doc_link'      => 'https://themewinter.com/docs/plugins/plugin-docs/integration/how-to-integrate-zapier-with-eventin/',
+            ],
             'uncanny_automator' => [
                 'name'          => 'uncanny_automator',
                 'slug'          => 'uncanny-automator',
                 'type'          => 'integration',
-                'status'        => ( etn_get_option('uncanny_automator_api') && etn_get_option('uncanny_automator_api') !== 'off' ) ? 'on' : 'off',
+                'status'        => self::card_status( 'uncanny_automator_api' ),
                 'is_pro'        => true,
                 // Intentionally no `deps`: a declared dependency makes the card's
                 // status track the dependency plugin instead of the user's toggle,
@@ -1072,6 +1143,45 @@ class Extension {
                 'demo_link'     => 'https://automatorplugin.com/',
                 'settings_link' => '',
                 'doc_link'      => 'https://themewinter.com/docs/plugins/plugin-docs/integration/how-to-integrate-uncanny-automator-with-eventin/',
+                'badge_tags'    => ['Pro'],
+            ],
+            'rank_math' => [
+                'name'          => 'rank_math',
+                'slug'          => 'seo-by-rank-math',
+                'type'          => 'integration',
+                'status'        => ( etn_get_option('rank_math_api') && etn_get_option('rank_math_api') !== 'off' ) ? 'on' : 'off',
+                'is_pro'        => true,
+                // No `deps` on purpose: get() overwrites an integration's status
+                // with the dep plugin's state, so the toggle would never be stored.
+                'deps'          => [],
+                'title'         => __('Rank Math SEO', 'eventin'),
+                'description'   => __('Show the Rank Math SEO score and analysis inside the event editor, and save it to the same data Rank Math reads. Requires Eventin Pro.', 'eventin'),
+                'icon'          => ExtensionIcon::get('rank_math'),
+                'notice'        => ( class_exists( 'Wpeventin_Pro' ) && PluginManager::is_activated( 'seo-by-rank-math' ) )
+                    ? ''
+                    : __( 'NB: Requires Eventin Pro and the Rank Math SEO plugin.', 'eventin' ),
+                'demo_link'     => 'https://rankmath.com/',
+                'settings_link' => '',
+                'doc_link'      => 'https://themewinter.com/docs/plugins/plugin-docs/integration/how-to-integrate-seo-plugins/',
+                'badge_tags'    => ['Pro'],
+            ],
+            'yoast' => [
+                'name'          => 'yoast',
+                'slug'          => 'wordpress-seo',
+                'type'          => 'integration',
+                'status'        => ( etn_get_option('yoast_api') && etn_get_option('yoast_api') !== 'off' ) ? 'on' : 'off',
+                'is_pro'        => true,
+                // Empty for the same reason as Rank Math: see above.
+                'deps'          => [],
+                'title'         => __('Yoast SEO', 'eventin'),
+                'description'   => __('Show the Yoast SEO score and analysis inside the event editor, and save it to the same data Yoast reads. Requires Eventin Pro.', 'eventin'),
+                'icon'          => ExtensionIcon::get('yoast'),
+                'notice'        => ( class_exists( 'Wpeventin_Pro' ) && PluginManager::is_activated( 'wordpress-seo' ) )
+                    ? ''
+                    : __( 'NB: Requires Eventin Pro and the Yoast SEO plugin.', 'eventin' ),
+                'demo_link'     => 'https://yoast.com/',
+                'settings_link' => '',
+                'doc_link'      => 'https://themewinter.com/docs/plugins/plugin-docs/integration/how-to-integrate-seo-plugins/',
                 'badge_tags'    => ['Pro'],
             ],
             'stripe' => [

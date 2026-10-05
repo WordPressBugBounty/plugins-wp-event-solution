@@ -79,8 +79,7 @@ class AdminRsvpEmail extends Mailable {
         $event      = $this->event;
 
         $post       = get_post( $event->id );
-        $location   = get_post_meta( $event->id, 'etn_event_location', true );
-        $address    = ! empty( $location['address'] ) ? $location['address'] : '';
+        $address    = $event->get_location_label();
 
         // Format date and time according to WordPress settings
         $date_format     = get_option( 'date_format' );

@@ -34,6 +34,22 @@ class PreviewEventFormatter {
             $is_demo  = true;
         }
 
+        // Both callers converge here, and only one of them was checked upstream: the
+        // demo branch above resolves an id out of template meta *after* the controller
+        // has validated its arguments, so pointing a template's preview event at a
+        // draft read that draft straight through. Re-check at the single point every
+        // path passes. An unreadable event degrades to the empty shape the editor
+        // already renders when a template has no preview event selected.
+        if ( $event_id && ! self::can_read_event( $event_id ) ) {
+            $event_id = 0;
+        }
+
+        // Event_Model has no post behind id 0 and warns on every field it reads, so
+        // answer the "nothing previewable" state with the payload's own empty shape.
+        if ( ! $event_id ) {
+            return self::empty_payload( $is_demo );
+        }
+
         $event    = new Event_Model( $event_id );
         $location = get_post_meta( $event_id, 'etn_event_location', true );
         $location = is_array( $location ) ? $location : [];
@@ -77,6 +93,72 @@ class PreviewEventFormatter {
     }
 
     /**
+     * The payload shape with every field empty.
+     *
+     * Returned when there is no event to preview — either the template has none and
+     * no published event exists to stand in, or the one it points at is not readable
+     * by this user. Same keys in the same order as a populated response, so the React
+     * blocks render their own empty states rather than crashing on a missing key.
+     *
+     * @param   bool  $is_demo  Whether the request came through the demo path.
+     *
+     * @return  array
+     */
+    private static function empty_payload( $is_demo ) {
+        return [
+            'id'          => 0,
+            'title'       => '',
+            'description' => '',
+            'address'     => '',
+            'latitude'    => '',
+            'longitude'   => '',
+            'isVirtual'   => false,
+            'timezone'    => '',
+            'startDate'   => '',
+            'startTime'   => '',
+            'endDate'     => '',
+            'endTime'     => '',
+            'startDateFormatted' => '',
+            'endDateFormatted'   => '',
+            'logo'        => '',
+            'banner'      => '',
+            'socials'     => [],
+            'tags'        => [],
+            'categories'  => [],
+            'speakers'    => [],
+            'organizers'  => [],
+            'faqs'        => [],
+            'schedules'   => [],
+            'scheduleType' => '',
+            'attendees'   => [ 'list' => [], 'total' => 0 ],
+            'attendeePageLink' => '',
+            'relatedEvents' => [],
+            'isDemo'      => (bool) $is_demo,
+        ];
+    }
+
+    /**
+     * Whether the current user may see this event in a preview.
+     *
+     * Mirrors the controller's check so the demo path cannot reach content the
+     * explicit path refuses. `read_post` is the meta capability — the primitive
+     * `read` ignores the id it is given and passes for every logged-in user.
+     *
+     * @param   int  $event_id  Event post id.
+     *
+     * @return  bool
+     */
+    private static function can_read_event( $event_id ) {
+        $post = get_post( $event_id );
+
+        if ( ! $post || 'etn' !== $post->post_type ) {
+            return false;
+        }
+
+        return 'publish' === $post->post_status || current_user_can( 'read_post', $post->ID );
+    }
+
+    /**
      * Strip <style>/<script> blocks then run through wp_kses_post, matching
      * the event-description frontend render.
      */
@@ -97,6 +179,29 @@ class PreviewEventFormatter {
     }
 
     /**
+     * Pass a stored URL through the allowed-protocol filter.
+     *
+     * Every value here is rendered straight into an `href` by the React views, so a
+     * stored `javascript:` URL would otherwise depend on the React version's own
+     * scrubbing. esc_url_raw() returns '' for a disallowed protocol, which the views
+     * already treat as "no link".
+     *
+     * @param mixed  $url      Stored URL.
+     * @param string $fallback Value to use when the URL is empty or rejected.
+     *
+     * @return string
+     */
+    private static function safe_url( $url, $fallback = '' ) {
+        if ( ! is_string( $url ) || '' === trim( $url ) ) {
+            return $fallback;
+        }
+
+        $safe = esc_url_raw( trim( $url ) );
+
+        return '' !== $safe ? $safe : $fallback;
+    }
+
+    /**
      * Normalize social list to [{ icon, title, url }].
      */
     private static function socials( $socials ) {
@@ -111,7 +216,7 @@ class PreviewEventFormatter {
             $out[] = [
                 'icon'  => isset( $s['icon'] ) ? $s['icon'] : '',
                 'title' => isset( $s['etn_social_title'] ) ? $s['etn_social_title'] : '',
-                'url'   => isset( $s['etn_social_url'] ) ? $s['etn_social_url'] : '',
+                'url'   => self::safe_url( isset( $s['etn_social_url'] ) ? $s['etn_social_url'] : '' ),
             ];
         }
         return $out;
@@ -132,7 +237,7 @@ class PreviewEventFormatter {
             $link = get_term_link( $t, $taxonomy );
             $out[] = [
                 'name' => $t->name,
-                'url'  => is_wp_error( $link ) ? '#' : $link,
+                'url'  => is_wp_error( $link ) ? '#' : self::safe_url( $link, '#' ),
             ];
         }
         return $out;
@@ -153,7 +258,7 @@ class PreviewEventFormatter {
             }
             $image = method_exists( $p, 'get_image' ) ? $p->get_image() : '';
             $out[] = [
-                'authorUrl'   => method_exists( $p, 'get_author_url' ) ? $p->get_author_url() : '#',
+                'authorUrl'   => method_exists( $p, 'get_author_url' ) ? self::safe_url( $p->get_author_url(), '#' ) : '#',
                 'name'        => method_exists( $p, 'get_speaker_title' ) ? $p->get_speaker_title() : '',
                 'designation' => method_exists( $p, 'get_speaker_designation' ) ? $p->get_speaker_designation() : '',
                 'image'       => $image ? $image : $avatar,
@@ -179,7 +284,7 @@ class PreviewEventFormatter {
             $logo  = method_exists( $p, 'get_speaker_company_logo' ) ? $p->get_speaker_company_logo() : '';
             $image = method_exists( $p, 'get_image' ) ? $p->get_image() : '';
             $out[] = [
-                'authorUrl'   => method_exists( $p, 'get_author_url' ) ? $p->get_author_url() : '#',
+                'authorUrl'   => method_exists( $p, 'get_author_url' ) ? self::safe_url( $p->get_author_url(), '#' ) : '#',
                 'name'        => method_exists( $p, 'get_speaker_title' ) ? $p->get_speaker_title() : '',
                 'email'       => method_exists( $p, 'get_speaker_email' ) ? $p->get_speaker_email() : '',
                 'designation' => method_exists( $p, 'get_speaker_designation' ) ? $p->get_speaker_designation() : '',
@@ -203,9 +308,12 @@ class PreviewEventFormatter {
                 continue;
             }
             $content = isset( $f['etn_faq_content'] ) ? $f['etn_faq_content'] : '';
+            $content = has_blocks( $content ) ? do_blocks( $content ) : $content;
             $out[] = [
                 'title'   => isset( $f['etn_faq_title'] ) ? $f['etn_faq_title'] : '',
-                'content' => has_blocks( $content ) ? do_blocks( $content ) : $content,
+                // The React view renders this through dangerouslySetInnerHTML, so it
+                // is filtered here exactly as `objective` is below.
+                'content' => wp_kses_post( (string) $content ),
             ];
         }
         return $out;
@@ -218,12 +326,20 @@ class PreviewEventFormatter {
         if ( ! is_array( $schedule_ids ) || empty( $schedule_ids ) ) {
             return [];
         }
+        // Bounded by the ids handed in rather than -1: post__in already limits the
+        // result set, so an unbounded page size only removes the safety net.
+        $schedule_ids = array_values( array_filter( array_map( 'absint', $schedule_ids ) ) );
+
+        if ( empty( $schedule_ids ) ) {
+            return [];
+        }
+
         $posts = get_posts( [
             'post_type'      => 'etn-schedule',
             'post__in'       => $schedule_ids,
             'orderby'        => 'post_date',
             'order'          => 'ASC',
-            'posts_per_page' => -1,
+            'posts_per_page' => count( $schedule_ids ),
         ] );
 
         $avatar = self::avatar();
@@ -275,6 +391,14 @@ class PreviewEventFormatter {
      * Attendees (publish only) → { list:[{ id, name, avatar }], total }.
      */
     private static function attendees( $event ) {
+        // Attendee names and the gravatar URLs derived from their email addresses
+        // are personal data guarded by `etn_manage_attendee`, not by the template
+        // capability that opens this preview. Someone who may only edit templates
+        // gets the empty shape, so the block still renders.
+        if ( ! current_user_can( 'etn_manage_attendee' ) ) {
+            return [ 'list' => [], 'total' => 0 ];
+        }
+
         $attendees = $event->get_attendees( [ 'publish' ], 200 );
         $avatar    = self::avatar();
         $list      = [];
@@ -293,7 +417,7 @@ class PreviewEventFormatter {
     }
 
     /**
-     * Related events → [{ permalink, title, thumbnail, startDate, endDate, address }].
+     * Related events → [{ permalink, title, thumbnail, startDate, address }].
      */
     private static function related_events( $event ) {
         $related = $event->get_related_events();
@@ -303,6 +427,19 @@ class PreviewEventFormatter {
         $placeholder = ( class_exists( '\Wpeventin' ) && method_exists( '\Wpeventin', 'assets_url' ) )
             ? \Wpeventin::assets_url() . 'images/event-placeholder.jpg'
             : '';
+
+        // One primed fetch instead of a thumbnail query per related event.
+        $related_ids = array_values( array_filter( array_map(
+            function ( $item ) {
+                return is_object( $item ) && isset( $item->id ) ? absint( $item->id ) : 0;
+            },
+            $related
+        ) ) );
+
+        if ( $related_ids ) {
+            _prime_post_caches( $related_ids, false, true );
+        }
+
         $out = [];
         foreach ( $related as $item ) {
             $thumb_id = get_post_thumbnail_id( $item->id );

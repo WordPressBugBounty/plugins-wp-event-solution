@@ -23,6 +23,12 @@ class OrderTicket implements HookableInterface {
         add_action( 'eventin_order_completed', [$this, 'order_status_completed'] );
         add_action( 'eventin_order_status_completed', [$this, 'order_status_completed'] );
         add_action( 'eventin_order_status_failed', [$this, 'order_status_failed'] );
+        // WooCommerce (eventin_order_update) and the SureCart add-on announce a failed or
+        // cancelled order under this other name. Without it a cancelled WooCommerce order
+        // kept its tickets in the stored sold count. Listening here, instead of firing
+        // both names there, keeps add-ons that already hear both (LearnDash, Tutor LMS)
+        // from running twice. order_status_failed() recounts, so a second call is harmless.
+        add_action( 'eventin_order_failed', [$this, 'order_status_failed'] );
 
         add_action( 'eventin_attendee_created', [ $this, 'send_attendee_ticket' ] );
 

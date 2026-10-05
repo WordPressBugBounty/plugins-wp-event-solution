@@ -181,9 +181,13 @@ class EventImporter implements PostImporterInterface {
                 $args['etn_event_organizer'] = $organizer;
                 $args['organizer_group']     = $organizer_group;
                 $args['rsvp_settings']       = $rsvp;
-                $args['etn_event_location']  = is_array( $location )
-                    ? etn_sanitize_array_input( $location )
-                    : sanitize_text_field( $location );
+                // A JSON file exported from an event that an old CSV import
+                // damaged still carries the join link inside another field.
+                $args['etn_event_location']  = EventLocation::repair(
+                    is_array( $location )
+                        ? etn_sanitize_array_input( $location )
+                        : sanitize_text_field( $location )
+                );
             }
 
             $args['etn_event_speaker']   = $this->resolve_user_emails( $args['etn_event_speaker'], 'etn-speaker' );
@@ -427,17 +431,9 @@ class EventImporter implements PostImporterInterface {
      * @return  mixed
      */
     private function parse_csv_location( $location ) {
-        if ( empty( $location ) || ! is_string( $location ) ) {
-            return '';
-        }
-
-        if ( preg_match( '/^[a-z_]+:.+/i', $location ) ) {
-            $parts = explode( ':', $location, 2 );
-
-            return [ $parts[0] => $parts[1] ];
-        }
-
-        return $location;
+        // Read every `key:value` pair. Splitting at the first colon only put
+        // the Custom URL join link inside the public `address`/`integration`.
+        return EventLocation::from_csv( $location );
     }
 
     /**

@@ -2384,54 +2384,7 @@
                         $meta_expired_query = [];
 
                         if ($show_expired_in_search === 'off') {
-                            $today = gmdate('Y-m-d');
-
-                            $meta_expired_query = [
-                                'relation' => 'OR',
-                                // Ends today or later — still running.
-                                [
-                                    'key'     => 'etn_end_date',
-                                    'value'   => $today,
-                                    'compare' => '>=',
-                                    'type'    => 'DATE',
-                                ],
-                                // No end date stored (single-day events often keep it
-                                // empty, and older events have no row at all): decide
-                                // from the start date instead. Passing every such event
-                                // through unconditionally — which an unqualified
-                                // "end date is empty" branch did — showed events that
-                                // finished years ago while the setting said to hide
-                                // expired ones.
-                                [
-                                    'relation' => 'AND',
-                                    [
-                                        'relation' => 'OR',
-                                        [
-                                            'key'     => 'etn_end_date',
-                                            'value'   => '',
-                                            'compare' => '=',
-                                        ],
-                                        [
-                                            'key'     => 'etn_end_date',
-                                            'compare' => 'NOT EXISTS',
-                                        ],
-                                    ],
-                                    [
-                                        'key'     => 'etn_start_date',
-                                        'value'   => $today,
-                                        'compare' => '>=',
-                                        'type'    => 'DATE',
-                                    ],
-                                ],
-                                // Has not started yet: never expired, whatever shape the
-                                // end date is stored in.
-                                [
-                                    'key'     => 'etn_start_date',
-                                    'value'   => $today,
-                                    'compare' => '>',
-                                    'type'    => 'DATE',
-                                ],
-                            ];
+                            $meta_expired_query = self::get_not_expired_meta_query();
                         }
 
                         $meta_event_happen_query = [];
@@ -3095,6 +3048,90 @@
             }
 
             /**
+             * The meta_query clause that keeps only events that have not ended yet.
+             *
+             * Used by the event search (etn_show_expired_in_search) and by the
+             * event widgets when their status filter is "All".
+             *
+             * @return array One meta_query clause with an OR relation.
+             */
+            public static function get_not_expired_meta_query()
+            {
+                // Event dates are stored in the site's own timezone, so the
+                // cut-over has to be computed there too. gmdate() put the
+                // boundary up to a day out on any site away from UTC — an
+                // event was still "today" in Dhaka while UTC had moved on,
+                // and vice versa in the Americas.
+                $today = current_time('Y-m-d');
+
+                return [
+                    'relation' => 'OR',
+                    // Ends today or later — still running.
+                    [
+                        'key'     => 'etn_end_date',
+                        'value'   => $today,
+                        'compare' => '>=',
+                        'type'    => 'DATE',
+                    ],
+                    // No end date stored (single-day events often keep it
+                    // empty, and older events have no row at all): decide
+                    // from the start date instead. Passing every such event
+                    // through unconditionally — which an unqualified
+                    // "end date is empty" branch did — showed events that
+                    // finished years ago while the setting said to hide
+                    // expired ones.
+                    [
+                        'relation' => 'AND',
+                        [
+                            'relation' => 'OR',
+                            [
+                                'key'     => 'etn_end_date',
+                                'value'   => '',
+                                'compare' => '=',
+                            ],
+                            [
+                                'key'     => 'etn_end_date',
+                                'compare' => 'NOT EXISTS',
+                            ],
+                        ],
+                        [
+                            'key'     => 'etn_start_date',
+                            'value'   => $today,
+                            'compare' => '>=',
+                            'type'    => 'DATE',
+                        ],
+                    ],
+                    // Has not started yet: never expired, whatever shape the
+                    // end date is stored in.
+                    [
+                        'key'     => 'etn_start_date',
+                        'value'   => $today,
+                        'compare' => '>',
+                        'type'    => 'DATE',
+                    ],
+                ];
+            }
+
+            /**
+             * Status filter for the event widgets.
+             *
+             * When a widget shows "All" events and the "Show Expired Events in
+             * Search" setting is "No", expired events are hidden too.
+             *
+             * @param string $filter_with_status '' | upcoming | ongoing | expire.
+             *
+             * @return string The status to pass to post_data_query().
+             */
+            public static function resolve_widget_status($filter_with_status)
+            {
+                if ('' === (string) $filter_with_status && 'off' === etn_get_option('etn_show_expired_in_search')) {
+                    return 'not_expired';
+                }
+
+                return $filter_with_status;
+            }
+
+            /**
              * Build the meta_query clauses for an event status filter.
              *
              * Single source of truth shared by the list query (post_data_query)
@@ -3149,6 +3186,10 @@
                             'type'    => 'DATE',
                         ],
                     ];
+                }
+
+                if ('not_expired' === $filter_with_status) {
+                    return [ self::get_not_expired_meta_query() ];
                 }
 
                 if ('ongoing' === $filter_with_status) {
@@ -3386,8 +3427,7 @@
                     $event_id = ! empty($pdf_data['event_id']) ? intval($pdf_data['event_id']) : 0;
                     $event    = new Event_Model($event_id);
                     $post     = get_post($event_id);
-                    $location = get_post_meta($event_id, 'etn_event_location', true);
-                    $address  = ! empty($location['address']) ? $location['address'] : '';
+                    $address  = $event->get_location_label();
 
                     $admins     = get_users(['role' => 'administrator']);
                     $host_name  = '';
@@ -4082,10 +4122,11 @@
                             $event->description = etn_readable_post_text($event_id);
                             $event->thumbnail   = get_the_post_thumbnail_url($event_id);
                             $event->category    = $cat_names;
-                            $location           = get_post_meta(
-                                $event_id,
-                                'etn_event_location',
-                                true
+                            // Public calendar: the JS shows `address` or the
+                            // platform label from `integration`, never the
+                            // Custom URL join link, so drop it for everyone.
+                            $location           = \Eventin\Event\Api\EventController::strip_private_location(
+                                get_post_meta( $event_id, 'etn_event_location', true )
                             );
 
                             // Show location based on location type.
@@ -4853,19 +4894,17 @@
                         }
 
                         global $wpdb;
+                        // Published attendees with a successful payment only; failed/pending/waiting are not real participants.
+                        $sql = "SELECT DISTINCT pm.* FROM {$wpdb->postmeta} pm
+                            INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id AND p.post_type = 'etn-attendee' AND p.post_status = 'publish'
+                            INNER JOIN {$wpdb->postmeta} st ON st.post_id = pm.post_id AND st.meta_key = 'etn_status' AND st.meta_value = 'success'
+                            WHERE pm.meta_key = 'etn_event_id' AND pm.meta_value = %d";
+
                         if ($posts_per_page !== -1) {
                             $start           = ($paged - 1) * $posts_per_page;
-                            $event_attendees = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$wpdb->prefix}postmeta WHERE meta_key='etn_event_id' AND meta_value=%d LIMIT %d,%d", $event_id, $start, $posts_per_page ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+                            $event_attendees = $wpdb->get_results( $wpdb->prepare( $sql . " LIMIT %d,%d", $event_id, $start, $posts_per_page ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.NotPrepared
                         } else {
-                            $event_attendees = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$wpdb->prefix}postmeta WHERE meta_key='etn_event_id' AND meta_value=%d", $event_id ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
-                        }
-
-                        foreach ($event_attendees as $key => $attendee) {
-                            if (('etn-attendee' !== get_post_type($attendee->post_id))
-                                || ('etn-attendee' == get_post_type($attendee->post_id) && get_post_status($attendee->post_id) !== "publish")
-                            ) {
-                                unset($event_attendees[$key]);
-                            }
+                            $event_attendees = $wpdb->get_results( $wpdb->prepare( $sql, $event_id ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.NotPrepared
                         }
 
                         return $event_attendees;
