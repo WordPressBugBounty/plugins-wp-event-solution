@@ -17,6 +17,10 @@ class OrderAttendee implements HookableInterface {
     public function register_hooks(): void {
         add_action( 'eventin_order_completed', [ $this, 'update_attendee_payment_status' ] );    
         add_action( 'eventin_order_refund', [ $this, 'update_attendee_status_after_refund' ] );
+        // WooCommerce (eventin_order_update) and the SureCart add-on announce a failed or
+        // cancelled order under this name. The old WooCommerce handler finds attendees by
+        // etn_attendee_order_id, which current attendees do not have, so they stayed "success".
+        add_action( 'eventin_order_failed', [ $this, 'update_attendee_status_after_failed' ] );
 
         add_action( 'eventin_order_deleted', [ $this, 'delete_attendee_after_order_deleted' ] );
     }
@@ -61,6 +65,31 @@ class OrderAttendee implements HookableInterface {
         if ( 'refunded' != $order->status ) {
             return;
         }
+
+        if ( $attendess ) {
+            foreach( $attendess as $attendee ) {
+                $attendee = new Attendee_Model( $attendee['id'] );
+
+                $attendee->update([
+                    'etn_status' => 'failed'
+                ]);
+            }
+        }
+    }
+
+    /**
+     * Update attendee payment status after an order failed or was cancelled
+     *
+     * @param   OrderModel  $order
+     *
+     * @return  void
+     */
+    public function update_attendee_status_after_failed( OrderModel $order ) {
+        if ( 'failed' != $order->status ) {
+            return;
+        }
+
+        $attendess = $order->get_attendees();
 
         if ( $attendess ) {
             foreach( $attendess as $attendee ) {

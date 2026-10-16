@@ -512,8 +512,13 @@ class EventImporter implements PostImporterInterface {
         $user_ids = [];
 
         foreach ( $users as $user ) {
+            // A bare id: the importer may not know whose it is, so it must pass
+            // the same rule as the REST save. `1` used to attach the admin, and
+            // the export then printed their email (CVE-2026-109994 follow-up).
             if ( is_numeric( $user ) ) {
-                $user_ids[] = (int) $user;
+                if ( \Eventin\AccessControl\Ownership::filter_assignable_people( [ (int) $user ] ) ) {
+                    $user_ids[] = (int) $user;
+                }
                 continue;
             }
 
@@ -525,8 +530,12 @@ class EventImporter implements PostImporterInterface {
 
             $existing = get_user_by( 'email', $user );
 
+            // An email the importer already knows: attach it only when that
+            // account really is a speaker/organizer, never e.g. the admin.
             if ( $existing ) {
-                $user_ids[] = $existing->ID;
+                if ( \Eventin\AccessControl\Ownership::is_speaker_or_organizer( $existing->ID ) ) {
+                    $user_ids[] = $existing->ID;
+                }
                 continue;
             }
 

@@ -26,6 +26,26 @@ class Extension {
     const PRO_DEFAULT_MODULES = [ 'rsvp' ];
 
     /**
+     * WhatsApp values the config modal needs.
+     *
+     * Never the access token itself: this payload is readable by anyone with
+     * `etn_manage_addons`. The modal shows a masked hint instead.
+     *
+     * @return  array
+     */
+    private static function whatsapp_card_data() {
+        $token = (string) etn_get_option( 'whatsapp_access_token', '' );
+
+        return [
+            'whatsapp_connected'           => '' !== $token && '' !== (string) etn_get_option( 'whatsapp_phone_number_id', '' ),
+            'whatsapp_token_hint'          => '' === $token ? '' : str_repeat( '•', 8 ) . substr( $token, -4 ),
+            'whatsapp_phone_number_id'     => (string) etn_get_option( 'whatsapp_phone_number_id', '' ),
+            'whatsapp_business_account_id' => (string) etn_get_option( 'whatsapp_business_account_id', '' ),
+            'whatsapp_admin_number'        => (string) etn_get_option( 'whatsapp_admin_number', '' ),
+        ];
+    }
+
+    /**
      * Resolve an integration card's on/off status from its option.
      *
      * The option holds 'on', 'off' or nothing at all, and "not set yet" means off.
@@ -790,6 +810,27 @@ class Extension {
                 'doc_link'      => 'https://themewinter.com/docs/plugins/plugin-docs/email-settings/automation/',
                 'badge_tags'    => ['Free', 'Recommended'],
             ],
+            'whatsapp' => [
+                'name'          => 'whatsapp',
+                'slug'          => 'whatsapp',
+                'type'          => 'integration',
+                'status'        => self::card_status( 'whatsapp_api' ),
+                'is_pro'        => true,
+                // No `deps`: WhatsApp is reached through Meta's Cloud API, no
+                // companion WordPress plugin. Same reason as HubSpot below.
+                'deps'          => [],
+                'title'         => __('WhatsApp', 'eventin'),
+                'description'   => __('Send WhatsApp messages to customers, attendees and admins from your Automation flows. Requires Eventin Pro.', 'eventin'),
+                'icon'          => ExtensionIcon::get('whatsapp'),
+                'notice'        => class_exists( 'Wpeventin_Pro' )
+                    ? __( 'NB: Needs the Automation module and a Meta WhatsApp Business account', 'eventin' )
+                    : __( 'NB: Requires Eventin Pro', 'eventin' ),
+                'demo_link'     => 'https://developers.facebook.com/docs/whatsapp/cloud-api',
+                'settings_link' => '',
+                'doc_link'      => '',
+                'data'          => self::whatsapp_card_data(),
+                'badge_tags'    => ['Pro', 'New'],
+            ],
             'eventin-divi-addon' => [
                 'name'          => 'eventin-divi-addon',
                 'slug'          => 'eventin-divi-addon',
@@ -1223,6 +1264,31 @@ class Extension {
                     'paypal_client_id'      => etn_get_option( 'paypal_client_id' ) ? etn_get_option( 'paypal_client_id' ) : '',
                     'paypal_client_secret'  => etn_get_option( 'paypal_client_secret' ) ? etn_get_option( 'paypal_client_secret' ) : '',
                     'paypal_sandbox'        => etn_get_option( 'paypal_sandbox' ) ? true : false,
+                ],
+                'badge_tags'    => ['Pro'],
+            ],
+            'razorpay' => [
+                'name'          => 'razorpay',
+                'slug'          => 'razorpay',
+                'type'          => 'integration',
+                'status'        => etn_get_option( 'razorpay_status' ) ? 'on' : 'off',
+                'is_pro'        => true,
+                'title'         => __( 'Razorpay', 'eventin' ),
+                'description'   => __( 'Accept ticket payments through Razorpay: UPI, cards, net banking and wallets. Requires Eventin Pro.', 'eventin' ),
+                'icon'          => ExtensionIcon::get( 'razorpay' ),
+                // Razorpay ships with newer Pro versions only. Tell admins on an older Pro to update.
+                'notice'        => ( class_exists( 'Wpeventin_Pro' ) && ! class_exists( '\EventinPro\Integrations\Razorpay\RazorpayPayment' ) )
+                    ? __( 'NB: Please update Eventin Pro to use Razorpay.', 'eventin' )
+                    : '',
+                'demo_link'     => 'https://product.themewinter.com/eventin/',
+                'settings_link' => '',
+                'doc_link'      => 'https://themewinter.com/docs/plugins/plugin-docs/payment-type/razorpay/?utm_source=documentations&utm_medium=eventin&utm_campaign=eventin+documentations',
+                'data'          => [
+                    'razorpay_status'         => etn_get_option( 'razorpay_status' ) ? true : false,
+                    'razorpay_key_id'         => etn_get_option( 'razorpay_key_id' ) ? etn_get_option( 'razorpay_key_id' ) : '',
+                    'razorpay_key_secret'     => etn_get_option( 'razorpay_key_secret' ) ? etn_get_option( 'razorpay_key_secret' ) : '',
+                    'razorpay_webhook_secret' => etn_get_option( 'razorpay_webhook_secret' ) ? etn_get_option( 'razorpay_webhook_secret' ) : '',
+                    'razorpay_webhook_url'    => rest_url( 'eventin/v2/razorpay-webhook' ),
                 ],
                 'badge_tags'    => ['Pro'],
             ],

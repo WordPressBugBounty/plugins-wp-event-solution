@@ -160,6 +160,18 @@ class TicketHold {
                 }
             }
 
+            // Same seats, but the seat map held them without a ticket list.
+            // A seat can only be held by one visitor at a time (book_seats()
+            // refuses a held seat), so equal seats mean the same purchase.
+            foreach ( $holds as $id => $hold ) {
+                if ( $wanted_seats && $hold['seats'] === $wanted_seats ) {
+                    unset( $holds[ $id ] );
+                    $removed = true;
+
+                    return $holds;
+                }
+            }
+
             // Nothing beyond this point. Matching on a merely overlapping row
             // would let one buyer's payment release a different visitor's hold,
             // and that visitor could then lose the last seat to someone else.
@@ -484,7 +496,11 @@ class TicketHold {
     }
 
     /**
-     * Seat ids as a sorted list of positive integers.
+     * Seat ids as a sorted list of non-negative integers.
+     *
+     * Seat 0 is a real seat (the first one on the seat map), so a plain
+     * array_filter() must not be used here: it drops 0 and the first seat was
+     * never held.
      *
      * @param mixed $seat_ids Raw seat ids.
      *
@@ -495,7 +511,14 @@ class TicketHold {
             return [];
         }
 
-        $seats = array_values( array_unique( array_filter( array_map( 'intval', $seat_ids ) ) ) );
+        $seat_ids = array_filter(
+            $seat_ids,
+            function ( $seat_id ) {
+                return is_numeric( $seat_id ) && (int) $seat_id >= 0;
+            }
+        );
+
+        $seats = array_values( array_unique( array_map( 'intval', $seat_ids ) ) );
         sort( $seats );
 
         return $seats;

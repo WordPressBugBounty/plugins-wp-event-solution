@@ -874,7 +874,20 @@ class Hooks {
 	
 	
 	public function is_same_origin( $url ) {
-		return strpos( $url, site_url() ) !== false;
+		$site = wp_parse_url( site_url() );
+		$test = wp_parse_url( $url );
+
+		if ( empty( $site['host'] ) || empty( $test['host'] ) ) {
+			return true;
+		}
+
+		$authority = static function ( $parts ) {
+			return strtolower( $parts['host'] ) . ( ! empty( $parts['port'] ) ? ':' . $parts['port'] : '' );
+		};
+
+		// Host comparison, not a raw string match: an http:// URL on an https
+		// site is still this site, and must never be fetched by the proxy.
+		return $authority( $site ) === $authority( $test );
 	}
     
     public function proxy_image_allowed_origins(): array {
@@ -883,15 +896,22 @@ class Hooks {
         ];
     }
 	
-	private function is_origin_allowed($imageUrl): bool {
-        $allowedOrigins = $this->proxy_image_allowed_origins();
-        foreach ($allowedOrigins as $allowedOrigin) {
-            if (strpos($imageUrl, $allowedOrigin) !== false) {
-                return true;
-            }
+    /**
+     * Whether proxy_image() would serve this URL. Shared with the template
+     * renderer so it only rewrites images the proxy will actually return.
+     *
+     * @param string $imageUrl
+     * @return bool
+     */
+    public function is_proxyable_image_url( $imageUrl ): bool {
+        if ( ! $this->is_valid_image_url( $imageUrl ) || $this->is_same_origin( $imageUrl ) ) {
+            return false;
         }
-        return false;
-	}
+
+        $file_ext = strtolower( pathinfo( $imageUrl, PATHINFO_EXTENSION ) );
+
+        return in_array( $file_ext, [ 'jpg', 'jpeg', 'png', 'gif', 'webp' ], true );
+    }
 
     /**
      * Validate if the URL is a safe image URL from allowed origins

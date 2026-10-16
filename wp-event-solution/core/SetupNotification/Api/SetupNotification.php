@@ -90,7 +90,7 @@ class SetupNotification extends WP_REST_Controller {
         $attendees_enabled = etn_get_option( 'attendee_registration' ) == 'on' ? true : false;
         
         // Check if payment methods are enabled
-        $payment_enabled = !empty(etn_get_option( 'payment_method' )) || !empty(etn_get_option( 'paypal_status' )) || !empty(etn_get_option( 'etn_sells_engine_stripe' )) || !empty(etn_get_option( 'local_payment_status' )) || !empty(etn_get_option( 'surecart_status' )) || !empty(etn_get_option( 'fluentcart_status' )) ? true : false;
+        $payment_enabled = !empty(etn_get_option( 'payment_method' )) || !empty(etn_get_option( 'paypal_status' )) || etn_is_razorpay_enabled() || !empty(etn_get_option( 'etn_sells_engine_stripe' )) || !empty(etn_get_option( 'local_payment_status' )) || !empty(etn_get_option( 'surecart_status' )) || !empty(etn_get_option( 'fluentcart_status' )) ? true : false;
         
         // Check if the wizard setup is active
         $wizard_setup = get_option( 'etn_wizard' ) == 'active' ? true : false;

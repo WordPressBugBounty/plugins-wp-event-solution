@@ -41,6 +41,17 @@ class Eventin_AI {
 				'evnetin_ai_active'  => class_exists( 'EventinAI' ) ? true : false,
 				'evnetin_pro_active' => class_exists( 'Wpeventin_Pro' ) ? true : false,
 			];
+			/**
+			 * Filter the data that turns the AI buttons on.
+			 *
+			 * Aisentic uses this to turn the buttons on without the Eventin AI plugin.
+			 *
+			 * @param array $eventin_ai_local_data {
+			 *     @type bool $evnetin_ai_active  An AI add-on is active.
+			 *     @type bool $evnetin_pro_active Eventin Pro is active (or not needed).
+			 * }
+			 */
+			$eventin_ai_local_data = apply_filters( 'eventin_ai_local_data', $eventin_ai_local_data );
 			wp_localize_script( 'etn-ai-frontend-js', 'eventin_ai_local_data', $eventin_ai_local_data );
 		}
 	}

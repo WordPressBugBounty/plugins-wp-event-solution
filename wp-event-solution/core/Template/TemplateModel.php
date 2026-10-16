@@ -818,7 +818,7 @@ class TemplateModel extends Post_Model {
 
         if ( ! empty( $matches[1] ) ) {
             foreach ( $matches[1] as $image_url ) {
-                if ( ! $this->is_same_origin( $image_url ) ) {
+                if ( ! $this->is_same_origin( $image_url ) && $this->is_proxyable( $image_url ) ) {
                     $proxied_image_url = $proxy_url_base . urlencode($image_url);
                     $content = str_replace( $image_url, $proxied_image_url, $content );
                 }
@@ -831,7 +831,7 @@ class TemplateModel extends Post_Model {
         if ( ! empty( $background_matches[1] ) ) {
             foreach ( $background_matches[1] as $bg_image_url ) {
         
-                if ( ! $this->is_same_origin( $bg_image_url ) ) {
+                if ( ! $this->is_same_origin( $bg_image_url ) && $this->is_proxyable( $bg_image_url ) ) {
                     $proxied_bg_image_url = $proxy_url_base . urlencode( $bg_image_url );
                     $content = str_replace( $bg_image_url, $proxied_bg_image_url, $content );
                 }
@@ -874,6 +874,23 @@ class TemplateModel extends Post_Model {
      * @return  bool
      */
     public function is_same_origin( $url ) {
-        return strpos( $url, site_url() ) !== false;
+        // Host comparison lives with the proxy so both sides agree.
+        return \Etn\Core\Admin\Hooks::instance()->is_same_origin( $url );
+    }
+
+    /**
+     * Whether the proxy endpoint would actually serve this URL.
+     *
+     * proxy_image() only accepts the origins in proxy_image_allowed_origins();
+     * everything else gets a 404. Rewriting an image the proxy will refuse just
+     * replaces a working external image with a broken one, so remote images
+     * outside that allow-list are left pointing at their own host.
+     *
+     * @param   string  $url
+     *
+     * @return  bool
+     */
+    private function is_proxyable( $url ) {
+        return \Etn\Core\Admin\Hooks::instance()->is_proxyable_image_url( $url );
     }
 }

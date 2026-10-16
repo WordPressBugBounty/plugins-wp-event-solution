@@ -5,6 +5,7 @@ namespace Etn\Core\Woocommerce;
 use Etn\Utils\Helper;
 use Eventin\Order\OrderModel;
 use Eventin\Customer\CustomerModel;
+use Eventin\Integrations\WC\WCOrderGuard;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -60,8 +61,15 @@ class Hooks {
 
         add_action( 'woocommerce_order_status_changed', [ $this, 'eventin_order_update' ], 10, 4 );
 
-        // Mirror Eventin refunds into the linked WooCommerce order as record-only refunds.
-        add_action( 'eventin/refund/created', [ new \Eventin\Integrations\WC\WCRefundSync(), 'handle' ], 10, 2 );
+        // Refund the linked WooCommerce order before Eventin records a refund.
+        // Sends the money back when the order's gateway supports refunds.
+        add_filter( 'eventin/refund/process_payment', [ new \Eventin\Integrations\WC\WCRefundSync(), 'process' ], 10, 4 );
+        // Record refunds made on the WooCommerce order page (full or partial) in Eventin.
+        // Not 'woocommerce_order_refunded': on a full refund WooCommerce sets the
+        // order to "refunded" before that hook, and eventin_order_update() would
+        // then mark the Eventin order refunded without the amount in its ledger.
+        add_action( 'woocommerce_order_partially_refunded', [ $this, 'record_wc_refund_in_eventin' ], 10, 2 );
+        add_action( 'woocommerce_order_fully_refunded', [ $this, 'record_wc_refund_in_eventin' ], 5, 2 );
         // Handle payment completion for Eventin orders
         add_action( 'woocommerce_payment_complete', [ $this, 'eventin_payment_complete' ], 10, 1 );
 
@@ -76,7 +84,12 @@ class Hooks {
         add_filter('woocommerce_hidden_order_itemmeta', [$this, 'hide_order_itemmeta_on_order_status_update'], 10, 1);
 
         add_action( 'woocommerce_new_order', [ $this, 'attatch_eventin_order_id' ] );
-        
+
+        // Link again once the line items are final (classic and block checkout).
+        // attatch_eventin_order_id() is a no-op when the order is already linked.
+        add_action( 'woocommerce_checkout_order_processed', [ $this, 'attatch_eventin_order_id' ] );
+        add_action( 'woocommerce_store_api_checkout_order_processed', [ $this, 'attatch_eventin_order_id' ] );
+
 
 
         // ====================== Attendee registration related hooks for woocommerce start ======================== //
@@ -154,6 +167,10 @@ class Hooks {
         add_filter( 'woocommerce_coupon_is_valid', [ $this, 'etn_woo_cart_coupon_validation' ], 10, 2 );
         add_action('woocommerce_checkout_order_processed', [ $this, 'etn_woo_cart_order_processed'], 10, 1);
         add_action( 'woocommerce_remove_cart_item', [ $this, 'remove_product_from_cart' ], 10, 2 );
+        // A bulk cart clear (the Store API, the "empty cart" button, a timeout) fires
+        // this hook instead of the per-item one above, so forget the Eventin order
+        // marker here too — see forget_event_order_on_empty_cart() (Patchstack 36384).
+        add_action( 'woocommerce_cart_emptied', [ $this, 'forget_event_order_on_empty_cart' ] );
 
         // change quantity on checkout page
         add_filter ('woocommerce_checkout_cart_item_quantity', [$this,'etn_checkout_total_ticket_qty'], 10, 3 );
@@ -459,6 +476,148 @@ class Hooks {
     }
 
     /**
+     * Does this WooCommerce order (or the live cart behind it) hold the ticket of
+     * a given Eventin order?
+     *
+     * This is the gate that stops the free-ticket cart swap (Patchstack 36384). The
+     * session marker alone is not proof that the WooCommerce order being created is
+     * the one Eventin started payment for — a bulk cart clear can leave the marker
+     * pointing at a paid order the buyer no longer has in the cart.
+     *
+     * Every Eventin ticket line is stamped `_etn = yes` and the matching `event_id`
+     * at checkout (see save_cart_item_data), and the product itself is the `etn`
+     * product. A plain WooCommerce product carries none of these, so a free-product
+     * order can never match. The amount is deliberately NOT compared: a 100% coupon
+     * can bring a genuine ticket order to $0, and that is a legitimate sale.
+     *
+     * The live cart is checked as a fallback because classic (non-block) checkout
+     * fires woocommerce_new_order on the first order save, before the line items are
+     * attached — at that moment the cart still holds the ticket.
+     *
+     * @param   \WC_Order|mixed  $wc_order          WooCommerce order.
+     * @param   integer          $eventin_order_id  Eventin order id from the session.
+     *
+     * @return  boolean
+     */
+    private function wc_order_contains_eventin_ticket( $wc_order, $eventin_order_id ) {
+        $event_order = new OrderModel( $eventin_order_id );
+        $event_id    = absint( $event_order->event_id );
+
+        if ( ! $event_id ) {
+            return false;
+        }
+
+        if ( $wc_order instanceof \WC_Order ) {
+            $items = $wc_order->get_items();
+
+            foreach ( $items as $item ) {
+                if ( $this->order_line_is_event_ticket( $item, $event_id, $eventin_order_id ) ) {
+                    return true;
+                }
+            }
+
+            // The order already holds its line items, so it is authoritative: a
+            // non-matching order is a non-match, full stop. Do NOT consult the live
+            // cart here, or a later cart (a new purchase started in the same session)
+            // could be used to vouch for an order that does not itself contain the
+            // ticket (Patchstack 36384, residual).
+            if ( ! empty( $items ) ) {
+                return false;
+            }
+        }
+
+        // Fallback reached only when the order has no line items yet: classic
+        // (non-block) checkout fires woocommerce_new_order on the first order save,
+        // before the line items are attached, so read the cart that is about to
+        // become this order.
+        if ( WC()->cart ) {
+            foreach ( (array) WC()->cart->get_cart() as $cart_item ) {
+                // Prefer the exact order id stamped on the line; fall back to the
+                // event id only for carts that predate that stamp.
+                $line_order_id = isset( $cart_item['_etn_order_id'] ) ? absint( $cart_item['_etn_order_id'] ) : 0;
+
+                if ( $line_order_id ) {
+                    if ( $line_order_id === absint( $eventin_order_id ) ) {
+                        return true;
+                    }
+                    continue;
+                }
+
+                if ( isset( $cart_item['event_id'] )
+                    && absint( $cart_item['event_id'] ) === $event_id ) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Is a WooCommerce order line one of this event's Eventin ticket lines?
+     *
+     * @param   mixed    $item      WooCommerce order item.
+     * @param   integer  $event_id  Eventin order's event id.
+     *
+     * @return  boolean
+     */
+    private function order_line_is_event_ticket( $item, $event_id, $eventin_order_id = 0 ) {
+        return WCOrderGuard::line_is_event_ticket( $item, $event_id, $eventin_order_id );
+    }
+
+    /**
+     * May this WooCommerce order complete the Eventin order it is linked to?
+     *
+     * Checked every time a booking is completed from WooCommerce, not only when the
+     * link is made. See WCOrderGuard::can_complete() (Patchstack 36384).
+     *
+     * @param   \WC_Order|mixed  $wc_order          WooCommerce order.
+     * @param   integer          $eventin_order_id  Linked Eventin order id.
+     *
+     * @return  boolean
+     */
+    private function wc_order_can_complete_eventin_order( $wc_order, $eventin_order_id ) {
+        return WCOrderGuard::can_complete( $wc_order, $eventin_order_id );
+    }
+
+    /**
+     * Forget the Eventin order marker whenever the whole cart is emptied.
+     *
+     * WC_Cart::empty_cart() fires woocommerce_cart_emptied, not the per-item
+     * woocommerce_remove_cart_item we also unset on. Without this, the marker set by
+     * WCPayment::create_payment() survives a Store API bulk cart clear and can be
+     * reused to link an unrelated order to a paid ticket order (Patchstack 36384).
+     *
+     * @return  void
+     */
+    public function forget_event_order_on_empty_cart() {
+        if ( WC()->session && WC()->session->get( 'event_order_id' ) ) {
+            WC()->session->__unset( 'event_order_id' );
+        }
+    }
+
+    /**
+     * Whether a WooCommerce status change must not mark this booking completed
+     *
+     * - partially_refunded: still a paid booking; "completed" would hide the refund.
+     * - refunded with a recorded refund: the money went back to the customer, so
+     *   the ticket must not become valid again (same rule as the Eventin status
+     *   dropdown in OrderController).
+     *
+     * @param   OrderModel  $event_order  Eventin order.
+     *
+     * @return  bool
+     */
+    private function is_refund_locked( $event_order ) {
+        if ( 'partially_refunded' === $event_order->status ) {
+            return true;
+        }
+
+        return 'refunded' === $event_order->status
+            && ( new \Eventin\Refund\RefundModel() )->refunded_total( $event_order->id ) > 0;
+    }
+
+    /**
      * Handle WooCommerce order status changes.
      *
      * @param   integer  $order_id  WooCommerce order ID.
@@ -473,7 +632,11 @@ class Hooks {
 
         $event_order = new OrderModel( $event_order_id );
 
-        if ( $event_order->status === 'completed' ) return;
+        if ( $event_order->status === 'completed' || $this->is_refund_locked( $event_order ) ) return;
+
+        $order = $order instanceof \WC_Order ? $order : wc_get_order( $order_id );
+
+        if ( ! $this->wc_order_can_complete_eventin_order( $order, $event_order_id ) ) return;
 
         $event_order->update(['status' => 'completed']);
 
@@ -492,7 +655,97 @@ class Hooks {
      *
      * @return  void    Updated order on woocoomerce order changed
      */
+	/**
+	 * Record a WooCommerce refund in the linked Eventin order
+	 *
+	 * Runs for every refund made on the WooCommerce order page. A partial
+	 * refund makes the Eventin order "partially_refunded", a full refund
+	 * makes it "refunded".
+	 *
+	 * Refunds that Eventin sends to WooCommerce (WCRefundSync) are skipped,
+	 * because Eventin records those itself.
+	 *
+	 * @param int $order_id  WooCommerce order id.
+	 * @param int $refund_id WooCommerce refund id.
+	 *
+	 * @return void
+	 */
+	public function record_wc_refund_in_eventin( $order_id, $refund_id ) {
+		// Eventin started this refund and records it itself.
+		if ( \Eventin\Integrations\WC\WCRefundSync::is_running() ) {
+			return;
+		}
+
+		$order = wc_get_order( $order_id );
+
+		if ( ! $order ) {
+			return;
+		}
+
+		$eventin_order_id = $this->get_eventin_order_id( $order );
+
+		if ( ! $eventin_order_id ) {
+			return;
+		}
+
+		( new \Eventin\Refund\RefundService() )->record_gateway_refund( $eventin_order_id, [
+			'gateway'           => 'wc',
+			'gateway_refund_id' => 'wc_' . $refund_id,
+			'total_refunded'    => $this->wc_ticket_refunded_total( $order ),
+			'full'              => 'woocommerce_order_fully_refunded' === current_action(),
+		] );
+	}
+
+	/**
+	 * Money refunded on the Eventin ticket lines of a WooCommerce order
+	 *
+	 * A WooCommerce order can also hold other products, shipping or fees.
+	 * Refunding only those must not touch the booking.
+	 *
+	 * - Order with ticket lines only: every refund counts.
+	 * - Mixed order: only refunds made on ticket lines (line total + its tax).
+	 *   A refund entered as a plain amount on a mixed order cannot be split,
+	 *   so it is not counted.
+	 *
+	 * @param   \WC_Order  $order  WooCommerce order.
+	 *
+	 * @return  float
+	 */
+	private function wc_ticket_refunded_total( $order ) {
+		$ticket_item_ids = [];
+		$only_tickets    = ! $order->get_items( [ 'shipping', 'fee' ] );
+
+		foreach ( $order->get_items() as $item_id => $item ) {
+			if ( 'yes' === $item->get_meta( '_etn' ) || $item->get_meta( 'event_id' ) ) {
+				$ticket_item_ids[ (int) $item_id ] = true;
+			} else {
+				$only_tickets = false;
+			}
+		}
+
+		if ( $only_tickets ) {
+			return (float) $order->get_total_refunded();
+		}
+
+		$total = 0.0;
+
+		foreach ( $order->get_refunds() as $refund ) {
+			foreach ( $refund->get_items() as $refund_item ) {
+				if ( isset( $ticket_item_ids[ (int) $refund_item->get_meta( '_refunded_item_id' ) ] ) ) {
+					$total += abs( (float) $refund_item->get_total() + (float) $refund_item->get_total_tax() );
+				}
+			}
+		}
+
+		return $total;
+	}
+
 	public function eventin_order_update( $order_id, $old_status, $new_status, $order ) {
+		// Eventin is refunding this order and sets its own status afterwards.
+		if ( \Eventin\Integrations\WC\WCRefundSync::is_running() ) {
+			return;
+		}
+
 		$order = wc_get_order( $order_id );
 		
 		if ( ! $order ) {
@@ -523,7 +776,11 @@ class Hooks {
 		// false until an admin saves the setting, and in_array() against false is a
 		// TypeError on PHP 8 — which would take down the gateway notification itself.
 		if ( in_array( $wc_status, (array) etn_get_wc_order_statuses(), true ) ) {
-			if ( 'completed' === $event_order->status ) {
+			if ( 'completed' === $event_order->status || $this->is_refund_locked( $event_order ) ) {
+				return;
+			}
+
+			if ( ! $this->wc_order_can_complete_eventin_order( $order, $eventin_order_id ) ) {
 				return;
 			}
 
@@ -592,6 +849,12 @@ class Hooks {
         if ( 'completed' === $event_order->status ) {
             return;
         }
+
+        // The link alone is not proof of payment: the order must hold this
+        // booking's ticket at its full price (Patchstack 36384).
+        if ( ! $this->wc_order_can_complete_eventin_order( $order, $eventin_order_id ) ) {
+            return;
+        }
         
         // Update the event order status to completed
         $event_order->update([
@@ -619,12 +882,32 @@ class Hooks {
             return;
         }
 
+        // Block checkout drafts change their line items until the buyer submits.
+        // Older WooCommerce fired woocommerce_new_order for them; link only once
+        // the order is real (woocommerce_store_api_checkout_order_processed).
+        if ( 'checkout-draft' === $order->get_status() ) {
+            return;
+        }
+
         // An already stored link wins, so re-saving an order can never unlink it.
         // The session is only the source for the checkout that is creating this order.
         $event_order_id = $this->get_eventin_order_id( $order );
 
         if ( ! $event_order_id && WC()->session ) {
-            $event_order_id = absint( WC()->session->get( 'event_order_id' ) );
+            $session_order_id = absint( WC()->session->get( 'event_order_id' ) );
+
+            // The session marker can outlive the ticket it belonged to: the Store API
+            // bulk cart clear (DELETE /wc/store/v1/cart/items) empties the cart through
+            // WC_Cart::empty_cart(), which fires woocommerce_cart_emptied, not the
+            // per-item woocommerce_remove_cart_item we unset on. Without this check a
+            // guest could clear the ticket, check out an unrelated free product at $0,
+            // and have that order linked to the paid ticket order (Patchstack 36384).
+            // Only adopt the marker when this WooCommerce order actually holds that
+            // Eventin order's ticket.
+            if ( $session_order_id
+                && $this->wc_order_contains_eventin_ticket( $order, $session_order_id ) ) {
+                $event_order_id = $session_order_id;
+            }
         }
 
         if ( ! $event_order_id ) {
@@ -678,6 +961,10 @@ class Hooks {
             '_seat_unique_id'               => 'seat_' . time(),
             '_etn_variation_total_quantity' => $order->get_total_ticket(),
             'event_id'                      => $order->event_id,
+            // The exact Eventin order this cart line belongs to. Lets the link guard
+            // bind to the precise order, not just the event, so two orders for the
+            // same event can never be confused (Patchstack 36384).
+            '_etn_order_id'                 => $order->id,
             // When the WC payment is settling a waiting-list order, the seats are
             // already promised to this customer — stock-validation hooks below must
             // skip these cart items, otherwise the customer can never pay if the
@@ -824,18 +1111,39 @@ class Hooks {
      * @return  void
      */
 	public function redirect_success_page( $wc_order_id ) {
-		$order_id = WC()->session->get('event_order_id');
-		
-		if ( ! $order_id ) {
+		$session_order_id = absint( WC()->session->get('event_order_id') );
+
+		$wc_order = wc_get_order( $wc_order_id );
+
+		if ( ! $wc_order ) {
 			return;
 		}
-		
-		$wc_order = wc_get_order( $wc_order_id );
-		
+
 		$statuses = etn_get_wc_order_statuses();
-		
+
+		// The WooCommerce order's stored link is authoritative, and is never
+		// overwritten from the session. Otherwise a guest who paid a cheap/free
+		// order A (WC order W linked to A) could start an expensive order B in the
+		// same session, revisit W's order-received page, and have this callback
+		// repoint W from A to B and complete B for free (Patchstack 36384).
+		$order_id = $this->get_eventin_order_id( $wc_order );
+
+		if ( ! $order_id ) {
+			// First link for this WooCommerce order: only adopt the session marker
+			// when the order actually holds that Eventin order's ticket, so a stale
+			// marker left by a bulk cart clear cannot bind an unrelated order.
+			if ( $session_order_id
+				&& $this->wc_order_contains_eventin_ticket( $wc_order, $session_order_id ) ) {
+				$order_id = $session_order_id;
+				$this->link_eventin_order( $wc_order, $order_id );
+			} else {
+				WC()->session->__unset( 'event_order_id' );
+
+				return;
+			}
+		}
+
 		WC()->session->__unset( 'event_order_id' );
-		$this->link_eventin_order( $wc_order, $order_id );
 
 		// Stay to woo thank you page
 		$thankyou_redirect   =  etn_get_option( "order_thank_you_redirect" );
@@ -855,7 +1163,8 @@ class Hooks {
 
 		if ( $thankyou_redirect === 'woo_thankyou' ) {
             if ( $eventin_order->status !== 'completed' ) {
-                if ( $wc_order && in_array( $wc_order->get_status(), $statuses ) ) {
+                if ( $wc_order && in_array( $wc_order->get_status(), $statuses )
+                    && $this->wc_order_can_complete_eventin_order( $wc_order, $order_id ) ) {
                     $eventin_order->update(['status' => 'completed']);
                     
                     do_action('eventin_order_completed', $eventin_order);
@@ -867,7 +1176,8 @@ class Hooks {
 		}
 		
         if ( $eventin_order->status !== 'completed' ) { 
-            if ( $wc_order && in_array( $wc_order->get_status(), $statuses ) ) {
+            if ( $wc_order && in_array( $wc_order->get_status(), $statuses )
+                && $this->wc_order_can_complete_eventin_order( $wc_order, $order_id ) ) {
                 $eventin_order->update(['status' => 'completed']);
                 do_action('eventin_order_completed', $eventin_order);
                 $eventin_order->send_email();
@@ -2562,6 +2872,7 @@ class Hooks {
     public function save_cart_item_data( $item, $cart_item_key, $values, $order ) {
         $updatable_metas = [
             'event_id',
+            '_etn_order_id',
             'etn_status_update_key',
             'etn_ticket_variations',
             '_etn_variation_total_price',
@@ -3029,7 +3340,16 @@ class Hooks {
             return $fields;
         }
 
-        $fields['billing'] = array();
+        // Keep the billing country. Payment gateways read it in the browser to
+        // decide which methods to offer: WooPayments hides iDEAL (NL only),
+        // Bancontact (BE), EPS (AT) and similar when `billing_country` is
+        // missing, so emptying it left ticket buyers with card only.
+        $billing = isset( $fields['billing'] ) && is_array( $fields['billing'] ) ? $fields['billing'] : array();
+
+        $fields['billing'] = array_intersect_key(
+            $billing,
+            array_flip( $this->get_kept_billing_fields() )
+        );
 
         // Hide all shipping fields
         $fields['shipping'] = array();
@@ -3064,6 +3384,10 @@ class Hooks {
 
         $checkout = WC()->checkout();
 
+        // The billing form still has fields to show (the country), so keep
+        // its renderer and drop only the shipping / "Additional information" one.
+        $keep_billing_form = ! empty( $this->get_kept_billing_fields() );
+
         // Both renderers are removed from both hooks on purpose. Themes move
         // them around: Astra re-hooks `checkout_form_shipping` onto
         // `woocommerce_checkout_billing` and drops it from
@@ -3071,9 +3395,31 @@ class Hooks {
         // the hook WooCommerce itself registered it on left the shipping and
         // "Additional information" markup still rendering.
         foreach ( [ 'woocommerce_checkout_billing', 'woocommerce_checkout_shipping' ] as $hook ) {
-            remove_action( $hook, [ $checkout, 'checkout_form_billing' ] );
+            if ( ! $keep_billing_form ) {
+                remove_action( $hook, [ $checkout, 'checkout_form_billing' ] );
+            }
             remove_action( $hook, [ $checkout, 'checkout_form_shipping' ] );
         }
+    }
+
+    /**
+     * Billing fields that stay on checkout when billing info is turned off.
+     *
+     * @return string[]
+     */
+    private function get_kept_billing_fields() {
+        /**
+         * Billing fields kept on a ticket-only checkout when billing info is off.
+         *
+         * Return an empty array to hide every billing field again. Note that
+         * country-limited payment methods (iDEAL, Bancontact, EPS, ...) then
+         * disappear, because gateways need the billing country.
+         *
+         * @param string[] $fields Billing field keys, e.g. `billing_country`.
+         */
+        $fields = apply_filters( 'eventin_woo_checkout_kept_billing_fields', array( 'billing_country' ) );
+
+        return is_array( $fields ) ? array_values( array_filter( $fields, 'is_string' ) ) : array();
     }
 
     /**

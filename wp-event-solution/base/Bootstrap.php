@@ -1,6 +1,7 @@
 <?php
 namespace Eventin;
 
+use Eventin\AccessControl\RouteParamGuard;
 use Eventin\Admin\AdminProvider;
 use Eventin\Blocks\BlockProvider;
 use Eventin\Attendee\AttendeeProvider;
@@ -59,6 +60,10 @@ class Bootstrap {
 	    self::init_classes();
         add_action( 'init', [ self::class, 'init' ], 5 );
         add_action( 'rest_api_init', [ ApiManager::class, 'register' ] );
+
+        // URL params win over the same key in body/query on every Eventin route
+        // (CVE-2026-109994). Must run before any permission callback.
+        RouteParamGuard::register();
     }
 
     /**

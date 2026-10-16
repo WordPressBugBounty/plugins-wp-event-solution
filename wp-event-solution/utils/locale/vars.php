@@ -9,6 +9,8 @@ $current_event_owner_id = class_exists( '\\Eventin\\AccessControl\\Ownership' )
 $data = [
     'ajax_url'                    => admin_url( 'admin-ajax.php' ),
     'site_url'                    => site_url(),
+    'razorpay_webhook_url'        => rest_url( 'eventin/v2/razorpay-webhook' ),
+    'fluentcart_refund_sync'      => etn_fluentcart_syncs_refunds(),
     'admin_url'                   => admin_url(),
     'admin_email'                 => '',
     'assets_url'                  => \Wpeventin::plugin_url("assets"),
@@ -35,6 +37,7 @@ $data = [
     'payment_option_woo'          => etn_get_option( 'sell_tickets' ),
     'payment_option_stripe'       => etn_get_option( 'etn_sells_engine_stripe' ),
     'payment_option_paypal'       => etn_get_option( 'paypal_status' ),
+    'payment_option_razorpay'     => etn_is_razorpay_enabled(),
     'payment_option_surecart'     => etn_get_option( 'surecart_status' ),
     'payment_option_fluentcart'   => etn_get_option( 'fluentcart_status' ), '',
     'payment_option_local_payment' => etn_get_option( 'local_payment_status' ),
@@ -52,6 +55,8 @@ $data = [
     'price_format'                => etn_get_price_format(),
     'currency_position'           => etn_get_currency_position(),
     'elementor_supported'         => class_exists( '\Elementor\Plugin' ) && in_array( 'etn-template', $elementor_post_types ),
+    // Events (etn) enabled in Elementor > Settings > Post Types; lets the create screen show "Edit with Elementor" before the event has an ID.
+    'etn_elementor_supported'     => did_action( 'elementor/loaded' ) && is_array( $elementor_post_types ) && in_array( 'etn', $elementor_post_types, true ),
     'bricks_supported'            => ( 'bricks' === wp_get_theme()->get( 'Template' ) || 'Bricks' === wp_get_theme()->get( 'Name' ) ),
     'selected_template_builder'   => etn_get_selected_template_builder(),
     // Ids of the free starter templates, from \Eventin\Template\StaticTemplateConfig.

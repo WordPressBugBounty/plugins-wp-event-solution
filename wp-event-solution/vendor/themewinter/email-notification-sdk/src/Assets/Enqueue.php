@@ -51,7 +51,9 @@ class Enqueue {
             'api_version' => 'v1',
             'plugin_slug' => $plugin_slug,
             'base_url'    => site_url(),
-            'triggers'    => apply_filters( 'ens_'.$this->identifier.'_available_actions', [] )
+            'triggers'    => apply_filters( 'ens_'.$this->identifier.'_available_actions', [] ),
+            // 'yes'/'no' string: wp_localize_script turns a bool false into "".
+            'whatsapp_enabled' => Helpers::is_whatsapp_enabled( $this->identifier ) ? 'yes' : 'no',
         ] );
     }
 }

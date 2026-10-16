@@ -86,7 +86,32 @@ class RefundController extends WP_REST_Controller {
         $total        = $model->refunded_total( $order_id );
         $final_amount = $svc->final_amount_for_order( $order );
 
+        // Tell the refund modal whether the money goes back by itself.
+        // 'gateway': WooCommerce sends it back through the order's gateway.
+        // 'manual':  Eventin only records it; the admin sends the money back.
+        $refund_method  = 'manual';
+        $refund_gateway = '';
+
+        if ( 'wc' === (string) $order->payment_method && class_exists( '\\Eventin\\Integrations\\WC\\WCRefundSync' ) ) {
+            $wc_order = \Eventin\Integrations\WC\WCRefundSync::get_wc_order( $order_id );
+
+            if ( $wc_order ) {
+                $refund_gateway = (string) $wc_order->get_payment_method_title();
+
+                if ( '' === $refund_gateway && function_exists( 'wc_get_payment_gateway_by_order' ) ) {
+                    $gateway        = wc_get_payment_gateway_by_order( $wc_order );
+                    $refund_gateway = $gateway ? wp_strip_all_tags( (string) $gateway->get_title() ) : '';
+                }
+
+                if ( \Eventin\Integrations\WC\WCRefundSync::sends_money_back( $wc_order ) ) {
+                    $refund_method = 'gateway';
+                }
+            }
+        }
+
         return new WP_REST_Response( [
+            'refund_method'    => $refund_method,
+            'refund_gateway'   => $refund_gateway,
             'refunds'          => $rows,
             'refunded_total'   => $total,
             'refundable_total' => max( 0, round( $final_amount - $total, 2 ) ),
@@ -106,6 +131,26 @@ class RefundController extends WP_REST_Controller {
     }
 
     public function create_item( $request ) {
+        // These gateways refund on their own dashboard and then tell Eventin.
+        // A refund made here would not send the money back.
+        $order = new OrderModel( (int) $request['id'] );
+
+        $external_gateways = [ 'sure_cart' ];
+
+        // Older FluentCart add-ons do not copy partial refunds into Eventin.
+        // Keep the Eventin refund for them, as before.
+        if ( etn_fluentcart_syncs_refunds() ) {
+            $external_gateways[] = 'fluentcart';
+        }
+
+        if ( in_array( (string) $order->payment_method, $external_gateways, true ) ) {
+            return new WP_Error(
+                'eventin_refund_external_gateway',
+                __( 'Refund this booking from the payment platform\'s own dashboard (SureCart or FluentCart). Eventin updates the booking automatically.', 'eventin' ),
+                [ 'status' => 422 ]
+            );
+        }
+
         $svc     = new RefundService();
         $type    = (string) $request['type'];
         $payload = [

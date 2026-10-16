@@ -197,20 +197,67 @@ class Helper {
 	}
 
 	/**
-	 * Get time zone
+	 * Get a timezone's offset from UTC, in hours.
 	 *
-	 * @param [type] $timezone
-	 * @return void
+	 * Callers hand the result straight to the countdown script as its `offset`
+	 * option, where it is multiplied by an hour in milliseconds — so the return
+	 * is always a number, never an offset string. `'+5:30'` used to come back
+	 * for `UTC+5:30` and multiplied out to NaN, stopping the countdown dead.
+	 *
+	 * Stored timezones come in three shapes: an identifier (`Asia/Dhaka`), a
+	 * `UTC±h` label, and a bare offset (`+06:00`) written by imports and by the
+	 * REST API. Only the first is something date_default_timezone_set() will
+	 * accept; the other two raised "Timezone ID is invalid", left the offset at
+	 * whatever the previous call had set, and returned a wrong number quietly.
+	 *
+	 * Nothing here changes the process default timezone any more. Setting it
+	 * and never putting it back left every later date() in the request running
+	 * in the last event's zone.
+	 *
+	 * @param string $timezone Timezone identifier, `UTC±h` label, or offset.
+	 *
+	 * @return int|float Offset from UTC in hours; the site offset when the value is unusable.
 	 */
 	public function get_timezone_numeric_value( $timezone ){
-		if ( str_contains( $timezone, 'UTC+' ) || str_contains( $timezone, 'UTC-' ) ) {
-			$timezone_offset = str_replace('UTC', '', $timezone);
-		} else {
-			date_default_timezone_set( $timezone ); // phpcs:ignore WordPress.DateTime.RestrictedFunctions.timezone_change_date_default_timezone_set -- intentional timezone context for offset calculation.
-			$timezone_offset = date( 'Z' ) / 3600; // phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date -- must use local date() after date_default_timezone_set() to get the correct offset.
+		$timezone = is_string( $timezone ) ? trim( $timezone ) : '';
+
+		// Unusable value: fall back to the site timezone, not UTC.
+		$site_offset = static function () {
+			$zone = wp_timezone();
+
+			return $zone->getOffset( new \DateTime( 'now', $zone ) ) / 3600;
+		};
+
+		if ( '' === $timezone ) {
+			return $site_offset();
 		}
 
-		return $timezone_offset;
+		// `UTC+6`, `UTC+5.5` (WordPress's manual offsets), `UTC-05:30` and
+		// `+06:00` all state the offset outright.
+		$offset = preg_replace( '/^UTC/i', '', $timezone );
+
+		if ( preg_match( '/^([+-])(\d{1,2}(?:\.\d+)?)$/', $offset, $matches ) ) {
+			$hours = (float) $matches[2];
+
+			return '-' === $matches[1] ? -$hours : $hours;
+		}
+
+		if ( preg_match( '/^([+-])(\d{1,2})(?::?(\d{2}))?$/', $offset, $matches ) ) {
+			$hours = (int) $matches[2] + ( isset( $matches[3] ) ? (int) $matches[3] / 60 : 0 );
+
+			return '-' === $matches[1] ? -$hours : $hours;
+		}
+
+		// Anything else has to be an identifier. DateTimeZone resolves it
+		// without touching global state, and throws rather than warns on a
+		// name it does not know.
+		try {
+			$zone = new \DateTimeZone( $timezone );
+		} catch ( \Exception $e ) {
+			return $site_offset();
+		}
+
+		return $zone->getOffset( new \DateTime( 'now', $zone ) ) / 3600;
 	}
 
 	/**

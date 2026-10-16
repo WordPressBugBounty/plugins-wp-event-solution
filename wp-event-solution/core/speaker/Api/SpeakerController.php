@@ -390,10 +390,12 @@ class SpeakerController extends WP_REST_Controller {
      * @return WP_Error|WP_REST_Response
      */
     public function get_item( $request ) {
-        $id   = intval( $request['id'] );
+        // The id the permission check authorised — never $request['id'],
+        // which a `?id=` or body `id` can override (CVE-2026-109994).
+        $id   = Ownership::route_subject_id( $request );
         $user = new User_Model( $id );
 
-        $item = $user->get_data( $request['id'] );
+        $item = $user->get_data( $id );
 
         $response = rest_ensure_response( $item );
 
@@ -407,11 +409,12 @@ class SpeakerController extends WP_REST_Controller {
      * @return WP_Error|WP_REST_Response
      */
     public function clone_item( $request ) {
-        $id   = intval( $request['id'] );
+        // Same as get_item(): act on the id the permission check authorised.
+        $id   = Ownership::route_subject_id( $request );
         $user = new User_Model( $id );
 
         //get data for clone
-        $clone = $user->clone_data( $request['id'] );
+        $clone = $user->clone_data( $id );
 
         // A clone is a NEW WordPress account carrying the speaker role, so it needs the
         // same gate as the create route (CVE-2026-84905). The ownership check on this
@@ -562,7 +565,7 @@ class SpeakerController extends WP_REST_Controller {
      * @return WP_Error|WP_REST_Response
      */
     public function update_item($request){
-        $target_user_id = (int)$request->get_param('id');
+        $target_user_id = Ownership::route_subject_id( $request );
         $current_user = wp_get_current_user();
         $target_user = get_userdata($target_user_id);
         
@@ -591,7 +594,7 @@ class SpeakerController extends WP_REST_Controller {
             return $data;
         }
         
-        $speaker = new User_Model($request['id']);
+        $speaker = new User_Model( $target_user_id );
         
         $user = get_user_by('email', $data['etn_speaker_website_email']);
         

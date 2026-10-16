@@ -191,6 +191,10 @@ class ExtensionController extends WP_REST_Controller {
         if ( $name == 'hubspot' ) {
             etn_update_option( 'hubspot_api', $status ?? null );
         }
+
+        if ( $name == 'whatsapp' ) {
+            etn_update_option( 'whatsapp_api', $status ?? null );
+        }
         // Normalised to on/off: the allow-list above also admits install/activate/
         // deactivate, and readers of this option test it as on/off.
         if ( 'rank_math' === $name ) {
@@ -235,6 +239,17 @@ class ExtensionController extends WP_REST_Controller {
 
         if ( $name == 'paypal' ) {
             etn_update_option( 'paypal_status', $status == 'on' ? true : false );
+
+            if ( $status == 'on' && $clear_conflicts ) {
+                etn_update_option( 'sell_tickets', null );
+                etn_update_option( 'payment_method', '' );
+                etn_update_option( 'surecart_status', false );
+                etn_update_option( 'fluentcart_status', false );
+            }
+        }
+
+        if ( $name == 'razorpay' ) {
+            etn_update_option( 'razorpay_status', $status == 'on' ? true : false );
 
             if ( $status == 'on' && $clear_conflicts ) {
                 etn_update_option( 'sell_tickets', null );

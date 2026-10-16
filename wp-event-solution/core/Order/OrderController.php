@@ -487,8 +487,16 @@ class OrderController extends WP_REST_Controller {
 
         do_action( 'eventin_after_order_create', $order, $attendees);
 
-        if ( 'pending' == $order->status ) {
-            $remaining_time_to_pay = get_post_meta( $order->id, 'remaining_time_to_pay', true );        
+        // Only a checkout-timer order expires. An order manager who creates a
+        // booking with an explicit "pending" status means "not paid yet", not
+        // "fail it when the timer ends".
+        $json_params      = $request->get_json_params();
+        $status_was_set   = is_array( $json_params ) && isset( $json_params['status'] )
+            && ( current_user_can( 'manage_options' ) || current_user_can( 'etn_manage_order' ) );
+        $is_timer_enabled = 'on' === etn_get_option( 'ticket_purchase_timer_enable', 'off' );
+
+        if ( 'pending' == $order->status && $is_timer_enabled && ! $status_was_set ) {
+            $remaining_time_to_pay = get_post_meta( $order->id, 'remaining_time_to_pay', true );
             wp_schedule_single_event( time() + ( (int)$remaining_time_to_pay + 1 ), 'eventin_release_held_tickets', [ $order->id ] );
         }
 	    
@@ -586,7 +594,7 @@ class OrderController extends WP_REST_Controller {
         // Record the hold as its own row and let the ledger write the `pending`
         // counts. Incrementing them here instead would drift: the release below
         // can run more than once, and before 4.1.23 it could not run at all.
-        $ticket_purchase_timer = (int) etn_get_option( 'ticket_purchase_timer', 10 ) + 1;
+        $ticket_purchase_timer = max( 1, (int) etn_get_option( 'ticket_purchase_timer', 10 ) ) + 1;
         $ttl                   = $ticket_purchase_timer * MINUTE_IN_SECONDS;
 
         $hold_id = TicketHold::add( $event_id, $seat_ids, $booked_tickets, $ttl );
@@ -905,20 +913,38 @@ class OrderController extends WP_REST_Controller {
                 return new WP_Error( 'order_update_booking_status_error', __( "You can't fail a refunded order", 'eventin' ), ['status' => 400] );
             }
 
-            // Allow partially_refunded → completed as an explicit "undo refund" flow
-            // (handled below via RefundService::undo_refunds_for_order). Block any
-            // other transition out of partially_refunded except staying or going fully refunded.
+            // Block any transition out of partially_refunded except staying or
+            // going fully refunded (completed is checked just below).
             if ( $current_status === 'partially_refunded' && ! in_array( $status, [ 'partially_refunded', 'refunded', 'completed' ], true ) ) {
                 return new WP_Error( 'order_update_booking_status_error', __( "Partially refunded orders can only be fully refunded or restored to completed.", 'eventin' ), ['status' => 400] );
+            }
+
+            // Money that went back to the customer does not come back when the
+            // status changes. Restoring "completed" would give them a valid ticket
+            // for free, and reports would count the refunded money as revenue again.
+            // Only a "refunded" set by the status dropdown (no refund recorded) can be undone.
+            if ( $status === 'completed' && in_array( $current_status, [ 'refunded', 'partially_refunded' ], true ) ) {
+                $refunded_total = ( new \Eventin\Refund\RefundModel() )->refunded_total( intval( $order->id ) );
+
+                if ( $refunded_total > 0 ) {
+                    return new WP_Error(
+                        'order_update_booking_status_error',
+                        sprintf(
+                            /* translators: 1: currency symbol, 2: refunded amount */
+                            __( '%1$s%2$s was already refunded to the customer. Changing the status does not take the money back, so this booking cannot be set to Completed.', 'eventin' ),
+                            html_entity_decode( $order->currency_symbol ? $order->currency_symbol : etn_currency_symbol(), ENT_QUOTES, 'UTF-8' ),
+                            number_format( $refunded_total, 2 )
+                        ),
+                        [ 'status' => 400 ]
+                    );
+                }
             }
 
 
 		    $order->update(["status" => $status]);
 
-		    // Undo recorded refunds when an operator manually flips a (partially_)refunded
-		    // order back to completed: restore ticket quantities and clear refund history.
-		    // Refund-confirmation emails already sent are NOT recalled (the customer
-		    // would need a separate "refund cancelled" notification, which is out of scope).
+		    // Only reached when no refund was recorded (checked above), so this is a
+		    // no-op today. Kept so stale refund meta can never outlive a restore.
 		    if ( $status === 'completed' && in_array( $current_status, [ 'refunded', 'partially_refunded' ], true ) ) {
 		        ( new \Eventin\Refund\RefundService() )->undo_refunds_for_order( intval( $order->id ) );
 		    }
@@ -1004,6 +1030,12 @@ class OrderController extends WP_REST_Controller {
 
         if ( ! $is_owner_staff ) {
             $pinned = $this->pin_guest_order_fields( $request, $id );
+
+            if ( is_wp_error( $pinned ) ) {
+                return $pinned;
+            }
+        } elseif ( ! Ownership::is_unscoped() ) {
+            $pinned = $this->pin_staff_order_fields( $request, $id );
 
             if ( is_wp_error( $pinned ) ) {
                 return $pinned;
@@ -1125,6 +1157,57 @@ class OrderController extends WP_REST_Controller {
 
         if ( isset( $body['attendees'] ) && is_array( $body['attendees'] ) ) {
             $body['attendees'] = $this->pin_guest_attendee_tickets( $body['attendees'], $order_id );
+        }
+
+        $request->set_body( wp_json_encode( $body ) );
+
+        return null;
+    }
+
+    /**
+     * Keep a non-admin staff edit inside the order it was authorised for.
+     *
+     * update_item_permissions_check() authorises the order in the URL. The body
+     * then named the attendees to rewrite (`attendees[].id`) and the event, and
+     * neither was checked: an organizer could rewrite another organizer's
+     * attendee (name, email, ticket link) or move their own order onto someone
+     * else's event.
+     *
+     * - `event_id`: may change only to an event the caller owns.
+     * - `attendees`: rows naming an attendee of another order are dropped.
+     *   Rows with no id are left as they were.
+     *
+     * @param WP_REST_Request $request  Request whose body is rewritten in place.
+     * @param int             $order_id Order being edited.
+     * @return null|WP_Error
+     */
+    private function pin_staff_order_fields( $request, $order_id ) {
+        $body = json_decode( $request->get_body(), true );
+
+        if ( ! is_array( $body ) ) {
+            return null;
+        }
+
+        $stored_event = (int) get_post_meta( $order_id, 'event_id', true );
+
+        if ( isset( $body['event_id'] ) && (int) $body['event_id'] !== $stored_event
+            && ! Ownership::can_manage_post( (int) $body['event_id'], 'etn' ) ) {
+            return new WP_Error( 'rest_forbidden', __( 'You cannot move this order to that event.', 'eventin' ), [ 'status' => 403 ] );
+        }
+
+        if ( isset( $body['attendees'] ) && is_array( $body['attendees'] ) ) {
+            $own_attendee_ids = array_map( 'intval', (array) $this->attendee_ids_for_order( $order_id ) );
+
+            $body['attendees'] = array_values( array_filter(
+                $body['attendees'],
+                static function ( $attendee ) use ( $own_attendee_ids ) {
+                    if ( ! is_array( $attendee ) ) {
+                        return false;
+                    }
+
+                    return empty( $attendee['id'] ) || in_array( (int) $attendee['id'], $own_attendee_ids, true );
+                }
+            ) );
         }
 
         $request->set_body( wp_json_encode( $body ) );
@@ -1709,7 +1792,14 @@ class OrderController extends WP_REST_Controller {
         // inventory. A completed order is reached afterwards only through the payment
         // flow (paymentComplete/webhook), which verifies payment. See CVE-2026-12956.
         $allowed_statuses = [ 'pending', 'failed', 'completed', 'cancelled', 'refunded', 'partially_refunded', 'waiting' ];
-        $can_set_status   = current_user_can( 'manage_options' ) || current_user_can( 'etn_manage_order' );
+        // Staff may set a status only on an order for an event they own. The
+        // capability alone let any `etn_manage_order` holder create a "completed"
+        // (never paid) order on someone else's event: the permission check let
+        // them through as a guest, and this line then treated them as staff.
+        // The event comes from the same raw body the rest of this method reads.
+        $can_set_status   = current_user_can( 'manage_options' )
+            || ( current_user_can( 'etn_manage_order' )
+                && Ownership::can_manage_post( isset( $input_data['event_id'] ) ? absint( $input_data['event_id'] ) : 0, 'etn' ) );
 
         if ( $can_set_status && isset( $input_data['status'] ) && in_array( $input_data['status'], $allowed_statuses, true ) ) {
             $order_data['status'] = $input_data['status'];
@@ -1752,7 +1842,8 @@ class OrderController extends WP_REST_Controller {
             $order_data['remaining_time_to_pay'] = $input_data['remaining_time_to_pay'];
         }
         else{
-            $order_data['remaining_time_to_pay'] = 10;
+            // Seconds. Fall back to the full checkout timer, not 10 seconds.
+            $order_data['remaining_time_to_pay'] = max( 1, (int) etn_get_option( 'ticket_purchase_timer', 10 ) ) * MINUTE_IN_SECONDS;
         }
 
         if ( isset( $input_data['extra_fields'] ) ) {

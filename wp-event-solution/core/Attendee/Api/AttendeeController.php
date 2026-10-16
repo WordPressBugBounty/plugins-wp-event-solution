@@ -594,7 +594,23 @@ class AttendeeController extends WP_REST_Controller {
             return false;
         }
 
-        return Ownership::can_manage_attendee( Ownership::route_subject_id( $request ) );
+        $attendee_id = Ownership::route_subject_id( $request );
+
+        if ( ! Ownership::can_manage_attendee( $attendee_id ) ) {
+            return false;
+        }
+
+        // The body may also MOVE the attendee: prepare_item_for_database() writes
+        // `etn_event_id` from the raw body. Without this an organizer could put
+        // their own attendee (and a ticket) on another organizer's event.
+        $input    = json_decode( (string) $request->get_body(), true );
+        $event_id = is_array( $input ) && ! empty( $input['etn_event_id'] ) ? absint( $input['etn_event_id'] ) : 0;
+
+        if ( $event_id && $event_id !== absint( get_post_meta( $attendee_id, 'etn_event_id', true ) ) ) {
+            return Ownership::can_manage_post( $event_id, 'etn' );
+        }
+
+        return true;
     }
 
     /**
@@ -1121,6 +1137,7 @@ class AttendeeController extends WP_REST_Controller {
             'event_location'         => $event->get_location_label(),
             'attendee_id'            => [ $attendee->id ],
             'attendee_email'         => [ $attendee->etn_email ],
+            'attendee_number'        => \Eventin\Emails\WhatsappRecipients::attendee_numbers( [ $attendee ] ),
             'event_id'               => $event->id,
             'session_id'             => uniqid(),
         ] );
@@ -1257,6 +1274,7 @@ class AttendeeController extends WP_REST_Controller {
             'event_location'             => $event->get_location_label(),
             'attendee_id'                => [ $attendee->id ],
             'attendee_email'             => [ $attendee->etn_email ],
+            'attendee_number'            => \Eventin\Emails\WhatsappRecipients::attendee_numbers( [ $attendee ] ),
             'event_id'                   => $event->id,
             'post_id'                    => $event->id,
             'session_id'                 => uniqid(),

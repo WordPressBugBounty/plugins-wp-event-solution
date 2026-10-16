@@ -129,6 +129,14 @@ class Hooks {
      */
     protected function etn_user_events_widget( $attributes, $meta_key ) {
         $user_id = isset( $attributes['id'] ) && is_numeric( $attributes['id'] ) ? intval( $attributes['id'] ) : 0;
+
+        // The profile header prints the user's email and phone. Only speakers
+        // and organizers have a public profile; `id="1"` used to print the
+        // admin's (CVE-2026-109994 follow-up).
+        if ( $user_id && ! \Eventin\AccessControl\Ownership::is_speaker_or_organizer( $user_id ) ) {
+            $user_id = 0;
+        }
+
         if ( ! $user_id ) {
             return '<p class="etn-not-found-post">' . esc_html__( 'No Post Found', 'eventin' ) . '</p>';
         }

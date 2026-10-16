@@ -143,7 +143,9 @@ class EventExporter implements PostExporterInterface {
         foreach ( $user_ids as $user_id ) {
             $user = get_userdata( (int) $user_id );
 
-            if ( $user ) {
+            // Only real speakers/organizers. An id that is not one (e.g. an
+            // admin id stored by a crafted save) must not turn into an email.
+            if ( $user && \Eventin\AccessControl\Ownership::is_speaker_or_organizer( $user->ID ) ) {
                 $emails[] = $user->user_email;
             }
         }

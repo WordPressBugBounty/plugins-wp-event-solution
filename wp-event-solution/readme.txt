@@ -3,7 +3,7 @@ Contributors: arraytics, ehsanriyadh
 Tags: events calendar, events, calendar, event registration, event tickets, event booking, RSVP
 Requires at least: 6.2
 Tested up to: 7.0
-Stable tag: 4.1.26
+Stable tag: 4.1.27
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: [https://www.gnu.org/licenses/gpl-2.0.html](https://www.gnu.org/licenses/gpl-2.0.html)
@@ -287,6 +287,17 @@ Yes. Eventin is translation-ready and compatible with WPML and Loco Translate. I
 Please report security bugs found in the source code of the WP Event Solution plugin through the [Patchstack Vulnerability Disclosure Program](https://patchstack.com/database/vdp/5b5e63df-930d-4f15-9bf8-db51f5732488). The Patchstack team will assist you with verification, CVE assignment, and notify the developers of this plugin.
 
 == Changelog ==
+
+= 4.1.27 ( October 16, 2026 ) =
+
+Tweak: Shortcodes – Find shortcodes faster with category tabs and a search box.
+Tweak: Refunds – Improve partial and full refund handling.
+Tweak: Reminder Emails – Improve the user experience when managing reminder emails through email automation.
+Fix: Checkout – Allow checkout timers to be set for longer than 10 minutes.
+Fix: Checkout – Automatically release seats held during checkout when an order is completed or the timer expires.
+Fix: WooCommerce – Prevent checkout from blocking ticket purchases when Global Capacity is enabled and seats are still available.
+Fix: WooCommerce – Make seats available again when a WooCommerce order is cancelled.
+Fix: Security – Strengthen the plugin's security to improve overall protection.
 
 = 4.1.26 ( October 05, 2026 ) =
 

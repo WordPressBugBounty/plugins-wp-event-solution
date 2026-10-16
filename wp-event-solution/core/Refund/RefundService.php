@@ -127,17 +127,39 @@ class RefundService {
             }
         }
 
+        /**
+         * Let a payment integration refund the money first (WooCommerce does,
+         * see WCRefundSync). It returns its own refund id, null when it has
+         * nothing to do, or a WP_Error. On an error nothing is recorded here,
+         * so Eventin and the payment platform never disagree.
+         *
+         * @param null|string|WP_Error $result   Result so far.
+         * @param OrderModel           $order    Order being refunded.
+         * @param float                $amount   Amount to refund.
+         * @param string|null          $reason   Refund note.
+         */
+        $gateway_refund_id = apply_filters( 'eventin/refund/process_payment', null, $order, $amount, $reason );
+
+        if ( is_wp_error( $gateway_refund_id ) ) {
+            return $gateway_refund_id;
+        }
+
         $refund_row = $this->model->create( $order_id, [
-            'type'         => $type,
-            'attendee_ids' => $attendee_ids_for_row,
-            'slug_counts'  => $slug_counts,
-            'amount'       => $amount,
-            'currency'     => $order->currency ?: 'USD',
-            'reason'       => $reason,
-            'gateway'      => (string) $order->payment_method,
+            'type'              => $type,
+            'attendee_ids'      => $attendee_ids_for_row,
+            'slug_counts'       => $slug_counts,
+            'amount'            => $amount,
+            'currency'          => $order->currency ?: 'USD',
+            'reason'            => $reason,
+            'gateway'           => (string) $order->payment_method,
+            'gateway_refund_id' => $gateway_refund_id ? (string) $gateway_refund_id : null,
         ] );
 
         if ( null === $refund_row ) {
+            if ( $gateway_refund_id ) {
+                error_log( sprintf( '[eventin] refund: payment refund %s done but Eventin order %d was locked; record it again in Eventin', $gateway_refund_id, $order_id ) );
+            }
+
             return new WP_Error( 'eventin_refund_locked', __( 'Another refund is being processed on this order. Try again in a few seconds.', 'eventin' ), [ 'status' => 409 ] );
         }
 
@@ -165,6 +187,100 @@ class RefundService {
             'order_status_after'             => $new_status,
             'remaining_refundable_attendees' => max( 0, count( $attendees ) - count( $this->model->refunded_attendee_ids( $order_id ) ) ),
         ];
+    }
+
+    /**
+     * Record a refund that was made outside Eventin, on the gateway's own
+     * dashboard (Stripe, Razorpay, WooCommerce, FluentCart, SureCart).
+     *
+     * The gateway already sent the money back, so this only writes the
+     * refund into Eventin's ledger and updates the order status:
+     * part of the money back -> partially_refunded, all of it -> refunded.
+     *
+     * Pass `total_refunded` when the gateway reports a running total. Then
+     * only the part Eventin has not recorded yet is added, so a refund that
+     * was first recorded in Eventin and then repeated on the gateway is not
+     * counted twice. Pass `amount` when the gateway only reports this one
+     * refund; `gateway_refund_id` then stops the same refund being added
+     * twice when a webhook is delivered again.
+     *
+     * @param int   $order_id Eventin order id.
+     * @param array $args {
+     *     @type string $gateway           Gateway key, e.g. 'stripe'.
+     *     @type string $gateway_refund_id Gateway's own refund id.
+     *     @type float  $amount            This refund, in major units (e.g. 10.50).
+     *     @type float  $total_refunded    All refunds so far on the gateway, in major units.
+     *     @type bool   $full              The gateway says ALL the money is back. Records
+     *                                     whatever is left, even when the gateway charged
+     *                                     less than Eventin's total (e.g. a platform coupon).
+     *     @type string $reason            Optional note.
+     * }
+     * @return array|null The new ledger row, or null when nothing was added.
+     */
+    public function record_gateway_refund( $order_id, $args ) {
+        $order_id = (int) $order_id;
+        $order    = new OrderModel( $order_id );
+
+        if ( ! $order->id || 'etn-order' !== get_post_type( $order_id ) ) {
+            return null;
+        }
+
+        if ( ! in_array( $order->status, [ 'completed', 'partially_refunded' ], true ) ) {
+            return null;
+        }
+
+        $refund_id = isset( $args['gateway_refund_id'] ) ? (string) $args['gateway_refund_id'] : '';
+
+        if ( '' !== $refund_id ) {
+            foreach ( $this->model->find_by_order( $order_id ) as $row ) {
+                if ( isset( $row['gateway_refund_id'] ) && (string) $row['gateway_refund_id'] === $refund_id ) {
+                    return null;
+                }
+            }
+        }
+
+        $already = $this->model->refunded_total( $order_id );
+
+        if ( isset( $args['total_refunded'] ) ) {
+            $amount = (float) $args['total_refunded'] - $already;
+        } else {
+            $amount = isset( $args['amount'] ) ? (float) $args['amount'] : 0.0;
+        }
+
+        $remaining = $this->final_amount_for_order( $order ) - $already;
+
+        if ( ! empty( $args['full'] ) ) {
+            $amount = $remaining;
+        }
+
+        $amount = round( min( $amount, $remaining ), 2 );
+
+        if ( $amount < 0.01 ) {
+            return null;
+        }
+
+        $refund_row = $this->model->create( $order_id, [
+            'type'              => 'amount',
+            'amount'            => $amount,
+            'currency'          => $order->currency ?: 'USD',
+            'reason'            => isset( $args['reason'] ) ? $args['reason'] : null,
+            'gateway'           => isset( $args['gateway'] ) ? $args['gateway'] : (string) $order->payment_method,
+            'gateway_refund_id' => '' !== $refund_id ? $refund_id : 'external',
+        ] );
+
+        if ( null === $refund_row ) {
+            return null;
+        }
+
+        $new_status = $this->recompute_order_status( $order );
+
+        do_action( 'eventin/refund/created', $refund_row, $order_id );
+
+        if ( 'refunded' === $new_status ) {
+            do_action( 'eventin_order_refund', $order, $order );
+        }
+
+        return $refund_row;
     }
 
     /**

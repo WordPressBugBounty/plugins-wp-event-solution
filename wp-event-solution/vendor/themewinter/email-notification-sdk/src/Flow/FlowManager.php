@@ -4,6 +4,8 @@ namespace Eventin\Vendor\Ens\Flow;
 use DateTime;
 use Eventin\Vendor\Ens\Config;
 use Eventin\Vendor\Ens\Email\EmailSender;
+use Eventin\Vendor\Ens\Utils\Helpers;
+use Eventin\Vendor\Ens\Whatsapp\WhatsappSender;
 
 /**
  * Class FlowManager
@@ -362,6 +364,52 @@ class FlowManager {
                     }
 
                     // Add session_id to processed list and update database
+                    if ( $session_id && $flow_post_id ) {
+                        $processed_session_ids[] = $session_id;
+                        $this->update_node_processed_sessions( $flow_post_id, $node['id'], $processed_session_ids );
+                    }
+                }
+
+                $current_node_id = $this->get_next_node_id( $edges, $node['id'] );
+                break;
+
+            case 'whatsapp':
+                if ( !isset( $node['data'] ) || !is_array( $node['data'] ) ) {
+                    $current_node_id = null;
+                    break;
+                }
+
+                // WhatsApp turned off by the consumer plugin: skip this step, keep the flow going.
+                if ( ! Helpers::is_whatsapp_enabled( $this->identifier ) ) {
+                    $current_node_id = $this->get_next_node_id( $edges, $node['id'] );
+                    break;
+                }
+
+                // Same session_id tracking as the email node, so a re-run
+                // of the flow does not send the same message twice.
+                $session_id = $hook_data['session_id'] ?? null;
+                $processed_session_ids = $node['data']['processed_session_ids'] ?? [];
+
+                if ( !$session_id || !in_array( $session_id, $processed_session_ids ) ) {
+                    $receiverType = $node['data']['receiverType'] ?? null;
+                    if ( $receiverType && isset( $hook_data[$receiverType] ) ) {
+                        $user_number = apply_filters(
+                            Helpers::get_hook_name( $this->identifier, 'notification_sdk_to_whatsapp_numbers' ),
+                            $hook_data[$receiverType],
+                            $hook_data,
+                            $action
+                        );
+
+                        if ( is_array( $user_number ) ) {
+                            foreach ( $user_number as $key => $number ) {
+                                $this->send_whatsapp_to_user( $receiverType, $number, $node['data'], $hook_data, $action, $key );
+                            }
+                        }
+                        else {
+                            $this->send_whatsapp_to_user( $receiverType, $user_number, $node['data'], $hook_data, $action );
+                        }
+                    }
+
                     if ( $session_id && $flow_post_id ) {
                         $processed_session_ids[] = $session_id;
                         $this->update_node_processed_sessions( $flow_post_id, $node['id'], $processed_session_ids );
@@ -820,6 +868,86 @@ class FlowManager {
     }
 
     /**
+     * Send WhatsApp message to user with loose validation.
+     *
+     * @since 1.0.0
+     *
+     * @param string $receiverType The type of receiver.
+     * @param mixed  $number       The recipient phone number.
+     * @param array  $data         The action node data (messageBody, etc.).
+     * @param array  $action_data  The hook payload.
+     * @param string $action_name  The action name.
+     * @param int    $count        The message count.
+     */
+    public function send_whatsapp_to_user( $receiverType, $number, $data, $action_data, $action_name, $count = 0 ) {
+        if ( ! is_scalar( $number ) ) {
+            return;
+        }
+        $number = trim( (string) $number );
+        if ( '' === $number ) {
+            return;
+        }
+
+        // Require at least 7 digits (E.164 sanity).
+        if ( strlen( preg_replace( '/\D/', '', $number ) ) < 7 ) {
+            return;
+        }
+
+        $message_type = isset( $data['messageType'] ) && 'template' === $data['messageType'] ? 'template' : 'text';
+
+        if ( 'template' === $message_type ) {
+            $template_name = trim( (string) ( $data['templateName'] ?? '' ) );
+            if ( '' === $template_name ) {
+                return;
+            }
+
+            $body_params = $data['templateBodyParams'] ?? [];
+            if ( is_string( $body_params ) ) {
+                // TagInput normally returns an array, but accept newline-separated string for resilience.
+                $body_params = array_values( array_filter( array_map( 'trim', preg_split( '/\r\n|\r|\n/', $body_params ) ), 'strlen' ) );
+            }
+            if ( ! is_array( $body_params ) ) {
+                $body_params = [];
+            }
+
+            $sender = new WhatsappSender( [
+                'identifier'    => $this->identifier,
+                'action_name'   => $action_name,
+                'receiver_type' => $receiverType,
+                'to'            => $number,
+                'message'       => '',
+                'message_type'  => 'template',
+                'template'      => [
+                    'name'        => $template_name,
+                    'language'    => trim( (string) ( $data['templateLanguage'] ?? 'en_US' ) ) ?: 'en_US',
+                    'body_params' => $body_params,
+                ],
+                'action_data'   => $action_data,
+                'count'         => $count,
+            ] );
+            $sender->send();
+            return;
+        }
+
+        $message = $data['messageBody'] ?? '';
+        if ( '' === trim( (string) $message ) ) {
+            return;
+        }
+
+        $sender = new WhatsappSender( [
+            'identifier'    => $this->identifier,
+            'action_name'   => $action_name,
+            'receiver_type' => $receiverType,
+            'to'            => $number,
+            'message'       => $message,
+            'message_type'  => 'text',
+            'action_data'   => $action_data,
+            'count'         => $count,
+        ] );
+        $sender->send();
+    }
+
+    /**
      * Update node's processed session IDs in database.
      *
      * @since 1.0.0
@@ -882,9 +1010,9 @@ class FlowManager {
 
         $updated = false;
 
-        // Loop through all nodes and remove session_id from email nodes
+        // Loop through all nodes and remove session_id from email and whatsapp nodes
         foreach ( $flow_config['nodes'] as &$node ) {
-            if ( isset( $node['name'] ) && $node['name'] === 'email' &&
+            if ( isset( $node['name'] ) && in_array( $node['name'], [ 'email', 'whatsapp' ], true ) &&
                  isset( $node['data']['processed_session_ids'] ) &&
                  is_array( $node['data']['processed_session_ids'] ) ) {
 

@@ -5,6 +5,8 @@ use Eventin\Vendor\Ens\Assets\Enqueue;
 use Eventin\Vendor\Ens\Flow\FlowAPI;
 use Eventin\Vendor\Ens\Flow\FlowCPT;
 use Eventin\Vendor\Ens\Hook\ActionListener;
+use Eventin\Vendor\Ens\Whatsapp\MetaCloudProvider;
+use Eventin\Vendor\Ens\Whatsapp\TemplatesAPI;
 
 /**
  * Class SDK
@@ -58,5 +60,8 @@ class SDK {
         ( new FlowAPI() )->init($this->identifier);
         ( new ActionListener() )->register($this->identifier);
         ( new Enqueue() )->init($this->identifier);
+        // Added for adding whatsapp support
+        ( new MetaCloudProvider( $this->identifier ) )->register();
+        ( new TemplatesAPI() )->init( $this->identifier );
     }
 }

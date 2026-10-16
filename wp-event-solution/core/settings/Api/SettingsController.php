@@ -162,6 +162,10 @@ class SettingsController extends WP_REST_Controller {
             // PayPal
             'paypal_client_id',
             'paypal_client_secret',
+            // Razorpay
+            'razorpay_key_id',
+            'razorpay_key_secret',
+            'razorpay_webhook_secret',
         ] );
 
         $secret_suffixes = apply_filters( 'eventin_settings_secret_suffixes', [
@@ -231,6 +235,9 @@ class SettingsController extends WP_REST_Controller {
             'currency'                 => etn_currency(),
             'currency_symbol'          => etn_currency_symbol(),
             "paypal_status"            => etn_get_option( 'paypal_status' ),
+            // Only the public Key ID goes to the browser, never the Key Secret.
+            'razorpay_status'          => etn_is_razorpay_enabled(),
+            'razorpay_key_id'          => etn_is_razorpay_enabled() ? etn_get_option( 'razorpay_key_id' ) : '',
             'surecart_status'          => etn_get_option( 'surecart_status' ),
             'local_payment_status'     => etn_get_option( 'local_payment_status' ),
             "attendee_registration"    => etn_get_option( 'attendee_registration' ),

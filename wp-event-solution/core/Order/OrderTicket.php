@@ -36,7 +36,11 @@ class OrderTicket implements HookableInterface {
 
         add_action( 'eventin_order_refund', [ $this, 'decrese_event_sold_ticket_after_refund' ] );
         
-        add_action( 'eventin_order_before_delete', [ $this, 'decrese_event_sold_ticket_after_order_delete' ] );
+        // Recount after the order is gone. On eventin_order_before_delete the order is
+        // still in the database, so the recount counted it again and the saved sold
+        // count stayed one order too high. The OrderModel passed here keeps the data
+        // it loaded before the delete (status, tickets, event_id, seat_ids).
+        add_action( 'eventin_order_deleted', [ $this, 'decrese_event_sold_ticket_after_order_delete' ] );
 
         add_action( 'eventin_attendee_before_delete', [ $this, 'decrese_event_sold_ticket_after_attendee_delete' ] );
 
@@ -569,6 +573,16 @@ class OrderTicket implements HookableInterface {
         $order = new OrderModel( $order_id );
 
         if ( 'pending' !== $order->status ) {
+            return;
+        }
+
+        // A local payment (pay later) order is pending on purpose: the buyer
+        // pays offline and an admin marks it paid. The checkout timer is not a
+        // deadline for that, so it must not turn the order into "failed".
+        // The flag is set only when the buyer actually placed the local payment
+        // order, so an abandoned checkout that merely defaulted to local payment
+        // still expires.
+        if ( get_post_meta( $order_id, 'etn_local_payment_placed', true ) ) {
             return;
         }
 

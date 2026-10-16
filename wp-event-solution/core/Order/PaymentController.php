@@ -9,6 +9,7 @@ use Etn\Core\Event\Event_Model;
 use Etn_Surecart_Addon\Integrations\SureCart\SureCart;
 use Eventin\Emails\AdminOrderEmail;
 use Eventin\Emails\AttendeeOrderEmail;
+use Eventin\Integrations\WC\WCOrderGuard;
 use Eventin\Integrations\WC\WCPayment;
 use Eventin\Mails\Mail;
 use Eventin\Settings;
@@ -18,6 +19,8 @@ use WP_REST_Controller;
 use WP_REST_Server;
 use EventinPro\Integrations\Stripe\StripePayment;
 use EventinPro\Integrations\Paypal\PaypalPayment;
+use EventinPro\Integrations\Razorpay\Razorpay;
+use EventinPro\Integrations\Razorpay\RazorpayPayment;
 
 /**
  * Payment controller class
@@ -188,6 +191,11 @@ class PaymentController extends WP_REST_Controller
 			return new WP_Error('payment_error', __('Please activate Eventin Pro', 'eventin'));
 		}
 
+		// Razorpay ships with newer Pro versions only, so check for the class itself.
+		if ($payment_method == 'razorpay' && (!class_exists('Wpeventin_Pro') || !class_exists(RazorpayPayment::class))) {
+			return new WP_Error('payment_error', __('Please activate or update Eventin Pro', 'eventin'));
+		}
+
 		$payment         = PaymentFactory::get_method($payment_method);
 		$order           = new OrderModel($order_id);
 		$validate_ticket = $order->validate_ticket(true);
@@ -203,7 +211,7 @@ class PaymentController extends WP_REST_Controller
 		// Native tax: compute geo-matched tax and bake it into total_price BEFORE
 		// the gateway reads $order->total_price to build its charge. WooCommerce
 		// never reaches here; sure_cart/fluentcart are excluded by name.
-		$native_methods = ['stripe', 'paypal', 'free-ticket', 'local_payment'];
+		$native_methods = ['stripe', 'paypal', 'razorpay', 'free-ticket', 'local_payment'];
 		if (in_array($payment_method, $native_methods, true)) {
 			$this->apply_native_tax($order);
 		}
@@ -352,7 +360,7 @@ class PaymentController extends WP_REST_Controller
 			return $validate_ticket;
 		}
 
-		if (! in_array($data['payment_method'], ['stripe', 'paypal', 'free-ticket', 'local_payment', 'sure_cart', 'fluentcart'], true)) {
+		if (! in_array($data['payment_method'], ['stripe', 'paypal', 'razorpay', 'free-ticket', 'local_payment', 'sure_cart', 'fluentcart'], true)) {
 			return new WP_Error('invalid_payment_method', __('Invalid payment method.', 'eventin'), ['status' => 400]);
 		}
 
@@ -387,6 +395,18 @@ class PaymentController extends WP_REST_Controller
 			if ('paypal' === $data['payment_method']) {
 				$paypal_transaction_id = isset($data['paypal_transaction_id']) ? sanitize_text_field($data['paypal_transaction_id']) : '';
 				$validation = $this->handle_paypal_validation($paypal_transaction_id, $temporary_status, $order);
+
+				if (is_wp_error($validation)) {
+					return rest_ensure_response([
+						'success' => false,
+						'message' => $validation->get_error_message(),
+					]);
+				}
+			}
+
+			// if payment_method razorpay
+			if ('razorpay' === $data['payment_method']) {
+				$validation = $this->handle_razorpay_validation($data, $temporary_status, $order);
 
 				if (is_wp_error($validation)) {
 					return rest_ensure_response([
@@ -449,6 +469,10 @@ class PaymentController extends WP_REST_Controller
 				$attendee = new Attendee_Model($attendee_data['id']);
 				$attendee->update(['etn_status' => 'pending']);
 			}
+
+			// The buyer confirmed "pay later". The checkout timer cron reads
+			// this and leaves the order pending instead of failing it.
+			update_post_meta($order_id, 'etn_local_payment_placed', 1);
 
 			/**
 			 * Fires when a local-payment order is placed. The order stays
@@ -539,7 +563,9 @@ class PaymentController extends WP_REST_Controller
 			return false;
 		}
 
-		return true;
+		// A paid status alone is not proof: the order must hold this booking's
+		// ticket at its full price (Patchstack 36384).
+		return WCOrderGuard::can_complete($order, $eventin_order_id);
 	}
 
 	/**
@@ -787,6 +813,84 @@ class PaymentController extends WP_REST_Controller
 				return $amount_check;
 			}
 		}
+
+		return true;
+	}
+
+	/**
+	 * Validate Razorpay payment
+	 *
+	 * Same order of checks as handle_stripe_validation(), plus the Razorpay
+	 * Checkout signature. The browser sends three values after a payment:
+	 * the Razorpay order id (saved on this order as payment_id when the payment
+	 * was created), the Razorpay payment id, and the signature.
+	 *
+	 * An authorized but not yet captured payment is captured here, before the
+	 * order is marked completed, so a failed capture never completes an order.
+	 *
+	 * @param array      $data             Request body.
+	 * @param string     $temporary_status The temporary status.
+	 * @param OrderModel $order            The order being completed.
+	 * @return bool|WP_Error True if valid, WP_Error on failure
+	 */
+	private function handle_razorpay_validation($data, $temporary_status, $order)
+	{
+		if (! class_exists(RazorpayPayment::class)) {
+			return new WP_Error('razorpay_error', __('Unexpected Error', 'eventin'));
+		}
+
+		$razorpay_order_id = isset($data['razorpay_transaction_id']) ? sanitize_text_field($data['razorpay_transaction_id']) : '';
+		$payment_id        = isset($data['razorpay_payment_id']) ? sanitize_text_field($data['razorpay_payment_id']) : '';
+		$signature         = isset($data['razorpay_signature']) ? sanitize_text_field($data['razorpay_signature']) : '';
+
+		$owns_transaction = $this->verify_transaction_belongs_to_order($razorpay_order_id, $order);
+
+		if (is_wp_error($owns_transaction)) {
+			return $owns_transaction;
+		}
+
+		$validation = $this->validate_payment_transaction($razorpay_order_id, $temporary_status);
+
+		if (is_wp_error($validation)) {
+			return $validation;
+		}
+
+		$is_signature_valid = Razorpay::verify_payment_signature(
+			$razorpay_order_id,
+			$payment_id,
+			$signature,
+			etn_get_option('razorpay_key_secret')
+		);
+
+		if (! $is_signature_valid) {
+			return new WP_Error('payment_failed', __('Payment Update Failed..', 'eventin'));
+		}
+
+		$razorpay_payment = new RazorpayPayment();
+		$payment          = $razorpay_payment->get_payment($payment_id);
+
+		if (is_wp_error($payment) || ! isset($payment['order_id']) || ! hash_equals($razorpay_order_id, (string) $payment['order_id'])) {
+			return new WP_Error('payment_failed', __('Payment Update Failed..', 'eventin'));
+		}
+
+		if (isset($payment['status']) && 'authorized' === $payment['status']) {
+			$payment = $razorpay_payment->capture($payment_id, $payment['amount'], $payment['currency']);
+		}
+
+		if (is_wp_error($payment) || ! isset($payment['status']) || 'captured' !== $payment['status']) {
+			return new WP_Error('payment_failed', __('Payment Update Failed..', 'eventin'));
+		}
+
+		$currency = isset($payment['currency']) ? (string) $payment['currency'] : '';
+		$paid     = isset($payment['amount']) ? Razorpay::to_major($payment['amount'], $currency) : null;
+
+		$amount_check = $this->verify_charged_amount($order, $paid, $currency);
+
+		if (is_wp_error($amount_check)) {
+			return $amount_check;
+		}
+
+		update_post_meta($order->id, 'razorpay_payment_id', $payment_id);
 
 		return true;
 	}

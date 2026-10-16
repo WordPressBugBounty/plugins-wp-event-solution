@@ -615,7 +615,13 @@ class Event_Model extends Post_Model {
         }
 
         // Loop through speaker IDs and create User_Model objects for each
-        foreach ( $speaker_ids as $speaker_id ) {
+        foreach ( (array) $speaker_ids as $speaker_id ) {
+            // Never present a non-speaker/organizer (e.g. an admin id stored
+            // by an old crafted save) as a public profile with their email.
+            if ( ! \Eventin\AccessControl\Ownership::is_speaker_or_organizer( $speaker_id ) ) {
+                continue;
+            }
+
             $speakers[] = new User_Model( $speaker_id );
         }
 
@@ -638,7 +644,13 @@ class Event_Model extends Post_Model {
         }
 
         // Loop through organizer IDs and create User_Model objects for each
-        foreach ( $organizer_ids as $organizer_id ) {
+        foreach ( (array) $organizer_ids as $organizer_id ) {
+            // Never present a non-speaker/organizer (e.g. an admin id stored
+            // by an old crafted save) as a public profile with their email.
+            if ( ! \Eventin\AccessControl\Ownership::is_speaker_or_organizer( $organizer_id ) ) {
+                continue;
+            }
+
             $organizers[] = new User_Model( $organizer_id );
         }
 

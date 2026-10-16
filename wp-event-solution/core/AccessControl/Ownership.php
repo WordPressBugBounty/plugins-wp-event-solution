@@ -597,4 +597,95 @@ class Ownership {
 
         return true;
     }
+
+    /**
+     * Is this user a speaker or an organizer?
+     *
+     * Event organizer/speaker lists are printed with the user's email and
+     * phone (event pages, JSON-LD, export, organizer widgets), so an ordinary
+     * account (e.g. an administrator) must never be shown as one.
+     *
+     * The role alone is not enough to recognise a real speaker: on live sites
+     * records made on the Speakers screen can lose the `etn-speaker` /
+     * `etn-organizer` role later (sandbox users 41 and 67 are now plain
+     * Subscribers; 367 has no role at all). So a user also counts when the
+     * Speakers screen made them — SpeakerController writes the `author` meta on
+     * create — or when they carry a speaker category. A caller cannot put
+     * either on someone else's account without `edit_user` on it.
+     *
+     * @param int $user_id User id.
+     *
+     * @return bool
+     */
+    public static function is_speaker_or_organizer( $user_id ) {
+        $user = get_userdata( absint( $user_id ) );
+
+        if ( ! $user ) {
+            return false;
+        }
+
+        $is_person = array_intersect( [ 'etn-speaker', 'etn-organizer' ], (array) $user->roles )
+            || '' !== (string) get_user_meta( $user->ID, 'author', true )
+            || ! empty( get_user_meta( $user->ID, 'etn_speaker_category', true ) );
+
+        /**
+         * Filter whether a user is shown as a speaker/organizer.
+         *
+         * @param bool     $is_person Whether the user counts as a speaker/organizer.
+         * @param \WP_User $user      The user.
+         */
+        return (bool) apply_filters( 'eventin_is_speaker_or_organizer', (bool) $is_person, $user );
+    }
+
+    /**
+     * Keep only the speaker/organizer ids the current user may attach to an event.
+     *
+     * Event create/update and event import used to store ANY user id here. A
+     * Contributor could put an administrator's id in `organizer`, then export
+     * the event or preview it and read that user's email and phone
+     * (CVE-2026-109994 follow-up). An id is kept when it is a speaker or
+     * organizer AND either the caller may read that record (can_read_user():
+     * their own, or one they created) or it is already saved on this event —
+     * so editing an event never drops people someone else attached.
+     *
+     * @param mixed  $ids      Submitted ids.
+     * @param int    $event_id Existing event id, 0 on create.
+     * @param string $meta_key `etn_event_organizer` or `etn_event_speaker`.
+     *
+     * @return array Allowed ids, in submitted order.
+     */
+    public static function filter_assignable_people( $ids, $event_id = 0, $meta_key = '' ) {
+        if ( ! is_array( $ids ) ) {
+            return [];
+        }
+
+        $existing = [];
+
+        if ( $event_id && $meta_key ) {
+            $existing = array_map( 'absint', (array) get_post_meta( absint( $event_id ), $meta_key, true ) );
+        }
+
+        $allowed = [];
+
+        foreach ( $ids as $id ) {
+            $user_id = absint( $id );
+
+            if ( ! $user_id ) {
+                continue;
+            }
+
+            // Already on this event: always kept, so saving an existing event
+            // never drops someone (even a record that lost its role).
+            if ( in_array( $user_id, $existing, true ) ) {
+                $allowed[] = $id;
+                continue;
+            }
+
+            if ( self::is_speaker_or_organizer( $user_id ) && self::can_read_user( $user_id ) ) {
+                $allowed[] = $id;
+            }
+        }
+
+        return array_values( $allowed );
+    }
 }

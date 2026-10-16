@@ -137,6 +137,7 @@ trait OrderEmailTrait {
             'event_id'       => $order->event_id,
             'order_id'       => $order->id,
             'admin_email'    => $admin_email,
+            'admin_number'   => \Eventin\Emails\WhatsappRecipients::admin_number(),
             'session_id'     => uniqid(),
         ] );
     }
@@ -166,6 +167,7 @@ trait OrderEmailTrait {
             'event_id'       => $order->event_id,
             'order_id'       => $order->id,
             'customer_email' => $order->customer_email,
+            'customer_number' => (string) $order->customer_phone,
             'session_id'     => uniqid(),
         ] );
     }
@@ -202,6 +204,7 @@ trait OrderEmailTrait {
             'event_location' => $event->get_location_label(),
             'attendee_id'    => $attendee_ids,
             'attendee_email' => $attendee_emails,
+            'attendee_number' => \Eventin\Emails\WhatsappRecipients::attendee_numbers( $attendees ),
             'event_id'       => $order->event_id,
             'session_id'     => uniqid(),
         ] );

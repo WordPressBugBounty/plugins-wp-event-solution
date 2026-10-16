@@ -966,10 +966,21 @@ class EventController extends WP_REST_Controller {
             $prepared_event['post_author'] = $owner_id;
         }
 
-        if ( 'online' === $prepared_event['event_type'] || 'hybrid' === $prepared_event['event_type'] ) {
-            $platform_name = is_array( $prepared_event['location'] ) ? $prepared_event['location']['integration'] : '';
+        // `event_type` only reaches $prepared_event when the request carried it,
+        // so a payload without one — which the admin UI never sends, but API
+        // clients do — read an undefined key here and again below. Absent means
+        // "not an online event", matching Event_Model's own '' default.
+        $event_type = $prepared_event['event_type'] ?? '';
 
-            $meeting_platform = MeetingPlatform::get_platform( $platform_name );
+        if ( $this->is_online_event_type( $event_type ) ) {
+            $platform_name = $prepared_event['location']['integration'] ?? '';
+
+            try {
+                $meeting_platform = MeetingPlatform::get_platform( $platform_name );
+            } catch ( \Exception $e ) {
+                // Missing or unknown platform: a bad request, not a server error.
+                return new WP_Error( 'invalid_meeting_platform', __( 'Online events need a valid meeting platform.', 'eventin' ), ['status' => 400] );
+            }
 
             if ( ! $meeting_platform->is_connected() ) {
                 // translators: %s is the platform name (e.g. Zoom, Google Meet).
@@ -1000,7 +1011,7 @@ class EventController extends WP_REST_Controller {
         }
 
         // Manage online event.
-        if ( 'online' === $prepared_event['event_type'] || 'hybrid' === $prepared_event['event_type'] ) {
+        if ( $this->is_online_event_type( $event_type ) ) {
             $meeting_link = $this->prepare_meeting_link( $prepared_event, $event );
 
             if ( is_wp_error( $meeting_link ) ) {
@@ -1012,8 +1023,11 @@ class EventController extends WP_REST_Controller {
             ] );
         }
 
-        if(isset($request['id'])){ 
-            set_post_thumbnail($request['id'], $request['event_banner_id']);
+        // Always the event just created. A body `id` used to pick the post
+        // here, so any Contributor could change the featured image of any
+        // post or page (CVE-2026-109994 follow-up).
+        if ( isset( $request['id'] ) ) {
+            set_post_thumbnail( $event->id, $request['event_banner_id'] );
         }
 
         $post = get_post( $event->id );
@@ -1118,7 +1132,15 @@ class EventController extends WP_REST_Controller {
         }
 
         // Manage online event.
-        if ( 'online' === $prepared_event['event_type'] || 'hybrid' === $prepared_event['event_type'] ) {
+        //
+        // Absent `event_type` is read as "not online", which is what this
+        // already did before the undefined-key notice was silenced. Falling
+        // back to the stored type instead would be wrong here: a partial update
+        // that omits `location` gives prepare_meeting_link() an empty platform
+        // name, which returns a WP_Error and would fail the whole update.
+        $event_type = $prepared_event['event_type'] ?? '';
+
+        if ( $this->is_online_event_type( $event_type ) ) {
             $meeting_link = $this->prepare_meeting_link( $prepared_event, $event );
             if ( is_wp_error( $meeting_link ) ) {
                 return $meeting_link;
@@ -1606,9 +1628,17 @@ class EventController extends WP_REST_Controller {
 
         $waiting_list_counts = etn_get_waiting_list_counts_by_slug( $id );
         foreach( $ticket_variations as &$ticket ) {
-            $slug = $ticket['etn_ticket_slug'];
-            $ticket['etn_sold_tickets']    = !empty($sold_tickets[$slug]) ? $sold_tickets[$slug] : 0;
-            $ticket['waiting_list_count']  = !empty($waiting_list_counts[$slug]) ? intval($waiting_list_counts[$slug]) : 0;
+            if ( ! is_array( $ticket ) ) {
+                continue;
+            }
+
+            // A row saved before the slug existed, or one arriving from an
+            // import, has no `etn_ticket_slug`. Sold and waiting-list counts
+            // are keyed by slug, so such a row simply reports zero of each
+            // rather than raising a notice on every read of the event.
+            $slug = $ticket['etn_ticket_slug'] ?? '';
+            $ticket['etn_sold_tickets']    = '' !== $slug && !empty($sold_tickets[$slug]) ? $sold_tickets[$slug] : 0;
+            $ticket['waiting_list_count']  = '' !== $slug && !empty($waiting_list_counts[$slug]) ? intval($waiting_list_counts[$slug]) : 0;
         }
         unset($ticket);
         $settings_options   = get_option( 'etn_event_options' );      
@@ -2232,8 +2262,19 @@ class EventController extends WP_REST_Controller {
      *
      * @return  string  
      */
+    /**
+     * Whether an event type carries a meeting link (online or hybrid).
+     *
+     * @param   string  $event_type
+     *
+     * @return  bool
+     */
+    private function is_online_event_type( $event_type ) {
+        return in_array( $event_type, [ 'online', 'hybrid' ], true );
+    }
+
     protected function prepare_meeting_link( $prepared_event, $event ) {
-        $platform_name = is_array( $prepared_event['location'] ) ? $prepared_event['location']['integration'] : '';
+        $platform_name = $prepared_event['location']['integration'] ?? '';
         
         if ( $event->has_meeting_link() && $platform_name === $event->get_meeting_platform() && $platform_name !== 'custom_url' ) {
             return $event->meeting_link;
@@ -2383,6 +2424,19 @@ class EventController extends WP_REST_Controller {
 
     protected function prepare_item_for_database( $request ) {
         $input_data = is_a( $request, 'WP_REST_Request' ) ? json_decode( $request->get_body(), true ) : $request;
+
+        // The event being saved is the one in the URL, or none on create.
+        // A body `id` must not choose which event's meta is read below.
+        if ( is_a( $request, 'WP_REST_Request' ) && is_array( $input_data ) ) {
+            $route_event_id = Ownership::route_subject_id( $request );
+
+            if ( $route_event_id ) {
+                $input_data['id'] = $route_event_id;
+            } else {
+                unset( $input_data['id'] );
+            }
+        }
+
 		$validate   = etn_validate( $input_data, [
             'title'      => [
                 'required',
@@ -2434,12 +2488,25 @@ class EventController extends WP_REST_Controller {
             $event_data['etn_select_speaker_schedule_type'] = $input_data['schedule_type'];
         }
 
+        // Only real speakers/organizers the caller may attach. Any user id used
+        // to be stored, and the event export and event pages then printed that
+        // user's email (CVE-2026-109994 follow-up).
+        $people_event_id = is_a( $request, 'WP_REST_Request' ) ? Ownership::route_subject_id( $request ) : 0;
+
         if ( isset( $input_data['organizer'] ) ) {
-            $event_data['etn_event_organizer'] = etn_sanitize_array_input( $input_data['organizer'] );
+            $event_data['etn_event_organizer'] = Ownership::filter_assignable_people(
+                etn_sanitize_array_input( $input_data['organizer'] ),
+                $people_event_id,
+                'etn_event_organizer'
+            );
         }
 
         if ( isset( $input_data['speaker'] ) ) {
-            $event_data['etn_event_speaker'] = etn_sanitize_array_input( $input_data['speaker'] );
+            $event_data['etn_event_speaker'] = Ownership::filter_assignable_people(
+                etn_sanitize_array_input( $input_data['speaker'] ),
+                $people_event_id,
+                'etn_event_speaker'
+            );
         }
 
         if ( isset( $input_data['timezone'] ) ) {
@@ -2738,7 +2805,7 @@ class EventController extends WP_REST_Controller {
             $candidate_template_id = absint( $input_data['certificate_template'] );
             $legacy_enabled        = ! empty( $input_data['enable_legacy_certificate_template'] )
                 ? rest_sanitize_boolean( $input_data['enable_legacy_certificate_template'] )
-                : (bool) get_post_meta( $input_data['id'], 'enable_legacy_certificate_template', true );
+                : (bool) get_post_meta( (int) ( $input_data['id'] ?? 0 ), 'enable_legacy_certificate_template', true );
 
             if ( $candidate_template_id > 0 ) {
                 $candidate_post = get_post( $candidate_template_id );
@@ -2820,24 +2887,46 @@ class EventController extends WP_REST_Controller {
 
         $sold_tickets = $existing_event_id ? (array) Helper::etn_get_sold_tickets_by_event( $existing_event_id ) : [];
 
-        foreach ( $event_data['etn_ticket_variations'] as &$ticket ) {
-            $ticket['etn_sold_tickets'] = ! empty( $sold_tickets[ $ticket['etn_ticket_slug'] ] ) ? $sold_tickets[ $ticket['etn_ticket_slug'] ] : 0;
+        /*
+         * `etn_ticket_variations` only reaches $event_data when the request
+         * actually carried tickets (see the `ticket_variations` branch above),
+         * and etn_sanitize_array_input() can hand back a non-array for a
+         * malformed payload — so an event saved without tickets, which is every
+         * event until its first ticket, walked into foreach() on null.
+         *
+         * The key stays absent rather than being defaulted to []: this array is
+         * written back as post meta, so materialising an empty list here would
+         * erase the tickets of any event updated by a request that did not
+         * include them.
+         */
+        $has_ticket_variations = ! empty( $event_data['etn_ticket_variations'] )
+            && is_array( $event_data['etn_ticket_variations'] );
 
-            if ( $is_global_stock_enabled ) {
-                // Global stock owns capacity: per-ticket numbers are meaningless
-                // and the admin UI hides the field, so normalise them to 0 rather
-                // than persisting whatever the form last held.
-                $ticket['etn_avaiilable_tickets'] = 0;
-                $ticket['etn_unlimited_tickets']  = false;
-            } else {
-                $ticket['etn_avaiilable_tickets'] = (int) ( $ticket['etn_avaiilable_tickets'] ?? 0 );
+        if ( $has_ticket_variations ) {
+            // Drop malformed rows so they are never written back to post meta.
+            $event_data['etn_ticket_variations'] = array_values( array_filter( $event_data['etn_ticket_variations'], 'is_array' ) );
+
+            foreach ( $event_data['etn_ticket_variations'] as &$ticket ) {
+                // Sold counts are keyed by slug; a row without one counts as unsold.
+                $slug = $ticket['etn_ticket_slug'] ?? '';
+                $ticket['etn_sold_tickets'] = '' !== $slug && ! empty( $sold_tickets[ $slug ] ) ? $sold_tickets[ $slug ] : 0;
+
+                if ( $is_global_stock_enabled ) {
+                    // Global stock owns capacity: per-ticket numbers are meaningless
+                    // and the admin UI hides the field, so normalise them to 0 rather
+                    // than persisting whatever the form last held.
+                    $ticket['etn_avaiilable_tickets'] = 0;
+                    $ticket['etn_unlimited_tickets']  = false;
+                } else {
+                    $ticket['etn_avaiilable_tickets'] = (int) ( $ticket['etn_avaiilable_tickets'] ?? 0 );
+                }
+
+                $ticket['optiontics_block_ids']   = isset( $ticket['optiontics_block_ids'] )
+                    ? array_values( array_map( 'absint', (array) $ticket['optiontics_block_ids'] ) )
+                    : [];
             }
-
-            $ticket['optiontics_block_ids']   = isset( $ticket['optiontics_block_ids'] )
-                ? array_values( array_map( 'absint', (array) $ticket['optiontics_block_ids'] ) )
-                : [];
+            unset( $ticket );
         }
-        unset( $ticket );
 
         if ( $is_global_stock_enabled ) {
             $global_capacity = isset( $event_data['etn_global_stock'] )
@@ -2848,7 +2937,7 @@ class EventController extends WP_REST_Controller {
             if ( $global_capacity > 0 && $total_sold > $global_capacity ) {
                 return new WP_Error( 'etn_ticket_sold_out', __( 'Global ticket capacity must be greater or equal to the total sold tickets', 'eventin' ) );
             }
-        } else {
+        } elseif ( $has_ticket_variations ) {
             foreach ( $event_data['etn_ticket_variations'] as $ticket ) {
                 if ( $ticket['etn_avaiilable_tickets'] > 0 && $ticket['etn_sold_tickets'] > $ticket['etn_avaiilable_tickets'] ) {
                     return new WP_Error( 'etn_ticket_sold_out', __( 'Available ticket must be greater or equal to the sold ticket', 'eventin' ) );

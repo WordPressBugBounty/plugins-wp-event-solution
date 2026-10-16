@@ -198,6 +198,7 @@ class ReminderAutomation {
             // Left empty on purpose — EnsHooks resolves recipients from event_id.
             'attendee_id'                => [],
             'attendee_email'             => [],
+            'attendee_number'            => [],
             'event_id'                   => $event->id,
             'post_id'                    => $event->id,
             'session_id'                 => uniqid(),

@@ -4,113 +4,199 @@ namespace Eventin\Integrations\WC;
 
 defined( 'ABSPATH' ) || exit;
 
-use Eventin\Refund\RefundModel;
+use WP_Error;
 
 /**
- * Propagates an Eventin refund to the linked WooCommerce order as a
- * record-only refund (no gateway charge-back).
+ * Sends an Eventin refund to the linked WooCommerce order.
  *
- * Hooked on eventin/refund/created. Only acts on orders whose Eventin
- * payment_method is 'wc'; every other gateway is ignored here.
+ * Hooked on the eventin/refund/process_payment filter, which RefundService
+ * runs BEFORE it records the refund. Only acts on orders whose Eventin
+ * payment_method is 'wc'.
+ *
+ * - The order's gateway supports refunds (e.g. Stripe, PayPal): WooCommerce
+ *   asks the gateway to send the money back. If the gateway refuses, the
+ *   error goes back to the admin and Eventin records nothing.
+ * - It does not (bank transfer, cash on delivery): WooCommerce only writes
+ *   a refund record. The admin sends the money back by hand.
  *
  * @package Eventin
  */
 class WCRefundSync {
 
     /**
-     * Create a record-only WooCommerce refund matching an Eventin refund row.
+     * True while Eventin itself is creating a WooCommerce refund.
      *
-     * On any failure (WC inactive, order not linked, wc_create_refund error)
-     * the Eventin refund is left intact and the problem is logged; Eventin
-     * remains the source of truth.
+     * wc_create_refund() fires WooCommerce's refund and status hooks, which
+     * would otherwise copy the same refund back into Eventin.
      *
-     * @param   array  $refund_row  The refund record from RefundModel::create().
-     * @param   int    $order_id    Eventin order id.
-     *
-     * @return  void
+     * @var bool
      */
-    public function handle( $refund_row, $order_id ) {
-        if ( ! is_array( $refund_row ) || 'wc' !== ( isset( $refund_row['gateway'] ) ? $refund_row['gateway'] : '' ) ) {
-            return;
+    private static $running = false;
+
+    /**
+     * Whether Eventin is creating a WooCommerce refund right now
+     *
+     * @return bool
+     */
+    public static function is_running() {
+        return self::$running;
+    }
+
+    /**
+     * Whether a refund on this WooCommerce order will send the money back
+     *
+     * @param \WC_Order $wc_order WooCommerce order.
+     *
+     * @return bool
+     */
+    public static function sends_money_back( $wc_order ) {
+        if ( ! $wc_order || ! function_exists( 'wc_get_payment_gateway_by_order' ) ) {
+            return false;
         }
 
-        if ( ! function_exists( 'wc_create_refund' ) || ! function_exists( 'wc_get_orders' ) ) {
-            return;
+        $gateway = wc_get_payment_gateway_by_order( $wc_order );
+        $result  = $gateway && $gateway->supports( 'refunds' );
+
+        /**
+         * Turn the automatic money refund through WooCommerce on or off.
+         *
+         * @param bool      $result   True when the order's gateway supports refunds.
+         * @param \WC_Order $wc_order WooCommerce order.
+         */
+        return (bool) apply_filters( 'eventin_wc_refund_sends_money', $result, $wc_order );
+    }
+
+    /**
+     * Find the WooCommerce order linked to an Eventin order
+     *
+     * @param int $order_id Eventin order id.
+     *
+     * @return \WC_Order|null
+     */
+    public static function get_wc_order( $order_id ) {
+        if ( ! function_exists( 'wc_get_orders' ) ) {
+            return null;
         }
 
-        $order_id = (int) $order_id;
+        $wc_order_ids = wc_get_orders( [
+            'limit'      => 1,
+            'status'     => 'any',
+            'return'     => 'ids',
+            'meta_key'   => 'eventin_order_id', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+            'meta_value' => (int) $order_id,    // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+        ] );
+
+        if ( empty( $wc_order_ids ) ) {
+            return null;
+        }
+
+        $wc_order = wc_get_order( (int) $wc_order_ids[0] );
+
+        return $wc_order ? $wc_order : null;
+    }
+
+    /**
+     * Refund the linked WooCommerce order before Eventin records the refund
+     *
+     * @param null|string|WP_Error      $result Result from an earlier callback.
+     * @param \Eventin\Order\OrderModel $order  Eventin order.
+     * @param float                     $amount Amount to refund.
+     * @param string|null               $reason Refund note.
+     *
+     * @return null|string|WP_Error WooCommerce refund id, null when there is nothing
+     *                              to do, or an error that stops the Eventin refund.
+     */
+    public function process( $result, $order, $amount, $reason ) {
+        if ( null !== $result || 'wc' !== (string) $order->payment_method ) {
+            return $result;
+        }
+
+        if ( ! function_exists( 'wc_create_refund' ) ) {
+            return null;
+        }
+
+        $wc_order = self::get_wc_order( $order->id );
+
+        if ( ! $wc_order ) {
+            error_log( sprintf( '[eventin] refund: no WooCommerce order linked to Eventin order %d', $order->id ) );
+            return null;
+        }
+
+        $amount      = round( (float) $amount, 2 );
+        $remaining   = round( (float) $wc_order->get_remaining_refund_amount(), 2 );
+        $sends_money = self::sends_money_back( $wc_order );
+
+        // Money refunds must match exactly. Clamping here would send the
+        // customer less than Eventin records (e.g. the order was partly
+        // refunded in WooCommerce before Eventin tracked Woo refunds).
+        if ( $sends_money && $amount > $remaining + 0.001 ) {
+            return new WP_Error(
+                'eventin_wc_refund_exceeds_remaining',
+                sprintf(
+                    /* translators: 1: amount left to refund in WooCommerce, 2: WooCommerce order number */
+                    __( 'WooCommerce can only refund %1$s more on order #%2$s. Part of it was already refunded in WooCommerce. Enter a smaller amount.', 'eventin' ),
+                    number_format( $remaining, 2 ),
+                    $wc_order->get_order_number()
+                ),
+                [ 'status' => 422 ]
+            );
+        }
+
+        if ( $amount > $remaining ) {
+            error_log( sprintf(
+                '[eventin] refund: requested %01.2f exceeds WooCommerce remaining refundable %01.2f on order %d; clamping',
+                $amount,
+                $remaining,
+                $wc_order->get_id()
+            ) );
+            $amount = $remaining;
+        }
+
+        if ( $amount <= 0 ) {
+            return null;
+        }
+
+        self::$running = true;
 
         try {
-            $wc_order_ids = wc_get_orders( [
-                'limit'      => 1,
-                'status'     => 'any',
-                'return'     => 'ids',
-                'meta_key'   => 'eventin_order_id', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
-                'meta_value' => $order_id,          // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
-            ] );
-
-            if ( empty( $wc_order_ids ) ) {
-                error_log( sprintf( '[eventin] refund: no WooCommerce order linked to Eventin order %d', $order_id ) );
-                return;
-            }
-
-            $wc_order_id = (int) $wc_order_ids[0];
-            $wc_order    = wc_get_order( $wc_order_id );
-
-            if ( ! $wc_order ) {
-                error_log( sprintf( '[eventin] refund: WooCommerce order %d could not be loaded', $wc_order_id ) );
-                return;
-            }
-
-            $amount    = round( (float) ( isset( $refund_row['amount'] ) ? $refund_row['amount'] : 0 ), 2 );
-            $remaining = round( (float) $wc_order->get_remaining_refund_amount(), 2 );
-
-            if ( $amount > $remaining ) {
-                error_log( sprintf(
-                    '[eventin] refund: requested %01.2f exceeds WooCommerce remaining refundable %01.2f on order %d; clamping',
-                    $amount,
-                    $remaining,
-                    $wc_order_id
-                ) );
-                $amount = $remaining;
-            }
-
-            if ( $amount <= 0 ) {
-                return;
-            }
-
             $refund = wc_create_refund( [
-                'order_id'       => $wc_order_id,
+                'order_id'       => $wc_order->get_id(),
                 'amount'         => $amount,
-                'reason'         => (string) ( isset( $refund_row['reason'] ) ? $refund_row['reason'] : '' ),
-                'refund_payment' => false,
+                'reason'         => (string) $reason,
+                'refund_payment' => $sends_money,
                 'restock_items'  => false,
             ] );
-
-            if ( is_wp_error( $refund ) ) {
-                error_log( sprintf(
-                    '[eventin] refund: wc_create_refund failed on order %d: %s',
-                    $wc_order_id,
-                    $refund->get_error_message()
-                ) );
-                return;
-            }
-
-            $linked = ( new RefundModel() )->set_gateway_refund_id(
-                $order_id,
-                (int) ( isset( $refund_row['id'] ) ? $refund_row['id'] : 0 ),
-                (string) $refund->get_id()
-            );
-
-            if ( false === $linked ) {
-                error_log( sprintf(
-                    '[eventin] refund: WooCommerce refund %s created but could not be linked (gateway_refund_id) to Eventin order %d',
-                    $refund->get_id(),
-                    $order_id
-                ) );
-            }
         } catch ( \Throwable $e ) {
-            error_log( '[eventin] refund: WooCommerce sync threw on Eventin order ' . $order_id . ': ' . $e->getMessage() );
+            $refund = new WP_Error( 'eventin_wc_refund_failed', $e->getMessage() );
+        } finally {
+            self::$running = false;
         }
+
+        if ( is_wp_error( $refund ) ) {
+            error_log( sprintf(
+                '[eventin] refund: wc_create_refund failed on order %d: %s',
+                $wc_order->get_id(),
+                $refund->get_error_message()
+            ) );
+
+            // The money could not be sent back. Stop, so Eventin does not
+            // show a refund the customer never got.
+            if ( $sends_money ) {
+                return new WP_Error(
+                    'eventin_wc_refund_failed',
+                    sprintf(
+                        /* translators: %s: error message from the payment gateway */
+                        __( 'The payment gateway did not refund the money: %s', 'eventin' ),
+                        $refund->get_error_message()
+                    ),
+                    [ 'status' => 422 ]
+                );
+            }
+
+            // Record-only refund: keep the old behaviour and record it in Eventin anyway.
+            return null;
+        }
+
+        return (string) $refund->get_id();
     }
 }

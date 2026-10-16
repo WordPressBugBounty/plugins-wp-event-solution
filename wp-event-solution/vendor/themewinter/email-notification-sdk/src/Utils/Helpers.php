@@ -1,6 +1,8 @@
 <?php
 namespace Eventin\Vendor\Ens\Utils;
 
+use WP_HTTP_Response;
+
 class Helpers {
 
     /**
@@ -115,5 +117,41 @@ class Helpers {
         }
 
         return null;
+    }
+
+    /**
+     * Build a plugin-scoped hook name.
+     *
+     * Prepends the consumer plugin's hook_prefix (or general_prefix as
+     * fallback) to the given suffix so hooks fired from the SDK do not
+     * collide when the package is bundled in multiple plugins.
+     *
+     * @param string $identifier The consumer plugin identifier (general_prefix).
+     * @param string $hook_suffix The unscoped hook name (e.g. 'email_body').
+     *
+     * @return string
+     */
+    public static function get_hook_name( $identifier, $hook_suffix ) {
+        $prefix = self::get_config_data( $identifier, 'hook_prefix' );
+
+        if ( empty( $prefix ) ) {
+            $prefix = $identifier;
+        }
+
+        return $prefix . '_' . $hook_suffix;
+    }
+
+    /**
+     * Whether the WhatsApp channel is on for this consumer plugin.
+     *
+     * Defaults to true so plugins that never add the filter keep the
+     * WhatsApp action. The builder hides it and the flow skips it when false.
+     *
+     * @param string $identifier The consumer plugin identifier.
+     *
+     * @return bool
+     */
+    public static function is_whatsapp_enabled( $identifier ) {
+        return (bool) apply_filters( self::get_hook_name( $identifier, 'ens_whatsapp_enabled' ), true );
     }
 }

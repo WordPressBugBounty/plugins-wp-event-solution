@@ -1320,6 +1320,18 @@ if ( ! function_exists( 'etn_get_wc_order_statuses' ) ) {
     }
 }
 
+if ( ! function_exists( 'etn_fluentcart_syncs_refunds' ) ) {
+    /**
+     * Whether the installed FluentCart add-on copies FluentCart refunds
+     * (full AND partial) into Eventin. Older add-ons only copy full refunds.
+     *
+     * @return bool
+     */
+    function etn_fluentcart_syncs_refunds() {
+        return method_exists( '\\Eventin_addon_for_FluentCart\\Integrations\\FluentCart\\FluentCartWebhook', 'handle_order_refunded' );
+    }
+}
+
 if ( ! function_exists( 'etn_is_enable_wc_synchronize_order' ) ) {
     /**
      * Check wc order synchronizes orders to the posts table enable or not
@@ -2055,5 +2067,21 @@ if ( ! function_exists( 'etn_expand_event_filter_ids' ) ) {
         ] );
 
         return array_merge( [ $event_id ], array_map( 'absint', (array) $children ) );
+    }
+}
+
+if ( ! function_exists( 'etn_is_razorpay_enabled' ) ) {
+    /**
+     * Check Razorpay can take payments
+     *
+     * Razorpay is a Pro feature. It is on only when the admin turned it on and
+     * an Eventin Pro version that has the Razorpay classes is active.
+     *
+     * @return  bool
+     */
+    function etn_is_razorpay_enabled() {
+        return (bool) etn_get_option( 'razorpay_status' )
+            && class_exists( 'Wpeventin_Pro' )
+            && class_exists( '\EventinPro\Integrations\Razorpay\RazorpayPayment' );
     }
 }
