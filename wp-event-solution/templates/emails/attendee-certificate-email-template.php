@@ -10,7 +10,7 @@
 >
     <?php
         // translators: %s is the event title wrapped in a span element.
-        printf( esc_html__( 'Event Certificate for %s', 'eventin' ), '<span>' . esc_html( $event->get_title() ) . '</span>' );
+        printf( esc_html__( 'Event Certificate for %s', 'wp-event-solution' ), '<span>' . esc_html( $event->get_title() ) . '</span>' );
     ?>
 </h1>
 
@@ -39,12 +39,12 @@
             margin-top: 0;
         "
         >
-            <?php echo esc_html__( 'Download Certificate', 'eventin' ); ?>
+            <?php echo esc_html__( 'Download Certificate', 'wp-event-solution' ); ?>
         </h2>
         <!-- Single Ticket Information -->
         <div>
-            <p style="margin: 8px 0px"><?php echo esc_html__( 'Ticket name: ', 'eventin' ) . esc_html( $attendee->ticket_name ); ?></p>
-            <p style="margin: 8px 0px"><?php echo esc_html__( 'Attendee: ', 'eventin' ) . esc_html( $attendee->etn_name ); ?></p>
+            <p style="margin: 8px 0px"><?php echo esc_html__( 'Ticket name: ', 'wp-event-solution' ) . esc_html( $attendee->ticket_name ); ?></p>
+            <p style="margin: 8px 0px"><?php echo esc_html__( 'Attendee: ', 'wp-event-solution' ) . esc_html( $attendee->etn_name ); ?></p>
             <div
                 style="
                 display: flex;
@@ -65,7 +65,7 @@
                     gap: 5px;
                 "
                 >
-                  <?php echo esc_html__( 'Download Certificate', 'eventin' ); ?>
+                  <?php echo esc_html__( 'Download Certificate', 'wp-event-solution' ); ?>
                 </a>
             </div>
         </div>

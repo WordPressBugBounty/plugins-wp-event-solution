@@ -367,7 +367,7 @@ if ( ! function_exists( 'etn_permision_error' ) ) {
      */
     function etn_permision_error( $message = '' ) {
         if ( ! $message ) {
-            $message = __( 'Sorry, you are not allowed to do that.', 'eventin' );
+            $message = __( 'Sorry, you are not allowed to do that.', 'wp-event-solution' );
         }
 
         $data = [
@@ -802,29 +802,29 @@ if ( ! function_exists( 'etn_get_default_email_settings' )  ) {
         $email_settings = [
             'purchase_email' => [
                 'from'    => get_option( 'admin_email' ),
-                'subject' => sprintf( __( 'Event Ticket', 'eventin' ) ),
-                'body'    => __( 'You have purchased ticket(s). Attendee ticket details are as follows.', 'eventin' ),
+                'subject' => sprintf( __( 'Event Ticket', 'wp-event-solution' ) ),
+                'body'    => __( 'You have purchased ticket(s). Attendee ticket details are as follows.', 'wp-event-solution' ),
                 'send_to_admin' => true,
                 'send_email_to_attendees' => true
             ],
             'certificate_email' => [
                 'from'    => get_option( 'admin_email' ),
-                'subject' => sprintf( __( 'Event Certificate', 'eventin' ) ),
+                'subject' => sprintf( __( 'Event Certificate', 'wp-event-solution' ) ),
                 // translators: %1$s is the event title
-                'body'    => sprintf( __( '<p>Congratulations for successfully attending/completing the event \'%1$s\'. Your certificate is ready! Click on the link provided below to get the PDF certificate. </p>', 'eventin' ), '<span>{%event_title%}</span>' ), // phpcs:ignore WordPress.WP.I18n.NoHtmlWrappedStrings
+                'body'    => sprintf( __( '<p>Congratulations for successfully attending/completing the event \'%1$s\'. Your certificate is ready! Click on the link provided below to get the PDF certificate. </p>', 'wp-event-solution' ), '<span>{%event_title%}</span>' ), // phpcs:ignore WordPress.WP.I18n.NoHtmlWrappedStrings
                 'send_to_admin' => true,
             ],
             'rsv_email' => [
                 'from'          => get_option( 'admin_email' ),
                 'response_type' => 'going',
-                'subject'       => sprintf( __( 'RSVP request', 'eventin' ) ),
-                'body'          => sprintf( __( 'We received your RSVP request', 'eventin' ) ),
+                'subject'       => sprintf( __( 'RSVP request', 'wp-event-solution' ) ),
+                'body'          => sprintf( __( 'We received your RSVP request', 'wp-event-solution' ) ),
                 'send_to_admin' => true,
             ],
             'reminder_email' => [
                 'from'    => get_option( 'admin_email' ),
-                'subject' => sprintf( __( 'Reminder email', 'eventin' ) ),
-                'body'    => __( 'Just sending you a quick reminder about our retailer meet-up you\'ve registered to attend in two days time. If you\'ve misplaced the Invitation that contained all the details. don\'t worry. Cve added them rn below for you.', 'eventin' ),
+                'subject' => sprintf( __( 'Reminder email', 'wp-event-solution' ) ),
+                'body'    => __( 'Just sending you a quick reminder about our retailer meet-up you\'ve registered to attend in two days time. If you\'ve misplaced the Invitation that contained all the details. don\'t worry. Cve added them rn below for you.', 'wp-event-solution' ),
                 'send_to_admin' => true,
             ]
         ];
@@ -965,57 +965,57 @@ if ( !function_exists( 'getThemePrefScheme' ) ) {
 
             $color_palette = [
                 [
-                    "name"  => __( "Black", "eventin" ),
+                    "name"  => __( "Black", "wp-event-solution" ),
                     "slug"  => "black",
                     "color" => "#000000",
                 ],
                 [
-                    "name"  => __( "Cyan bluish gray", "eventin" ),
+                    "name"  => __( "Cyan bluish gray", "wp-event-solution" ),
                     "slug"  => "cyan-bluish-gray",
                     "color" => "#abb8c3",
                 ],
                 [
-                    "name"  => __( "White", "eventin" ),
+                    "name"  => __( "White", "wp-event-solution" ),
                     "slug"  => "white",
                     "color" => "#ffffff",
                 ],
                 [
-                    "name"  => __( "Pale pink", "eventin" ),
+                    "name"  => __( "Pale pink", "wp-event-solution" ),
                     "slug"  => "pale-pink",
                     "color" => "#f78da7",
                 ],
                 [
-                    "name"  => __( "Luminous vivid orange", "eventin" ),
+                    "name"  => __( "Luminous vivid orange", "wp-event-solution" ),
                     "slug"  => "luminous-vivid-orange",
                     "color" => "#ff6900",
                 ],
                 [
-                    "name"  => __( "Luminous vivid amber", "eventin" ),
+                    "name"  => __( "Luminous vivid amber", "wp-event-solution" ),
                     "slug"  => "luminous-vivid-amber",
                     "color" => "#fcb900",
                 ],
                 [
-                    "name"  => __( "Light green cyan", "eventin" ),
+                    "name"  => __( "Light green cyan", "wp-event-solution" ),
                     "slug"  => "light-green-cyan",
                     "color" => "#7bdcb5",
                 ],
                 [
-                    "name"  => __( "Vivid green cyan", "eventin" ),
+                    "name"  => __( "Vivid green cyan", "wp-event-solution" ),
                     "slug"  => "vivid-green-cyan",
                     "color" => "#00d084",
                 ],
                 [
-                    "name"  => __( "Pale cyan blue", "eventin" ),
+                    "name"  => __( "Pale cyan blue", "wp-event-solution" ),
                     "slug"  => "pale-cyan-blue",
                     "color" => "#8ed1fc",
                 ],
                 [
-                    "name"  => __( "Vivid cyan blue", "eventin" ),
+                    "name"  => __( "Vivid cyan blue", "wp-event-solution" ),
                     "slug"  => "vivid-cyan-blue",
                     "color" => "#0693e3",
                 ],
                 [
-                    "name"  => __( "Vivid purple", "eventin" ),
+                    "name"  => __( "Vivid purple", "wp-event-solution" ),
                     "slug"  => "vivid-purple",
                     "color" => "#9b51e0",
                 ],
@@ -1023,25 +1023,25 @@ if ( !function_exists( 'getThemePrefScheme' ) ) {
 
             $font_sizes = [
                 [
-                    'name'      => __( 'Small', 'eventin' ),
+                    'name'      => __( 'Small', 'wp-event-solution' ),
                     'shortName' => 'S',
                     'size'      => 14,
                     'slug'      => 'small',
                 ],
                 [
-                    'name'      => __( 'Medium', 'eventin' ),
+                    'name'      => __( 'Medium', 'wp-event-solution' ),
                     'shortName' => 'M',
                     'size'      => 18,
                     'slug'      => 'medium',
                 ],
                 [
-                    'name'      => __( 'Large', 'eventin' ),
+                    'name'      => __( 'Large', 'wp-event-solution' ),
                     'shortName' => 'L',
                     'size'      => 24,
                     'slug'      => 'large',
                 ],
                 [
-                    'name'      => __( 'Larger', 'eventin' ),
+                    'name'      => __( 'Larger', 'wp-event-solution' ),
                     'shortName' => 'XL',
                     'size'      => 32,
                     'slug'      => 'larger',
@@ -1382,7 +1382,7 @@ if ( ! function_exists( 'etn_upload_image_from_url' ) ) {
     function etn_upload_image_from_url( $image_url ) {
         // Check if the URL is valid
         if ( empty( $image_url ) || ! filter_var( $image_url, FILTER_VALIDATE_URL ) ) {
-            return new WP_Error('invalid_url', __('Invalid image URL.', 'eventin'));
+            return new WP_Error('invalid_url', __('Invalid image URL.', 'wp-event-solution'));
         }
     
         // Get the file name from the URL
@@ -1394,12 +1394,12 @@ if ( ! function_exists( 'etn_upload_image_from_url' ) ) {
             'blocking' => true,
         ] );
         if ( is_wp_error( $image_data ) ) {
-            return new WP_Error( 'download_failed', __( 'Failed to download image.', 'eventin') );
+            return new WP_Error( 'download_failed', __( 'Failed to download image.', 'wp-event-solution') );
         }
     
         $image_body = wp_remote_retrieve_body( $image_data );
         if ( empty( $image_body ) ) {
-            return new WP_Error( 'empty_image', __( 'Downloaded image is empty.', 'eventin' ) );
+            return new WP_Error( 'empty_image', __( 'Downloaded image is empty.', 'wp-event-solution' ) );
         }
     
         // Get the upload directory
@@ -1408,7 +1408,7 @@ if ( ! function_exists( 'etn_upload_image_from_url' ) ) {
     
         // Save the image file
         if ( ! file_put_contents( $file_path, $image_body ) ) {
-            return new WP_Error( 'file_write_error', __('Failed to write image file.', 'eventin' ) );
+            return new WP_Error( 'file_write_error', __('Failed to write image file.', 'wp-event-solution' ) );
         }
     
         // Prepare file data for WordPress upload
@@ -1514,7 +1514,7 @@ if ( ! function_exists( 'etn_validate_event_tickets' ) ) {
                     return new WP_Error(
                         'waiting_list_limit',
                         // translators: %d is the number of waiting-list spots still available.
-                        sprintf( __( 'Waiting list is full. Only %d spots available.', 'eventin' ), max( 0, $waiting_remaining ) ),
+                        sprintf( __( 'Waiting list is full. Only %d spots available.', 'wp-event-solution' ), max( 0, $waiting_remaining ) ),
                         ['status' => 422]
                     );
                 }
@@ -1524,7 +1524,7 @@ if ( ! function_exists( 'etn_validate_event_tickets' ) ) {
                     return new WP_Error(
                         'global_stock_limit',
                         // translators: %d is the number of tickets still left for the event.
-                        sprintf( __( 'Only %d tickets left for this event.', 'eventin' ), $only_left ),
+                        sprintf( __( 'Only %d tickets left for this event.', 'wp-event-solution' ), $only_left ),
                         ['status' => 422]
                     );
                 }
@@ -1537,7 +1537,7 @@ if ( ! function_exists( 'etn_validate_event_tickets' ) ) {
             $event_ticket = $event->get_ticket( $ticket['ticket_slug'] );
 
             if ( ! $event_ticket ) {
-                return new WP_Error( 'ticket_not_found', __( 'Ticket not found', 'eventin' ), ['status' => 422] );
+                return new WP_Error( 'ticket_not_found', __( 'Ticket not found', 'wp-event-solution' ), ['status' => 422] );
             }
 
             $available = $event_ticket['etn_avaiilable_tickets'] ?? 0;
@@ -1566,7 +1566,7 @@ if ( ! function_exists( 'etn_validate_event_tickets' ) ) {
                         'waiting_list_unavailable',
                         sprintf(
                             /* translators: %s: ticket type name. */
-                            __( 'There is no waiting list for "%s".', 'eventin' ),
+                            __( 'There is no waiting list for "%s".', 'wp-event-solution' ),
                             $event_ticket['etn_ticket_name'] ?? $ticket['ticket_slug']
                         ),
                         ['status' => 422]
@@ -1579,7 +1579,7 @@ if ( ! function_exists( 'etn_validate_event_tickets' ) ) {
                     return new WP_Error(
                         'waiting_list_limit',
                         // translators: %d is the number of waiting-list spots still available for this ticket type.
-                        sprintf( __( 'Waiting list is full for this ticket type. Only %d spots available.', 'eventin' ), max( 0, $waiting_remaining ) ),
+                        sprintf( __( 'Waiting list is full for this ticket type. Only %d spots available.', 'wp-event-solution' ), max( 0, $waiting_remaining ) ),
                         ['status' => 422]
                     );
                 }
@@ -1587,7 +1587,7 @@ if ( ! function_exists( 'etn_validate_event_tickets' ) ) {
                 $is_unlimited = ! empty( $event_ticket['etn_unlimited_tickets'] ) || -1 === intval( $available );
 
                 if ( ! $is_unlimited && $ticket['ticket_quantity'] > $ticket_left ) {
-                    return new WP_Error( 'ticket_limit', __( 'The ticket limit has been exceeded', 'eventin' ), ['status' => 422] );
+                    return new WP_Error( 'ticket_limit', __( 'The ticket limit has been exceeded', 'wp-event-solution' ), ['status' => 422] );
                 }
             }
         }
@@ -1634,7 +1634,7 @@ if ( ! function_exists( 'etn_validate_ticket_quantity' ) ) {
                 return new WP_Error(
                     'min_ticket_quantity',
                     // translators: %d is the minimum ticket quantity required for this ticket type.
-                    sprintf( __( 'Minimum %d tickets required for this ticket type.', 'eventin' ), $min ),
+                    sprintf( __( 'Minimum %d tickets required for this ticket type.', 'wp-event-solution' ), $min ),
                     ['status' => 422]
                 );
             }
@@ -1643,7 +1643,7 @@ if ( ! function_exists( 'etn_validate_ticket_quantity' ) ) {
                 return new WP_Error(
                     'max_ticket_quantity',
                     // translators: %d is the maximum ticket quantity allowed for this ticket type.
-                    sprintf( __( 'Maximum %d tickets allowed for this ticket type.', 'eventin' ), $max ),
+                    sprintf( __( 'Maximum %d tickets allowed for this ticket type.', 'wp-event-solution' ), $max ),
                     ['status' => 422]
                 );
             }
@@ -1743,7 +1743,7 @@ if ( ! function_exists( 'etn_is_tickets_sold_out' ) ) {
                     'tickets_available',
                     sprintf(
                         /* translators: %d: number of tickets still available */
-                        __( 'Tickets are still available (%d remaining). You can only join the waiting list when the event is sold out.', 'eventin' ),
+                        __( 'Tickets are still available (%d remaining). You can only join the waiting list when the event is sold out.', 'wp-event-solution' ),
                         $remaining
                     ),
                     [ 'status' => 400 ]
@@ -1778,7 +1778,7 @@ if ( ! function_exists( 'etn_is_tickets_sold_out' ) ) {
                     'tickets_available',
                     sprintf(
                         /* translators: 1: ticket name, 2: number of tickets still available */
-                        __( 'Tickets are still available for "%1$s" (%2$d remaining). You can only join the waiting list when tickets are sold out.', 'eventin' ),
+                        __( 'Tickets are still available for "%1$s" (%2$d remaining). You can only join the waiting list when tickets are sold out.', 'wp-event-solution' ),
                         $event_ticket['etn_ticket_name'] ?? $ticket['ticket_slug'],
                         $left
                     ),
@@ -1814,7 +1814,7 @@ if ( ! function_exists( 'etn_validate_seat_ids' ) ) {
             //     return new WP_Error( 'seat_limit', __( 'The requested seat is already booked, please select another seat', 'eventin' ), ['status' => 422] );
             // }
             if ( in_array( $seat_id, $already_booked_seats ) ) {
-                return new WP_Error( 'seat_limit', __( 'The requested seat is already booked', 'eventin' ), ['status' => 422] );
+                return new WP_Error( 'seat_limit', __( 'The requested seat is already booked', 'wp-event-solution' ), ['status' => 422] );
             }
         }
 

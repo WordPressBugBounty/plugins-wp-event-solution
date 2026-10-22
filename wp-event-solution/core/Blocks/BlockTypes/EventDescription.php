@@ -69,7 +69,7 @@ defined( 'ABSPATH' ) || exit;
             if ( empty( $event_id ) || 'etn' !== get_post_type( $event_id ) ) {
                 if ( $this->is_editor() ) {
                     return '<div style="padding:16px;border:1px dashed #ccc;color:#888;">'
-                        . esc_html__( 'Event Description: no preview event found.', 'eventin' )
+                        . esc_html__( 'Event Description: no preview event found.', 'wp-event-solution' )
                         . '</div>';
                 }
                 return '';

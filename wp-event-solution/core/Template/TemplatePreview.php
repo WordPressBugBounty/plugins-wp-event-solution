@@ -18,8 +18,8 @@ use Eventin\Template\TemplateModel;
     $payment_status   =  'Success';
 
     $all_payment_status = [
-        'success' => esc_html__('Success', 'eventin'),
-        'failed'  => esc_html__('Failed', 'eventin')
+        'success' => esc_html__('Success', 'wp-event-solution'),
+        'failed'  => esc_html__('Failed', 'wp-event-solution')
     ];
 
     // Load ticket layout style
@@ -40,7 +40,7 @@ use Eventin\Template\TemplateModel;
 
     if ( ! $template_id ) {
         wp_head();
-        printf( '<p>%s</p>', esc_html__( 'No template found. Please select one first.', 'eventin' ) );
+        printf( '<p>%s</p>', esc_html__( 'No template found. Please select one first.', 'wp-event-solution' ) );
         wp_footer();
         return;
     }
@@ -80,9 +80,9 @@ use Eventin\Template\TemplateModel;
 
 <?php if ( 'event' !== $template->type ): ?>
 <div class="etn-download-ticket">
-    <button class="etn-btn button etn-print-ticket-btn" id="etn_ticket_print_btn" data-ticketname="<?php echo esc_html( $ticket_file_name )?>" ><?php echo esc_html__( "Print", "eventin" ); ?></button>
+    <button class="etn-btn button etn-print-ticket-btn" id="etn_ticket_print_btn" data-ticketname="<?php echo esc_html( $ticket_file_name )?>" ><?php echo esc_html__( "Print", "wp-event-solution" ); ?></button>
 
-    <button class="etn-btn button etn-download-ticket-btn" id="etn_ticket_download_btn" data-ticketname="<?php echo esc_html( $ticket_file_name )?>" ><?php echo esc_html__( "Download", "eventin" ); ?></button>
+    <button class="etn-btn button etn-download-ticket-btn" id="etn_ticket_download_btn" data-ticketname="<?php echo esc_html( $ticket_file_name )?>" ><?php echo esc_html__( "Download", "wp-event-solution" ); ?></button>
 </div>
 <?php endif; ?>
 

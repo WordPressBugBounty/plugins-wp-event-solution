@@ -8,7 +8,7 @@
     color: #020617;
     "
 >
-    <?php echo esc_html_e( 'Your Event booking is complete.', 'eventin' ); ?>
+    <?php echo esc_html_e( 'Your Event booking is complete.', 'wp-event-solution' ); ?>
 </h1>
 
 <p

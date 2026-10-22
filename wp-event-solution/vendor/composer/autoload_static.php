@@ -246,6 +246,8 @@ class ComposerStaticInit51060d1ef7b9244f23975c06b5e403b1
         'Eventin\\Extensions\\ImportAutomation' => __DIR__ . '/../..' . '/core/Extensions/ImportAutomation.php',
         'Eventin\\Extensions\\PluginManager' => __DIR__ . '/../..' . '/core/Extensions/PluginManager.php',
         'Eventin\\ExtraFields\\LabelResolver' => __DIR__ . '/../..' . '/core/ExtraFields/LabelResolver.php',
+        'Eventin\\I18n\\LegacyTextDomain' => __DIR__ . '/../..' . '/core/I18n/LegacyTextDomain.php',
+        'Eventin\\I18n\\WpmlTextDomainMigration' => __DIR__ . '/../..' . '/core/I18n/WpmlTextDomainMigration.php',
         'Eventin\\Importer\\CSVReader' => __DIR__ . '/../..' . '/base/Importer/CSVReader.php',
         'Eventin\\Importer\\JSONReader' => __DIR__ . '/../..' . '/base/Importer/JSONReader.php',
         'Eventin\\Importer\\PostImporter' => __DIR__ . '/../..' . '/base/Importer/PostImporter.php',

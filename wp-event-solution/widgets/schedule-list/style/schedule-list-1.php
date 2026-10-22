@@ -105,6 +105,6 @@ if (is_array($data) && !empty($data)) {
     <?php
 } else {
     ?>
-    <p class="etn-not-found-post"><?php echo esc_html__('No Schedule Found', 'eventin'); ?></p>
+    <p class="etn-not-found-post"><?php echo esc_html__('No Schedule Found', 'wp-event-solution'); ?></p>
     <?php
 }

@@ -18,8 +18,8 @@ defined( 'ABSPATH' ) || exit;
     $etn_ticket_currency = etn_order_currency_symbol( get_post_meta( $attendee_id, 'eventin_order_id', true ) );
 
     $all_payment_status = [
-        'success' => esc_html__('Success', 'eventin'),
-        'failed'  => esc_html__('Failed', 'eventin')
+        'success' => esc_html__('Success', 'wp-event-solution'),
+        'failed'  => esc_html__('Failed', 'wp-event-solution')
     ];
 
     // Load ticket layout style
@@ -108,7 +108,7 @@ defined( 'ABSPATH' ) || exit;
                                             if ( ! empty( $unique_id ) ) {
                                                 ?>
                                                 <li class="etn-ticket-body-top-li">
-                                                    <span><?php echo esc_html__( "ID:", "eventin" ); ?></span>
+                                                    <span><?php echo esc_html__( "ID:", "wp-event-solution" ); ?></span>
                                                     <p class="etn-ticket-id"><?php echo esc_html( $unique_id ); ?></p>
                                                 </li>
                                                 <?php
@@ -117,7 +117,7 @@ defined( 'ABSPATH' ) || exit;
                                     ?>
                                     <?php if ( $ticket_price !== "" && empty( $etn_addon_rows ) ) { ?>
                                         <li class="etn-ticket-body-top-li">
-                                            <?php echo esc_html__( "PRICE :", "eventin" ); ?>
+                                            <?php echo esc_html__( "PRICE :", "wp-event-solution" ); ?>
                                             <p>
                                                 <?php
                                                     printf( '%s %s', esc_html( $etn_ticket_currency ), esc_html( $ticket_price ) );
@@ -127,7 +127,7 @@ defined( 'ABSPATH' ) || exit;
                                     <?php }?>
                                     <?php if ( $ticket_name !== "") { ?>
                                         <li class="etn-ticket-body-top-li flex-100">
-                                            <?php echo esc_html__( "TYPE :", "eventin" ); ?> 
+                                            <?php echo esc_html__( "TYPE :", "wp-event-solution" ); ?> 
                                             <p><?php echo esc_html( $ticket_name ) ?></p>
                                         </li>
                                     <?php }?>
@@ -135,19 +135,19 @@ defined( 'ABSPATH' ) || exit;
                                         if ( !empty($attendee_seat) ) {
                                         ?>
                                         <li class="etn-ticket-body-top-li flex-100">
-                                            <?php echo esc_html__( "Seat :", "eventin" ); ?> 
+                                            <?php echo esc_html__( "Seat :", "wp-event-solution" ); ?> 
                                             <p><?php echo esc_html( $attendee_seat ) ?></p>
                                         </li>
                                     <?php }  ?>
                                     <?php if ( $event_location !== "" && $event_location_type === 'existing_location') { ?>
                                         <li class="etn-ticket-body-top-li flex-100">
-                                            <?php echo esc_html__( "VENUE :", "eventin" ); ?> 
+                                            <?php echo esc_html__( "VENUE :", "wp-event-solution" ); ?> 
                                             <p><?php echo esc_html( $event_location ) ?></p>
                                         </li>
                                     <?php }?>
                                     <?php if($event_location_type === 'new_location'): ?>
                                         <li class="etn-ticket-body-top-li flex-100 etn-event-location etn-taxonomy-location-meta">
-                                            <?php echo esc_html__( "VENUE :", "eventin" ); ?> 
+                                            <?php echo esc_html__( "VENUE :", "wp-event-solution" ); ?> 
                                             <?php foreach($event_terms as $term) : ?>
                                                 <span><?php echo esc_html($term->name); ?></span>
                                             <?php endforeach; ?>
@@ -156,14 +156,14 @@ defined( 'ABSPATH' ) || exit;
                                     
 	                                <?php if ( ( ! isset( $event_location_type ) || $event_location_type === "" ) && isset( $event_location ) && is_array( $event_location ) && isset( $event_location["address"] ) && strlen($event_location["address"]) ) { ?>
                                         <li class="etn-ticket-body-top-li flex-100">
-			                                <?php echo esc_html__( "VENUE :", "eventin" ); ?>
+			                                <?php echo esc_html__( "VENUE :", "wp-event-solution" ); ?>
                                             <p><?php echo esc_html( $event_location["address"] ) ?></p>
                                         </li>
 	                                <?php }?>
                                  
 	                                <?php if ( (  isset( $event_location ) && isset( $event_location["integration"] ) ) ) { ?>
                                         <li class="etn-ticket-body-top-li flex-100">
-			                                <?php echo esc_html__( "VENUE :", "eventin" ); ?>
+			                                <?php echo esc_html__( "VENUE :", "wp-event-solution" ); ?>
                                             <p>ONLINE</p>
                                         </li>
 	                                <?php }?>
@@ -171,27 +171,27 @@ defined( 'ABSPATH' ) || exit;
                                     
                                     <?php if ( $attendee_name !== "") { ?>
                                         <li class="etn-ticket-body-top-li">
-                                            <?php echo esc_html__( "ATTENDEE :", "eventin" ); ?> 
+                                            <?php echo esc_html__( "ATTENDEE :", "wp-event-solution" ); ?> 
                                             <p><?php echo esc_html( $attendee_name ) ?></p>
                                         </li>
                                     <?php }?>
                                     
                                     <?php if ( $include_phone  && $attendee_phone !== "") { ?>
                                         <li class="etn-ticket-body-top-li">
-                                            <?php echo esc_html__( "PHONE :", "eventin" ); ?> 
+                                            <?php echo esc_html__( "PHONE :", "wp-event-solution" ); ?> 
                                             <p><?php echo esc_html( $attendee_phone ) ?></p>
                                         </li>
                                     <?php }?>
                                     <?php if ( $include_email && $attendee_email !== "" ) { ?>
                                         <li class="etn-ticket-body-top-li">
-                                            <?php echo esc_html__( "EMAIL :", "eventin" ); ?> 
+                                            <?php echo esc_html__( "EMAIL :", "wp-event-solution" ); ?> 
                                             <p><?php echo esc_html( $attendee_email ) ?></p>
                                         </li>
                                     <?php }?>
 
                                     <?php if($payment_status){ ?>
                                         <li class="etn-ticket-body-top-li">
-                                            <?php echo esc_html__( "Payment Status :", "eventin" ); ?> 
+                                            <?php echo esc_html__( "Payment Status :", "wp-event-solution" ); ?> 
                                             <p><?php echo esc_html( $all_payment_status[$payment_status] ); ?></p>
                                         </li>
                                     <?php } ?>
@@ -202,7 +202,7 @@ defined( 'ABSPATH' ) || exit;
                                     <ul class="etn-ticket-body-top-ul">
                                         <?php if ( $ticket_price !== "" ) { ?>
                                             <li class="etn-ticket-body-top-li flex-100">
-                                                <?php echo esc_html__( "PRICE :", "eventin" ); ?>
+                                                <?php echo esc_html__( "PRICE :", "wp-event-solution" ); ?>
                                                 <p><?php printf( '%s %s', esc_html( $etn_ticket_currency ), esc_html( $ticket_price ) ); ?></p>
                                             </li>
                                         <?php } ?>
@@ -213,7 +213,7 @@ defined( 'ABSPATH' ) || exit;
                                             </li>
                                         <?php } ?>
                                         <li class="etn-ticket-body-top-li flex-100">
-                                            <?php echo esc_html__( "TOTAL :", "eventin" ); ?>
+                                            <?php echo esc_html__( "TOTAL :", "wp-event-solution" ); ?>
                                             <p><?php printf( '%s %s', esc_html( $etn_ticket_currency ), esc_html( number_format( (float) $ticket_price + $etn_addon_total, 2 ) ) ); ?></p>
                                         </li>
                                     </ul>
@@ -237,9 +237,9 @@ defined( 'ABSPATH' ) || exit;
     </div>
 </div>
 <div class="etn-download-ticket">
-    <button class="etn-btn button etn-print-ticket-btn" id="etn_ticket_print_btn" data-ticketname="<?php echo esc_html( $ticket_file_name )?>" ><?php echo esc_html__( "Print", "eventin" ); ?></button>
+    <button class="etn-btn button etn-print-ticket-btn" id="etn_ticket_print_btn" data-ticketname="<?php echo esc_html( $ticket_file_name )?>" ><?php echo esc_html__( "Print", "wp-event-solution" ); ?></button>
     
-    <button class="etn-btn button etn-download-ticket-btn" id="etn_ticket_download_btn" data-ticketname="<?php echo esc_html( $ticket_file_name )?>" ><?php echo esc_html__( "Download", "eventin" ); ?></button>
+    <button class="etn-btn button etn-download-ticket-btn" id="etn_ticket_download_btn" data-ticketname="<?php echo esc_html( $ticket_file_name )?>" ><?php echo esc_html__( "Download", "wp-event-solution" ); ?></button>
 </div>
 
 <?php wp_footer(); ?>

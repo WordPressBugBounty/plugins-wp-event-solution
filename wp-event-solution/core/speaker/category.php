@@ -31,17 +31,17 @@ class Category extends \Etn\Base\Taxonomy {
     function taxonomy() {
 
         $labels = [
-            'name'              => esc_html__( 'Speaker Category', 'eventin' ),
-            'singular_name'     => esc_html__( 'Speaker Category', 'eventin' ),
-            'search_items'      => esc_html__( 'Search Category', 'eventin' ),
-            'all_items'         => esc_html__( 'All Category', 'eventin' ),
-            'parent_item'       => esc_html__( 'Parent Category', 'eventin' ),
-            'parent_item_colon' => esc_html__( 'Parent Category:', 'eventin' ),
-            'edit_item'         => esc_html__( 'Edit Category', 'eventin' ),
-            'update_item'       => esc_html__( 'Update Category', 'eventin' ),
-            'add_new_item'      => esc_html__( 'Add New Speaker Category', 'eventin' ),
-            'new_item_name'     => esc_html__( 'New Category Name', 'eventin' ),
-            'menu_name'         => esc_html__( 'Speaker Category', 'eventin' ),
+            'name'              => esc_html__( 'Speaker Category', 'wp-event-solution' ),
+            'singular_name'     => esc_html__( 'Speaker Category', 'wp-event-solution' ),
+            'search_items'      => esc_html__( 'Search Category', 'wp-event-solution' ),
+            'all_items'         => esc_html__( 'All Category', 'wp-event-solution' ),
+            'parent_item'       => esc_html__( 'Parent Category', 'wp-event-solution' ),
+            'parent_item_colon' => esc_html__( 'Parent Category:', 'wp-event-solution' ),
+            'edit_item'         => esc_html__( 'Edit Category', 'wp-event-solution' ),
+            'update_item'       => esc_html__( 'Update Category', 'wp-event-solution' ),
+            'add_new_item'      => esc_html__( 'Add New Speaker Category', 'wp-event-solution' ),
+            'new_item_name'     => esc_html__( 'New Category Name', 'wp-event-solution' ),
+            'menu_name'         => esc_html__( 'Speaker Category', 'wp-event-solution' ),
         ];
 
         $args = [

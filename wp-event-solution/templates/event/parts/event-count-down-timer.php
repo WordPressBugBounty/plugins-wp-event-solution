@@ -19,23 +19,23 @@ $start_date_time = strtotime( $formatted_start_date . ' ' . $event->etn_start_ti
 $end_date_time   = strtotime( $formatted_end_date . ' ' . $event->etn_end_time );
 
 $counter_start_time = $event->get_start_date() . " " . $event->get_start_time( 'H:i' );
-$countdown_day      = esc_html__( "day", "eventin" );
-$countdown_hr       = esc_html__( "hr", "eventin" );
-$countdown_min      = esc_html__( "min", "eventin" );
-$countdown_sec      = esc_html__( "sec", "eventin" );
+$countdown_day      = esc_html__( "day", "wp-event-solution" );
+$countdown_hr       = esc_html__( "hr", "wp-event-solution" );
+$countdown_min      = esc_html__( "min", "wp-event-solution" );
+$countdown_sec      = esc_html__( "sec", "wp-event-solution" );
 $event_options      = get_option( "etn_event_options" );
 $show_seperate_dot  = true;
 $timezone_offset    = \Etn\Core\Event\Helper::instance()->get_timezone_numeric_value( $event->get_timezone() );
 
 $date_texts = [
     'day'    => $countdown_day,
-    'days'   => esc_html__( "days", "eventin" ),
+    'days'   => esc_html__( "days", "wp-event-solution" ),
     'hr'     => $countdown_hr,
-    'hrs'    => esc_html__( "hrs", "eventin" ),
+    'hrs'    => esc_html__( "hrs", "wp-event-solution" ),
     'min'    => $countdown_min,
-    'mins'   => esc_html__( "mins", "eventin" ),
+    'mins'   => esc_html__( "mins", "wp-event-solution" ),
     'sec'    => $countdown_sec,
-    'secs'   => esc_html__( "secs", "eventin" ),
+    'secs'   => esc_html__( "secs", "wp-event-solution" ),
     'offset' => $timezone_offset
 ];
 
@@ -44,9 +44,9 @@ $date_texts = [
 <div class="etn_count_down_block <?php echo esc_attr( $container_class ); ?>">
     <div class="eventin-block-container">
         <?php if ( time() > $start_date_time && time() < $end_date_time ) :?>
-        <p class="etn-countdown-expired"><?php esc_html_e( 'This event is going on', 'eventin' ); ?></p>
+        <p class="etn-countdown-expired"><?php esc_html_e( 'This event is going on', 'wp-event-solution' ); ?></p>
         <?php elseif ( time() > $end_date_time ): ?>
-        <p class="etn-countdown-expired"><?php esc_html_e( 'This event has expired', 'eventin' ); ?></p>
+        <p class="etn-countdown-expired"><?php esc_html_e( 'This event has expired', 'wp-event-solution' ); ?></p>
         <?php else: ?>
         <div class="etn-event-countdown-wrap etn-countdown1 etn-countdown-parent"
             data-start-date="<?php echo esc_attr( $counter_start_time ); ?>"

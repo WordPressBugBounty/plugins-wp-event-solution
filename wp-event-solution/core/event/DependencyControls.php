@@ -75,17 +75,17 @@ class DependencyControls {
             'class'         => 'button-primary ',
         );
         if ( file_exists( WP_PLUGIN_DIR . '/woocommerce/woocommerce.php' ) ) {
-            $btn['text'] = esc_html__( 'Activate WooCommerce', 'eventin' );
+            $btn['text'] = esc_html__( 'Activate WooCommerce', 'wp-event-solution' );
             $btn['url']  = wp_nonce_url( 'plugins.php?action=activate&plugin=woocommerce/woocommerce.php&plugin_status=all&paged=1', 'activate-plugin_woocommerce/woocommerce.php' );
         } else {
-            $btn['text'] = esc_html__( 'Install WooCommerce', 'eventin' );
+            $btn['text'] = esc_html__( 'Install WooCommerce', 'wp-event-solution' );
             $btn['url']  = wp_nonce_url( self_admin_url( 'update.php?action=install-plugin&plugin=woocommerce' ), 'install-plugin_woocommerce' );
         }
 
         Notice::instance( 'eventin', 'unsupported-woocommerce-version' )
         ->set_class( 'error' )
         ->set_dismiss( 'global', ( 3600 * 24 * 30 ) )
-        ->set_message( sprintf( esc_html__( 'To enable payments and transactions, WooCommerce is required. Eventin uses WooCommerce to handle bookings, payments, and order management.', 'eventin' ) ) )
+        ->set_message( sprintf( esc_html__( 'To enable payments and transactions, WooCommerce is required. Eventin uses WooCommerce to handle bookings, payments, and order management.', 'wp-event-solution' ) ) )
         ->set_button( $btn )
         ->call();
     }   

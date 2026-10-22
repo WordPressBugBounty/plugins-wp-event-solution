@@ -17,8 +17,8 @@ use Eventin\Template\TemplateModel;
     $payment_status =  get_post_meta( $attendee_id, 'etn_status', true);
 
     $all_payment_status = [
-        'success' => esc_html__('Success', 'eventin'),
-        'failed'  => esc_html__('Failed', 'eventin')
+        'success' => esc_html__('Success', 'wp-event-solution'),
+        'failed'  => esc_html__('Failed', 'wp-event-solution')
     ];
 
     // Load ticket layout style
@@ -83,7 +83,7 @@ use Eventin\Template\TemplateModel;
                     <?php
                         if ( $post && $post->post_status === 'draft' ) {
                             ?>
-                            <p><?php esc_html_e( 'The template is not published', 'eventin' ); ?></p>
+                            <p><?php esc_html_e( 'The template is not published', 'wp-event-solution' ); ?></p>
                             <?php
                         } else {
                             echo $template_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Trusted rendered block/Elementor HTML content.
@@ -98,9 +98,9 @@ use Eventin\Template\TemplateModel;
 
 <?php if ( $post && $post->post_status !== 'draft' ): ?>
 <div class="etn-download-ticket">
-    <button class="etn-btn button etn-print-ticket-btn" id="etn_ticket_print_btn" data-ticketname="<?php echo esc_html( $ticket_file_name )?>" ><?php echo esc_html__( "Print", "eventin" ); ?></button>
+    <button class="etn-btn button etn-print-ticket-btn" id="etn_ticket_print_btn" data-ticketname="<?php echo esc_html( $ticket_file_name )?>" ><?php echo esc_html__( "Print", "wp-event-solution" ); ?></button>
 
-    <button class="etn-btn button etn-download-ticket-btn" id="etn_ticket_download_btn" data-ticketname="<?php echo esc_html( $ticket_file_name )?>" ><?php echo esc_html__( "Download", "eventin" ); ?></button>
+    <button class="etn-btn button etn-download-ticket-btn" id="etn_ticket_download_btn" data-ticketname="<?php echo esc_html( $ticket_file_name )?>" ><?php echo esc_html__( "Download", "wp-event-solution" ); ?></button>
 </div>
 <?php endif; ?>
 

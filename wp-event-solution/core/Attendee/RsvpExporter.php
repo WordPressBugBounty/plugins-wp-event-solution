@@ -229,15 +229,15 @@ class RsvpExporter implements PostExporterInterface {
      */
     private function get_columns() {
         $columns = [
-            'id'                => __( 'Id', 'eventin' ),
-            'number_of_attendee'=> __( 'Attendees', 'eventin' ),
-            'status'            => __( 'Status', 'eventin' ),
-            'event_id'          => __( 'Event ID', 'eventin' ),
-            'attendee_name'     => __( 'Attendee Name', 'eventin' ),
-            'attendee_email'    => __( 'Attendee Email', 'eventin' ),
-            'received_on'       => __( 'Received On', 'eventin' ),
-            'guest'             => __( 'Guests', 'eventin' ),
-            'extra_details'     => __( 'Extra Details', 'eventin' ),
+            'id'                => __( 'Id', 'wp-event-solution' ),
+            'number_of_attendee'=> __( 'Attendees', 'wp-event-solution' ),
+            'status'            => __( 'Status', 'wp-event-solution' ),
+            'event_id'          => __( 'Event ID', 'wp-event-solution' ),
+            'attendee_name'     => __( 'Attendee Name', 'wp-event-solution' ),
+            'attendee_email'    => __( 'Attendee Email', 'wp-event-solution' ),
+            'received_on'       => __( 'Received On', 'wp-event-solution' ),
+            'guest'             => __( 'Guests', 'wp-event-solution' ),
+            'extra_details'     => __( 'Extra Details', 'wp-event-solution' ),
         ];
 
         $columns = apply_filters( 'etn_prepare_attendee_data_columns', $columns );

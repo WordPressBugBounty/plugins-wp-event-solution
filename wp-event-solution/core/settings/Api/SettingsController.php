@@ -211,7 +211,27 @@ class SettingsController extends WP_REST_Controller {
         $params = $request->get_json_params();
 
         if ( empty( $params ) || ! is_array( $params ) ) {
-            return new \WP_Error( 'invalid_data', __( 'Invalid settings data.', 'eventin' ), [ 'status' => 400 ] );
+            return new \WP_Error( 'invalid_data', __( 'Invalid settings data.', 'wp-event-solution' ), [ 'status' => 400 ] );
+        }
+
+        /**
+         * Filter settings before they are stored in Eventin's option.
+         *
+         * Addons can validate and persist their own namespaced fields, then
+         * remove those fields from the returned array. Return WP_Error to
+         * reject the request. The endpoint's permission check runs first.
+         *
+         * @param array|\WP_Error $params  Submitted settings.
+         * @param \WP_REST_Request $request Current request.
+         */
+        $params = apply_filters( 'eventin_settings_update_params', $params, $request );
+
+        if ( is_wp_error( $params ) ) {
+            return $params;
+        }
+
+        if ( ! is_array( $params ) ) {
+            return new \WP_Error( 'invalid_data', __( 'Invalid settings data.', 'wp-event-solution' ), [ 'status' => 400 ] );
         }
 
         Settings::update( $params );

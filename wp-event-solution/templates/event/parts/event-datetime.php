@@ -6,13 +6,13 @@
                 <li class="etn-li">
                     <?php
                     // translators: %1$s is the event start date, %2$s is the event end date.
-                    printf( wp_kses( __( '<span class="etn-span">Date:</span> %1$s - %2$s', 'eventin' ), [ 'span' => [ 'class' => [] ] ] ), esc_html( $start_date ), esc_html( $end_date ) );
+                    printf( wp_kses( __( '<span class="etn-span">Date:</span> %1$s - %2$s', 'wp-event-solution' ), [ 'span' => [ 'class' => [] ] ] ), esc_html( $start_date ), esc_html( $end_date ) );
                     ?>
                 </li>
                 <li class="etn-li">
                     <?php
                     // translators: %1$s is the event start time, %2$s is the event end time, %3$s is the timezone.
-                    printf( wp_kses( __( '<span class="etn-span">Time:</span> %1$s - %2$s (%3$s)', 'eventin' ), [ 'span' => [ 'class' => [] ] ] ), esc_html( $start_time ), esc_html( $end_time ), esc_html( $timezone ) );
+                    printf( wp_kses( __( '<span class="etn-span">Time:</span> %1$s - %2$s (%3$s)', 'wp-event-solution' ), [ 'span' => [ 'class' => [] ] ] ), esc_html( $start_time ), esc_html( $end_time ), esc_html( $timezone ) );
                     ?>
                 </li>
             </ul>

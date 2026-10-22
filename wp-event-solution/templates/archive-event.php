@@ -19,8 +19,8 @@ use Etn\Utils\Helper as helper;
 
 <div class="etn-event-archive-wrap etn_search_item_container" data-json='<?php echo json_encode([
         "error_content" => [
-            "title" => esc_html__('Nothing found!', 'eventin'),
-            "exerpt" => esc_html__('It looks like nothing was found here. Maybe try a search?','eventin')
+            "title" => esc_html__('Nothing found!', 'wp-event-solution'),
+            "exerpt" => esc_html__('It looks like nothing was found here. Maybe try a search?','wp-event-solution')
         ]
     ]); ?>'>
     <div class="etn-container">

@@ -219,19 +219,19 @@ class Event_Model extends Post_Model {
 
             if ('publish' === $status) {
                 if ($current_date > $end_date) {
-                    $status = __('Expired', 'eventin');
+                    $status = __('Expired', 'wp-event-solution');
                     return [
                         'key'=>"expired",
                         'value'=> $status
                     ];
                 } elseif ($current_date >= $start_date && $current_date <= $end_date) {
-                    $status = __('Ongoing', 'eventin');
+                    $status = __('Ongoing', 'wp-event-solution');
                     return [
                         'key'=>"ongoing",
                         'value'=> $status
                     ];
                 } else {
-                    $status = __('Upcoming', 'eventin');
+                    $status = __('Upcoming', 'wp-event-solution');
                     return [
                         'key'=>"upcoming",
                         'value'=> $status
@@ -326,7 +326,7 @@ class Event_Model extends Post_Model {
      */
     public function get_location_label() {
         if ( 'online' === $this->event_type ) {
-            return __( 'Online', 'eventin' );
+            return __( 'Online', 'wp-event-solution' );
         }
 
         $location = $this->etn_event_location;

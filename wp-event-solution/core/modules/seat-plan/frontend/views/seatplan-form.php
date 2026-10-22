@@ -57,7 +57,7 @@ class Seatplan_Form {
 						</svg>
 					</div>
 					<div class="etn-notice-content">
-						<h3 style="margin: 0.5em 0 0.2em; color: #1d2327; font-size: 16px; font-weight: 600;"><?php echo esc_html__('Event Period Has Ended', 'eventin'); ?></h3>
+						<h3 style="margin: 0.5em 0 0.2em; color: #1d2327; font-size: 16px; font-weight: 600;"><?php echo esc_html__('Event Period Has Ended', 'wp-event-solution'); ?></h3>
 					</div>
 				</div>
 				<?php

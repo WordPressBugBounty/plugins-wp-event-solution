@@ -355,8 +355,8 @@ class EventReminder implements HookableInterface {
             'event_date'               => $event->get_end_date( $date_format ),
             'event_time'               => $event->get_end_time( etn_time_format() ),
             // Both timestamps so the flow's delay node can key off event start OR end.
-            'event_start_date_timestamp' => $this->get_event_date_timestamp( $event->get_start_date(), $event->get_start_time( 'H:i' ) ),
-            'event_end_date_timestamp' => $this->get_event_date_timestamp( $event->get_end_date(), $event->get_end_time( 'H:i' ) ),
+            'event_start_date_timestamp' => $this->get_event_date_timestamp( $event->get_start_date(), $event->get_start_time( 'H:i' ), $this->get_event_timezone( $event ) ),
+            'event_end_date_timestamp' => $this->get_event_date_timestamp( $event->get_end_date(), $event->get_end_time( 'H:i' ), $this->get_event_timezone( $event ) ),
             'event_location'           => $event->get_location_label(),
             'attendee_id'              => [],
             'attendee_email'           => [],
@@ -376,7 +376,8 @@ class EventReminder implements HookableInterface {
      */
     private function reminder_payload( $event ) {
         $date_format = get_option( 'date_format' );
-        $start       = $this->get_event_date_timestamp( $event->get_start_date(), $event->get_start_time() );
+        $timezone    = $this->get_event_timezone( $event );
+        $start       = $this->get_event_date_timestamp( $event->get_start_date(), $event->get_start_time(), $timezone );
 
         return [
             'site_name'            => get_bloginfo( 'name' ),
@@ -387,7 +388,7 @@ class EventReminder implements HookableInterface {
             'event_date_timestamp' => $start,
             // Both timestamps so the flow's delay node can key off event start OR end.
             'event_start_date_timestamp' => $start,
-            'event_end_date_timestamp'   => $this->get_event_date_timestamp( $event->get_end_date(), $event->get_end_time() ),
+            'event_end_date_timestamp'   => $this->get_event_date_timestamp( $event->get_end_date(), $event->get_end_time(), $timezone ),
             'previous_event_date'  => $start,
             'event_location'       => $event->get_location_label(),
             'attendee_id'          => [],
@@ -453,7 +454,7 @@ class EventReminder implements HookableInterface {
             }
         }
 
-        $start = $this->get_event_date_timestamp( $event->get_start_date(), $event->get_start_time() );
+        $start = $this->get_event_date_timestamp( $event->get_start_date(), $event->get_start_time(), $this->get_event_timezone( $event ) );
 
         // A zero timestamp means an unparseable/missing date; treating it as "now"
         // is what makes the flow fire instantly, so refuse it outright.
@@ -708,12 +709,21 @@ class EventReminder implements HookableInterface {
      */
     public function reset_reminder_email_schedule( $event, $previous_event_date ) {
         $date_format = get_option( 'date_format' );
+        $timezone    = $this->get_event_timezone( $event );
+
+        // Changing only the event timezone moves the event too. Without the
+        // previous timezone (older callers), assume it did not change.
+        $previous_timezone = array_key_exists( 'previous_event_timezone', $previous_event_date )
+            ? $this->resolve_timezone( $previous_event_date['previous_event_timezone'] )
+            : $timezone;
+
         $previous_event_date = $this->get_event_date_timestamp(
             $previous_event_date['previous_event_start_date'],
-            $previous_event_date['previous_event_start_time']
+            $previous_event_date['previous_event_start_time'],
+            $previous_timezone
         );
 
-        $current_event_date = $this->get_event_date_timestamp( $event->get_start_date(), $event->get_start_time( 'H:i' ) );
+        $current_event_date = $this->get_event_date_timestamp( $event->get_start_date(), $event->get_start_time( 'H:i' ), $timezone );
 
         if ( $previous_event_date != $current_event_date ) {
             do_action( 'global_notification_hook', 'event_reminder_email', [
@@ -725,7 +735,7 @@ class EventReminder implements HookableInterface {
                 'event_date_timestamp'          => $current_event_date,
                 // Both timestamps so the flow's delay node can key off event start OR end.
                 'event_start_date_timestamp'    => $current_event_date,
-                'event_end_date_timestamp'      => $this->get_event_date_timestamp( $event->get_end_date(), $event->get_end_time( 'H:i' ) ),
+                'event_end_date_timestamp'      => $this->get_event_date_timestamp( $event->get_end_date(), $event->get_end_time( 'H:i' ), $timezone ),
                 'previous_event_date_timestamp' => $previous_event_date,
                 'event_location'                => $event->get_location_label(),
                 'attendee_id'                   => [],
@@ -740,13 +750,65 @@ class EventReminder implements HookableInterface {
     }
 
     /**
+     * Timezone an event's stored date and time are written in
+     *
+     * The event's own timezone when it has one, else the site timezone.
+     *
+     * @param   Event_Model  $event
+     *
+     * @return  \DateTimeZone
+     */
+    public function get_event_timezone( $event ) {
+        return $this->resolve_timezone( $event->event_timezone );
+    }
+
+    /**
+     * Turn a stored event timezone value into a DateTimeZone
+     *
+     * Accepts named zones ("Asia/Dhaka") and the editor's offset values
+     * ("UTC+6", "UTC+5:30", "UTC-4.5"). Anything else falls back to the site
+     * timezone.
+     *
+     * @param   mixed  $zone
+     *
+     * @return  \DateTimeZone
+     */
+    private function resolve_timezone( $zone ) {
+        $zone = is_string( $zone ) ? trim( $zone ) : '';
+
+        if ( preg_match( '/^UTC\s*([+-])(\d{1,2})(?::(\d{2})|\.(\d))?$/i', $zone, $m ) ) {
+            $minutes = 0;
+
+            if ( ! empty( $m[3] ) ) {
+                $minutes = (int) $m[3];
+            } elseif ( ! empty( $m[4] ) ) {
+                $minutes = (int) $m[4] * 6; // ".5" is half an hour.
+            }
+
+            $zone = sprintf( '%s%02d:%02d', $m[1], (int) $m[2], $minutes );
+        }
+
+        if ( $zone ) {
+            try {
+                return new \DateTimeZone( $zone );
+            } catch ( \Exception $e ) {
+                // Unknown value → site timezone.
+            }
+        }
+
+        return wp_timezone();
+    }
+
+    /**
      * Get event date timestamp
      *
-     * @param   string $date
-     * @param   string $time
+     * @param   string             $date
+     * @param   string             $time
+     * @param   \DateTimeZone|null $timezone  Timezone the date and time are in.
+     *                                        Defaults to the site timezone.
      * @return  int
      */
-    public function get_event_date_timestamp( $date, $time ) {
+    public function get_event_date_timestamp( $date, $time, $timezone = null ) {
         $time = is_string( $time ) ? trim( $time ) : '';
 
         // Normalize any "digits + separator + digits" shape (e.g. "6h45", "6.45", "6 45") to "06:45".
@@ -766,7 +828,7 @@ class EventReminder implements HookableInterface {
         }
 
         try {
-            return ( new DateTime( $date . ' ' . $formatted, wp_timezone() ) )->getTimestamp();
+            return ( new DateTime( $date . ' ' . $formatted, $timezone instanceof \DateTimeZone ? $timezone : wp_timezone() ) )->getTimestamp();
         } catch ( \Exception $e ) {
             return 0;
         }

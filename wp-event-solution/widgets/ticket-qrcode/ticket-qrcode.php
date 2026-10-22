@@ -14,7 +14,7 @@ class Etn_Ticket_Qrcode extends Widget_Base {
     }
 
     public function get_title() {
-        return esc_html__( 'Ticket QR Code', 'eventin' );
+        return esc_html__( 'Ticket QR Code', 'wp-event-solution' );
     }
 
     public function get_icon() {
@@ -34,26 +34,26 @@ class Etn_Ticket_Qrcode extends Widget_Base {
         $this->start_controls_section(
             'section_content',
             [
-                'label' => esc_html__( 'QR Code', 'eventin' ),
+                'label' => esc_html__( 'QR Code', 'wp-event-solution' ),
             ]
         );
 
         $this->add_responsive_control(
             'alignment',
             [
-                'label'     => esc_html__( 'Alignment', 'eventin' ),
+                'label'     => esc_html__( 'Alignment', 'wp-event-solution' ),
                 'type'      => Controls_Manager::CHOOSE,
                 'options'   => [
                     'left'   => [
-                        'title' => esc_html__( 'Left', 'eventin' ),
+                        'title' => esc_html__( 'Left', 'wp-event-solution' ),
                         'icon'  => 'eicon-text-align-left',
                     ],
                     'center' => [
-                        'title' => esc_html__( 'Center', 'eventin' ),
+                        'title' => esc_html__( 'Center', 'wp-event-solution' ),
                         'icon'  => 'eicon-text-align-center',
                     ],
                     'right'  => [
-                        'title' => esc_html__( 'Right', 'eventin' ),
+                        'title' => esc_html__( 'Right', 'wp-event-solution' ),
                         'icon'  => 'eicon-text-align-right',
                     ],
                 ],
@@ -69,7 +69,7 @@ class Etn_Ticket_Qrcode extends Widget_Base {
         $this->start_controls_section(
             'section_style',
             [
-                'label' => esc_html__( 'QR Code', 'eventin' ),
+                'label' => esc_html__( 'QR Code', 'wp-event-solution' ),
                 'tab'   => Controls_Manager::TAB_STYLE,
             ]
         );
@@ -77,7 +77,7 @@ class Etn_Ticket_Qrcode extends Widget_Base {
         $this->add_responsive_control(
             'padding',
             [
-                'label'      => esc_html__( 'Padding', 'eventin' ),
+                'label'      => esc_html__( 'Padding', 'wp-event-solution' ),
                 'type'       => Controls_Manager::DIMENSIONS,
                 'size_units' => ['px', 'em', '%'],
                 'selectors'  => [
@@ -89,7 +89,7 @@ class Etn_Ticket_Qrcode extends Widget_Base {
         $this->add_responsive_control(
             'margin',
             [
-                'label'      => esc_html__( 'Margin', 'eventin' ),
+                'label'      => esc_html__( 'Margin', 'wp-event-solution' ),
                 'type'       => Controls_Manager::DIMENSIONS,
                 'size_units' => ['px', 'em', '%'],
                 'default'    => [
@@ -114,7 +114,7 @@ class Etn_Ticket_Qrcode extends Widget_Base {
             ?>
             <div class="eventin-ticket-qrcode">
                 <img src="<?php echo esc_url( $qr_url ); ?>"
-                     alt="<?php esc_attr_e( 'Ticket QR Code', 'eventin' ); ?>"
+                     alt="<?php esc_attr_e( 'Ticket QR Code', 'wp-event-solution' ); ?>"
                      style="max-width: 150px; height: auto; display: inline-block;" />
             </div>
             <?php
@@ -122,7 +122,7 @@ class Etn_Ticket_Qrcode extends Widget_Base {
         }
 
         if ( ! class_exists( 'Wpeventin_Pro' ) ) {
-            echo '<p>' . esc_html__( 'Ticket QR Code requires Eventin Pro.', 'eventin' ) . '</p>';
+            echo '<p>' . esc_html__( 'Ticket QR Code requires Eventin Pro.', 'wp-event-solution' ) . '</p>';
             return;
         }
 

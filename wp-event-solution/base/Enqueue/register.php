@@ -83,9 +83,39 @@ class Register {
 
             $deps = $this->get_dependencies( $script['src'], $deps );
 
-            wp_register_script( $handle, $script['src'], $deps, $version, $in_footer );
+            if ( wp_register_script( $handle, $script['src'], $deps, $version, $in_footer ) && 'eventin-i18n' === $handle ) {
+                wp_add_inline_script( $handle, 'if (typeof wp.eventinI18nLoader === "undefined") { wp.eventinI18nLoader = {}; } wp.eventinI18nLoader.state = ' . wp_json_encode( $this->i18n_loader_state(), JSON_UNESCAPED_SLASHES ) . ';' );
+            }
         }
 
+    }
+
+    /**
+     * State for the lazy-chunk translation loader (tools/i18n-loader.js)
+     *
+     * @return  array
+     */
+    private function i18n_loader_state() {
+        $locale = determine_locale();
+        $data   = [
+            'baseUrl'     => false,
+            'locale'      => $locale,
+            'sources'     => (object) \Eventin\I18n\LegacyTextDomain::chunk_sources( $locale ),
+            'chunks'      => (object) \Eventin\I18n\LegacyTextDomain::chunk_files( $locale ),
+            'domainPaths' => (object) [],
+        ];
+
+        $lang_dir    = WP_LANG_DIR;
+        $content_dir = WP_CONTENT_DIR;
+        $abspath     = ABSPATH;
+
+        if ( strpos( $lang_dir, $content_dir ) === 0 ) {
+            $data['baseUrl'] = content_url( substr( trailingslashit( $lang_dir ), strlen( trailingslashit( $content_dir ) ) ) );
+        } elseif ( strpos( $lang_dir, $abspath ) === 0 ) {
+            $data['baseUrl'] = site_url( substr( trailingslashit( $lang_dir ), strlen( untrailingslashit( $abspath ) ) ) );
+        }
+
+        return $data;
     }
 
     /**

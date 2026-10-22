@@ -58,7 +58,7 @@ class LearnDashSettingsController extends WP_REST_Controller {
         if ( ! is_array( $input ) ) {
             return new WP_Error(
                 'invalid_payload',
-                __( 'Invalid payload.', 'eventin' ),
+                __( 'Invalid payload.', 'wp-event-solution' ),
                 [ 'status' => 422 ]
             );
         }
@@ -68,7 +68,7 @@ class LearnDashSettingsController extends WP_REST_Controller {
         update_option( self::OPTION_KEY, $clean );
 
         return rest_ensure_response( [
-            'message' => __( 'Settings saved.', 'eventin' ),
+            'message' => __( 'Settings saved.', 'wp-event-solution' ),
             'data'    => $clean,
         ] );
     }

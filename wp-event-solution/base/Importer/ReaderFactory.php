@@ -27,7 +27,7 @@ class ReaderFactory {
         $allowed   = [ 'text/plain', 'text/csv', 'application/json' ];
 
         if ( ! in_array( $real_mime, $allowed, true ) ) {
-            return new \WP_Error( 'invalid_file_type', esc_html__( 'Please upload a csv or json file', 'eventin' ), [ 'status' => 422 ] );
+            return new \WP_Error( 'invalid_file_type', esc_html__( 'Please upload a csv or json file', 'wp-event-solution' ), [ 'status' => 422 ] );
         }
 
         switch( $real_mime ) {

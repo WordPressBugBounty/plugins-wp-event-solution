@@ -19,9 +19,9 @@ class Etn_Zoom extends Widget_Base {
 			$form_data                              = [];
 			$form_data['ajax_url']                  = admin_url( 'admin-ajax.php' );
 			$form_data['zoom_create_meeting_nonce'] = wp_create_nonce( 'zoom_create_meeting_nonce' );
-			$form_data['zoom_type_meeting']         = esc_html__( 'Meeting', 'eventin' );
-			$form_data['zoom_type_webinar']         = esc_html__( 'Webinar', 'eventin' );
-			$form_data['zoom_type_change_alert']    = esc_html__( 'Sorry! As meeting/webinar is already created, so changing type is irrelevant. Please delete this block and create new type.', 'eventin' );
+			$form_data['zoom_type_meeting']         = esc_html__( 'Meeting', 'wp-event-solution' );
+			$form_data['zoom_type_webinar']         = esc_html__( 'Webinar', 'wp-event-solution' );
+			$form_data['zoom_type_change_alert']    = esc_html__( 'Sorry! As meeting/webinar is already created, so changing type is irrelevant. Please delete this block and create new type.', 'wp-event-solution' );
 			wp_localize_script( 'zoom-init', 'zoom_js', $form_data );
 	}
 
@@ -34,7 +34,7 @@ class Etn_Zoom extends Widget_Base {
 	}
 
 	public function get_title() {
-			return esc_html__( 'Eventin zoom', 'eventin' );
+			return esc_html__( 'Eventin zoom', 'wp-event-solution' );
 	}
 
 	public function get_icon() {
@@ -56,20 +56,20 @@ class Etn_Zoom extends Widget_Base {
 		$zoom_type_desc = '';
 		$zoom_types     = $this->conditional_zoom_types();
 		if ( count( $zoom_types ) == 2 ) {
-				$zoom_type_desc = esc_html__( 'Note: Webinar requires webinar plan enabled in your account. At edit time don\'t change type as meeting/webinar id is already generated. If need to change type, remove and add new widget.', 'eventin' );
+				$zoom_type_desc = esc_html__( 'Note: Webinar requires webinar plan enabled in your account. At edit time don\'t change type as meeting/webinar id is already generated. If need to change type, remove and add new widget.', 'wp-event-solution' );
 		}
 
 		$this->start_controls_section(
 				'meeting_section_content',
 				[
-						'label' => esc_html__( 'Content', 'eventin' ),
+						'label' => esc_html__( 'Content', 'wp-event-solution' ),
 				]
 		);
 
 		$this->add_control(
 				'zoom_type',
 				[
-						'label'       => esc_html__( 'Meeting Type*', 'eventin' ),
+						'label'       => esc_html__( 'Meeting Type*', 'wp-event-solution' ),
 						'type'        => Controls_Manager::SELECT2,
 						'options'     => $zoom_types,
 						// 'label_block' => true,
@@ -81,14 +81,14 @@ class Etn_Zoom extends Widget_Base {
 		$this->add_control(
 				'zoom_style',
 				[
-						'label'   => esc_html__( 'Zoom Style', 'eventin' ),
+						'label'   => esc_html__( 'Zoom Style', 'wp-event-solution' ),
 						'type'    => Controls_Manager::SELECT,
 						'default' => 'zoom-1',
 						'options' => [
-								'zoom-1' => esc_html__( 'Style 1', 'eventin' ),
-								'zoom-2' => esc_html__( 'Style 2', 'eventin' ),
-								'zoom-3' => esc_html__( 'Style 3', 'eventin' ),
-								'zoom-4' => esc_html__( 'Style 4', 'eventin' ),
+								'zoom-1' => esc_html__( 'Style 1', 'wp-event-solution' ),
+								'zoom-2' => esc_html__( 'Style 2', 'wp-event-solution' ),
+								'zoom-3' => esc_html__( 'Style 3', 'wp-event-solution' ),
+								'zoom-4' => esc_html__( 'Style 4', 'wp-event-solution' ),
 
 						],
 				]
@@ -97,25 +97,25 @@ class Etn_Zoom extends Widget_Base {
 		$this->add_control(
 				'topic',
 				[
-						'label'       => esc_html__( 'Meeting Topic', 'eventin' ),
+						'label'       => esc_html__( 'Meeting Topic', 'wp-event-solution' ),
 						'type'        => \Elementor\Controls_Manager::TEXT,
-						'description' => esc_html__( 'Write meeting topic a host of the meeting.(Optional)', 'eventin' ),
+						'description' => esc_html__( 'Write meeting topic a host of the meeting.(Optional)', 'wp-event-solution' ),
 				]
 		);
 
 		$this->add_control(
 				'agenda',
 				[
-						'label'       => esc_html__( 'Meeting Agenda', 'eventin' ),
+						'label'       => esc_html__( 'Meeting Agenda', 'wp-event-solution' ),
 						'type'        => \Elementor\Controls_Manager::TEXTAREA,
-						'description' => esc_html__( 'Details description of the meeting.(Optional)', 'eventin' ),
+						'description' => esc_html__( 'Details description of the meeting.(Optional)', 'wp-event-solution' ),
 				]
 		);
 
 		$this->add_control(
 				'meeting_cache',
 				[
-						'label' => esc_html__( 'Meeting Data', 'eventin' ),
+						'label' => esc_html__( 'Meeting Data', 'wp-event-solution' ),
 						'type'  => \Elementor\Controls_Manager::HIDDEN,
 				]
 		);
@@ -123,54 +123,54 @@ class Etn_Zoom extends Widget_Base {
 		$this->add_control(
 				'user_id',
 				[
-						'label'       => esc_html__( 'Meeting Hosts*', 'eventin' ),
+						'label'       => esc_html__( 'Meeting Hosts*', 'wp-event-solution' ),
 						'type'        => Controls_Manager::SELECT2,
 						'options'     => $user_list,
 						'label_block' => true,
 						'default'     => $default_value_user,
-						'description' => esc_html__( 'Select a host of the meeting.(Required)', 'eventin' ),
+						'description' => esc_html__( 'Select a host of the meeting.(Required)', 'wp-event-solution' ),
 				]
 		);
 
 		$this->add_control(
 				'start_time',
 				[
-						'label'       => esc_html__( 'Start date/time*', 'eventin' ),
+						'label'       => esc_html__( 'Start date/time*', 'wp-event-solution' ),
 						'type'        => \Elementor\Controls_Manager::DATE_TIME,
 						'default'     => gmdate( 'y-m-d H:i' ),
-						'description' => esc_html__( 'Select start date and time.(Required)', 'eventin' ),
+						'description' => esc_html__( 'Select start date and time.(Required)', 'wp-event-solution' ),
 				]
 		);
 
 		$this->add_control(
 				'timezone',
 				[
-						'label'       => esc_html__( 'Time zone', 'eventin' ),
+						'label'       => esc_html__( 'Time zone', 'wp-event-solution' ),
 						'type'        => Controls_Manager::SELECT2,
 						'options'     => $time_zone,
 						'label_block' => true,
 						'default'     => $default_value_timezone,
-						'description' => esc_html__( 'Select timezone for meeting .(Optional)', 'eventin' ),
+						'description' => esc_html__( 'Select timezone for meeting .(Optional)', 'wp-event-solution' ),
 				]
 		);
 
 		$this->add_control(
 				'duration',
 				[
-						'label'       => esc_html__( 'Duration', 'eventin' ),
+						'label'       => esc_html__( 'Duration', 'wp-event-solution' ),
 						'type'        => Controls_Manager::NUMBER,
 						'min'         => 1,
 						// 'default'         => '',
-						'description' => esc_html__( 'Meeting duration (minutes).(Optional)', 'eventin' ),
+						'description' => esc_html__( 'Meeting duration (minutes).(Optional)', 'wp-event-solution' ),
 				]
 		);
 
 		$this->add_control(
 				'password',
 				[
-						'label'       => esc_html__( 'Password', 'eventin' ),
+						'label'       => esc_html__( 'Password', 'wp-event-solution' ),
 						'type'        => \Elementor\Controls_Manager::TEXT,
-						'description' => esc_html__( 'Password to join the meeting. Password may only contain the following characters: [a-z A-Z 0-9]. Max of 10 characters.( Leave blank for auto generate )', 'eventin' ),
+						'description' => esc_html__( 'Password to join the meeting. Password may only contain the following characters: [a-z A-Z 0-9]. Max of 10 characters.( Leave blank for auto generate )', 'wp-event-solution' ),
 				]
 		);
 
@@ -178,11 +178,11 @@ class Etn_Zoom extends Widget_Base {
 				$this->add_control(
 		'meeting_authentication',
 		[
-			'label'         => esc_html__( 'Require authentication to join?', 'eventin' ),
+			'label'         => esc_html__( 'Require authentication to join?', 'wp-event-solution' ),
 			'type'          => \Elementor\Controls_Manager::SWITCHER,
-								'description'   => esc_html__( 'Only authenticated users can join', 'eventin' ),
-			'label_on'      => esc_html__( 'Yes', 'eventin' ),
-			'label_off'     => esc_html__( 'No', 'eventin' ),
+								'description'   => esc_html__( 'Only authenticated users can join', 'wp-event-solution' ),
+			'label_on'      => esc_html__( 'Yes', 'wp-event-solution' ),
+			'label_off'     => esc_html__( 'No', 'wp-event-solution' ),
 			'return_value'  => '1',
 			'default'       => '0',
 		]
@@ -191,11 +191,11 @@ class Etn_Zoom extends Widget_Base {
 			$this->add_control(
 		'host_video',
 			[
-				'label'         => esc_html__( 'Host Video', 'eventin' ),
+				'label'         => esc_html__( 'Host Video', 'wp-event-solution' ),
 				'type'          => \Elementor\Controls_Manager::SWITCHER,
-									'description'   => esc_html__( 'Auto on/off host video', 'eventin' ),
-				'label_on'      => esc_html__( 'Yes', 'eventin' ),
-				'label_off'     => esc_html__( 'No', 'eventin' ),
+									'description'   => esc_html__( 'Auto on/off host video', 'wp-event-solution' ),
+				'label_on'      => esc_html__( 'Yes', 'wp-event-solution' ),
+				'label_off'     => esc_html__( 'No', 'wp-event-solution' ),
 				'return_value'  => '1',
 				'default'       => '0',
 			]
@@ -204,11 +204,11 @@ class Etn_Zoom extends Widget_Base {
 		$this->add_control(
 		'participant_panelists_video',
 			[
-				'label'         => esc_html__( 'Participant/Panelists Video', 'eventin' ),
+				'label'         => esc_html__( 'Participant/Panelists Video', 'wp-event-solution' ),
 				'type'          => \Elementor\Controls_Manager::SWITCHER,
-									'description'   => esc_html__( 'Auto on/off participant video', 'eventin' ),
-				'label_on'      => esc_html__( 'Yes', 'eventin' ),
-				'label_off'     => esc_html__( 'No', 'eventin' ),
+									'description'   => esc_html__( 'Auto on/off participant video', 'wp-event-solution' ),
+				'label_on'      => esc_html__( 'Yes', 'wp-event-solution' ),
+				'label_off'     => esc_html__( 'No', 'wp-event-solution' ),
 				'return_value'  => '1',
 				'default'       => '0',
 			]
@@ -217,16 +217,16 @@ class Etn_Zoom extends Widget_Base {
 		$this->add_control(
 				'auto_recording',
 				[
-						'label'       => esc_html__( 'Auto Recording', 'eventin' ),
+						'label'       => esc_html__( 'Auto Recording', 'wp-event-solution' ),
 						'type'        => Controls_Manager::SELECT2,
 						'default'     => 'none',
 						'options'     => [
-								'none'  => esc_html__( 'None', 'eventin' ),
-								'local' => esc_html__( 'Local', 'eventin' ),
-								'cloud' => esc_html__( 'Cloud', 'eventin' ),
+								'none'  => esc_html__( 'None', 'wp-event-solution' ),
+								'local' => esc_html__( 'Local', 'wp-event-solution' ),
+								'cloud' => esc_html__( 'Cloud', 'wp-event-solution' ),
 						],
 						// 'label_block' => true,
-						'description' => esc_html__( 'Automatically record meeting on', 'eventin' ),
+						'description' => esc_html__( 'Automatically record meeting on', 'wp-event-solution' ),
 				]
 		);
 
@@ -234,11 +234,11 @@ class Etn_Zoom extends Widget_Base {
 		$this->add_control(
 			'waiting_room',
 			[
-				'label'         => esc_html__( 'Waiting Room', 'eventin' ),
+				'label'         => esc_html__( 'Waiting Room', 'wp-event-solution' ),
 				'type'          => \Elementor\Controls_Manager::SWITCHER,
-									'description'   => esc_html__( 'Only users admitted by the host can join the meeting', 'eventin' ),
-				'label_on'      => esc_html__( 'Yes', 'eventin' ),
-				'label_off'     => esc_html__( 'No', 'eventin' ),
+									'description'   => esc_html__( 'Only users admitted by the host can join the meeting', 'wp-event-solution' ),
+				'label_on'      => esc_html__( 'Yes', 'wp-event-solution' ),
+				'label_off'     => esc_html__( 'No', 'wp-event-solution' ),
 				'return_value'  => '1',
 				'default'       => '0',
 				'condition'       => [
@@ -250,11 +250,11 @@ class Etn_Zoom extends Widget_Base {
 		$this->add_control(
 			'join_before_host',
 			[
-				'label'         => esc_html__( 'Join anytime', 'eventin' ),
+				'label'         => esc_html__( 'Join anytime', 'wp-event-solution' ),
 				'type'          => \Elementor\Controls_Manager::SWITCHER,
-									'description'   => esc_html__( 'Allow participants to join anytime', 'eventin' ),
-				'label_on'      => esc_html__( 'Yes', 'eventin' ),
-				'label_off'     => esc_html__( 'No', 'eventin' ),
+									'description'   => esc_html__( 'Allow participants to join anytime', 'wp-event-solution' ),
+				'label_on'      => esc_html__( 'Yes', 'wp-event-solution' ),
+				'label_off'     => esc_html__( 'No', 'wp-event-solution' ),
 				'return_value'  => '1',
 				'default'       => '0',
 									'condition'       => [
@@ -266,11 +266,11 @@ class Etn_Zoom extends Widget_Base {
 		$this->add_control(
 			'mute_upon_entry',
 			[
-				'label'         => esc_html__( 'Mute participants upon entry', 'eventin' ),
+				'label'         => esc_html__( 'Mute participants upon entry', 'wp-event-solution' ),
 				'type'          => \Elementor\Controls_Manager::SWITCHER,
-									'description'   => esc_html__( 'Mutes participants when entering to the meeting', 'eventin' ),
-				'label_on'      => esc_html__( 'Yes', 'eventin' ),
-				'label_off'     => esc_html__( 'No', 'eventin' ),
+									'description'   => esc_html__( 'Mutes participants when entering to the meeting', 'wp-event-solution' ),
+				'label_on'      => esc_html__( 'Yes', 'wp-event-solution' ),
+				'label_off'     => esc_html__( 'No', 'wp-event-solution' ),
 				'return_value'  => '1',
 				'default'       => '0',
 									'condition'       => [
@@ -282,11 +282,11 @@ class Etn_Zoom extends Widget_Base {
 			$this->add_control(
 	'question_and_answer',
 	[
-		'label'         => esc_html__( 'Question & Answer', 'eventin' ),
+		'label'         => esc_html__( 'Question & Answer', 'wp-event-solution' ),
 		'type'          => \Elementor\Controls_Manager::SWITCHER,
-							'description'   => esc_html__( 'Enable Question & Answer', 'eventin' ),
-		'label_on'      => esc_html__( 'Yes', 'eventin' ),
-		'label_off'     => esc_html__( 'No', 'eventin' ),
+							'description'   => esc_html__( 'Enable Question & Answer', 'wp-event-solution' ),
+		'label_on'      => esc_html__( 'Yes', 'wp-event-solution' ),
+		'label_off'     => esc_html__( 'No', 'wp-event-solution' ),
 		'return_value'  => '1',
 		'default'       => '1',
 							'condition'       => [
@@ -298,11 +298,11 @@ class Etn_Zoom extends Widget_Base {
 			$this->add_control(
 	'practice_session',
 	[
-		'label'         => esc_html__( 'Practice Session', 'eventin' ),
+		'label'         => esc_html__( 'Practice Session', 'wp-event-solution' ),
 		'type'          => \Elementor\Controls_Manager::SWITCHER,
-							'description'   => esc_html__( 'Enable Practice Session', 'eventin' ),
-		'label_on'      => esc_html__( 'Yes', 'eventin' ),
-		'label_off'     => esc_html__( 'No', 'eventin' ),
+							'description'   => esc_html__( 'Enable Practice Session', 'wp-event-solution' ),
+		'label_on'      => esc_html__( 'Yes', 'wp-event-solution' ),
+		'label_off'     => esc_html__( 'No', 'wp-event-solution' ),
 		'return_value'  => '1',
 		'default'       => '0',
 							'condition'       => [
@@ -314,11 +314,11 @@ class Etn_Zoom extends Widget_Base {
 			$this->add_control(
 	'hd_video',
 	[
-		'label'         => esc_html__( 'HD video for Host/Panelists', 'eventin' ),
+		'label'         => esc_html__( 'HD video for Host/Panelists', 'wp-event-solution' ),
 		'type'          => \Elementor\Controls_Manager::SWITCHER,
-							'description'   => esc_html__( 'Enable HD video for Host/Panelists', 'eventin' ),
-		'label_on'      => esc_html__( 'Yes', 'eventin' ),
-		'label_off'     => esc_html__( 'No', 'eventin' ),
+							'description'   => esc_html__( 'Enable HD video for Host/Panelists', 'wp-event-solution' ),
+		'label_on'      => esc_html__( 'Yes', 'wp-event-solution' ),
+		'label_off'     => esc_html__( 'No', 'wp-event-solution' ),
 		'return_value'  => '1',
 		'default'       => '0',
 							'condition'       => [
@@ -330,11 +330,11 @@ class Etn_Zoom extends Widget_Base {
 			$this->add_control(
 	'hd_video_for_attendees',
 	[
-		'label'         => esc_html__( 'HD video for attendees', 'eventin' ),
+		'label'         => esc_html__( 'HD video for attendees', 'wp-event-solution' ),
 		'type'          => \Elementor\Controls_Manager::SWITCHER,
-							'description'   => esc_html__( 'Enable HD video for attendees', 'eventin' ),
-		'label_on'      => esc_html__( 'Yes', 'eventin' ),
-		'label_off'     => esc_html__( 'No', 'eventin' ),
+							'description'   => esc_html__( 'Enable HD video for attendees', 'wp-event-solution' ),
+		'label_on'      => esc_html__( 'Yes', 'wp-event-solution' ),
+		'label_off'     => esc_html__( 'No', 'wp-event-solution' ),
 		'return_value'  => '1',
 		'default'       => '0',
 							'condition'       => [
@@ -348,7 +348,7 @@ class Etn_Zoom extends Widget_Base {
 					[
 							'type'        => \Elementor\Controls_Manager::BUTTON,
 							'button_type' => 'success',
-							'text'        => esc_html__( 'Create', 'eventin' ) . Helper::kses( '<span class="elementor-state-icon">
+							'text'        => esc_html__( 'Create', 'wp-event-solution' ) . Helper::kses( '<span class="elementor-state-icon">
 									<i class="eicon-loading eicon-animation-spin" aria-hidden="true"></i></span>' ),
 							'event'       => 'elementor:editor:create',
 							'condition'   => ['meeting_cache' => ''],
@@ -360,7 +360,7 @@ class Etn_Zoom extends Widget_Base {
 					[
 							'type'        => \Elementor\Controls_Manager::BUTTON,
 							'button_type' => 'success',
-							'text'        => esc_html__( 'Update Meeting ', 'eventin' ) . Helper::kses( '<span class="elementor-state-icon">
+							'text'        => esc_html__( 'Update Meeting ', 'wp-event-solution' ) . Helper::kses( '<span class="elementor-state-icon">
 									<i class="eicon-loading eicon-animation-spin" aria-hidden="true"></i></span>' ),
 							'event'       => 'elementor:editor:create',
 							'condition'   => ['meeting_cache!' => ''],
@@ -374,7 +374,7 @@ class Etn_Zoom extends Widget_Base {
 			$this->start_controls_section(
 					'meeting_title_section',
 					[
-							'label' => esc_html__( 'Title Section', 'eventin' ),
+							'label' => esc_html__( 'Title Section', 'wp-event-solution' ),
 							'tab'   => \Elementor\Controls_Manager::TAB_STYLE,
 					]
 			);
@@ -384,7 +384,7 @@ class Etn_Zoom extends Widget_Base {
 					\Elementor\Group_Control_Typography::get_type(),
 					[
 							'name'     => 'meeting_title_typography',
-							'label'    => esc_html__( 'Title Typography', 'eventin' ),
+							'label'    => esc_html__( 'Title Typography', 'wp-event-solution' ),
 							'selector' => '{{WRAPPER}} .meeting-title',
 					]
 			);
@@ -398,14 +398,14 @@ class Etn_Zoom extends Widget_Base {
 			$this->start_controls_tab(
 					'etn_meeting_title_normal_tab',
 					[
-							'label' => esc_html__( 'Normal', 'eventin' ),
+							'label' => esc_html__( 'Normal', 'wp-event-solution' ),
 					]
 			);
 
 			$this->add_control(
 					'etn_meeting_title_color',
 					[
-							'label'     => esc_html__( 'Title color', 'eventin' ),
+							'label'     => esc_html__( 'Title color', 'wp-event-solution' ),
 							'type'      => Controls_Manager::COLOR,
 							'selectors' => [
 									'{{WRAPPER}} .meeting-title' => 'color: {{VALUE}};',
@@ -422,14 +422,14 @@ class Etn_Zoom extends Widget_Base {
 			$this->start_controls_tab(
 					'etn_meeting_title_hover_tab',
 					[
-							'label' => esc_html__( 'Hover', 'eventin' ),
+							'label' => esc_html__( 'Hover', 'wp-event-solution' ),
 					]
 			);
 
 			$this->add_control(
 					'etn_meeting_title_hover_color',
 					[
-							'label'     => esc_html__( 'Title Hover color', 'eventin' ),
+							'label'     => esc_html__( 'Title Hover color', 'wp-event-solution' ),
 							'type'      => Controls_Manager::COLOR,
 							'selectors' => [
 									'{{WRAPPER}} .meeting-title:hover' => 'color: {{VALUE}};',
@@ -449,7 +449,7 @@ class Etn_Zoom extends Widget_Base {
 			$this->add_responsive_control(
 					'title_margin',
 					[
-							'label'      => esc_html__( 'Title margin', 'eventin' ),
+							'label'      => esc_html__( 'Title margin', 'wp-event-solution' ),
 							'type'       => Controls_Manager::DIMENSIONS,
 							'size_units' => ['px', '%', 'em'],
 							'selectors'  => [
@@ -467,7 +467,7 @@ class Etn_Zoom extends Widget_Base {
 			$this->start_controls_section(
 					'meeting_block',
 					[
-							'label' => esc_html__( 'Meeting Section', 'eventin' ),
+							'label' => esc_html__( 'Meeting Section', 'wp-event-solution' ),
 							'tab'   => \Elementor\Controls_Manager::TAB_STYLE,
 					]
 			);
@@ -477,7 +477,7 @@ class Etn_Zoom extends Widget_Base {
 					\Elementor\Group_Control_Typography::get_type(),
 					[
 							'name'     => 'ent_meeting_blcok_typography',
-							'label'    => esc_html__( 'Meeting block typography', 'eventin' ),
+							'label'    => esc_html__( 'Meeting block typography', 'wp-event-solution' ),
 							'selector' => '{{WRAPPER}} .meeting-info p',
 					]
 			);
@@ -491,14 +491,14 @@ class Etn_Zoom extends Widget_Base {
 			$this->start_controls_tab(
 					'etn_meeting_blcok_normal_tab',
 					[
-							'label' => esc_html__( 'Normal', 'eventin' ),
+							'label' => esc_html__( 'Normal', 'wp-event-solution' ),
 					]
 			);
 
 			$this->add_control(
 					'etn_meeting_blcok_color',
 					[
-							'label'     => esc_html__( 'Meeting block color', 'eventin' ),
+							'label'     => esc_html__( 'Meeting block color', 'wp-event-solution' ),
 							'type'      => Controls_Manager::COLOR,
 							'selectors' => [
 									'{{WRAPPER}} .meeting-info p, .meeting-info a' => 'color: {{VALUE}};',
@@ -515,14 +515,14 @@ class Etn_Zoom extends Widget_Base {
 			$this->start_controls_tab(
 					'etn_meeting_blcok_hover_tab',
 					[
-							'label' => esc_html__( 'Hover', 'eventin' ),
+							'label' => esc_html__( 'Hover', 'wp-event-solution' ),
 					]
 			);
 
 			$this->add_control(
 					'etn_meeting_blcok_hover_color',
 					[
-							'label'     => esc_html__( 'Meeting block hover color', 'eventin' ),
+							'label'     => esc_html__( 'Meeting block hover color', 'wp-event-solution' ),
 							'type'      => Controls_Manager::COLOR,
 							'selectors' => [
 									'{{WRAPPER}} .meeting-info p:hover, .meeting-info a:hover'  => 'color: {{VALUE}};',
@@ -542,7 +542,7 @@ class Etn_Zoom extends Widget_Base {
 			$this->add_responsive_control(
 					'meeting_blcok_margin',
 					[
-							'label'      => esc_html__( 'Meeting block margin', 'eventin' ),
+							'label'      => esc_html__( 'Meeting block margin', 'wp-event-solution' ),
 							'type'       => Controls_Manager::DIMENSIONS,
 							'size_units' => ['px', '%', 'em'],
 							'selectors'  => [

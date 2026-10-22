@@ -87,20 +87,20 @@ class Hooks {
         $id = isset( $_GET['id'] ) ? intval( $_GET['id'] ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- admin recurring events list; id cast to integer via intval().
 
         $columns = [
-            'name'     => esc_html__( 'Name', 'eventin' ),
-            'location' => esc_html__( 'Location', 'eventin' ),
-            'schedule' => esc_html__( 'Schedule', 'eventin' ),
+            'name'     => esc_html__( 'Name', 'wp-event-solution' ),
+            'location' => esc_html__( 'Location', 'wp-event-solution' ),
+            'schedule' => esc_html__( 'Schedule', 'wp-event-solution' ),
         ];
 
         $recurrence_list = [
-            'singular_name' => esc_html__( 'Recurrences', 'eventin' ),
-            'plural_name'   => esc_html__( 'Recurrence', 'eventin' ),
+            'singular_name' => esc_html__( 'Recurrences', 'wp-event-solution' ),
+            'plural_name'   => esc_html__( 'Recurrence', 'wp-event-solution' ),
             'event_id'      => $id,
             'columns'       => $columns,
         ];
         ?>
 		<div class="wrap">
-			<h1 class="wp-heading-inline"><?php esc_html_e( 'View all recurrences', 'eventin' )?></h1>
+			<h1 class="wp-heading-inline"><?php esc_html_e( 'View all recurrences', 'wp-event-solution' )?></h1>
 			<div class="wrap etn-recurring-list">
 				<form method="POST">
 					<?php
@@ -167,8 +167,8 @@ class Hooks {
                 $detach_link = wp_nonce_url( add_query_arg( [ 'action' => 'detach' ], $url ), 'detach_nonce' );
 
                 $actions_link = [
-                    'edit_recur_link' => sprintf( '<a href="%1$s">%2$s</a>', esc_url( $recur_url ), esc_html__( 'Edit All Recurrences', 'eventin' ) ),
-                    'detach'          => sprintf( '<a href="%1$s">%2$s</a>', esc_url( $detach_link ), esc_html__( 'Detach', 'eventin' ) ),
+                    'edit_recur_link' => sprintf( '<a href="%1$s">%2$s</a>', esc_url( $recur_url ), esc_html__( 'Edit All Recurrences', 'wp-event-solution' ) ),
+                    'detach'          => sprintf( '<a href="%1$s">%2$s</a>', esc_url( $detach_link ), esc_html__( 'Detach', 'wp-event-solution' ) ),
                 ];
 
             } elseif ( 0 == wp_get_post_parent_id( $post ) && "" !== $recurring_enabled && "no" !== $recurring_enabled ) {
@@ -176,7 +176,7 @@ class Hooks {
                 $view_recur   = admin_url( 'admin.php?page=view_recurrences&id=' . absint( $post->ID ) );
                 $all_links    = wp_nonce_url( add_query_arg( [ 'action' => 'view_recurrences' ], $view_recur ), 'recurr_nonce' );
                 $actions_link = [
-                    'view_recurrences' => sprintf( '<a href="%1$s">%2$s</a>', esc_url( $all_links ), esc_html__( 'View all recurrences', 'eventin' ) ),
+                    'view_recurrences' => sprintf( '<a href="%1$s">%2$s</a>', esc_url( $all_links ), esc_html__( 'View all recurrences', 'wp-event-solution' ) ),
                 ];
             }
 
@@ -681,7 +681,6 @@ class Hooks {
      */
     public function create_recurring_event( $args, $post_meta ) {
 
-        remove_action( 'wp_insert_post', [$this, 'create_recurring_event'] );
         $post = get_post( $args['post_id'] );
 
         $parent_event           = new Event_Model( $args['post_id'] );
@@ -743,7 +742,9 @@ class Hooks {
 
         }
 
-        add_action( 'wp_insert_post', [$this, 'create_recurring_event'] );
+        // This helper receives recurrence arguments and metadata from our
+        // recurrence loop. It is not a wp_insert_post callback: that hook
+        // passes a post ID and would break the next insertion in this request.
 
         return;
     }
@@ -1089,16 +1090,16 @@ class Hooks {
             ?>
 			<div class="notice notice-warning is-dismissible">
 				<p>
-					<strong> <?php echo esc_html__( 'WARNING: This is a recurring event.', 'eventin' ); ?> </strong>
+					<strong> <?php echo esc_html__( 'WARNING: This is a recurring event.', 'wp-event-solution' ); ?> </strong>
 				</p>
 				<p>
-					<?php echo esc_html__( 'Any kind of change / modification to this event will be applied to all recurrences attached to this event and will overwrite any changes that has been made to those individual recurrences.', 'eventin' ); ?>
+					<?php echo esc_html__( 'Any kind of change / modification to this event will be applied to all recurrences attached to this event and will overwrite any changes that has been made to those individual recurrences.', 'wp-event-solution' ); ?>
 				</p>
 				<p>
-					<?php echo esc_html__( 'Individual recurrences and their purchase data will be preserved if event start time, event end time or recurrence settings are not changed.', 'eventin' ); ?>
+					<?php echo esc_html__( 'Individual recurrences and their purchase data will be preserved if event start time, event end time or recurrence settings are not changed.', 'wp-event-solution' ); ?>
 				</p>
 				<p>
-					<a href="<?php echo esc_url( $all_links ); ?>" target='_blank' rel="noopener"><?php echo esc_html__( 'You can edit individual recurrences and detach them from this recurring event. It won\'t effect any other recurrence', 'eventin' ); ?></a>
+					<a href="<?php echo esc_url( $all_links ); ?>" target='_blank' rel="noopener"><?php echo esc_html__( 'You can edit individual recurrences and detach them from this recurring event. It won\'t effect any other recurrence', 'wp-event-solution' ); ?></a>
 				</p>
 			</div>
 			<?php

@@ -50,23 +50,23 @@ class Frontend
         wp_enqueue_style('etn-public-css');
         //set translations
 
-        wp_set_script_translations('etn-public', 'eventin');
+        wp_set_script_translations('etn-public', 'wp-event-solution');
         // wp_enqueue_script( 'html-to-image' ); // Don't need this. Without this file it's working fine
 
         //set frontend translation
         wp_set_script_translations(
             'etn-module-purchase',  // The script handle
-            'eventin',              // Text domain
+            'wp-event-solution',    // Text domain
             plugin_dir_path(__FILE__) . 'languages' //path to language folder
         );
         wp_set_script_translations(
             'etn-app-index',  // The script handle
-            'eventin',              // Text domain
+            'wp-event-solution',    // Text domain
             plugin_dir_path(__FILE__) . 'languages' //path to language folder
         );
         wp_set_script_translations(
             'etn-monthly-calendar', // Monthly Calendar shortcode bundle
-            'eventin',
+            'wp-event-solution',
             plugin_dir_path(__FILE__) . 'languages'
         );
     }

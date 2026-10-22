@@ -11,7 +11,7 @@
                 false,
                 [
                     'class'         => 'event-banner-image',
-                    'alt'           => esc_attr__( 'Event banner', 'eventin' ),
+                    'alt'           => esc_attr__( 'Event banner', 'wp-event-solution' ),
                     'fetchpriority' => 'high',
                     'loading'       => 'eager',
                     'decoding'      => 'async',
@@ -20,12 +20,12 @@
             );
         } else {
             ?>
-            <img class="event-banner-image" src="<?php echo esc_url($event_banner) ?>" alt="<?php esc_attr_e('Event banner', 'eventin'); ?>" fetchpriority="high" decoding="async">
+            <img class="event-banner-image" src="<?php echo esc_url($event_banner) ?>" alt="<?php esc_attr_e('Event banner', 'wp-event-solution'); ?>" fetchpriority="high" decoding="async">
             <?php
         }
         ?>
         <?php else: ?>
-        <p><?php esc_html_e('No event banner image found.', 'eventin'); ?></p>
+        <p><?php esc_html_e('No event banner image found.', 'wp-event-solution'); ?></p>
         <?php endif; ?>
     </div>
 </div>

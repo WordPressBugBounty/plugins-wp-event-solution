@@ -38,9 +38,9 @@ if ( in_array( $screen_id, $allowed_screen_ids ) ) {
                 $wpc_main_logo = \Wpeventin::assets_url() . 'images/logo.png';
             ?>
             <div class="etn-logo-wrap">
-                <img src="<?php echo esc_url($wpc_main_logo); ?>" alt="<?php echo esc_attr__('logo', 'eventin'); ?>" />
+                <img src="<?php echo esc_url($wpc_main_logo); ?>" alt="<?php echo esc_attr__('logo', 'wp-event-solution'); ?>" />
                 <span class="etn-version">
-                    <?php echo esc_html__('v','eventin') . esc_html( \Wpeventin::version() ); ?>
+                    <?php echo esc_html__('v','wp-event-solution') . esc_html( \Wpeventin::version() ); ?>
                 </span>
             </div>
 
@@ -50,17 +50,17 @@ if ( in_array( $screen_id, $allowed_screen_ids ) ) {
 
                 if( 'etn-event-settings' === $_GET['page'] ){
                     ?>
-                    <h1 class="etn-settings-title etn-header-title"><?php echo esc_html__('Settings', 'eventin'); ?></h1>
+                    <h1 class="etn-settings-title etn-header-title"><?php echo esc_html__('Settings', 'wp-event-solution'); ?></h1>
                     <?php
                 }
 
                 if('etn-event-shortcode' === $_GET['page']){ ?>
-                    <h1 class="etn-settings-title etn-header-title"><?php echo esc_html__('Shortcodes', 'eventin'); ?></h1>
+                    <h1 class="etn-settings-title etn-header-title"><?php echo esc_html__('Shortcodes', 'wp-event-solution'); ?></h1>
                     <?php
                 }
 
                 if('etn_addons' === $_GET['page']){ ?>
-                    <h1 class="etn-settings-title etn-header-title"><?php echo esc_html__('Addons', 'eventin'); ?></h1>
+                    <h1 class="etn-settings-title etn-header-title"><?php echo esc_html__('Addons', 'wp-event-solution'); ?></h1>
                     <?php
                 }
             }
@@ -70,17 +70,17 @@ if ( in_array( $screen_id, $allowed_screen_ids ) ) {
                 <div class="etn-admin-menu-wrap">
                     <ul>
                         <li>
-                            <a class="<?php echo ($screen_id === 'edit-etn') ? 'active' : ''; ?>" href="<?php echo esc_url(admin_url('edit.php?post_type=etn')) ?>"><?php echo esc_html__('Events', 'eventin'); ?></a>
+                            <a class="<?php echo ($screen_id === 'edit-etn') ? 'active' : ''; ?>" href="<?php echo esc_url(admin_url('edit.php?post_type=etn')) ?>"><?php echo esc_html__('Events', 'wp-event-solution'); ?></a>
                         </li>
                         <li>
-                            <a class="<?php echo ($screen_id === 'edit-etn_category') ? 'active' : ''; ?>" href="<?php echo esc_url(admin_url('edit-tags.php?taxonomy=etn_category&post_type=etn')); ?>"><?php echo esc_html__('Event Categories', 'eventin'); ?></a>
+                            <a class="<?php echo ($screen_id === 'edit-etn_category') ? 'active' : ''; ?>" href="<?php echo esc_url(admin_url('edit-tags.php?taxonomy=etn_category&post_type=etn')); ?>"><?php echo esc_html__('Event Categories', 'wp-event-solution'); ?></a>
                         </li>
                         <li>
-                            <a class="<?php echo ($screen_id === 'edit-etn_tags') ? 'active' : ''; ?>" href="<?php echo esc_url(admin_url('edit-tags.php?taxonomy=etn_tags&post_type=etn')); ?>"><?php echo esc_html__('Event Tags', 'eventin'); ?></a>
+                            <a class="<?php echo ($screen_id === 'edit-etn_tags') ? 'active' : ''; ?>" href="<?php echo esc_url(admin_url('edit-tags.php?taxonomy=etn_tags&post_type=etn')); ?>"><?php echo esc_html__('Event Tags', 'wp-event-solution'); ?></a>
                         </li> 
                         <?php if(class_exists('Wpeventin_Pro')){ ?>
                             <li>
-                                <a class="<?php echo ($screen_id === 'edit-etn_location') ? 'active' : ''; ?>" href="<?php echo esc_url(admin_url('edit-tags.php?taxonomy=etn_location&post_type=etn')); ?>"><?php echo esc_html__('Event Locations', 'eventin'); ?></a>
+                                <a class="<?php echo ($screen_id === 'edit-etn_location') ? 'active' : ''; ?>" href="<?php echo esc_url(admin_url('edit-tags.php?taxonomy=etn_location&post_type=etn')); ?>"><?php echo esc_html__('Event Locations', 'wp-event-solution'); ?></a>
                             </li> 
                         <?php } ?>
                     </ul>
@@ -91,10 +91,10 @@ if ( in_array( $screen_id, $allowed_screen_ids ) ) {
                 <div class="etn-admin-menu-wrap">
                     <ul>
                         <li>
-                            <a class="<?php echo ($screen_id === 'edit-etn-speaker') ? 'active' : ''; ?>"  href="<?php echo esc_url(admin_url('edit.php?post_type=etn-speaker')) ?>"><?php echo esc_html__('Speakers', 'eventin'); ?></a>
+                            <a class="<?php echo ($screen_id === 'edit-etn-speaker') ? 'active' : ''; ?>"  href="<?php echo esc_url(admin_url('edit.php?post_type=etn-speaker')) ?>"><?php echo esc_html__('Speakers', 'wp-event-solution'); ?></a>
                         </li> 
                         <li>
-                            <a class="<?php echo ($screen_id === 'edit-etn_speaker_category') ? 'active' : ''; ?>"  href="<?php echo esc_url(admin_url('edit-tags.php?taxonomy=etn_speaker_category&post_type=etn-speaker')) ?>"><?php echo esc_html__('Speaker Categories', 'eventin'); ?></a>
+                            <a class="<?php echo ($screen_id === 'edit-etn_speaker_category') ? 'active' : ''; ?>"  href="<?php echo esc_url(admin_url('edit-tags.php?taxonomy=etn_speaker_category&post_type=etn-speaker')) ?>"><?php echo esc_html__('Speaker Categories', 'wp-event-solution'); ?></a>
                         </li> 
                     </ul>
                 </div>
@@ -113,20 +113,20 @@ if ( in_array( $screen_id, $allowed_screen_ids ) ) {
                                     <path d="M10.0482 4.37109H4.30125C4.06778 4.37109 3.84329 4.38008 3.62778 4.40704C1.21225 4.6137 0 6.04238 0 8.6751V12.2693C0 15.8634 1.43674 16.5733 4.30125 16.5733H4.66044C4.85799 16.5733 5.1184 16.708 5.23514 16.8608L6.3127 18.2985C6.78862 18.9364 7.56087 18.9364 8.03679 18.2985L9.11435 16.8608C9.24904 16.6811 9.46456 16.5733 9.68905 16.5733H10.0482C12.6793 16.5733 14.107 15.3692 14.3136 12.9432C14.3405 12.7275 14.3495 12.5029 14.3495 12.2693V8.6751C14.3495 5.80876 12.9127 4.37109 10.0482 4.37109ZM4.04084 11.5594C3.53798 11.5594 3.14288 11.1551 3.14288 10.6609C3.14288 10.1667 3.54696 9.76233 4.04084 9.76233C4.53473 9.76233 4.93881 10.1667 4.93881 10.6609C4.93881 11.1551 4.53473 11.5594 4.04084 11.5594ZM7.17474 11.5594C6.67188 11.5594 6.27678 11.1551 6.27678 10.6609C6.27678 10.1667 6.68086 9.76233 7.17474 9.76233C7.66862 9.76233 8.07271 10.1667 8.07271 10.6609C8.07271 11.1551 7.6776 11.5594 7.17474 11.5594ZM10.3176 11.5594C9.81476 11.5594 9.41966 11.1551 9.41966 10.6609C9.41966 10.1667 9.82374 9.76233 10.3176 9.76233C10.8115 9.76233 11.2156 10.1667 11.2156 10.6609C11.2156 11.1551 10.8115 11.5594 10.3176 11.5594Z" fill="#E3106E"/>
                                     <path d="M17.9423 5.08086V8.67502C17.9423 10.4721 17.3855 11.6941 16.272 12.368C16.0026 12.5298 15.6884 12.3141 15.6884 11.9996L15.6973 8.67502C15.6973 5.08086 13.641 3.0232 10.0491 3.0232L4.58048 3.03219C4.26619 3.03219 4.05067 2.7177 4.21231 2.44814C4.88578 1.33395 6.10702 0.776855 7.89398 0.776855H13.641C16.5055 0.776855 17.9423 2.21452 17.9423 5.08086Z" fill="#E3106E"/>
                                 </svg> 
-                            <span><?php echo esc_html__('Need Help?', 'eventin' ) ?></span>
+                            <span><?php echo esc_html__('Need Help?', 'wp-event-solution' ) ?></span>
                             </a>
                             <a href="<?php echo esc_url( "https://themewinter.com/docs/plugins/eventin/" )?>" target="_blank">
                                 <svg width="18" height="19" viewBox="0 0 18 19" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M16.1896 7.57803H13.5902C11.4586 7.57803 9.72274 5.84103 9.72274 3.70803V1.10703C9.72274 0.612031 9.318 0.207031 8.82332 0.207031H5.00977C2.23956 0.207031 0 2.00703 0 5.22003V13.194C0 16.407 2.23956 18.207 5.00977 18.207H12.0792C14.8494 18.207 17.089 16.407 17.089 13.194V8.47803C17.089 7.98303 16.6843 7.57803 16.1896 7.57803ZM8.09478 14.382H4.4971C4.12834 14.382 3.82254 14.076 3.82254 13.707C3.82254 13.338 4.12834 13.032 4.4971 13.032H8.09478C8.46355 13.032 8.76935 13.338 8.76935 13.707C8.76935 14.076 8.46355 14.382 8.09478 14.382ZM9.89363 10.782H4.4971C4.12834 10.782 3.82254 10.476 3.82254 10.107C3.82254 9.73803 4.12834 9.43203 4.4971 9.43203H9.89363C10.2624 9.43203 10.5682 9.73803 10.5682 10.107C10.5682 10.476 10.2624 10.782 9.89363 10.782Z" fill="#E3106E"/>
                                 </svg>
-                                <span><?php echo esc_html__('Documentation', 'eventin' ) ?></span>
+                                <span><?php echo esc_html__('Documentation', 'wp-event-solution' ) ?></span>
 
                             </a>
                             <a href="<?php echo esc_url("https://themewinter.com/eventin-roadmaps/#ideas")?>" target="_blank">
                                 <svg width="18" height="19" viewBox="0 0 18 19" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path fill-rule="evenodd" clip-rule="evenodd" d="M13.5902 7.57803H16.1896C16.6843 7.57803 17.089 7.98303 17.089 8.47803V13.194C17.089 16.407 14.8494 18.207 12.0792 18.207H5.00977C2.23956 18.207 0 16.407 0 13.194V5.22003C0 2.00703 2.23956 0.207031 5.00977 0.207031H8.82332C9.318 0.207031 9.72274 0.612031 9.72274 1.10703V3.70803C9.72274 5.84103 11.4586 7.57803 13.5902 7.57803ZM11.9613 0.396012C11.5926 0.0270125 10.954 0.279013 10.954 0.792013V3.93301C10.954 5.24701 12.0693 6.33601 13.4274 6.33601C14.2818 6.34501 15.4689 6.34501 16.4852 6.34501H16.4854C16.998 6.34501 17.2679 5.74201 16.9081 5.38201C16.4894 4.96018 15.9637 4.42927 15.3988 3.85888L15.3932 3.85325L15.3913 3.85133L15.3905 3.8505L15.3902 3.85016C14.2096 2.65803 12.86 1.29526 11.9613 0.396012ZM3.0145 12.0732C3.0145 11.7456 3.28007 11.48 3.60768 11.48H5.32132V9.76639C5.32132 9.43879 5.58689 9.17321 5.9145 9.17321C6.2421 9.17321 6.50768 9.43879 6.50768 9.76639V11.48H8.22131C8.54892 11.48 8.8145 11.7456 8.8145 12.0732C8.8145 12.4008 8.54892 12.6664 8.22131 12.6664H6.50768V14.38C6.50768 14.7076 6.2421 14.9732 5.9145 14.9732C5.58689 14.9732 5.32132 14.7076 5.32132 14.38V12.6664H3.60768C3.28007 12.6664 3.0145 12.4008 3.0145 12.0732Z" fill="#E3106E"/>
                                 </svg>
-                                <span><?php echo esc_html__('Feature Request', 'eventin' ) ?></span>
+                                <span><?php echo esc_html__('Feature Request', 'wp-event-solution' ) ?></span>
                             </a>
                         </div>
                     </div>

@@ -33,7 +33,7 @@ if ( isset( $data ) && ! empty( $data ) ) {
         <h3 class="etn-widget-title etn-title">
 
 			<?php
-			$related_events_title = apply_filters( 'etn_event_related_event_title', esc_html__( 'Related Events', 'eventin' ) );
+			$related_events_title = apply_filters( 'etn_event_related_event_title', esc_html__( 'Related Events', 'wp-event-solution' ) );
 			// wp_kses_post() so themes can still filter in inline markup, minus anything unsafe.
 			echo wp_kses_post( $related_events_title );
 			?>

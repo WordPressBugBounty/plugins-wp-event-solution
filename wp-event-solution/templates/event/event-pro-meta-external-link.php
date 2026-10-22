@@ -6,7 +6,7 @@ defined( 'ABSPATH' ) || exit;
     <div class="etn-event-meta-external-link etn-widget">
         <a target="_blank" rel="noopener" href="<?php echo esc_url( get_post_meta( $single_event_id, "external_link", true ) ); ?>" class="etn-btn">
                 <?php 
-                $event_external_link_btn_text = apply_filters( 'etn_event_attendee_list_buttn_text', esc_html__("More Info", "eventin") );
+                $event_external_link_btn_text = apply_filters( 'etn_event_attendee_list_buttn_text', esc_html__("More Info", "wp-event-solution") );
                 echo esc_html( $event_external_link_btn_text );?>
             </a>
     </div>

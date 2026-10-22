@@ -335,19 +335,19 @@ class AttendeeExporter implements PostExporterInterface {
      */
     private function get_columns() {
         $columns = [
-            'id'             => __( 'Id', 'eventin' ),
-            'name'           => __( 'Name', 'eventin' ),
-            'email'          => __( 'Email', 'eventin' ),
-            'phone'          => __( 'Phone', 'eventin' ),
-            'event_id'       => __( 'Event ID', 'eventin' ),
-            'event_name'     => __( 'Event Name', 'eventin' ),
-            'ticket_price'   => __( 'Ticket Price', 'eventin' ),
-            'addons'         => __( 'Add-ons', 'eventin' ),
-            'addons_total'   => __( 'Add-ons Total', 'eventin' ),
-            'payment_status' => __( 'Payment Status', 'eventin' ),
-            'ticket_status'  => __( 'Ticket Status', 'eventin' ),
-            'ticket_id'      => __( 'Ticket ID', 'eventin' ),
-            'ticket_name'    => __( 'Ticket Name', 'eventin' ),
+            'id'             => __( 'Id', 'wp-event-solution' ),
+            'name'           => __( 'Name', 'wp-event-solution' ),
+            'email'          => __( 'Email', 'wp-event-solution' ),
+            'phone'          => __( 'Phone', 'wp-event-solution' ),
+            'event_id'       => __( 'Event ID', 'wp-event-solution' ),
+            'event_name'     => __( 'Event Name', 'wp-event-solution' ),
+            'ticket_price'   => __( 'Ticket Price', 'wp-event-solution' ),
+            'addons'         => __( 'Add-ons', 'wp-event-solution' ),
+            'addons_total'   => __( 'Add-ons Total', 'wp-event-solution' ),
+            'payment_status' => __( 'Payment Status', 'wp-event-solution' ),
+            'ticket_status'  => __( 'Ticket Status', 'wp-event-solution' ),
+            'ticket_id'      => __( 'Ticket ID', 'wp-event-solution' ),
+            'ticket_name'    => __( 'Ticket Name', 'wp-event-solution' ),
         ];
 
         $columns = apply_filters( 'etn_prepare_attendee_data_columns', $columns );

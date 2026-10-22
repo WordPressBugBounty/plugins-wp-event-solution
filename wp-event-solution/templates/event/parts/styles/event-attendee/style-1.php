@@ -2,7 +2,7 @@
 <div class="<?php echo esc_attr($container_class); ?> etn-event-attendees">
 
     <div class="eventin-block-container">
-        <h4 class="etn-title" id=attendee><?php esc_html_e('Event Attendee', 'eventin'); ?></h4>
+        <h4 class="etn-title" id=attendee><?php esc_html_e('Event Attendee', 'wp-event-solution'); ?></h4>
         <?php if (! empty($event_attendees) && is_array($event_attendees)): ?>
              <?php
                  $event_attendees = array_filter($event_attendees, function ($attendee) {
@@ -42,7 +42,7 @@
         <?php if (count($event_attendees) > $items_per_row): ?>
         <div class="etn-attendee-more">
             <a href="<?php echo esc_url($attendee_page_url); ?>" class="etn-attendee-more-link" target="_blank">
-                <?php esc_html_e('See All Attendee', 'eventin'); ?>
+                <?php esc_html_e('See All Attendee', 'wp-event-solution'); ?>
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="13" viewBox="0 0 16 13" fill="none">
                     <path d="M5.0071e-07 5.97206L15 5.97206" stroke="#5D5DFF" stroke-width="2"/>
                     <path d="M9.96338 0.323146C10.4242 1.67272 12.0371 4.70761 14.8021 6.0506" stroke="#5D5DFF" stroke-width="2"/>
@@ -52,7 +52,7 @@
         </div>
         <?php endif; ?>
         <?php else: ?>
-        <p><?php esc_html_e('No attendee found', 'eventin'); ?></p>
+        <p><?php esc_html_e('No attendee found', 'wp-event-solution'); ?></p>
         <?php endif; ?>
     </div>
 </div>

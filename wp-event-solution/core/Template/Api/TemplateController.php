@@ -148,12 +148,12 @@ class TemplateController extends WP_REST_Controller {
                     'args'                => array(
                         'id' => array(
                             'required'    => true,
-                            'description' => __( 'Template ID to set as default', 'eventin' ),
+                            'description' => __( 'Template ID to set as default', 'wp-event-solution' ),
                         ),
                         'type' => array(
                             'required'    => true,
                             'type'        => 'string',
-                            'description' => __( 'Template type (event, ticket, certificate or speaker)', 'eventin' ),
+                            'description' => __( 'Template type (event, ticket, certificate or speaker)', 'wp-event-solution' ),
                             'enum'        => array( 'event', 'ticket', 'certificate', 'speaker' ),
                         ),
                     ),
@@ -518,11 +518,11 @@ class TemplateController extends WP_REST_Controller {
         $post = get_post( $id );
 
         if ( ! $post ) {
-            return new WP_Error( 'invalid_id', __( 'Invalid template id', 'eventin' ), ['status' => 422] );
+            return new WP_Error( 'invalid_id', __( 'Invalid template id', 'wp-event-solution' ), ['status' => 422] );
         }
 
         if ( 'etn-template' !== $post->post_type ) {
-            return new WP_Error( 'invalid_id', __( 'Invalid template id', 'eventin' ), ['status' => 422] );
+            return new WP_Error( 'invalid_id', __( 'Invalid template id', 'wp-event-solution' ), ['status' => 422] );
         }
 
         $template = new TemplateModel( $id );
@@ -555,7 +555,7 @@ class TemplateController extends WP_REST_Controller {
             if ( ! class_exists( 'Wpeventin_Pro' ) && \Eventin\Template\StaticTemplateConfig::requires_pro( $static_id, $static_type ) ) {
                 return new WP_Error(
                     'template_requires_pro',
-                    __( 'This template is available in Eventin Pro. Activate Eventin Pro to import it.', 'eventin' ),
+                    __( 'This template is available in Eventin Pro. Activate Eventin Pro to import it.', 'wp-event-solution' ),
                     [ 'status' => 403 ]
                 );
             }
@@ -564,7 +564,7 @@ class TemplateController extends WP_REST_Controller {
 
             return rest_ensure_response( [
                 'success' => true,
-                'message' => __( 'Template added to list successfully', 'eventin' ),
+                'message' => __( 'Template added to list successfully', 'wp-event-solution' ),
             ] );
         }
 
@@ -576,7 +576,7 @@ class TemplateController extends WP_REST_Controller {
         $template_created = $template->create( $data );
 
         if ( ! $template_created ) {
-            return new WP_Error( 'template_create_error', __( 'Couldn\'t create template. Please try again.', 'eventin' ), ['status' => 422] );
+            return new WP_Error( 'template_create_error', __( 'Couldn\'t create template. Please try again.', 'wp-event-solution' ), ['status' => 422] );
         }
 
         if ( $this->should_use_elementor_editor( $template->id ) ) {
@@ -592,7 +592,7 @@ class TemplateController extends WP_REST_Controller {
         if ( ! $this->is_within_template_limit() ) {
             return new WP_Error(
                 'template_limit_reached',
-                __( 'You can only have one template in the free version. Please upgrade to Pro to create more templates.', 'eventin' ),
+                __( 'You can only have one template in the free version. Please upgrade to Pro to create more templates.', 'wp-event-solution' ),
                 [ 'status' => 403 ]
             );
         }
@@ -600,7 +600,7 @@ class TemplateController extends WP_REST_Controller {
         if ( ! class_exists( 'Wpeventin_Pro' ) && $request['type'] !== 'event' ) {
             return new WP_Error(
                 'template_limit_reached',
-                __( 'You can only create event landing page templates in the free version.', 'eventin' ),
+                __( 'You can only create event landing page templates in the free version.', 'wp-event-solution' ),
                 [ 'status' => 403 ]
             );
         }
@@ -669,18 +669,18 @@ class TemplateController extends WP_REST_Controller {
         $post = get_post( $id );
 
         if ( ! $post ) {
-            return new WP_Error( 'invalid_id', __( 'Invalid template id', 'eventin' ), ['status' => 422] );
+            return new WP_Error( 'invalid_id', __( 'Invalid template id', 'wp-event-solution' ), ['status' => 422] );
         }
 
         if ( 'etn-template' !== $post->post_type ) {
-            return new WP_Error( 'invalid_id', __( 'Invalid template id', 'eventin' ), ['status' => 422] );
+            return new WP_Error( 'invalid_id', __( 'Invalid template id', 'wp-event-solution' ), ['status' => 422] );
         }
 
         $template = new TemplateModel( $request['id'] );
         $template_update = $template->update( $data );
 
         if ( ! $template_update ) {
-            return new WP_Error( 'template_update_error', __( 'Couldn\'t update template. Please try again.', 'eventin' ), ['status' => 422] );
+            return new WP_Error( 'template_update_error', __( 'Couldn\'t update template. Please try again.', 'wp-event-solution' ), ['status' => 422] );
         }
 
         $response = $this->prepare_item_for_response( $template, $request );
@@ -749,11 +749,11 @@ class TemplateController extends WP_REST_Controller {
         $post = get_post( $id );
 
         if ( ! $post ) {
-            return new WP_Error( 'invalid_id', __( 'Invalid template id', 'eventin' ), ['status' => 422] );
+            return new WP_Error( 'invalid_id', __( 'Invalid template id', 'wp-event-solution' ), ['status' => 422] );
         }
 
         if ( 'etn-template' !== $post->post_type ) {
-            return new WP_Error( 'invalid_id', __( 'Invalid template id', 'eventin' ), ['status' => 422] );
+            return new WP_Error( 'invalid_id', __( 'Invalid template id', 'wp-event-solution' ), ['status' => 422] );
         }
 
         $template = new TemplateModel( $id );
@@ -779,15 +779,15 @@ class TemplateController extends WP_REST_Controller {
         $status = ! empty( $request['status'] ) ? $request['status'] : ''; 
 
         if ( ! $post ) {
-            return new WP_Error( 'invalid_id', __( 'Invalid template id', 'eventin' ), ['status' => 422] );
+            return new WP_Error( 'invalid_id', __( 'Invalid template id', 'wp-event-solution' ), ['status' => 422] );
         }
 
         if ( 'etn-template' !== $post->post_type ) {
-            return new WP_Error( 'invalid_id', __( 'Invalid template id', 'eventin' ), ['status' => 422] );
+            return new WP_Error( 'invalid_id', __( 'Invalid template id', 'wp-event-solution' ), ['status' => 422] );
         }
 
         if ( ! $status ) {
-            return new WP_Error( 'status_error', __( 'Invalid template status', 'eventin' ), ['status' => 422] );
+            return new WP_Error( 'status_error', __( 'Invalid template status', 'wp-event-solution' ), ['status' => 422] );
         }
 
         $statuses = [
@@ -795,7 +795,7 @@ class TemplateController extends WP_REST_Controller {
         ];
 
         if ( ! in_array( $status, $statuses ) ) {
-            return new WP_Error( 'invalid_status', __( 'Invalid template status', 'eventin' ), ['status' => 422] );
+            return new WP_Error( 'invalid_status', __( 'Invalid template status', 'wp-event-solution' ), ['status' => 422] );
         }
 
         // Prepare the post data
@@ -812,7 +812,7 @@ class TemplateController extends WP_REST_Controller {
         }
 
         $response = [
-            'message' => __( 'Successfully updated template status', 'eventin' ),
+            'message' => __( 'Successfully updated template status', 'wp-event-solution' ),
         ];
 
         return rest_ensure_response( $response );
@@ -882,7 +882,7 @@ class TemplateController extends WP_REST_Controller {
         
         return rest_ensure_response( [
             'success' => true,
-            'message' => __( 'Template deleted successfully', 'eventin' ),
+            'message' => __( 'Template deleted successfully', 'wp-event-solution' ),
         ] );
     }
 
@@ -899,11 +899,11 @@ class TemplateController extends WP_REST_Controller {
         $post = get_post( $id );
 
         if ( ! $post ) {
-            return new WP_Error( 'invalid_id', __( 'Invalid template id', 'eventin' ), ['status' => 422] );
+            return new WP_Error( 'invalid_id', __( 'Invalid template id', 'wp-event-solution' ), ['status' => 422] );
         }
 
         if ( 'etn-template' !== $post->post_type ) {
-            return new WP_Error( 'invalid_id', __( 'Invalid template id', 'eventin' ), ['status' => 422] );
+            return new WP_Error( 'invalid_id', __( 'Invalid template id', 'wp-event-solution' ), ['status' => 422] );
         }
 
         $template = new TemplateModel( $id );
@@ -911,11 +911,11 @@ class TemplateController extends WP_REST_Controller {
         $deleted = $template->delete();
 
         if ( ! $deleted ) {
-            return new WP_Error( 'delete_error', __( 'Unable to delete this template. Please try again.', 'eventin' ), ['status' => 409] );
+            return new WP_Error( 'delete_error', __( 'Unable to delete this template. Please try again.', 'wp-event-solution' ), ['status' => 409] );
         }
 
         $response = [
-            'message'   => __( 'Successfully deleted template', 'eventin' )
+            'message'   => __( 'Successfully deleted template', 'wp-event-solution' )
         ];
 
         return rest_ensure_response( $response );
@@ -945,7 +945,7 @@ class TemplateController extends WP_REST_Controller {
         if ( ! $ids ) {
             return new WP_Error(
                 'rest_cannot_delete',
-                __( 'Template ids can not be empty.', 'eventin' ),
+                __( 'Template ids can not be empty.', 'wp-event-solution' ),
                 array( 'status' => 422 )
             );
         }
@@ -963,13 +963,13 @@ class TemplateController extends WP_REST_Controller {
         if ( $count == 0 ) {
             return new WP_Error(
                 'rest_cannot_delete',
-                __( 'Template cannot be deleted.', 'eventin' ),
+                __( 'Template cannot be deleted.', 'wp-event-solution' ),
                 array( 'status' => 409 )
             );
         }
 
         // translators: %1$d is the number of templates deleted, %2$d is the total number of templates selected.
-        $message = sprintf( __( '%1$d templates are deleted of %2$d', 'eventin' ), $count, count( $ids ) );
+        $message = sprintf( __( '%1$d templates are deleted of %2$d', 'wp-event-solution' ), $count, count( $ids ) );
 
         return rest_ensure_response( $message );
     }
@@ -1047,7 +1047,7 @@ class TemplateController extends WP_REST_Controller {
         if ( 'selected_events' === $template_for && empty( $event_ids ) ) {
             return new WP_Error(
                 'missing_event_ids',
-                __( 'Event IDs are required when template_for is selected_events', 'eventin' ),
+                __( 'Event IDs are required when template_for is selected_events', 'wp-event-solution' ),
                 ['status' => 422]
             );
         }
@@ -1081,7 +1081,7 @@ class TemplateController extends WP_REST_Controller {
         if ( ! $option_key ) {
             return new WP_Error(
                 'invalid_template_type',
-                __( 'Invalid template type for global assignment', 'eventin' ),
+                __( 'Invalid template type for global assignment', 'wp-event-solution' ),
                 ['status' => 422]
             );
         }
@@ -1091,13 +1091,13 @@ class TemplateController extends WP_REST_Controller {
         if ( false === $update_result && etn_get_option( $option_key ) != $data['template_id'] ) {
             return new WP_Error(
                 'update_failed',
-                __( 'Failed to set default template. Please try again.', 'eventin' ),
+                __( 'Failed to set default template. Please try again.', 'wp-event-solution' ),
                 ['status' => 500]
             );
         }
 
         return [
-            'message' => __( 'Successfully set default template for all events', 'eventin' ),
+            'message' => __( 'Successfully set default template for all events', 'wp-event-solution' ),
             'template_id' => $data['template_id'],
             'template_type' => $data['template_type'],
             'template_for' => $data['template_for']
@@ -1133,7 +1133,7 @@ class TemplateController extends WP_REST_Controller {
         return [
             'message' => sprintf(
                 // translators: %1$d is the number of events updated, %2$d is the number of failed updates.
-                __( 'Template assignment completed. %1$d events updated, %2$d failed.', 'eventin' ),
+                __( 'Template assignment completed. %1$d events updated, %2$d failed.', 'wp-event-solution' ),
                 count( $updated_events ),
                 count( $failed_events )
             ),
@@ -1247,7 +1247,7 @@ class TemplateController extends WP_REST_Controller {
         if ( empty( $id ) ) {
             return new WP_Error(
                 'missing_id',
-                __( 'Template ID is required', 'eventin' ),
+                __( 'Template ID is required', 'wp-event-solution' ),
                 ['status' => 422]
             );
         }
@@ -1255,7 +1255,7 @@ class TemplateController extends WP_REST_Controller {
         if ( ! $type ) {
             return new WP_Error(
                 'missing_type',
-                __( 'Template type is required', 'eventin' ),
+                __( 'Template type is required', 'wp-event-solution' ),
                 ['status' => 422]
             );
         }
@@ -1264,7 +1264,7 @@ class TemplateController extends WP_REST_Controller {
         if ( ! in_array( $type, $allowed_types ) ) {
             return new WP_Error(
                 'invalid_type',
-                __( 'Template type must be one of: event, ticket, certificate, speaker', 'eventin' ),
+                __( 'Template type must be one of: event, ticket, certificate, speaker', 'wp-event-solution' ),
                 ['status' => 422]
             );
         }
@@ -1277,7 +1277,7 @@ class TemplateController extends WP_REST_Controller {
             if ( ! $this->is_valid_static_template( $id, $type ) ) {
                 return new WP_Error(
                     'invalid_id',
-                    __( 'Invalid template id', 'eventin' ),
+                    __( 'Invalid template id', 'wp-event-solution' ),
                     ['status' => 422]
                 );
             }
@@ -1288,7 +1288,7 @@ class TemplateController extends WP_REST_Controller {
             if ( ! $post ) {
                 return new WP_Error(
                     'invalid_id',
-                    __( 'Invalid template id', 'eventin' ),
+                    __( 'Invalid template id', 'wp-event-solution' ),
                     ['status' => 422]
                 );
             }
@@ -1296,7 +1296,7 @@ class TemplateController extends WP_REST_Controller {
             if ( 'etn-template' !== $post->post_type ) {
                 return new WP_Error(
                     'invalid_id',
-                    __( 'Invalid template id', 'eventin' ),
+                    __( 'Invalid template id', 'wp-event-solution' ),
                     ['status' => 422]
                 );
             }
@@ -1313,13 +1313,13 @@ class TemplateController extends WP_REST_Controller {
         if ( false === $update_result && etn_get_option( $option_key ) != $id ) {
             return new WP_Error(
                 'update_failed',
-                __( 'Failed to set default template. Please try again.', 'eventin' ),
+                __( 'Failed to set default template. Please try again.', 'wp-event-solution' ),
                 ['status' => 500]
             );
         }
 
         $response = [
-            'message' => __( 'Successfully set default template', 'eventin' ),
+            'message' => __( 'Successfully set default template', 'wp-event-solution' ),
             'template_id' => $id,
             'template_type' => $type
         ];
@@ -1337,24 +1337,24 @@ class TemplateController extends WP_REST_Controller {
             'template_id' => array(
                 'required'    => true,
                 'type'        => 'integer',
-                'description' => __( 'Template ID to assign', 'eventin' ),
+                'description' => __( 'Template ID to assign', 'wp-event-solution' ),
             ),
             'template_type' => array(
                 'required'    => true,
                 'type'        => 'string',
-                'description' => __( 'Template type (event, ticket, speaker)', 'eventin' ),
+                'description' => __( 'Template type (event, ticket, speaker)', 'wp-event-solution' ),
                 'enum'        => array( 'event', 'ticket', 'speaker', 'certificate' ),
             ),
             'template_for' => array(
                 'required'    => true,
                 'type'        => 'string',
-                'description' => __( 'Template assignment scope', 'eventin' ),
+                'description' => __( 'Template assignment scope', 'wp-event-solution' ),
                 'enum'        => array( 'all_events', 'selected_events' ),
             ),
             'event_ids' => array(
                 'required'    => false,
                 'type'        => 'array',
-                'description' => __( 'Array of event IDs for selected_events scope', 'eventin' ),
+                'description' => __( 'Array of event IDs for selected_events scope', 'wp-event-solution' ),
                 'items'       => array(
                     'type' => 'integer',
                 ),
@@ -1362,7 +1362,7 @@ class TemplateController extends WP_REST_Controller {
             'preview_event_id' => array(
                 'required'    => false,
                 'type'        => 'integer',
-                'description' => __( 'Preview event ID for the template', 'eventin' ),
+                'description' => __( 'Preview event ID for the template', 'wp-event-solution' ),
             ),
         );
     }
@@ -1400,11 +1400,11 @@ class TemplateController extends WP_REST_Controller {
         $post = get_post( $template_id );
 
         if ( ! $post ) {
-            return new WP_Error( 'invalid_id', __( 'Invalid template id', 'eventin' ), ['status' => 422] );
+            return new WP_Error( 'invalid_id', __( 'Invalid template id', 'wp-event-solution' ), ['status' => 422] );
         }
 
         if ( 'etn-template' !== $post->post_type ) {
-            return new WP_Error( 'invalid_id', __( 'Invalid template id', 'eventin' ), ['status' => 422] );
+            return new WP_Error( 'invalid_id', __( 'Invalid template id', 'wp-event-solution' ), ['status' => 422] );
         }
 
         // Query events with this template

@@ -2,20 +2,20 @@
 defined( 'ABSPATH' ) || exit;
 ?>
 <section class="woocommerce-order-details">
-	<h2 class="woocommerce-order-details__title"><?php esc_html_e( 'Attendee details', 'eventin' ); ?></h2>
+	<h2 class="woocommerce-order-details__title"><?php esc_html_e( 'Attendee details', 'wp-event-solution' ); ?></h2>
 	<table class="woocommerce-table woocommerce-table--order-details shop_table order_details">
 		<thead>
 			<tr>
-				<th class="woocommerce-table__product-name attendee-name"><?php esc_html_e( 'Name', 'eventin' ); ?></th>
+				<th class="woocommerce-table__product-name attendee-name"><?php esc_html_e( 'Name', 'wp-event-solution' ); ?></th>
                 <?php if ( $include_email ) { ?>
-				<th class="woocommerce-table__product-table attendee-email"><?php esc_html_e( 'Email', 'eventin' ); ?></th>
+				<th class="woocommerce-table__product-table attendee-email"><?php esc_html_e( 'Email', 'wp-event-solution' ); ?></th>
                 <?php } ?>
                 <?php if ( $include_phone ) { ?>
-                <th class="woocommerce-table__product-table attendee-phone"><?php esc_html_e( 'Phone', 'eventin' ); ?></th>
+                <th class="woocommerce-table__product-table attendee-phone"><?php esc_html_e( 'Phone', 'wp-event-solution' ); ?></th>
                 <?php } ?>
-                <th class="woocommerce-table__product-table attendee-event"><?php esc_html_e( 'Event', 'eventin' ); ?></th>
-                <th class="woocommerce-table__product-table attendee-ticket-status"><?php esc_html_e( 'Ticket Status', 'eventin' ); ?></th>
-                <th class="woocommerce-table__product-table attendee-action"><?php esc_html_e( 'Action', 'eventin' ); ?></th>
+                <th class="woocommerce-table__product-table attendee-event"><?php esc_html_e( 'Event', 'wp-event-solution' ); ?></th>
+                <th class="woocommerce-table__product-table attendee-ticket-status"><?php esc_html_e( 'Ticket Status', 'wp-event-solution' ); ?></th>
+                <th class="woocommerce-table__product-table attendee-action"><?php esc_html_e( 'Action', 'wp-event-solution' ); ?></th>
 			</tr>
 		</thead>
 
@@ -31,8 +31,8 @@ defined( 'ABSPATH' ) || exit;
             $ticket_status         = get_post_meta( $attendee_id, 'etn_attendeee_ticket_status', true );
 
             $ticket_status_arr = [
-                'used'    => esc_html__('Used', 'eventin'),
-                'unused'    => esc_html__('Unused', 'eventin')
+                'used'    => esc_html__('Used', 'wp-event-solution'),
+                'unused'    => esc_html__('Unused', 'wp-event-solution')
             ];
 
             $edit_token            = get_post_meta( $attendee_id, 'etn_info_edit_token', true );
@@ -74,8 +74,8 @@ defined( 'ABSPATH' ) || exit;
                 <td><?php echo esc_html( $ticket_status_arr[$ticket_status] ); ?></td>
                 <td>
                     <div class=''>
-                        <a class='' target='_blank' href='<?php echo esc_url( $new_edit_information_link ); ?>' rel='noopener'><?php echo esc_html__('Edit', 'eventin'); ?></a> | 
-                        <a class='' target='_blank' href='<?php echo esc_url( $new_ticket_download_link ); ?>' rel='noopener'><?php echo esc_html__('Download Ticket', 'eventin'); ?></a>
+                        <a class='' target='_blank' href='<?php echo esc_url( $new_edit_information_link ); ?>' rel='noopener'><?php echo esc_html__('Edit', 'wp-event-solution'); ?></a> | 
+                        <a class='' target='_blank' href='<?php echo esc_url( $new_ticket_download_link ); ?>' rel='noopener'><?php echo esc_html__('Download Ticket', 'wp-event-solution'); ?></a>
                     </div>
                 </td>
             </tr>

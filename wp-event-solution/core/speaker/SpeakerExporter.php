@@ -130,20 +130,20 @@ class SpeakerExporter implements PostExporterInterface {
      */
     private function get_columns() {
         return [
-            'id'               => esc_html__( 'Id', 'eventin' ),
-            'name'             => esc_html__( 'Name', 'eventin' ),
-            'image'            => esc_html__( 'Image', 'eventin' ),
-            'designation'      => esc_html__( 'Designation', 'eventin' ),
-            'email'            => esc_html__( 'Email', 'eventin' ),
-            'summary'          => esc_html__( 'Summary', 'eventin' ),
-            'social'           => esc_html__( 'Social', 'eventin' ),
-            'company_logo'     => esc_html__( 'Company Logo', 'eventin' ),
-            'company_url'      => esc_html__( 'Company Url', 'eventin' ),
-            'company_name'     => esc_html__( 'Company Name', 'eventin' ),
-            'author_url'       => esc_html__( 'Author Url', 'eventin' ),
-            'role'             => esc_html__( 'Role', 'eventin' ),
-            'speaker_group'    => esc_html__( 'Speaker Group', 'eventin' ),
-            'speaker_category' => esc_html__( 'Speaker Category', 'eventin' ),
+            'id'               => esc_html__( 'Id', 'wp-event-solution' ),
+            'name'             => esc_html__( 'Name', 'wp-event-solution' ),
+            'image'            => esc_html__( 'Image', 'wp-event-solution' ),
+            'designation'      => esc_html__( 'Designation', 'wp-event-solution' ),
+            'email'            => esc_html__( 'Email', 'wp-event-solution' ),
+            'summary'          => esc_html__( 'Summary', 'wp-event-solution' ),
+            'social'           => esc_html__( 'Social', 'wp-event-solution' ),
+            'company_logo'     => esc_html__( 'Company Logo', 'wp-event-solution' ),
+            'company_url'      => esc_html__( 'Company Url', 'wp-event-solution' ),
+            'company_name'     => esc_html__( 'Company Name', 'wp-event-solution' ),
+            'author_url'       => esc_html__( 'Author Url', 'wp-event-solution' ),
+            'role'             => esc_html__( 'Role', 'wp-event-solution' ),
+            'speaker_group'    => esc_html__( 'Speaker Group', 'wp-event-solution' ),
+            'speaker_category' => esc_html__( 'Speaker Category', 'wp-event-solution' ),
         ];
     }
 }

@@ -33,7 +33,7 @@ if ( $etn_interactive_map ) {
 ?>
 <h3 class="etn-locations-title">
     <?php
-    $location_title = apply_filters( 'etn_event_location_title', esc_html__('Venue Info', 'eventin') );
+    $location_title = apply_filters( 'etn_event_location_title', esc_html__('Venue Info', 'wp-event-solution') );
     echo esc_html( $location_title );
     ?>
 </h3>
@@ -47,7 +47,7 @@ if ( $etn_interactive_map ) {
                 </svg>
             <span class="etn-location-text"><?php echo esc_html( $address ); ?></span>
         </p>
-        <a href="http://maps.google.com/maps?q=<?php echo esc_attr($latitudes); ?>,<?php echo esc_attr($longitudes); ?>" class="etn-btn etn-primary view-map-button" target="_blank"><?php echo esc_html__('View on Map', 'eventin'); ?></a>
+        <a href="http://maps.google.com/maps?q=<?php echo esc_attr($latitudes); ?>,<?php echo esc_attr($longitudes); ?>" class="etn-btn etn-primary view-map-button" target="_blank"><?php echo esc_html__('View on Map', 'wp-event-solution'); ?></a>
     </div>
 </div>
                 

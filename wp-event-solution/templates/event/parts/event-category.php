@@ -9,7 +9,7 @@
                 </span>
             <?php endforeach;?> 
             <?php else: ?>
-                <p><?php esc_attr_e( 'No category found', 'eventin' ); ?></p>
+                <p><?php esc_attr_e( 'No category found', 'wp-event-solution' ); ?></p>
             <?php endif; ?>				
         </div>
     </div>

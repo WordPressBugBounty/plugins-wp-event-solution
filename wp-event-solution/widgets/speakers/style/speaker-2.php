@@ -67,7 +67,7 @@ defined( 'ABSPATH' ) || exit;
 <?php
     } else {
     ?>
-    <p class="etn-not-found-post"><?php echo esc_html__('No Post Found', 'eventin'); ?></p>
+    <p class="etn-not-found-post"><?php echo esc_html__('No Post Found', 'wp-event-solution'); ?></p>
     <?php
         }
     ?>
@@ -97,8 +97,8 @@ defined( 'ABSPATH' ) || exit;
             $args = [
                 'paged'         => max(1, intval($speaker_paged)),
                 'total_pages'   => $total_pages,
-                'prev_text'     => esc_html__('Previous', 'eventin'),
-                'next_text'     => esc_html__('Next', 'eventin'),
+                'prev_text'     => esc_html__('Previous', 'wp-event-solution'),
+                'next_text'     => esc_html__('Next', 'wp-event-solution'),
                 'base_class'    => 'etn',
                 'current_class' => 'etn-pagination-current',
                 'param'         => 'speaker_paged',

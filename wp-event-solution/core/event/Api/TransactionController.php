@@ -59,7 +59,7 @@ class TransactionController extends WP_REST_Controller {
             array(
                 'args'   => array(
                     'id' => array(
-                        'description' => __( 'Unique identifier for the post.', 'eventin' ),
+                        'description' => __( 'Unique identifier for the post.', 'wp-event-solution' ),
                         'type'        => 'integer',
                     ),
                 ),
@@ -83,7 +83,7 @@ class TransactionController extends WP_REST_Controller {
                         'force' => array(
                             'type'        => 'boolean',
                             'default'     => false,
-                            'description' => __( 'Whether to bypass Trash and force deletion.', 'eventin' ),
+                            'description' => __( 'Whether to bypass Trash and force deletion.', 'wp-event-solution' ),
                         ),
                     ),
                 ),
@@ -186,7 +186,7 @@ class TransactionController extends WP_REST_Controller {
         }
 
         return rest_ensure_response([
-            'message' => __( 'Something went wrong. Please try again', 'eventin' )
+            'message' => __( 'Something went wrong. Please try again', 'wp-event-solution' )
         ]);
     }
 
@@ -235,7 +235,7 @@ class TransactionController extends WP_REST_Controller {
         }
 
         return rest_ensure_response([
-            'message' => __( 'Something went wrong. Please try again', 'eventin' )
+            'message' => __( 'Something went wrong. Please try again', 'wp-event-solution' )
         ]);
     }
 
@@ -278,7 +278,7 @@ class TransactionController extends WP_REST_Controller {
         if ( ! $result ) {
             return new WP_Error(
                 'rest_cannot_delete',
-                __( 'The event cannot be deleted.', 'eventin' ),
+                __( 'The event cannot be deleted.', 'wp-event-solution' ),
                 array( 'status' => 500 )
             );
         }
@@ -300,7 +300,7 @@ class TransactionController extends WP_REST_Controller {
         if ( ! $ids ) {
             return new WP_Error(
                 'rest_cannot_delete',
-                __( 'Transaction ids can not be empty.', 'eventin' ),
+                __( 'Transaction ids can not be empty.', 'wp-event-solution' ),
                 array( 'status' => 400 )
             );
         }

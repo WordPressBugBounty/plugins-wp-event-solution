@@ -31,7 +31,7 @@ class PaymentFactory {
             return new $methods[$payment_methods];
         }
 
-        throw new Exception( esc_html__( 'Unknown payment method.', 'eventin' ) );
+        throw new Exception( esc_html__( 'Unknown payment method.', 'wp-event-solution' ) );
     }
 
     /**

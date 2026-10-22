@@ -224,7 +224,7 @@ class HubSpotClient {
         if ( ! $this->token ) {
             return new WP_Error(
                 'eventin_hubspot_missing_token',
-                __( 'HubSpot is not connected. Add a HubSpot Service Key first.', 'eventin' ),
+                __( 'HubSpot is not connected. Add a HubSpot Service Key first.', 'wp-event-solution' ),
                 [ 'status' => 400 ]
             );
         }
@@ -268,7 +268,7 @@ class HubSpotClient {
             ? $data['message']
             : sprintf(
                 /* translators: %d: HTTP status code returned by HubSpot. */
-                __( 'HubSpot returned an unexpected response (HTTP %d).', 'eventin' ),
+                __( 'HubSpot returned an unexpected response (HTTP %d).', 'wp-event-solution' ),
                 (int) $code
             );
 

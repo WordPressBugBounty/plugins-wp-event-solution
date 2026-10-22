@@ -67,7 +67,7 @@ class OrderController extends WP_REST_Controller {
             array(
                 'args'   => array(
                     'id' => array(
-                        'description' => __( 'Unique identifier for the post.', 'eventin' ),
+                        'description' => __( 'Unique identifier for the post.', 'wp-event-solution' ),
                         'type'        => 'integer',
                     ),
                 ),
@@ -91,7 +91,7 @@ class OrderController extends WP_REST_Controller {
                         'force' => array(
                             'type'        => 'boolean',
                             'default'     => false,
-                            'description' => __( 'Whether to bypass Trash and force deletion.', 'eventin' ),
+                            'description' => __( 'Whether to bypass Trash and force deletion.', 'wp-event-solution' ),
                         ),
                     ),
                 ),
@@ -520,7 +520,7 @@ class OrderController extends WP_REST_Controller {
 
         // Validate event ID and seat IDs
         if ( empty( $event_id ) && ( empty( $seat_ids ) || empty( $booked_tickets ) ) ) {
-            return new WP_Error( 'invalid_data', __( 'Invalid event ID or seat IDs.', 'eventin' ), ['status' => 400] );
+            return new WP_Error( 'invalid_data', __( 'Invalid event ID or seat IDs.', 'wp-event-solution' ), ['status' => 400] );
         }
 
         // This route is nonce-only (guests hold seats before an order exists) and
@@ -530,14 +530,14 @@ class OrderController extends WP_REST_Controller {
         // sibling finding). Require a real event post first.
         $event_post = $event_id ? get_post( $event_id ) : null;
         if ( ! $event_post || 'etn' !== $event_post->post_type ) {
-            return new WP_Error( 'invalid_event', __( 'Invalid event.', 'eventin' ), ['status' => 404] );
+            return new WP_Error( 'invalid_event', __( 'Invalid event.', 'wp-event-solution' ), ['status' => 404] );
         }
 
         // Seats live on the occurrence, never on the recurring parent.
         if ( $this->is_recurring_parent_event( $event_id ) ) {
             return new WP_Error(
                 'eventin_recurring_parent_not_bookable',
-                __( 'This is a recurring event. Please book one of its occurrences instead.', 'eventin' ),
+                __( 'This is a recurring event. Please book one of its occurrences instead.', 'wp-event-solution' ),
                 [ 'status' => 400 ]
             );
         }
@@ -559,7 +559,7 @@ class OrderController extends WP_REST_Controller {
         if (is_wp_error($ticket_validation)) {
             $response = [
                 'success' => false,
-                'message' => __('The number of tickets u have selected is not available.', 'eventin'),
+                'message' => __('The number of tickets u have selected is not available.', 'wp-event-solution'),
                 'booked_tickets' => $booked_tickets,
             ];
             return rest_ensure_response($response);
@@ -571,7 +571,7 @@ class OrderController extends WP_REST_Controller {
             if (!empty($duplicate_seats)) {
                 $response = [
                     'success' => false,
-                    'message' => __( 'Some of selected seats are already booked.', 'eventin' ),
+                    'message' => __( 'Some of selected seats are already booked.', 'wp-event-solution' ),
                     'booked_tickets' => $duplicate_seats,
                 ];
                 return rest_ensure_response( $response );
@@ -584,7 +584,7 @@ class OrderController extends WP_REST_Controller {
             if (!empty($duplicate_seats)) {
                 $response = [
                     'success' => false,
-                    'message' => __( 'Some of selected seats are already booked.', 'eventin' ),
+                    'message' => __( 'Some of selected seats are already booked.', 'wp-event-solution' ),
                     'booked_tickets' => $duplicate_seats,
                 ];
                 return rest_ensure_response( $response );
@@ -614,7 +614,7 @@ class OrderController extends WP_REST_Controller {
 
         $response = [
             'success' => true,
-            'message' => __( 'Seats booked successfully.', 'eventin' ),
+            'message' => __( 'Seats booked successfully.', 'wp-event-solution' ),
             'event_id' => $event_id,
             'seat_ids' => $seat_ids,
             'booked_tickets' => $booked_tickets,
@@ -638,7 +638,7 @@ class OrderController extends WP_REST_Controller {
 
         $waiting_list_enabled = rest_sanitize_boolean( get_post_meta( $prepared_order['event_id'], 'enable_attendee_waiting_list', true ) );
         if ( ! $waiting_list_enabled ) {
-            return new WP_Error( 'waiting_list_disabled', __( 'Waiting list is not enabled for this event.', 'eventin' ), ['status' => 400] );
+            return new WP_Error( 'waiting_list_disabled', __( 'Waiting list is not enabled for this event.', 'wp-event-solution' ), ['status' => 400] );
         }
 
         // Block waiting-list signup when stock is still available.
@@ -840,13 +840,13 @@ class OrderController extends WP_REST_Controller {
             $payment_method = isset( $request['payment_method'] ) ? sanitize_text_field( $request['payment_method'] ) : '';
 
             if ( empty( $payment_method ) ) {
-                return new WP_Error( 'missing_payment_method', __( 'Payment method is required.', 'eventin' ), [ 'status' => 400 ] );
+                return new WP_Error( 'missing_payment_method', __( 'Payment method is required.', 'wp-event-solution' ), [ 'status' => 400 ] );
             }
 
             $order = new OrderModel( $id );
 
             if ( ! $order->id ) {
-                return new WP_Error( 'invalid_order', __( 'Invalid order id.', 'eventin' ), [ 'status' => 404 ] );
+                return new WP_Error( 'invalid_order', __( 'Invalid order id.', 'wp-event-solution' ), [ 'status' => 404 ] );
             }
 
             // This branch sets the order back to `pending`, which is right for a buyer
@@ -875,12 +875,12 @@ class OrderController extends WP_REST_Controller {
 		    // happens, so this branch never depends on the permission callback
 		    // reading `action` the same way.
 		    if ( ! $this->user_can_access_order( intval( $request['id'] ) ) ) {
-			    return new WP_Error( 'rest_forbidden', __( 'Sorry, you are not allowed to do that.', 'eventin' ), [ 'status' => 403 ] );
+			    return new WP_Error( 'rest_forbidden', __( 'Sorry, you are not allowed to do that.', 'wp-event-solution' ), [ 'status' => 403 ] );
 		    }
 
 		    $status = $request['status'];
 			if ( !in_array($status, ["failed", "completed", "refunded", "partially_refunded"]) ) {
-				return new WP_Error( 'order_update_booking_status_error', __( 'Invalid status', 'eventin' ), ['status' => 400] );
+				return new WP_Error( 'order_update_booking_status_error', __( 'Invalid status', 'wp-event-solution' ), ['status' => 400] );
 			}
 			
             $id        = intval( $request['id'] );
@@ -906,17 +906,17 @@ class OrderController extends WP_REST_Controller {
             $order     = new OrderModel( $id );
             $current_status = $order->status;
             if ( $current_status === 'failed' && $status === 'refunded' ) {
-                return new WP_Error( 'order_update_booking_status_error', __( "You can't refund a failed order", 'eventin' ), ['status' => 400] );
+                return new WP_Error( 'order_update_booking_status_error', __( "You can't refund a failed order", 'wp-event-solution' ), ['status' => 400] );
             }
 
             if ( $current_status === 'refunded' && $status === 'failed' ) {
-                return new WP_Error( 'order_update_booking_status_error', __( "You can't fail a refunded order", 'eventin' ), ['status' => 400] );
+                return new WP_Error( 'order_update_booking_status_error', __( "You can't fail a refunded order", 'wp-event-solution' ), ['status' => 400] );
             }
 
             // Block any transition out of partially_refunded except staying or
             // going fully refunded (completed is checked just below).
             if ( $current_status === 'partially_refunded' && ! in_array( $status, [ 'partially_refunded', 'refunded', 'completed' ], true ) ) {
-                return new WP_Error( 'order_update_booking_status_error', __( "Partially refunded orders can only be fully refunded or restored to completed.", 'eventin' ), ['status' => 400] );
+                return new WP_Error( 'order_update_booking_status_error', __( "Partially refunded orders can only be fully refunded or restored to completed.", 'wp-event-solution' ), ['status' => 400] );
             }
 
             // Money that went back to the customer does not come back when the
@@ -931,7 +931,7 @@ class OrderController extends WP_REST_Controller {
                         'order_update_booking_status_error',
                         sprintf(
                             /* translators: 1: currency symbol, 2: refunded amount */
-                            __( '%1$s%2$s was already refunded to the customer. Changing the status does not take the money back, so this booking cannot be set to Completed.', 'eventin' ),
+                            __( '%1$s%2$s was already refunded to the customer. Changing the status does not take the money back, so this booking cannot be set to Completed.', 'wp-event-solution' ),
                             html_entity_decode( $order->currency_symbol ? $order->currency_symbol : etn_currency_symbol(), ENT_QUOTES, 'UTF-8' ),
                             number_format( $refunded_total, 2 )
                         ),
@@ -987,11 +987,11 @@ class OrderController extends WP_REST_Controller {
                             do_action( 'eventin_order_refund', $order );
                         }
                         return rest_ensure_response([
-                            'message' => __( 'Successfully refunded', 'eventin' )
+                            'message' => __( 'Successfully refunded', 'wp-event-solution' )
                         ]);
                     }
                     else{
-                        return new WP_Error( 'refund_error', __( 'Refund unsuccessful', 'eventin' ), ['status' => 422] );
+                        return new WP_Error( 'refund_error', __( 'Refund unsuccessful', 'wp-event-solution' ), ['status' => 422] );
                     }
                 }
                 else{
@@ -1093,7 +1093,7 @@ class OrderController extends WP_REST_Controller {
         if ( in_array( (string) $order->status, $settled_statuses, true ) ) {
             return new WP_Error(
                 'rest_forbidden',
-                __( 'This order can no longer be changed.', 'eventin' ),
+                __( 'This order can no longer be changed.', 'wp-event-solution' ),
                 [ 'status' => 403 ]
             );
         }
@@ -1128,7 +1128,7 @@ class OrderController extends WP_REST_Controller {
         $order = new OrderModel( $order_id );
 
         if ( ! $order->id ) {
-            return new WP_Error( 'invalid_order', __( 'Invalid order id.', 'eventin' ), [ 'status' => 404 ] );
+            return new WP_Error( 'invalid_order', __( 'Invalid order id.', 'wp-event-solution' ), [ 'status' => 404 ] );
         }
 
         $settled = $this->guest_order_is_settled( $order );
@@ -1192,7 +1192,7 @@ class OrderController extends WP_REST_Controller {
 
         if ( isset( $body['event_id'] ) && (int) $body['event_id'] !== $stored_event
             && ! Ownership::can_manage_post( (int) $body['event_id'], 'etn' ) ) {
-            return new WP_Error( 'rest_forbidden', __( 'You cannot move this order to that event.', 'eventin' ), [ 'status' => 403 ] );
+            return new WP_Error( 'rest_forbidden', __( 'You cannot move this order to that event.', 'wp-event-solution' ), [ 'status' => 403 ] );
         }
 
         if ( isset( $body['attendees'] ) && is_array( $body['attendees'] ) ) {
@@ -1354,7 +1354,7 @@ class OrderController extends WP_REST_Controller {
         if ( ! $result ) {
             return new WP_Error(
                 'rest_cannot_delete',
-                __( 'The order cannot be deleted.', 'eventin' ),
+                __( 'The order cannot be deleted.', 'wp-event-solution' ),
                 array( 'status' => 500 )
             );
         }
@@ -1376,7 +1376,7 @@ class OrderController extends WP_REST_Controller {
         if ( ! $ids ) {
             return new WP_Error(
                 'rest_cannot_delete',
-                __( 'Order ids can not be empty.', 'eventin' ),
+                __( 'Order ids can not be empty.', 'wp-event-solution' ),
                 array( 'status' => 400 )
             );
         }
@@ -1389,7 +1389,7 @@ class OrderController extends WP_REST_Controller {
         if ( empty( $ids ) ) {
             return new WP_Error(
                 'rest_cannot_delete',
-                __( 'No orders accessible to delete.', 'eventin' ),
+                __( 'No orders accessible to delete.', 'wp-event-solution' ),
                 array( 'status' => 403 )
             );
         }
@@ -1424,13 +1424,13 @@ class OrderController extends WP_REST_Controller {
         if ( $count == 0 ) {
             return new WP_Error(
                 'rest_cannot_delete',
-                __( 'Order cannot be deleted.', 'eventin' ),
+                __( 'Order cannot be deleted.', 'wp-event-solution' ),
                 array( 'status' => 500 )
             );
         }
 
         // translators: %1$d is the number of orders deleted, %2$d is the total number of orders selected.
-        $message = sprintf( __( '%1$d orders are deleted of %2$d', 'eventin' ), $count, count( $ids ) );
+        $message = sprintf( __( '%1$d orders are deleted of %2$d', 'wp-event-solution' ), $count, count( $ids ) );
 
         return rest_ensure_response( $message );
     }
@@ -1675,7 +1675,7 @@ class OrderController extends WP_REST_Controller {
         if ( ! $is_update && $this->is_recurring_parent_event( $input_data['event_id'] ) ) {
             return new WP_Error(
                 'eventin_recurring_parent_not_bookable',
-                __( 'This is a recurring event. Please book one of its occurrences instead.', 'eventin' ),
+                __( 'This is a recurring event. Please book one of its occurrences instead.', 'wp-event-solution' ),
                 [ 'status' => 400 ]
             );
         }
@@ -1686,7 +1686,7 @@ class OrderController extends WP_REST_Controller {
             if ( $qty < 1 ) {
                 return new WP_Error(
                     'invalid_ticket_quantity',
-                    __( 'Ticket quantity must be at least 1.', 'eventin' ),
+                    __( 'Ticket quantity must be at least 1.', 'wp-event-solution' ),
                     [ 'status' => 400 ]
                 );
             }
@@ -1746,21 +1746,26 @@ class OrderController extends WP_REST_Controller {
 
         $order_data = [];
 
-        // Prepare customer data.
+        // Prepare customer data. These values are guest-controlled on
+        // unauthenticated checkout and are later substituted into automation
+        // email bodies, so they must be sanitized on the way in.
         if ( isset( $input_data['customer_fname'] ) ) {
-            $order_data['customer_fname'] = $input_data['customer_fname'];
+            $order_data['customer_fname'] = sanitize_text_field( $input_data['customer_fname'] );
         }
 
         if ( isset( $input_data['customer_lname'] ) ) {
-            $order_data['customer_lname'] = $input_data['customer_lname'];
+            $order_data['customer_lname'] = sanitize_text_field( $input_data['customer_lname'] );
         }
 
         if ( isset( $input_data['customer_email'] ) ) {
-            $order_data['customer_email'] = $input_data['customer_email'];
+            $order_data['customer_email'] = sanitize_email( $input_data['customer_email'] );
         }
 
         if ( isset( $input_data['customer_phone'] ) ) {
-            $order_data['customer_phone'] = $input_data['customer_phone'];
+            // Keep only characters a phone number can contain. This also strips
+            // any `data:` URI payload used to smuggle an SVG into the email body
+            // (a data URI needs `:` and `/`, which are not in this set).
+            $order_data['customer_phone'] = preg_replace( '/[^0-9+\-().\s]/', '', (string) $input_data['customer_phone'] );
         }
 
         // Tax address (used by native tax geo-matching at payment time).
@@ -2093,7 +2098,7 @@ class OrderController extends WP_REST_Controller {
             if ( ! isset( $bought[ $slug ] ) ) {
                 return new WP_Error(
                     'attendee_ticket_mismatch',
-                    __( 'An attendee is assigned to a ticket that is not in this order.', 'eventin' ),
+                    __( 'An attendee is assigned to a ticket that is not in this order.', 'wp-event-solution' ),
                     [ 'status' => 422 ]
                 );
             }
@@ -2103,7 +2108,7 @@ class OrderController extends WP_REST_Controller {
             if ( $used[ $slug ] > $bought[ $slug ] ) {
                 return new WP_Error(
                     'attendee_ticket_mismatch',
-                    __( 'There are more attendees than tickets in this order.', 'eventin' ),
+                    __( 'There are more attendees than tickets in this order.', 'wp-event-solution' ),
                     [ 'status' => 422 ]
                 );
             }
@@ -2323,7 +2328,7 @@ class OrderController extends WP_REST_Controller {
                 'email_purchase_limit_exceeded',
                 sprintf(
                     /* translators: 1: tickets already purchased, 2: max allowed per email. */
-                    __( 'You have already purchased %1$d of %2$d allowed tickets for this event with this email.', 'eventin' ),
+                    __( 'You have already purchased %1$d of %2$d allowed tickets for this event with this email.', 'wp-event-solution' ),
                     $prior_quantity,
                     $max_limit
                 ),
@@ -2338,7 +2343,7 @@ class OrderController extends WP_REST_Controller {
                 'email_purchase_limit_exceeded',
                 sprintf(
                     /* translators: 1: tickets already purchased, 2: max allowed per email, 3: tickets the user can still buy. */
-                    __( 'You have already purchased %1$d of %2$d allowed tickets for this event. You can buy up to %3$d more with this email.', 'eventin' ),
+                    __( 'You have already purchased %1$d of %2$d allowed tickets for this event. You can buy up to %3$d more with this email.', 'wp-event-solution' ),
                     $prior_quantity,
                     $max_limit,
                     $remaining
@@ -2382,7 +2387,7 @@ class OrderController extends WP_REST_Controller {
         $ids    = ! empty( $request['ids'] ) ? $request['ids'] : '';
 
         if ( ! $format ) {
-            return new WP_Error( 'format_error', __( 'Invalid data format', 'eventin' ) );
+            return new WP_Error( 'format_error', __( 'Invalid data format', 'wp-event-solution' ) );
         }
 
         if ( ! $ids ) {
@@ -2468,7 +2473,7 @@ class OrderController extends WP_REST_Controller {
         if ( empty( $ids ) ) {
             return new WP_Error(
                 'no_accessible_orders',
-                __( 'No orders accessible to export.', 'eventin' ),
+                __( 'No orders accessible to export.', 'wp-event-solution' ),
                 [ 'status' => 403 ]
             );
         }
@@ -2516,7 +2521,7 @@ class OrderController extends WP_REST_Controller {
         $file = ! empty( $data['order_import'] ) ? $data['order_import'] : '';
 
         if ( ! $file ) {
-            return new WP_Error( 'empty_file', __( 'You must provide a valid file.', 'eventin' ), ['status' => 409] );
+            return new WP_Error( 'empty_file', __( 'You must provide a valid file.', 'wp-event-solution' ), ['status' => 409] );
         }
 
         $importer = new OrderImporter();
@@ -2527,7 +2532,7 @@ class OrderController extends WP_REST_Controller {
         }
 
         $response = [
-            'message' => __( 'Successfully imported order', 'eventin' ),
+            'message' => __( 'Successfully imported order', 'wp-event-solution' ),
         ];
 
         return rest_ensure_response( $response );
@@ -2631,11 +2636,11 @@ class OrderController extends WP_REST_Controller {
         $post = get_post( $id );
 
         if ( ! $post ) {
-            return new WP_Error( 'id_error', __( 'Invalid order id', 'eventin' ) );
+            return new WP_Error( 'id_error', __( 'Invalid order id', 'wp-event-solution' ) );
         }
 
         if ( 'etn-order' !== $post->post_type ) {
-            return new WP_Error( 'id_error', __( 'Invalid order id', 'eventin' ) );
+            return new WP_Error( 'id_error', __( 'Invalid order id', 'wp-event-solution' ) );
         }
 
         $order = new OrderModel( $id );
@@ -2681,7 +2686,7 @@ class OrderController extends WP_REST_Controller {
         }
 
         $response = [
-            'message'   => __( 'Successfully send ticket email to', 'eventin' ),
+            'message'   => __( 'Successfully send ticket email to', 'wp-event-solution' ),
         ];
 
         return rest_ensure_response( $response );
@@ -2714,11 +2719,11 @@ class OrderController extends WP_REST_Controller {
         $post = get_post( $id );
 
         if ( ! $post ) {
-            return new WP_Error( 'invalid_order', __( 'Invalid order id', 'eventin' ), [ 'status' => 404 ] );
+            return new WP_Error( 'invalid_order', __( 'Invalid order id', 'wp-event-solution' ), [ 'status' => 404 ] );
         }
 
         if ( 'etn-order' !== $post->post_type ) {
-            return new WP_Error( 'invalid_order', __( 'Invalid order id', 'eventin' ), [ 'status' => 404 ] );
+            return new WP_Error( 'invalid_order', __( 'Invalid order id', 'wp-event-solution' ), [ 'status' => 404 ] );
         }
 
         $order = new OrderModel( $id );
@@ -2726,7 +2731,7 @@ class OrderController extends WP_REST_Controller {
         if ( 'waiting' !== $order->status ) {
             return new WP_Error(
                 'invalid_status',
-                __( 'Payment link can only be sent for orders with waiting-list status.', 'eventin' ),
+                __( 'Payment link can only be sent for orders with waiting-list status.', 'wp-event-solution' ),
                 [ 'status' => 400 ]
             );
         }
@@ -2750,7 +2755,7 @@ class OrderController extends WP_REST_Controller {
         Mail::to( $order->customer_email )->from( $from )->send( new WaitingListPaymentEmail( $order, $payment_url ) );
 
         return rest_ensure_response( [
-            'message'     => __( 'Payment link sent successfully.', 'eventin' ),
+            'message'     => __( 'Payment link sent successfully.', 'wp-event-solution' ),
             'payment_url' => $payment_url,
         ] );
     }
@@ -2777,7 +2782,7 @@ class OrderController extends WP_REST_Controller {
         $post = get_post( $id );
 
         if ( ! $post || 'etn-order' !== $post->post_type ) {
-            return new WP_Error( 'invalid_order', __( 'Invalid order id', 'eventin' ), ['status' => 404] );
+            return new WP_Error( 'invalid_order', __( 'Invalid order id', 'wp-event-solution' ), ['status' => 404] );
         }
 
         $service    = new \Eventin\Refund\RefundService();
@@ -2786,7 +2791,7 @@ class OrderController extends WP_REST_Controller {
         $unrefunded = array_values( array_diff( array_keys( $attendees ), $refunded ) );
 
         if ( empty( $unrefunded ) ) {
-            return new WP_Error( 'eventin_refund_invalid_state', __( 'No refundable tickets remain.', 'eventin' ), ['status' => 422] );
+            return new WP_Error( 'eventin_refund_invalid_state', __( 'No refundable tickets remain.', 'wp-event-solution' ), ['status' => 422] );
         }
 
         $result = $service->create(
@@ -2805,7 +2810,7 @@ class OrderController extends WP_REST_Controller {
         do_action( 'eventin_order_refund', new OrderModel( $id ) );
 
         return rest_ensure_response([
-            'message' => __( 'Successfully refunded', 'eventin' ),
+            'message' => __( 'Successfully refunded', 'wp-event-solution' ),
             'result'  => $result,
         ]);
     }

@@ -32,17 +32,17 @@ if(!empty($tickets_variations)){
     if ( null === $min_price ) {
         $price_label = '';
     } elseif ( 0.0 === $min_price ) {
-        $price_label = esc_html__( 'Free', 'eventin' );
+        $price_label = esc_html__( 'Free', 'wp-event-solution' );
     } else {
         /* translators: %s: lowest ticket price with currency symbol. */
-        $price_label = sprintf( esc_html__( 'From %s', 'eventin' ), $currency . rtrim( rtrim( number_format( $min_price, 2, '.', ',' ), '0' ), '.' ) );
+        $price_label = sprintf( esc_html__( 'From %s', 'wp-event-solution' ), $currency . rtrim( rtrim( number_format( $min_price, 2, '.', ',' ), '0' ), '.' ) );
     }
 ?>
 <?php do_action( 'etn_before_add_to_cart_widget_block', $single_event_id ); ?>
 
 <div class="etn-purchase-ticket-root" data-post_id="<?php echo esc_attr($single_event_id); ?>" data-style="<?php echo esc_attr($style); ?>" >
-    <div class="etn-ticket-placeholder etn-lazy-trigger" style="min-height:170px;" aria-busy="true" aria-label="<?php echo esc_attr__( 'Loading tickets', 'eventin' ); ?>">
-        <h3 class="etn-purchase-ticket-title"><?php echo esc_html__( 'Tickets', 'eventin' ); ?></h3>
+    <div class="etn-ticket-placeholder etn-lazy-trigger" style="min-height:170px;" aria-busy="true" aria-label="<?php echo esc_attr__( 'Loading tickets', 'wp-event-solution' ); ?>">
+        <h3 class="etn-purchase-ticket-title"><?php echo esc_html__( 'Tickets', 'wp-event-solution' ); ?></h3>
         <?php if ( '' !== $price_label ) : ?>
             <div class="etn-ticket-price-hint"><?php echo esc_html( $price_label ); ?></div>
         <?php endif; ?>

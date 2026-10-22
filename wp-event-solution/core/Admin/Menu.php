@@ -69,8 +69,8 @@ class Menu implements HookableInterface {
      * @return  void
      */
     public function __construct() {
-        $this->page_title      = __( 'Eventin', 'eventin' );
-        $this->menu_title      = __( 'Eventin', 'eventin' );
+        $this->page_title      = __( 'Eventin', 'wp-event-solution' );
+        $this->menu_title      = __( 'Eventin', 'wp-event-solution' );
         $this->base_capability = 'read';
         $this->capability      = 'manage_options';
         $this->menu_slug       = 'eventin';
@@ -78,7 +78,7 @@ class Menu implements HookableInterface {
         $this->position        = 10;
         $this->submenus        = [
             [
-                'title'      => __( 'Dashboard', 'eventin' ),
+                'title'      => __( 'Dashboard', 'wp-event-solution' ),
                 'capability' => 'etn_manage_dashboard',
                 'url'        => 'admin.php?page=' . $this->menu_slug . '#/dashboard',
                 'position'   => 1,
@@ -93,61 +93,61 @@ class Menu implements HookableInterface {
                  * are seeded into roles at install, so a brand new one would be absent
                  * on every existing site and silently hide the page from non-admins.
                  */
-                'title'      => __( 'Ask AI', 'eventin' ),
+                'title'      => __( 'Ask AI', 'wp-event-solution' ),
                 'capability' => 'etn_manage_dashboard',
                 'url'        => 'admin.php?page=' . $this->menu_slug . '#/ask-ai',
                 'position'   => 1.5,
             ],
             [
-                'title'      => __( 'Events', 'eventin' ),
+                'title'      => __( 'Events', 'wp-event-solution' ),
                 'capability' => 'etn_manage_event',
                 'url'        => 'admin.php?page=' . $this->menu_slug . '#/events',
                 'position'   => 2,
             ],
             [
-                'title'      => __( 'Bookings', 'eventin' ),
+                'title'      => __( 'Bookings', 'wp-event-solution' ),
                 'capability' => 'etn_manage_order',
                 'url'        => 'admin.php?page=' . $this->menu_slug . '#/bookings',
                 'position'   => 3,
             ],
             [
-                'title'      => __( 'Speaker & Organizer', 'eventin' ),
+                'title'      => __( 'Speaker & Organizer', 'wp-event-solution' ),
                 'capability' => 'etn_manage_organizer',
                 'url'        => 'admin.php?page=' . $this->menu_slug . '#/speakers',
                 'position'   => 5,
             ],
             [
-                'title'      => __( 'Schedules', 'eventin' ),
+                'title'      => __( 'Schedules', 'wp-event-solution' ),
                 'capability' => 'etn_manage_schedule',
                 'url'        => 'admin.php?page=' . $this->menu_slug . '#/schedules',
                 'position'   => 6,
             ],
             [
-                'title'      => __( 'Template Builder', 'eventin' ),
+                'title'      => __( 'Template Builder', 'wp-event-solution' ),
                 'capability' => 'etn_manage_template',
                 'url'        => 'admin.php?page=' . $this->menu_slug . '#/template-builder',
                 'position'   => 7,
 			],
             [
-                'title'      => __( 'Settings', 'eventin' ),
+                'title'      => __( 'Settings', 'wp-event-solution' ),
                 'capability' => 'etn_manage_setting',
                 'url'        => 'admin.php?page=' . $this->menu_slug . '#/settings',
                 'position'   => 9,
             ],
             [
-                'title'      => __( 'Extensions', 'eventin' ),
+                'title'      => __( 'Extensions', 'wp-event-solution' ),
                 'capability' => 'etn_manage_addons',
                 'url'        => 'admin.php?page=' . $this->menu_slug . '#/extensions',
                 'position'   => 10,
             ],
             [
-				'title'      => __( 'Shortcodes', 'eventin' ),
+				'title'      => __( 'Shortcodes', 'wp-event-solution' ),
 				'capability' => 'etn_manage_shortcode',
 				'url'        => 'admin.php?page=' . $this->menu_slug . '#/shortcodes',
                 'position'   => 11,
 			],
             [
-                'title'      => __( 'About Us', 'eventin' ),
+                'title'      => __( 'About Us', 'wp-event-solution' ),
                 'capability' => 'etn_manage_get_help',
                 'url'        => 'admin.php?page=' . $this->menu_slug . '#/get-help',
                 'position'   => 999999,
@@ -158,7 +158,7 @@ class Menu implements HookableInterface {
 		
 		if ( 'on' === $is_attendee_registation ) {
 			$this->submenus[] = [
-				'title'      => __( 'Attendees', 'eventin' ),
+				'title'      => __( 'Attendees', 'wp-event-solution' ),
 				'capability' => 'etn_manage_attendee',
 				'url'        => 'admin.php?page=' . $this->menu_slug . '#/attendees',
                 'position'   => 4,
@@ -166,7 +166,7 @@ class Menu implements HookableInterface {
         }
 
         $this->submenus[] = [
-            'title'      => __( 'Coupons', 'eventin' ),
+            'title'      => __( 'Coupons', 'wp-event-solution' ),
             'capability' => 'etn_manage_coupon',
             'url'        => 'admin.php?page=' . $this->menu_slug . '#/coupons',
             'position'   => 5,
@@ -174,7 +174,7 @@ class Menu implements HookableInterface {
 
         if ( ! class_exists( 'Wpeventin_Pro' ) ) {
             $this->submenus[] = [
-                'title'      => __( 'Free vs Pro', 'eventin' ),
+                'title'      => __( 'Free vs Pro', 'wp-event-solution' ),
                 'capability' => 'etn_manage_go_pro',
 				'url'        => 'admin.php?page=' . $this->menu_slug . '#/free-vs-pro',
                 'position'   => 9999999,
@@ -302,8 +302,8 @@ class Menu implements HookableInterface {
     public function add_wizard_menu() {
         add_submenu_page(
             '',
-            esc_html__( 'Wizard', 'eventin' ),
-            esc_html__( 'Wizard', 'eventin' ),
+            esc_html__( 'Wizard', 'wp-event-solution' ),
+            esc_html__( 'Wizard', 'wp-event-solution' ),
             'manage_options',
             'etn-wizard',
             [ $this, 'etn_wizard_page' ],

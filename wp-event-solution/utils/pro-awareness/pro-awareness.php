@@ -144,7 +144,7 @@ if(!class_exists('\Wpmet\Libs\Pro_Awareness')) :
 
 				$this->grids[] = [
 					'url'         => $conf['url'],
-					'title'       => empty($conf['title']) ? esc_html__('Default Title', 'eventin') : $conf['title'],
+					'title'       => empty($conf['title']) ? esc_html__('Default Title', 'wp-event-solution') : $conf['title'],
 					'thumbnail'   => empty($conf['thumbnail']) ? '' : esc_url($conf['thumbnail']),
 					'description' => empty($conf['description']) ? '' : $conf['description'],
 				];
@@ -187,17 +187,17 @@ if(!class_exists('\Wpmet\Libs\Pro_Awareness')) :
 			<!-- Welcome section -->
 			<div class="tw-help-section tw-setup-widgard-area">
 				<div class="tw-help-hero">
-					<h2><?php echo esc_html__( 'Setup Wizard', 'eventin' );?></h2>
-					<p><?php echo esc_html__( 'To know the eventin starting guide, run the setup wizard. Your existing settings will not change.', 'eventin' );?></p>
-					<a class="etn-btn"  href="<?php echo esc_url(admin_url('admin.php?page=etn-wizard')) ?>"><?php echo esc_html__('Start Now', 'eventin'); ?></a>
+					<h2><?php echo esc_html__( 'Setup Wizard', 'wp-event-solution' );?></h2>
+					<p><?php echo esc_html__( 'To know the eventin starting guide, run the setup wizard. Your existing settings will not change.', 'wp-event-solution' );?></p>
+					<a class="etn-btn"  href="<?php echo esc_url(admin_url('admin.php?page=etn-wizard')) ?>"><?php echo esc_html__('Start Now', 'wp-event-solution'); ?></a>
 				</div>
 			</div>
 			<!-- Welcome section end -->
 			<!-- Welcome section -->
 			<div class="tw-help-section">
 				<div class="tw-help-hero">
-					<h2><?php echo esc_html__( 'Help Center', 'eventin' );?></h2>
-					<p><?php echo esc_html__( 'To help you to get started, we put together the documentation, support link, videos and FAQs here.', 'eventin' );?></p>
+					<h2><?php echo esc_html__( 'Help Center', 'wp-event-solution' );?></h2>
+					<p><?php echo esc_html__( 'To help you to get started, we put together the documentation, support link, videos and FAQs here.', 'wp-event-solution' );?></p>
 				</div>
 			</div>
 			<!-- Welcome section end -->
@@ -237,7 +237,7 @@ if(!class_exists('\Wpmet\Libs\Pro_Awareness')) :
 			<!-- Commmon FAQ wrapper start -->
 			<div class="tw-help-section">
 				<div class="tw-faq-wrapper">
-					<h3 class="tw-section-title"><?php echo esc_html('Common FAQs', 'eventin');?></h3>
+					<h3 class="tw-section-title"><?php echo esc_html__( 'Common FAQs', 'wp-event-solution' );?></h3>
 					<div class="etn-row">
 						<div class="etn-col-md-6">
 							<div class="tw-accordion-wrapper">
@@ -248,13 +248,13 @@ if(!class_exists('\Wpmet\Libs\Pro_Awareness')) :
 										</svg>
 										<div class="tw-accordion-content">
 											<h3 class="tw-accordion-title">
-												<?php echo esc_html__('How to create zoom event?', 'eventin'); ?>
+												<?php echo esc_html__('How to create zoom event?', 'wp-event-solution'); ?>
 											</h3>
 											<div class="tw-accordion-cotent">
-												<p><?php echo esc_html__('You have to give valid connection details in Eventin=>Settings=>User data.', 'eventin'); ?></p>
-												<p><?php echo esc_html__('After fill up “Api key”, “Secret key” enter “Save changes” and then check connection. After successful connection navigate to Eventin=>Zoom to create a meeting.', 'eventin'); ?></p>
-												<p><?php echo esc_html__('Note: You must have successful connection to zoom api).You will get meeting id from zoom. Place your meeting id to shortcode (For instance: [etn_zoom_api_link meeting_id =’123456789′ link_only=’no’]', 'eventin'); ?></p>
-												<p><?php echo esc_html__('You can also create meeting and display from elementor widget.', 'eventin'); ?></p>
+												<p><?php echo esc_html__('You have to give valid connection details in Eventin=>Settings=>User data.', 'wp-event-solution'); ?></p>
+												<p><?php echo esc_html__('After fill up “Api key”, “Secret key” enter “Save changes” and then check connection. After successful connection navigate to Eventin=>Zoom to create a meeting.', 'wp-event-solution'); ?></p>
+												<p><?php echo esc_html__('Note: You must have successful connection to zoom api).You will get meeting id from zoom. Place your meeting id to shortcode (For instance: [etn_zoom_api_link meeting_id =’123456789′ link_only=’no’]', 'wp-event-solution'); ?></p>
+												<p><?php echo esc_html__('You can also create meeting and display from elementor widget.', 'wp-event-solution'); ?></p>
 											</div>
 										</div>
 									</div>
@@ -266,11 +266,11 @@ if(!class_exists('\Wpmet\Libs\Pro_Awareness')) :
 										</svg>
 										<div class="tw-accordion-content">
 											<h3 class="tw-accordion-title">
-												<?php echo esc_html__('How can I translate event content into my own language?', 'eventin'); ?>
+												<?php echo esc_html__('How can I translate event content into my own language?', 'wp-event-solution'); ?>
 											</h3>
 											<div class="tw-accordion-cotent">
-												<p><?php echo  Helper::kses('If you want to translate in a single language then you can use the <a href="https://wordpress.org/plugins/loco-translate/" target="_blank">Loco Translate</a> plugin. For multi-language translation, you can use the <a href="https://wpml.org/" target="_blank">WPML</a> translator plugin. Simply install the plugin and activate it. After that, please complete the basic settings and you are good to go.', 'eventin'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Helper::kses() wraps wp_kses() with an allowed tags list. ?></p>
-												<p><?php echo  Helper::kses('For “Loco Translate”, you can check this <a href="https://youtu.be/6qLkdl97PU0" target="_blank">video tutorial</a> and <a href="https://localise.biz/wordpress/plugin/beginners" target="_blank">documentation</a>. Also, for the WPML multi-language translation, here is the <a href="https://www.youtube.com/watch?v=O7zrroWtrpQ&list=PLs3PkRpIy7BwP5uGV7H2uX34E3MWgdAsH" target="_blank">video</a>  and <a href="https://wpml.org/documentation/" target="_blank">documentation</a>  link.', 'eventin'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Helper::kses() wraps wp_kses() with an allowed tags list. ?></p>
+												<p><?php echo  Helper::kses(__('If you want to translate in a single language then you can use the <a href="https://wordpress.org/plugins/loco-translate/" target="_blank">Loco Translate</a> plugin. For multi-language translation, you can use the <a href="https://wpml.org/" target="_blank">WPML</a> translator plugin. Simply install the plugin and activate it. After that, please complete the basic settings and you are good to go.', 'wp-event-solution')); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Helper::kses() wraps wp_kses() with an allowed tags list. ?></p>
+												<p><?php echo  Helper::kses(__('For “Loco Translate”, you can check this <a href="https://youtu.be/6qLkdl97PU0" target="_blank">video tutorial</a> and <a href="https://localise.biz/wordpress/plugin/beginners" target="_blank">documentation</a>. Also, for the WPML multi-language translation, here is the <a href="https://www.youtube.com/watch?v=O7zrroWtrpQ&list=PLs3PkRpIy7BwP5uGV7H2uX34E3MWgdAsH" target="_blank">video</a>  and <a href="https://wpml.org/documentation/" target="_blank">documentation</a>  link.', 'wp-event-solution')); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Helper::kses() wraps wp_kses() with an allowed tags list. ?></p>
 											</div>
 										</div>
 									</div>
@@ -282,10 +282,10 @@ if(!class_exists('\Wpmet\Libs\Pro_Awareness')) :
 										</svg>
 										<div class="tw-accordion-content">
 											<h3 class="tw-accordion-title">
-												<?php echo esc_html__('How to upgrade to Eventin PRO?', 'eventin'); ?>
+												<?php echo esc_html__('How to upgrade to Eventin PRO?', 'wp-event-solution'); ?>
 											</h3>
 											<div class="tw-accordion-cotent">
-												<p><?php echo  Helper::kses('If you buy the plugin from CodeCanyon then you do not need license key activation. Just use the Envato Marketplace plugin to get regular updates. If you buy the plugin from <a href="https://themewinter.com/eventin/" target="_blank">Themewinter website</a> then follow our <a href="https://themewinter.com/docs/plugins/plugin-docs/gettings-started/license/" target="_blank">documentation here</a> for activating the PRO license.', 'eventin'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Helper::kses() wraps wp_kses() with an allowed tags list. ?></p>
+												<p><?php echo  Helper::kses(__('If you buy the plugin from CodeCanyon then you do not need license key activation. Just use the Envato Marketplace plugin to get regular updates. If you buy the plugin from <a href="https://themewinter.com/eventin/" target="_blank">Themewinter website</a> then follow our <a href="https://themewinter.com/docs/plugins/plugin-docs/gettings-started/license/" target="_blank">documentation here</a> for activating the PRO license.', 'wp-event-solution')); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Helper::kses() wraps wp_kses() with an allowed tags list. ?></p>
 											</div>
 										</div>
 									</div>
@@ -301,10 +301,10 @@ if(!class_exists('\Wpmet\Libs\Pro_Awareness')) :
 										</svg>
 										<div class="tw-accordion-content">
 											<h3 class="tw-accordion-title">
-												<?php echo esc_html__('How can I skip adding the price for the ticket?', 'eventin'); ?>
+												<?php echo esc_html__('How can I skip adding the price for the ticket?', 'wp-event-solution'); ?>
 											</h3>
 											<div class="tw-accordion-cotent">
-												<p><?php echo esc_html__('If you want to host an event without selling tickets, you can arrange it with WPEventin. Woocommerce is not mandatory in this scenario. In that case, simply skip enabling the “Sell on Woocommerce” option. On the other hand, you can enable selling tickets and put the event ticket price as zero(0), then it will act as a free event and your customers don\'t have to pay for that event. In this way, you can skip the price of the tickets.', 'eventin'); ?></p>
+												<p><?php echo esc_html__('If you want to host an event without selling tickets, you can arrange it with WPEventin. Woocommerce is not mandatory in this scenario. In that case, simply skip enabling the “Sell on Woocommerce” option. On the other hand, you can enable selling tickets and put the event ticket price as zero(0), then it will act as a free event and your customers don\'t have to pay for that event. In this way, you can skip the price of the tickets.', 'wp-event-solution'); ?></p>
 											</div>
 										</div>
 									</div>
@@ -316,10 +316,10 @@ if(!class_exists('\Wpmet\Libs\Pro_Awareness')) :
 										</svg>
 										<div class="tw-accordion-content">
 											<h3 class="tw-accordion-title">
-												<?php echo esc_html__('I am getting a 404 error. What to do now?', 'eventin'); ?>
+												<?php echo esc_html__('I am getting a 404 error. What to do now?', 'wp-event-solution'); ?>
 											</h3>
 											<div class="tw-accordion-cotent">
-												<p><?php echo esc_html__('You can get a 404 Not Found error for many reasons in WordPress. However, the most common reason for the 404 error is page permalink. In order to solve the permalink error, please login to your WordPress dashboard and click on settings. Then from permalink, select “ Post name” as permalink structure and save the settings. Solution key wp-admin -> settings -> permalink -> Post name -> Save Changes.', 'eventin'); ?></p>
+												<p><?php echo esc_html__('You can get a 404 Not Found error for many reasons in WordPress. However, the most common reason for the 404 error is page permalink. In order to solve the permalink error, please login to your WordPress dashboard and click on settings. Then from permalink, select “ Post name” as permalink structure and save the settings. Solution key wp-admin -> settings -> permalink -> Post name -> Save Changes.', 'wp-event-solution'); ?></p>
 											</div>
 										</div>
 									</div>
@@ -331,10 +331,10 @@ if(!class_exists('\Wpmet\Libs\Pro_Awareness')) :
 										</svg>
 										<div class="tw-accordion-content">
 											<h3 class="tw-accordion-title">
-												<?php echo esc_html__('Does Eventin support different page builders?', 'eventin'); ?>
+												<?php echo esc_html__('Does Eventin support different page builders?', 'wp-event-solution'); ?>
 											</h3>
 											<div class="tw-accordion-cotent">
-												<p><?php echo esc_html__('Yes. Eventin supports different page builders like DIVI builder, Visual Composer and Elementor page builder. You can use a shortcode for DIVI builder and Visual Composer. And the plugin has 15+ dedicated widgets for the Elementor page builder. Most of the widgets are FREE to use. However, <a href="https://themewinter.com/eventin/" target="_blank">Eventin PRO</a> will be required for a few specific widgets.', 'eventin'); ?></p>
+												<p><?php echo esc_html__('Yes. Eventin supports different page builders like DIVI builder, Visual Composer and Elementor page builder. You can use a shortcode for DIVI builder and Visual Composer. And the plugin has 15+ dedicated widgets for the Elementor page builder. Most of the widgets are FREE to use. However, <a href="https://themewinter.com/eventin/" target="_blank">Eventin PRO</a> will be required for a few specific widgets.', 'wp-event-solution'); ?></p>
 											</div>
 										</div>
 									</div>

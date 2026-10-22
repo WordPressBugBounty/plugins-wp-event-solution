@@ -19,7 +19,7 @@ defined( 'ABSPATH' ) || exit;
             $end_time	  = date( $time_format, strtotime( $end_date_time ) );
         if (empty($event_options["etn_hide_time_from_details"]) && ( !empty( $data['event_start_time'] ) || !empty( $data['event_end_time'] ) )) { ?>
             <li>
-                <span><?php echo esc_html__('Time : ', 'eventin'); ?></span>
+                <span><?php echo esc_html__('Time : ', 'wp-event-solution'); ?></span>
                 <?php echo esc_html($start_time . " - " . $end_time); ?>
                 <span class="etn-event-timezone">
                     <?php

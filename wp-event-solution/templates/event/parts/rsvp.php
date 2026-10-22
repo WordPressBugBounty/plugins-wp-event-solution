@@ -30,8 +30,8 @@ if ( ! is_array( $rsv_settings ) || empty( $rsv_settings['enable_rsvp_form'] ) )
 }
 ?>
 <div class="etn-rsvp-form-root" data-post_id="<?php echo esc_attr( $single_event_id ); ?>">
-	<div class="etn-rsvp-placeholder etn-lazy-trigger" style="min-height:150px;" aria-busy="true" aria-label="<?php echo esc_attr__( 'Loading RSVP form', 'eventin' ); ?>">
-		<h3 class="etn-rsvp-placeholder-title"><?php echo esc_html__( 'RSVP', 'eventin' ); ?></h3>
+	<div class="etn-rsvp-placeholder etn-lazy-trigger" style="min-height:150px;" aria-busy="true" aria-label="<?php echo esc_attr__( 'Loading RSVP form', 'wp-event-solution' ); ?>">
+		<h3 class="etn-rsvp-placeholder-title"><?php echo esc_html__( 'RSVP', 'wp-event-solution' ); ?></h3>
 		<div class="etn-skel etn-skel-row"></div>
 		<div class="etn-skel etn-skel-row" style="width:70%;"></div>
 		<div class="etn-skel etn-skel-btn"></div>

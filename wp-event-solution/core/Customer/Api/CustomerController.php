@@ -62,7 +62,7 @@ class CustomerController extends WP_REST_Controller {
             array(
                 'args'   => array(
                     'id' => array(
-                        'description' => __( 'Unique identifier for the post.', 'eventin' ),
+                        'description' => __( 'Unique identifier for the post.', 'wp-event-solution' ),
                         'type'        => 'integer',
                     ),
                 ),
@@ -86,7 +86,7 @@ class CustomerController extends WP_REST_Controller {
                         'force' => array(
                             'type'        => 'boolean',
                             'default'     => false,
-                            'description' => __( 'Whether to bypass Trash and force deletion.', 'eventin' ),
+                            'description' => __( 'Whether to bypass Trash and force deletion.', 'wp-event-solution' ),
                         ),
                     ),
                 ),
@@ -135,7 +135,7 @@ class CustomerController extends WP_REST_Controller {
         $customer = CustomerModel::find( $id );
 
         if ( ! $customer ) {
-            return new WP_Error( 'not_found', __( 'Customer not found', 'eventin' ), ['status' => 404] );
+            return new WP_Error( 'not_found', __( 'Customer not found', 'wp-event-solution' ), ['status' => 404] );
         }
 
         return rest_ensure_response( $customer );
@@ -222,17 +222,17 @@ class CustomerController extends WP_REST_Controller {
         $customer = CustomerModel::find( $id );
 
         if ( ! $customer ) {
-            return new WP_Error( 'not_found', __( 'Customer not found', 'eventin' ), ['status' => 404] );
+            return new WP_Error( 'not_found', __( 'Customer not found', 'wp-event-solution' ), ['status' => 404] );
         }
 
         if ( $customer->delete() ) {
             return [
-                'message' => __( 'Successfully deleted', 'eventin' )
+                'message' => __( 'Successfully deleted', 'wp-event-solution' )
             ];
         }
 
         if ( ! $customer ) {
-            return new WP_Error( 'delete_error', __( 'Something went wrong, couldn\'t delete the customer', 'eventin' ), ['status' => 422] );
+            return new WP_Error( 'delete_error', __( 'Something went wrong, couldn\'t delete the customer', 'wp-event-solution' ), ['status' => 422] );
         }
     }
 
@@ -248,7 +248,7 @@ class CustomerController extends WP_REST_Controller {
         if ( ! $ids ) {
             return new WP_Error(
                 'rest_cannot_delete',
-                __( 'Customer ids can not be empty.', 'eventin' ),
+                __( 'Customer ids can not be empty.', 'wp-event-solution' ),
                 array( 'status' => 400 )
             );
         }
@@ -265,13 +265,13 @@ class CustomerController extends WP_REST_Controller {
         if ( $count == 0 ) {
             return new WP_Error(
                 'rest_cannot_delete',
-                __( 'Customer cannot be deleted.', 'eventin' ),
+                __( 'Customer cannot be deleted.', 'wp-event-solution' ),
                 array( 'status' => 500 )
             );
         }
 
         // translators: %1$d is the number of customers deleted, %2$d is the total number of customers selected.
-        $message = sprintf( __( '%1$d customers are deleted of %2$d', 'eventin' ), $count, count( $ids ) );
+        $message = sprintf( __( '%1$d customers are deleted of %2$d', 'wp-event-solution' ), $count, count( $ids ) );
 
         return rest_ensure_response( $message );
     }

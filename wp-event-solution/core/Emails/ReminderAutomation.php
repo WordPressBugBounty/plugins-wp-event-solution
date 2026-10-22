@@ -182,8 +182,10 @@ class ReminderAutomation {
         $date_format = get_option( 'date_format' );
         $reminder    = new EventReminder();
 
-        $start = $reminder->get_event_date_timestamp( $event->get_start_date(), $event->get_start_time( 'H:i' ) );
-        $end   = $reminder->get_event_date_timestamp( $event->get_end_date(), $event->get_end_time( 'H:i' ) );
+        $timezone    = $reminder->get_event_timezone( $event );
+
+        $start = $reminder->get_event_date_timestamp( $event->get_start_date(), $event->get_start_time( 'H:i' ), $timezone );
+        $end   = $reminder->get_event_date_timestamp( $event->get_end_date(), $event->get_end_time( 'H:i' ), $timezone );
 
         return [
             'site_name'                  => get_bloginfo( 'name' ),

@@ -55,7 +55,7 @@
             <?php endforeach; ?>
         </div>
         <?php else: ?>
-        <p><?php esc_html_e('No events found', 'eventin'); ?></p>
+        <p><?php esc_html_e('No events found', 'wp-event-solution'); ?></p>
         <?php endif; ?>
     </div>
 </div>

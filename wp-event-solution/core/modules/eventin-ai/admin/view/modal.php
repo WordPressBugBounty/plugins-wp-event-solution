@@ -23,11 +23,11 @@
 
             </div>
             <div class="etn-ai-modal-body">
-                <h2><?php esc_html_e( 'Please install and active both Eventin Pro and Eventin AI plugin.', 'eventin' ); ?></h2>
-                <p><?php esc_html_e( 'Eventin AI is only available for purchase on our paid plans. Upgrade and add AI now!', 'eventin' ); ?></p>
+                <h2><?php esc_html_e( 'Please install and active both Eventin Pro and Eventin AI plugin.', 'wp-event-solution' ); ?></h2>
+                <p><?php esc_html_e( 'Eventin AI is only available for purchase on our paid plans. Upgrade and add AI now!', 'wp-event-solution' ); ?></p>
             </div>
             <div class="etn-ai-modal-footer">
-                <a href="<?php echo esc_url( 'https://themewinter.com/eventin/#ts-pricing-list' ); ?>" class="etn-ai-buy-button" target="_blank"><?php esc_html_e( 'Upgrade Your Plan', 'eventin' ); ?></a>
+                <a href="<?php echo esc_url( 'https://themewinter.com/eventin/#ts-pricing-list' ); ?>" class="etn-ai-buy-button" target="_blank"><?php esc_html_e( 'Upgrade Your Plan', 'wp-event-solution' ); ?></a>
             </div>
         </div>
     </div>

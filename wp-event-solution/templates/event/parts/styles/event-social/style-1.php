@@ -3,7 +3,7 @@
     <div class="eventin-block-container">
         <div class="etn-social etn-event-social-style-1">
             <h2 class="etn-social-title">
-                <?php echo esc_html__('Share:', 'eventin'); ?>
+                <?php echo esc_html__('Share:', 'wp-event-solution'); ?>
             </h2>
 
              <?php if (is_array($event_socials)): ?>

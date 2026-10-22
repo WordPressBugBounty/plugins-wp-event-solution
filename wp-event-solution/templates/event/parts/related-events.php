@@ -11,7 +11,7 @@ defined( 'ABSPATH' ) || exit;
 <div class="<?php echo esc_attr($container_class); ?> eventin-block-container">
 
     <div class="etn-event-related-post eventin-block-container">
-        <h3 class="related-post-title"><?php esc_html_e('Related Events', 'eventin'); ?></h3>
+        <h3 class="related-post-title"><?php esc_html_e('Related Events', 'wp-event-solution'); ?></h3>
         <?php if ($related_events): ?>
         <div class="etn-row">
             <?php foreach ($related_events as $event_item): ?>
@@ -50,7 +50,7 @@ defined( 'ABSPATH' ) || exit;
                             <div class="etn-atend-btn">
                                 <a href="<?php echo esc_url(get_the_permalink($event_item->id)); ?>"
                                     class="etn-btn etn-btn-border"
-                                    title="<?php echo esc_attr($event_item->get_title()); ?>"><?php echo esc_html_e('attend', 'eventin'); ?>
+                                    title="<?php echo esc_attr($event_item->get_title()); ?>"><?php echo esc_html_e('attend', 'wp-event-solution'); ?>
                                     <i class="etn-icon etn-arrow-right"></i></a>
                             </div>
                         </div>
@@ -60,7 +60,7 @@ defined( 'ABSPATH' ) || exit;
             <?php endforeach; ?>
         </div>
         <?php else: ?>
-        <p><?php esc_html_e('No events found', 'eventin'); ?></p>
+        <p><?php esc_html_e('No events found', 'wp-event-solution'); ?></p>
         <?php endif; ?>
     </div>
 </div>

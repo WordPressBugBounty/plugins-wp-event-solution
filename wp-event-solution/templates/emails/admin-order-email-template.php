@@ -63,7 +63,7 @@ defined( 'ABSPATH' ) || exit;
         color: #020617;
         "
     >
-        <?php esc_html_e( 'Your Event booking is complete.', 'eventin' ); ?>
+        <?php esc_html_e( 'Your Event booking is complete.', 'wp-event-solution' ); ?>
     </h1>
 <?php } ?>
 
@@ -135,7 +135,7 @@ defined( 'ABSPATH' ) || exit;
         <?php elseif ( $etn_order_options_total > 0 ): ?>
             <tr>
                 <td style="padding: 10px 0; font-size: 14px; color: #334155">
-                    <?php echo esc_html__( 'Add-ons', 'eventin' ); ?>
+                    <?php echo esc_html__( 'Add-ons', 'wp-event-solution' ); ?>
                 </td>
                 <td style="padding: 10px 0; text-align: right; font-size: 14px; color: #334155;">
                     <?php
@@ -157,7 +157,7 @@ defined( 'ABSPATH' ) || exit;
             style="padding: 10px 0; font-size: 14px; color: #334155"
         >
          
-	        <?php echo esc_html__('Subtotal:', 'eventin'); ?>
+	        <?php echo esc_html__('Subtotal:', 'wp-event-solution'); ?>
         </td>
         <td
             style="
@@ -184,7 +184,7 @@ defined( 'ABSPATH' ) || exit;
                 style="padding: 10px 0; font-size: 14px; color: #334155"
             >
             
-                <?php echo esc_html__('Discount:', 'eventin'); ?>
+                <?php echo esc_html__('Discount:', 'wp-event-solution'); ?>
             </td>
             <td
                 style="
@@ -209,7 +209,7 @@ defined( 'ABSPATH' ) || exit;
                 style="padding: 10px 0; font-size: 14px; color: #334155"
             >
             
-            <?php echo esc_html__('Tax:', 'eventin'); ?>
+            <?php echo esc_html__('Tax:', 'wp-event-solution'); ?>
             </td>
             <td
                 style="
@@ -237,7 +237,7 @@ defined( 'ABSPATH' ) || exit;
             "
         >
          
-	        <?php echo esc_html__('Total:', 'eventin'); ?>
+	        <?php echo esc_html__('Total:', 'wp-event-solution'); ?>
         </td>
         <td
             style="
@@ -284,7 +284,7 @@ defined( 'ABSPATH' ) || exit;
             if ( $tax_included_in_total && $order->tax_total > 0 ) {
                 $tax_with_currency = \Etn\Core\Event\Helper::instance()->currency_with_position( number_format($tax_total,2), $order );
                 // translators: %s is the tax amount with currency symbol.
-                $tax_note    = sprintf( __( '(includes %s Tax)', 'eventin' ), esc_html( $tax_with_currency ) );
+                $tax_note    = sprintf( __( '(includes %s Tax)', 'wp-event-solution' ), esc_html( $tax_with_currency ) );
             }
             
             // Output the final total with tax note
@@ -300,13 +300,13 @@ defined( 'ABSPATH' ) || exit;
 
     <!-- Payment Method -->
     <div style="margin-top: 20px; font-size: 14px; color: #334155">
-    <?php echo esc_html__('Payment Method:', 'eventin'); ?>
+    <?php echo esc_html__('Payment Method:', 'wp-event-solution'); ?>
     <span style="font-weight: bold"><?php
         // Check if the payment method is set and not empty
         if (  $order->payment_method == 'wc' ) {
-            echo esc_html__( 'WooCommerce', 'eventin');
+            echo esc_html__( 'WooCommerce', 'wp-event-solution');
         } elseif ( $order->payment_method == 'local_payment' ) {
-            echo esc_html__( 'Local Payment', 'eventin');
+            echo esc_html__( 'Local Payment', 'wp-event-solution');
         } else {
             // If not set, display a default message
             echo esc_html( $order->payment_method );
@@ -332,13 +332,13 @@ defined( 'ABSPATH' ) || exit;
             margin-top: 0;
         "
         >
-            <?php echo esc_html__( 'Download Ticket', 'eventin' ); ?>
+            <?php echo esc_html__( 'Download Ticket', 'wp-event-solution' ); ?>
         </h2>
         <!-- Single Ticket Information -->
         <?php foreach( $order->get_attendees() as $attendee ): ?>
         <div>
-            <p style="margin: 8px 0px"><?php echo esc_html__( 'Ticket name: ', 'eventin' ) . esc_html( $attendee['ticket_name'] ); ?></p>
-            <p style="margin: 8px 0px"><?php echo esc_html__( 'Attendee: ', 'eventin' ) . esc_html( $attendee['etn_name'] ); ?></p>
+            <p style="margin: 8px 0px"><?php echo esc_html__( 'Ticket name: ', 'wp-event-solution' ) . esc_html( $attendee['ticket_name'] ); ?></p>
+            <p style="margin: 8px 0px"><?php echo esc_html__( 'Attendee: ', 'wp-event-solution' ) . esc_html( $attendee['etn_name'] ); ?></p>
             <div
                 style="
                 display: flex;
@@ -381,7 +381,7 @@ defined( 'ABSPATH' ) || exit;
                     />
                     </svg>
                 </span>
-                    <?php echo esc_html__( 'Download Ticket', 'eventin' ); ?>
+                    <?php echo esc_html__( 'Download Ticket', 'wp-event-solution' ); ?>
                 </a>
                 <a
                 href="<?php echo esc_url( site_url("etn-attendee?etn_action=edit_information&attendee_id={$attendee['id']}&etn_info_edit_token={$attendee['etn_info_edit_token']}") ); ?>"
@@ -392,7 +392,7 @@ defined( 'ABSPATH' ) || exit;
                     border-left: 1.5px solid #334155;
                     padding-left: 8px;
                 ">
-	                <?php echo esc_html__( 'Edit Information', 'eventin' ); ?>
+	                <?php echo esc_html__( 'Edit Information', 'wp-event-solution' ); ?>
                 </a>
             </div>
         </div>

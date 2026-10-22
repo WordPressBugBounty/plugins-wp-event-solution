@@ -11,5 +11,5 @@ $event_logo             = get_post_meta($event_id, 'etn_event_logo', true);
         </div>
     </div>
 <?php }else{
-    echo esc_html('Event logo not set yet', 'eventin');
+    echo esc_html__( 'Event logo not set yet', 'wp-event-solution' );
 } ?>

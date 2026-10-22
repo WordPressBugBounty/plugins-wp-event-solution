@@ -896,7 +896,7 @@
          */
         public static function get_users($id = null)
         {
-            $return_organizers = ['' => esc_html__('select organizer', 'eventin')];
+            $return_organizers = ['' => esc_html__('select organizer', 'wp-event-solution')];
             try {
                 $blogusers = get_users(
                     [
@@ -927,44 +927,44 @@
         {
             $prefix       = apply_filters('etn_event_social_icons_prefix', $prefix);
             $social_icons = [
-                "$prefix fa-facebook"           => esc_html__('facebook', 'eventin'),
-                "$prefix fa-facebook-f"         => esc_html__('facebook-f', 'eventin'),
-                "$prefix fa-facebook-messenger" => esc_html__('facebook-messenger', 'eventin'),
-                "$prefix fa-facebook-square"    => esc_html__('facebook-square', 'eventin'),
-                "$prefix fa-linkedin"           => esc_html__('linkedin', 'eventin'),
-                "$prefix fa-linkedin-in"        => esc_html__('linkedin-in', 'eventin'),
-                "$prefix fa-twitter"            => esc_html__('twitter', 'eventin'),
-                "$prefix fa-twitter-square"     => esc_html__('twitter-square', 'eventin'),
-                "$prefix fa-uber"               => esc_html__('uber', 'eventin'),
-                "$prefix fa-google"             => esc_html__('google', 'eventin'),
-                "$prefix fa-google-drive"       => esc_html__('google-drive', 'eventin'),
-                "$prefix fa-google-play"        => esc_html__('google-play', 'eventin'),
-                "$prefix fa-google-wallet"      => esc_html__('google-wallet', 'eventin'),
-                "$prefix fa-linkedin"           => esc_html__('linkedin', 'eventin'),
-                "$prefix fa-linkedin-in"        => esc_html__('linkedin-in', 'eventin'),
-                "$prefix fa-whatsapp"           => esc_html__('whatsapp', 'eventin'),
-                "$prefix fa-whatsapp-square"    => esc_html__('whatsapp-square', 'eventin'),
-                "$prefix fa-wordpress"          => esc_html__('wordpress', 'eventin'),
-                "$prefix fa-wordpress-simple"   => esc_html__('wordpress-simple', 'eventin'),
-                "$prefix fa-youtube"            => esc_html__('youtube', 'eventin'),
-                "$prefix fa-youtube-square"     => esc_html__('youtube-square', 'eventin'),
-                "$prefix fa-xbox"               => esc_html__('xbox', 'eventin'),
-                "$prefix fa-vk"                 => esc_html__('vk', 'eventin'),
-                "$prefix fa-vnv"                => esc_html__('vnv', 'eventin'),
-                "$prefix fa-instagram"          => esc_html__('instagram', 'eventin'),
-                "$prefix fa-reddit"             => esc_html__('reddit', 'eventin'),
-                "$prefix fa-reddit-alien"       => esc_html__('reddit-alien', 'eventin'),
-                "$prefix fa-reddit-square"      => esc_html__('reddit-square', 'eventin'),
-                "$prefix fa-pinterest"          => esc_html__('pinterest', 'eventin'),
-                "$prefix fa-pinterest-p"        => esc_html__('pinterest-p', 'eventin'),
-                "$prefix fa-pinterest-square"   => esc_html__('pinterest-square', 'eventin'),
-                "$prefix fa-tumblr"             => esc_html__('tumblr', 'eventin'),
-                "$prefix fa-tumblr-square"      => esc_html__('tumblr-square', 'eventin'),
-                "$prefix fa-flickr"             => esc_html__('flickr', 'eventin'),
-                "$prefix fa-meetup"             => esc_html__('meetup', 'eventin'),
-                "$prefix fa-vimeo-v"            => esc_html__('vimeo', 'eventin'),
-                "$prefix fa-weixin"             => esc_html__('Wechat', 'eventin'),
-                "$prefix x-twitter"             => esc_html__('Twitter', 'eventin'),
+                "$prefix fa-facebook"           => esc_html__('facebook', 'wp-event-solution'),
+                "$prefix fa-facebook-f"         => esc_html__('facebook-f', 'wp-event-solution'),
+                "$prefix fa-facebook-messenger" => esc_html__('facebook-messenger', 'wp-event-solution'),
+                "$prefix fa-facebook-square"    => esc_html__('facebook-square', 'wp-event-solution'),
+                "$prefix fa-linkedin"           => esc_html__('linkedin', 'wp-event-solution'),
+                "$prefix fa-linkedin-in"        => esc_html__('linkedin-in', 'wp-event-solution'),
+                "$prefix fa-twitter"            => esc_html__('twitter', 'wp-event-solution'),
+                "$prefix fa-twitter-square"     => esc_html__('twitter-square', 'wp-event-solution'),
+                "$prefix fa-uber"               => esc_html__('uber', 'wp-event-solution'),
+                "$prefix fa-google"             => esc_html__('google', 'wp-event-solution'),
+                "$prefix fa-google-drive"       => esc_html__('google-drive', 'wp-event-solution'),
+                "$prefix fa-google-play"        => esc_html__('google-play', 'wp-event-solution'),
+                "$prefix fa-google-wallet"      => esc_html__('google-wallet', 'wp-event-solution'),
+                "$prefix fa-linkedin"           => esc_html__('linkedin', 'wp-event-solution'),
+                "$prefix fa-linkedin-in"        => esc_html__('linkedin-in', 'wp-event-solution'),
+                "$prefix fa-whatsapp"           => esc_html__('whatsapp', 'wp-event-solution'),
+                "$prefix fa-whatsapp-square"    => esc_html__('whatsapp-square', 'wp-event-solution'),
+                "$prefix fa-wordpress"          => esc_html__('wordpress', 'wp-event-solution'),
+                "$prefix fa-wordpress-simple"   => esc_html__('wordpress-simple', 'wp-event-solution'),
+                "$prefix fa-youtube"            => esc_html__('youtube', 'wp-event-solution'),
+                "$prefix fa-youtube-square"     => esc_html__('youtube-square', 'wp-event-solution'),
+                "$prefix fa-xbox"               => esc_html__('xbox', 'wp-event-solution'),
+                "$prefix fa-vk"                 => esc_html__('vk', 'wp-event-solution'),
+                "$prefix fa-vnv"                => esc_html__('vnv', 'wp-event-solution'),
+                "$prefix fa-instagram"          => esc_html__('instagram', 'wp-event-solution'),
+                "$prefix fa-reddit"             => esc_html__('reddit', 'wp-event-solution'),
+                "$prefix fa-reddit-alien"       => esc_html__('reddit-alien', 'wp-event-solution'),
+                "$prefix fa-reddit-square"      => esc_html__('reddit-square', 'wp-event-solution'),
+                "$prefix fa-pinterest"          => esc_html__('pinterest', 'wp-event-solution'),
+                "$prefix fa-pinterest-p"        => esc_html__('pinterest-p', 'wp-event-solution'),
+                "$prefix fa-pinterest-square"   => esc_html__('pinterest-square', 'wp-event-solution'),
+                "$prefix fa-tumblr"             => esc_html__('tumblr', 'wp-event-solution'),
+                "$prefix fa-tumblr-square"      => esc_html__('tumblr-square', 'wp-event-solution'),
+                "$prefix fa-flickr"             => esc_html__('flickr', 'wp-event-solution'),
+                "$prefix fa-meetup"             => esc_html__('meetup', 'wp-event-solution'),
+                "$prefix fa-vimeo-v"            => esc_html__('vimeo', 'wp-event-solution'),
+                "$prefix fa-weixin"             => esc_html__('Wechat', 'wp-event-solution'),
+                "$prefix x-twitter"             => esc_html__('Twitter', 'wp-event-solution'),
             ];
 
             return apply_filters('etn_social_icons', $social_icons);
@@ -976,7 +976,7 @@
         public static function get_orgs()
         {
             $return_organizers = [
-                '' => esc_html__('Select Category', 'eventin'),
+                '' => esc_html__('Select Category', 'wp-event-solution'),
             ];
 
             try {
@@ -1136,7 +1136,7 @@
         {
             $data                     = [];
             $date_options             = Helper::get_date_formats();
-            $text_domain              = 'eventin';
+            $text_domain              = 'wp-event-solution';
             $etn_start_date           = get_post_meta($single_event_id, 'etn_start_date', true);
             $etn_end_date             = get_post_meta($single_event_id, 'etn_end_date', true);
             $etn_start_time           = strtotime(get_post_meta($single_event_id, 'etn_start_time', true));
@@ -1300,23 +1300,23 @@
             $event_start_time   = isset( $event_start_time ) && ( "" != $event_start_time ) ? date_i18n( "H:i:s", strtotime( $event_start_time ) ) : "00:00:00";
             $event_start_date   = isset( $etn_start_date ) && ( "" != $etn_start_date ) ? date_i18n( "m/d/Y", strtotime( $etn_start_date ) ) : date_i18n( "m/d/Y", time() );
             $counter_start_time = $event_start_date . " " . $event_start_time;
-            $countdown_day      = esc_html__( "day", "eventin" );
-            $countdown_hr       = esc_html__( "hr", "eventin" );
-            $countdown_min      = esc_html__( "min", "eventin" );
-            $countdown_sec      = esc_html__( "sec", "eventin" );
+            $countdown_day      = esc_html__( "day", "wp-event-solution" );
+            $countdown_hr       = esc_html__( "hr", "wp-event-solution" );
+            $countdown_min      = esc_html__( "min", "wp-event-solution" );
+            $countdown_sec      = esc_html__( "sec", "wp-event-solution" );
             $event_options      = get_option( "etn_event_options" );
             $show_seperate_dot  = true;
             $timezone_offset    = \Etn\Core\Event\Helper::instance()->get_timezone_numeric_value( $etn_timezone );
 
             $date_texts = [
                 'day'    => $countdown_day,
-                'days'   => esc_html__( "days", "eventin" ),
+                'days'   => esc_html__( "days", "wp-event-solution" ),
                 'hr'     => $countdown_hr,
-                'hrs'    => esc_html__( "hrs", "eventin" ),
+                'hrs'    => esc_html__( "hrs", "wp-event-solution" ),
                 'min'    => $countdown_min,
-                'mins'   => esc_html__( "mins", "eventin" ),
+                'mins'   => esc_html__( "mins", "wp-event-solution" ),
                 'sec'    => $countdown_sec,
-                'secs'   => esc_html__( "secs", "eventin" ),
+                'secs'   => esc_html__( "secs", "wp-event-solution" ),
                 'offset' => $timezone_offset,
             ];
 
@@ -1482,7 +1482,7 @@
                 $column = $configs["column"];
             }
 
-            $title = (is_array($configs) && ! empty($configs["title"])) ? $configs["title"] : esc_html__('Related Events', 'eventin');
+            $title = (is_array($configs) && ! empty($configs["title"])) ? $configs["title"] : esc_html__('Related Events', 'wp-event-solution');
 
             if (file_exists(get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'event/related-events-free.php')) {
                 $template = get_stylesheet_directory() . \Wpeventin::theme_templates_dir() . 'event/related-events-free.php';
@@ -1769,10 +1769,10 @@
         ?>
 		<div class="section-inner">
 			<h3 class="entry-title">
-				<?php echo esc_html__("Invalid data. ", "eventin"); ?>
+				<?php echo esc_html__("Invalid data. ", "wp-event-solution"); ?>
 			</h3>
 			<div class="intro-text">
-				<a href="<?php echo esc_url(home_url()); ?>"><?php echo esc_html__("Return to homepage", "eventin"); ?></a>
+				<a href="<?php echo esc_url(home_url()); ?>"><?php echo esc_html__("Return to homepage", "wp-event-solution"); ?></a>
 			</div>
 		</div>
 	<?php
@@ -1869,7 +1869,7 @@
                     ],
                 ];
                 $location_query_data = get_posts($location_args);
-                $location_data[]     = esc_html__("Select Location", 'eventin');
+                $location_data[]     = esc_html__("Select Location", 'wp-event-solution');
 
                 if (! empty($location_query_data)) {
                     foreach ($location_query_data as $value) {
@@ -1908,10 +1908,10 @@
                 // Defaults can't call __() in the signature (PHP forbids function calls in
                 // parameter defaults), so resolve them here or callers that pass nothing
                 // (shortcode, archive template) render untranslated English.
-                $etn_event_input_filed_title    = ! empty($etn_event_input_filed_title) ? $etn_event_input_filed_title : __('Find your next event', 'eventin');
-                $etn_event_category_filed_title = ! empty($etn_event_category_filed_title) ? $etn_event_category_filed_title : __('Event Category', 'eventin');
-                $etn_event_location_filed_title = ! empty($etn_event_location_filed_title) ? $etn_event_location_filed_title : __('Event Location', 'eventin');
-                $etn_event_button_title         = ! empty($etn_event_button_title) ? $etn_event_button_title : __('Search Now', 'eventin');
+                $etn_event_input_filed_title    = ! empty($etn_event_input_filed_title) ? $etn_event_input_filed_title : __('Find your next event', 'wp-event-solution');
+                $etn_event_category_filed_title = ! empty($etn_event_category_filed_title) ? $etn_event_category_filed_title : __('Event Category', 'wp-event-solution');
+                $etn_event_location_filed_title = ! empty($etn_event_location_filed_title) ? $etn_event_location_filed_title : __('Event Location', 'wp-event-solution');
+                $etn_event_button_title         = ! empty($etn_event_button_title) ? $etn_event_button_title : __('Search Now', 'wp-event-solution');
 
                 $category_data = Helper::get_event_category();
                 $location_data = [];
@@ -2055,7 +2055,7 @@
                         <button
                                 type="button"
                                 class="etn-btn etn-filter-icon"
-                                aria-label="<?php echo esc_attr__( 'Event filter button', 'eventin' ); ?>"
+                                aria-label="<?php echo esc_attr__( 'Event filter button', 'wp-event-solution' ); ?>"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
                                  fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -2842,7 +2842,7 @@
                 public static function get_etn_taxonomy_ids($taxonomy = 'etn_category', $shortcode_cat = "cat_id", $multiple = true)
                 {
                     $multiple_val   = '';
-                    $default_select = '<option value="">' . esc_html__('Select a Category', 'eventin') . '</option>';
+                    $default_select = '<option value="">' . esc_html__('Select a Category', 'wp-event-solution') . '</option>';
                     if ($multiple) {
                         $multiple_val   = 'multiple';
                         $default_select = '';
@@ -2998,8 +2998,8 @@
             public static function get_show_hide($key)
             {
                 $hide_empty = [
-                    "$key='yes'" => esc_html__('Yes', 'eventin'),
-                    "$key='no'"  => esc_html__('No', 'eventin'),
+                    "$key='yes'" => esc_html__('Yes', 'wp-event-solution'),
+                    "$key='no'"  => esc_html__('No', 'wp-event-solution'),
                 ];
 
                 return self::get_option_range($hide_empty, '');
@@ -3012,8 +3012,8 @@
             {
                 $selected_index = 1;
                 $hide_empty     = [
-                    "$key='yes'" => esc_html__('Yes', 'eventin'),
-                    "$key='no'"  => esc_html__('No', 'eventin'),
+                    "$key='yes'" => esc_html__('Yes', 'wp-event-solution'),
+                    "$key='no'"  => esc_html__('No', 'wp-event-solution'),
                 ];
 
                 return self::get_option_range($hide_empty, '', $selected_index);
@@ -3025,8 +3025,8 @@
             public static function get_order($key)
             {
                 $order = [
-                    "$key='ASC'"  => esc_html__('ASC', 'eventin'),
-                    "$key='DESC'" => esc_html__('DESC', 'eventin'),
+                    "$key='ASC'"  => esc_html__('ASC', 'wp-event-solution'),
+                    "$key='DESC'" => esc_html__('DESC', 'wp-event-solution'),
                 ];
 
                 return self::get_option_range($order, '');
@@ -3038,10 +3038,10 @@
             public static function get_event_status($key)
             {
                 $event_status = [
-                    "$key=''"         => esc_html__('All', 'eventin'),
-                    "$key='upcoming'" => esc_html__('Upcoming', 'eventin'),
-                    "$key='ongoing'"  => esc_html__('Ongoing', 'eventin'),
-                    "$key='expire'"   => esc_html__('Expire', 'eventin'),
+                    "$key=''"         => esc_html__('All', 'wp-event-solution'),
+                    "$key='upcoming'" => esc_html__('Upcoming', 'wp-event-solution'),
+                    "$key='ongoing'"  => esc_html__('Ongoing', 'wp-event-solution'),
+                    "$key='expire'"   => esc_html__('Expire', 'wp-event-solution'),
                 ];
 
                 return self::get_option_range($event_status, '');
@@ -3220,7 +3220,7 @@
             ?>
 		<select class="etn-setting-input">
 			<?php for ($i = 1; $i <= $limit; $i++) {?>
-				<option value="<?php echo esc_html($value_name); ?> ='<?php echo esc_html($option_name . $i); ?>'"><?php echo esc_html($display_name . $i, 'eventin'); ?> </option>
+				<option value="<?php echo esc_html($value_name); ?> ='<?php echo esc_html($option_name . $i); ?>'"><?php echo esc_html($display_name . $i); ?> </option>
 			<?php }
 
                     ?>
@@ -3357,14 +3357,14 @@
 			<div><?php echo esc_html( $platforms[$platform] ); ?> :  <a href="<?php echo esc_url( $meeting_link ); ?>" target="_blank" class="" style="margin-right: 10px"><?php echo esc_url( $meeting_link ); ?></a></div>
 		<?php endif; ?>
         <div class="etn-attendee-details-button-parent">
-            <div class="etn-attendee-details-name"><?php echo esc_html__('Ticket name: ', 'eventin') . esc_html($ticket_name); ?></div>
-            <div class="etn-attendee-details-name"><?php echo esc_html__('Attendee: ', 'eventin') . esc_html($attendee_name); ?></div>
+            <div class="etn-attendee-details-name"><?php echo esc_html__('Ticket name: ', 'wp-event-solution') . esc_html($ticket_name); ?></div>
+            <div class="etn-attendee-details-name"><?php echo esc_html__('Attendee: ', 'wp-event-solution') . esc_html($attendee_name); ?></div>
             <div class="etn-attendee-details-button-download">
                 <a class="etn-btn etn-success download-details" target="_blank"
-                   href="<?php echo esc_url($ticket_download_link); ?>"><?php echo esc_html__('Download Ticket ', 'eventin'); ?></a>
+                   href="<?php echo esc_url($ticket_download_link); ?>"><?php echo esc_html__('Download Ticket ', 'wp-event-solution'); ?></a>
                 <span class="etn-attendee-details-separator"> | </span>
                 <a class="etn-btn etn-success edit-information" target="_blank"
-                   href="<?php echo esc_url($edit_information_link); ?>"><?php echo esc_html__(' Edit Information', 'eventin'); ?></a>
+                   href="<?php echo esc_url($edit_information_link); ?>"><?php echo esc_html__(' Edit Information', 'wp-event-solution'); ?></a>
             </div>
         </div><br>
 		<?php
@@ -3462,7 +3462,7 @@
                     // Get email message
                     $purchase_email         = etn_get_email_settings('purchase_email');
                     // translators: %s: Event name
-                    $purchase_email_message = ! empty($purchase_email['body']) ? $purchase_email['body'] : esc_html__("You have purchased ticket(s) for %s. Attendee ticket details are as follows.", "eventin");
+                    $purchase_email_message = ! empty($purchase_email['body']) ? $purchase_email['body'] : esc_html__("You have purchased ticket(s) for %s. Attendee ticket details are as follows.", "wp-event-solution");
 
 		$purchase_email_message = strtr( $purchase_email_message, $placeholder );
 		?>
@@ -3498,7 +3498,7 @@
                     // send email with attendee tickets
                     if (($send_email_to_attendees) && is_array($pdf_data) && ! empty($pdf_data['user_email'])) {
                         $to        = $pdf_data['user_email'];
-                        $subject   = ! empty($purchase_email['subject']) ? $purchase_email['subject'] : esc_html__('Event Ticket', "eventin");
+                        $subject   = ! empty($purchase_email['subject']) ? $purchase_email['subject'] : esc_html__('Event Ticket', "wp-event-solution");
                         $from      = ! empty($purchase_email['from']) ? $purchase_email['from'] : $settings_options['admin_mail_address'];
                         $from_name = self::retrieve_mail_from_name();
 
@@ -3676,8 +3676,8 @@
                                 $events_data[$key]['name']     = $post->post_title;
                                 $events_data[$key]['location'] = get_post_meta($post->ID, 'etn_event_location', true);
 
-                                $events_data[$key]['schedule'] = esc_html__('Date: ', 'eventin') . get_post_meta($post->ID, 'etn_start_date', true) . esc_html__(' to ', 'eventin') . get_post_meta($post->ID, 'etn_end_date', true) .
-                                esc_html__(' Time: ', 'eventin') . get_post_meta($post->ID, 'etn_start_time', true) . esc_html__(' - ', 'eventin') . get_post_meta($post->ID, 'etn_end_time', true);
+                                $events_data[$key]['schedule'] = esc_html__('Date: ', 'wp-event-solution') . get_post_meta($post->ID, 'etn_start_date', true) . esc_html__(' to ', 'wp-event-solution') . get_post_meta($post->ID, 'etn_end_date', true) .
+                                esc_html__(' Time: ', 'wp-event-solution') . get_post_meta($post->ID, 'etn_start_time', true) . esc_html__(' - ', 'wp-event-solution') . get_post_meta($post->ID, 'etn_end_time', true);
                             }
                         }
 
@@ -3831,7 +3831,8 @@
                             foreach ($input_fields as $key => $value) {
 
                                 if ($value['required'] == true && empty($request[$value['name']])) {
-                                    $error_field[] = esc_html(ucfirst(str_replace('_', ' ', $value['name'])) . ' is empty', 'eventin');
+                                    /* translators: %s: form field name */
+                                    $error_field[] = esc_html( sprintf( __( '%s is empty', 'wp-event-solution' ), ucfirst( str_replace( '_', ' ', $value['name'] ) ) ) );
                                 }
                             }
 
@@ -3860,7 +3861,7 @@
                             $response = [
                                 'status_code' => 0,
                                 'messages'    => [
-                                    'error' => esc_html__('Input field is empty', 'eventin'),
+                                    'error' => esc_html__('Input field is empty', 'wp-event-solution'),
                                 ],
                             ];
                         }
@@ -4248,7 +4249,7 @@
 
                     public static function generate_unique_slug_from_ticket_title($event_id, $event_ticket_variation_title)
                     {
-                        $ticket_title = $event_ticket_variation_title == "" ? esc_html__("Default", "eventin") : $event_ticket_variation_title;
+                        $ticket_title = $event_ticket_variation_title == "" ? esc_html__("Default", "wp-event-solution") : $event_ticket_variation_title;
 
                         return $event_id . "-" . sanitize_title_with_dashes($ticket_title) . "-" . substr(md5(time()), 0, 5);
                     }
@@ -4870,7 +4871,7 @@
                     if ((! empty($etn_end_date) && $etn_start_date != $etn_end_date) && $show_end_date == 'yes') {
                     ?>
 			<span>
-				<span><?php echo esc_html__('To', 'eventin') ?></span>
+				<span><?php echo esc_html__('To', 'wp-event-solution') ?></span>
 				<?php echo esc_html($etn_end_date) ?>
 			</span>
 			<?php
@@ -4942,7 +4943,7 @@
 						<path d="M11 6C11 8.76 8.76 11 6 11C3.24 11 1.555 8.22 1.555 8.22M1.555 8.22H3.815M1.555 8.22V10.72M1 6C1 3.24 3.22 1 6 1C9.335 1 11 3.78 11 3.78M11 3.78V1.28M11 3.78H8.78"
 							stroke="white" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" />
 					</svg>
-					<?php echo esc_html_e('More Events', 'eventin') ?>
+					<?php echo esc_html_e('More Events', 'wp-event-solution') ?>
 				</span>
 		<?php
             }
@@ -5082,7 +5083,7 @@
                 ?>
 		<div class="etn-pro">
 			<a href="https://themewinter.com/eventin/#ts-pricing-list" target="_blank">
-				<?php echo esc_html__('Upgrade to  Pro', 'eventin'); ?>
+				<?php echo esc_html__('Upgrade to  Pro', 'wp-event-solution'); ?>
 				<svg width="8" height="9" viewBox="0 0 8 9" fill="none" xmlns="http://www.w3.org/2000/svg">
 					<path d="M1 7.5L7 1.5M7 1.5H1M7 1.5V7.5" stroke="#0A1018" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
 				</svg>
@@ -5102,7 +5103,7 @@
             ?>
 		<div class="etn-pro">
 			<a href="#" target="_blank">
-				<?php echo esc_html__('Install Eventin AI', 'eventin'); ?>
+				<?php echo esc_html__('Install Eventin AI', 'wp-event-solution'); ?>
 				<svg width="8" height="9" viewBox="0 0 8 9" fill="none" xmlns="http://www.w3.org/2000/svg">
 					<path d="M1 7.5L7 1.5M7 1.5H1M7 1.5V7.5" stroke="#0A1018" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
 				</svg>

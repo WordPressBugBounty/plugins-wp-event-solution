@@ -3,7 +3,7 @@
     <div class="eventin-block-container">
         <div class="etn-venue-info-wrapper">
             <div class="etn-venue-info-content">
-                <h3 class="etn-venue-info-title"><?php echo esc_html__('Venue Info', 'eventin'); ?></h3>
+                <h3 class="etn-venue-info-title"><?php echo esc_html__('Venue Info', 'wp-event-solution'); ?></h3>
 
                 <div class="etn-venue-info-list">
                     <?php if (! empty($event_location)): ?>
@@ -73,7 +73,7 @@
 
                 <?php if (! empty($venue_latitude) && ! empty($venue_longitude)): ?>
                 <a href="https://www.google.com/maps?q=<?php echo esc_attr($venue_latitude); ?>,<?php echo esc_attr($venue_longitude); ?>" target="_blank" class="etn-venue-get-direction">
-                    <?php echo esc_html__('Get Direction', 'eventin'); ?>
+                    <?php echo esc_html__('Get Direction', 'wp-event-solution'); ?>
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
                         <path d="M6 12L10 8L6 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>

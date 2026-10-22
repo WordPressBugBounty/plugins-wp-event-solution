@@ -26,7 +26,7 @@ class CustomerRole implements RoleInterfacace {
      * @return  string
      */
     public function get_display_name() {
-        return __( 'Eventin Customer', 'eventin' );
+        return __( 'Eventin Customer', 'wp-event-solution' );
     }
 
     /**

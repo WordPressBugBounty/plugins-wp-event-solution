@@ -67,7 +67,7 @@ class EventCategoryController extends WP_REST_Controller {
             array(
                 'args' => array(
                     'id' => array(
-                        'description' => __( 'Unique identifier for the post.', 'eventin' ),
+                        'description' => __( 'Unique identifier for the post.', 'wp-event-solution' ),
                         'type'        => 'integer',
                     ),
                 ),
@@ -89,7 +89,7 @@ class EventCategoryController extends WP_REST_Controller {
                     'permission_callback' => array( $this, 'update_item_permissions_check' ),
                     'args'                => array(
                         'id' => array(
-                            'description' => __( 'Unique identifier for the post.', 'eventin' ),
+                            'description' => __( 'Unique identifier for the post.', 'wp-event-solution' ),
                             'type'        => 'integer',
                         ),
                     ),
@@ -302,13 +302,13 @@ class EventCategoryController extends WP_REST_Controller {
         // Sanitize and validate the ID
         $id = sanitize_text_field( $request['id'] );
         if ( ! is_numeric( $id ) ) {
-            return new WP_Error( 'rest_invalid_param', __( 'The term ID must be a number.', 'eventin' ), array( 'status' => 400 ) );
+            return new WP_Error( 'rest_invalid_param', __( 'The term ID must be a number.', 'wp-event-solution' ), array( 'status' => 400 ) );
         }
     
         $term = get_term( $id, $this->taxonomy );
     
         if ( ! $term || is_wp_error( $term ) ) {
-            return new WP_Error( 'rest_term_invalid', __( 'Term does not exist.', 'eventin' ), array( 'status' => 404 ) );
+            return new WP_Error( 'rest_term_invalid', __( 'Term does not exist.', 'wp-event-solution' ), array( 'status' => 404 ) );
         }
     
         $deleted = wp_delete_term( $id, $this->taxonomy );
@@ -318,7 +318,7 @@ class EventCategoryController extends WP_REST_Controller {
         }
     
         if ( ! $deleted ) {
-            return new WP_Error( 'rest_cannot_delete', __( 'The term cannot be deleted.', 'eventin' ), array( 'status' => 500 ) );
+            return new WP_Error( 'rest_cannot_delete', __( 'The term cannot be deleted.', 'wp-event-solution' ), array( 'status' => 500 ) );
         }
     
         return new \WP_REST_Response( null, 204 );
@@ -336,7 +336,7 @@ class EventCategoryController extends WP_REST_Controller {
         if ( ! is_array( $ids ) ) {
             return new WP_Error(
                 'rest_cannot_delete',
-                __( 'Category ids must be an array.', 'eventin' ),
+                __( 'Category ids must be an array.', 'wp-event-solution' ),
                 array( 'status' => 400 )
             );
         }
@@ -344,7 +344,7 @@ class EventCategoryController extends WP_REST_Controller {
         if ( ! $ids ) {
             return new WP_Error(
                 'rest_cannot_delete',
-                __( 'Category ids can not be empty.', 'eventin' ),
+                __( 'Category ids can not be empty.', 'wp-event-solution' ),
                 array( 'status' => 400 )
             );
         }
@@ -361,13 +361,13 @@ class EventCategoryController extends WP_REST_Controller {
         if ( $count == 0 ) {
             return new WP_Error(
                 'rest_cannot_delete',
-                __( 'Category cannot be deleted.', 'eventin' ),
+                __( 'Category cannot be deleted.', 'wp-event-solution' ),
                 array( 'status' => 400 )
             );
         }
 
         // translators: %1$d is the number of categories deleted, %2$d is the total number of categories selected.
-        $message = sprintf( __( '%1$d categories are deleted of %2$d', 'eventin' ), $count, count( $ids ) );
+        $message = sprintf( __( '%1$d categories are deleted of %2$d', 'wp-event-solution' ), $count, count( $ids ) );
 
         return rest_ensure_response( $message );
     }
@@ -393,7 +393,7 @@ class EventCategoryController extends WP_REST_Controller {
     protected function get_category( $id ) {
         $error = new WP_Error(
             'rest_category_invalid',
-            __( 'Category does not exist.', 'eventin' ),
+            __( 'Category does not exist.', 'wp-event-solution' ),
             array( 'status' => 404 )
         );
 
@@ -487,7 +487,7 @@ class EventCategoryController extends WP_REST_Controller {
         $ids    = ! empty( $request['ids'] ) ? $request['ids'] : '';
 
         if ( ! $format ) {
-            return new WP_Error( 'format_error', __( 'Invalid data format', 'eventin' ), [ 'status' => 400 ] );
+            return new WP_Error( 'format_error', __( 'Invalid data format', 'wp-event-solution' ), [ 'status' => 400 ] );
         }
 
         if ( ! $ids ) {
@@ -519,7 +519,7 @@ class EventCategoryController extends WP_REST_Controller {
         $file = ! empty( $data['category_import'] ) ? $data['category_import'] : '';
 
         if ( ! $file ) {
-            return new WP_Error( 'empty_file', __( 'You must provide a valid file.', 'eventin' ), [ 'status' => 409 ] );
+            return new WP_Error( 'empty_file', __( 'You must provide a valid file.', 'wp-event-solution' ), [ 'status' => 409 ] );
         }
 
         $importer = new CategoryImporter();
@@ -530,7 +530,7 @@ class EventCategoryController extends WP_REST_Controller {
         }
 
         $response = [
-            'message' => __( 'Successfully imported categories', 'eventin' ),
+            'message' => __( 'Successfully imported categories', 'wp-event-solution' ),
         ];
 
         return rest_ensure_response( $response );

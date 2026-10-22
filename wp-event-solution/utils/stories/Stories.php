@@ -189,7 +189,7 @@ class Stories
             return;
         }
         $this->title = (isset($this->title) && !empty($this->title) ? $this->title . ' ' : '') . 'Stories';
-        wp_add_dashboard_widget('wpmet-stories', $this->title ?? esc_html__('Wpmet Stories', 'eventin'), array($this, 'show'), null, null, 'normal', 'high');
+        wp_add_dashboard_widget('wpmet-stories', $this->title ?? esc_html__('Wpmet Stories', 'wp-event-solution'), array($this, 'show'), null, null, 'normal', 'high');
         // Move our widget to top.
         global $wp_meta_boxes;
         $dashboard = $wp_meta_boxes['dashboard']['normal']['high'];

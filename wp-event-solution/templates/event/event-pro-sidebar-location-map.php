@@ -11,7 +11,7 @@ $default_address    = '';
 global $wp;
 $redirect_url = home_url( $wp->request );
 
-$locations_html = esc_html__( 'No event location is added yet.', 'eventin' );
+$locations_html = esc_html__( 'No event location is added yet.', 'wp-event-solution' );
 $all_locations  = wp_get_post_terms($single_event_id, 'etn_location');
 $latitudes = [];
 $longitudes = [];
@@ -24,7 +24,7 @@ if ( !empty( $all_locations ) ) {
     
     <h4 class="etn-widget-title etn-title">
         <?php 
-        $location_title = apply_filters( 'etn_event_location_title', esc_html__('Venue Info', 'eventin') ); 
+        $location_title = apply_filters( 'etn_event_location_title', esc_html__('Venue Info', 'wp-event-solution') ); 
         echo esc_html( $location_title );
         ?>
     </h4>
@@ -78,7 +78,7 @@ if ( !empty( $all_locations ) ) {
         $locations_html_data[ $term_id ] = ob_get_clean();
     } 
 } else {
-        $msg = esc_html__( 'No store found in this location', 'eventin');
+        $msg = esc_html__( 'No store found in this location', 'wp-event-solution');
 }
 
 if ( !empty( $locations_html_data ) ) {

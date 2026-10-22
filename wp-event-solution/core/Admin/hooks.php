@@ -190,12 +190,12 @@ class Hooks {
                 </div>
                 <div>
                     <div class="e-major-update-warning__title">
-                        <?php echo esc_html__('Heads up! Please backup before upgrading!', 'eventin'); ?>
+                        <?php echo esc_html__('Heads up! Please backup before upgrading!', 'wp-event-solution'); ?>
                     </div>
                     <div class="e-major-update-warning__message">
                         <?php
                         printf(
-                            esc_html__( 'Eventin 4.0, the latest version, includes major changes across different areas of the plugin. For a smooth transition, we strongly advise you to backup your site before upgrading and testing it in a staging environment first.', 'eventin' )
+                            esc_html__( 'Eventin 4.0, the latest version, includes major changes across different areas of the plugin. For a smooth transition, we strongly advise you to backup your site before upgrading and testing it in a staging environment first.', 'wp-event-solution' )
                         );
                         ?>
                     </div>
@@ -697,7 +697,7 @@ class Hooks {
 
         // Security: only serve published Eventin event posts.
         if ( ! $event || 'etn' !== $event->post_type || 'publish' !== $event->post_status ) {
-            wp_die( esc_html__( 'Event not found.', 'eventin' ), '', [ 'response' => 404 ] );
+            wp_die( esc_html__( 'Event not found.', 'wp-event-solution' ), '', [ 'response' => 404 ] );
         }
 
         if ( $event ) {
@@ -816,10 +816,10 @@ class Hooks {
                 '<div class="notice notice-warning is-dismissible">
                     <p><strong>%s</strong> %s <a href="%s" target="_blank">%s</a></p>
                 </div>',
-                __( 'Important Update:', 'eventin' ),
-                __( 'A new version of <strong>Eventin Pro</strong> is available with major improvements and new features. Please update to the latest version for the best experience.', 'eventin' ),
+                __( 'Important Update:', 'wp-event-solution' ),
+                __( 'A new version of <strong>Eventin Pro</strong> is available with major improvements and new features. Please update to the latest version for the best experience.', 'wp-event-solution' ),
                 esc_url( 'https://themewinter.com/eventin/pricing' ),
-                __( 'Update Now', 'eventin' )
+                __( 'Update Now', 'wp-event-solution' )
             );
         }
 
@@ -971,7 +971,7 @@ class Hooks {
         $links[] = sprintf(
             '<a href="%s" target="_blank" style="color: #d63638; font-weight: 600;">%s</a>',
             esc_url( 'https://themewinter.com/eventin/pricing/' ),
-            esc_html__( 'Go Pro', 'eventin' )
+            esc_html__( 'Go Pro', 'wp-event-solution' )
         );
 
         return $links;
@@ -994,29 +994,29 @@ class Hooks {
             // ->set_pro_link( $this->has_pro ? '' : 'https://themewinter.com/eventin/' )
             ->set_default_grid_thumbnail( \Wpeventin::plugin_url() . '/utils/pro-awareness/assets/document.png' )
             ->set_default_grid_link( 'https://themewinter.com/docs/plugins/docs-category/eventin/' )
-            ->set_default_grid_desc( esc_html__( 'Learn More', 'eventin' ) )
+            ->set_default_grid_desc( esc_html__( 'Learn More', 'wp-event-solution' ) )
             ->set_page_grid(
                 array(
                     'url'         => 'https://themewinter.com/support/',
-                    'title'       => esc_html__( 'Email Support', 'eventin' ),
+                    'title'       => esc_html__( 'Email Support', 'wp-event-solution' ),
                     'thumbnail'   => \Wpeventin::plugin_url() . '/utils/pro-awareness/assets/envelope.png',
-                    'description' => esc_html__( 'Learn More', 'eventin' ),
+                    'description' => esc_html__( 'Learn More', 'wp-event-solution' ),
                 )
             )
             ->set_page_grid(
                 array(
                     'url'         => 'https://themewinter.com/',
-                    'title'       => esc_html__( 'Live Chat', 'eventin' ),
+                    'title'       => esc_html__( 'Live Chat', 'wp-event-solution' ),
                     'thumbnail'   => \Wpeventin::plugin_url() . '/utils/pro-awareness/assets/chat.png',
-                    'description' => esc_html__( 'Learn More', 'eventin' ),
+                    'description' => esc_html__( 'Learn More', 'wp-event-solution' ),
                 )
             )
             ->set_page_grid(
                 array(
                     'url'         => 'https://www.youtube.com/watch?v=FSC-jtN9xgg&list=PLW54c-mt4ObDwu0GWjJIoH0aP1hQHyKj7',
-                    'title'       => esc_html__( 'Video Tutorials', 'eventin' ),
+                    'title'       => esc_html__( 'Video Tutorials', 'wp-event-solution' ),
                     'thumbnail'   => \Wpeventin::plugin_url() . '/utils/pro-awareness/assets/video.png',
-                    'description' => esc_html__( 'Learn More', 'eventin' ),
+                    'description' => esc_html__( 'Learn More', 'wp-event-solution' ),
                 )
             )
             ->set_plugin_row_meta( 'Documentation', 'https://themewinter.com/docs/plugins/docs-category/eventin/', array( 'target' => '_blank' ) )

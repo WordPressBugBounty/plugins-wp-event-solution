@@ -67,9 +67,9 @@ class WhatsappRecipients {
      */
     public function add_whatsapp_receivers( $actions ) {
         $map = [
-            'attendee_email' => [ 'attendee_number', __( 'Attendee Number', 'eventin' ) ],
-            'customer_email' => [ 'customer_number', __( 'Customer Number', 'eventin' ) ],
-            'admin_email'    => [ 'admin_number', __( 'Admin Number', 'eventin' ) ],
+            'attendee_email' => [ 'attendee_number', __( 'Attendee Number', 'wp-event-solution' ) ],
+            'customer_email' => [ 'customer_number', __( 'Customer Number', 'wp-event-solution' ) ],
+            'admin_email'    => [ 'admin_number', __( 'Admin Number', 'wp-event-solution' ) ],
         ];
 
         foreach ( (array) $actions as $index => $action ) {

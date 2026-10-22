@@ -12,24 +12,24 @@ if ( '' === $customer ) {
     $customer = (string) $order->customer_email;
 }
 ?>
-<p><?php echo esc_html__( 'Hi', 'eventin' ); ?> <?php echo esc_html( $customer ); ?>,</p>
+<p><?php echo esc_html__( 'Hi', 'wp-event-solution' ); ?> <?php echo esc_html( $customer ); ?>,</p>
 
-<p><?php esc_html_e( 'A refund has been processed for your order. Details below:', 'eventin' ); ?></p>
+<p><?php esc_html_e( 'A refund has been processed for your order. Details below:', 'wp-event-solution' ); ?></p>
 
 <table style="width:100%;border-collapse:collapse;margin:16px 0;">
     <tr>
-        <td style="padding:8px;border:1px solid #eee;"><strong><?php esc_html_e( 'Order', 'eventin' ); ?></strong></td>
+        <td style="padding:8px;border:1px solid #eee;"><strong><?php esc_html_e( 'Order', 'wp-event-solution' ); ?></strong></td>
         <td style="padding:8px;border:1px solid #eee;">#<?php echo esc_html( (string) $order->id ); ?></td>
     </tr>
     <tr>
-        <td style="padding:8px;border:1px solid #eee;"><strong><?php esc_html_e( 'Refund Amount', 'eventin' ); ?></strong></td>
+        <td style="padding:8px;border:1px solid #eee;"><strong><?php esc_html_e( 'Refund Amount', 'wp-event-solution' ); ?></strong></td>
         <td style="padding:8px;border:1px solid #eee;">
             <?php echo esc_html( $refund['currency'] . ' ' . number_format( (float) $refund['amount'], 2 ) ); ?>
         </td>
     </tr>
     <?php if ( $is_ticket && ! empty( $refund['attendee_ids'] ) ) : ?>
         <tr>
-            <td style="padding:8px;border:1px solid #eee;"><strong><?php esc_html_e( 'Refunded Tickets', 'eventin' ); ?></strong></td>
+            <td style="padding:8px;border:1px solid #eee;"><strong><?php esc_html_e( 'Refunded Tickets', 'wp-event-solution' ); ?></strong></td>
             <td style="padding:8px;border:1px solid #eee;">
                 <?php
                 $lines = [];
@@ -47,7 +47,7 @@ if ( '' === $customer ) {
 </table>
 
 <?php if ( ! empty( $refund['reason'] ) ) : ?>
-    <p><strong><?php esc_html_e( 'Reason:', 'eventin' ); ?></strong> <?php echo esc_html( $refund['reason'] ); ?></p>
+    <p><strong><?php esc_html_e( 'Reason:', 'wp-event-solution' ); ?></strong> <?php echo esc_html( $refund['reason'] ); ?></p>
 <?php endif; ?>
 
-<p><?php esc_html_e( 'If you have any questions, just reply to this email.', 'eventin' ); ?></p>
+<p><?php esc_html_e( 'If you have any questions, just reply to this email.', 'wp-event-solution' ); ?></p>

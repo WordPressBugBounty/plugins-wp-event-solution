@@ -72,7 +72,7 @@ class Etn_Woo_Product extends WC_Product {
 class Etn_WC_Order_Item_Product extends WC_Order_Item_Product {
     public function set_product_id( $value ) {
         if ( $value > 0 && 'etn' !== get_post_type( absint( $value ) ) ) {
-            $this->error( 'order_item_product_invalid_product_id', __( 'Invalid product ID', 'eventin' ) );
+            $this->error( 'order_item_product_invalid_product_id', __( 'Invalid product ID', 'wp-event-solution' ) );
         }
         $this->set_prop( 'product_id', absint( $value ) );
     }

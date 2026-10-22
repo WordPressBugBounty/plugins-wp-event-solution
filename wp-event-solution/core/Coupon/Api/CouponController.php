@@ -93,7 +93,7 @@ class CouponController extends WP_REST_Controller {
         register_rest_route( $this->namespace, '/' . $this->rest_base . '/(?P<id>[\d]+)', [
             'args' => [
                 'id' => [
-                    'description' => __( 'Unique identifier for the coupon.', 'eventin' ),
+                    'description' => __( 'Unique identifier for the coupon.', 'wp-event-solution' ),
                     'type'        => 'integer',
                 ],
             ],
@@ -157,7 +157,7 @@ class CouponController extends WP_REST_Controller {
         $coupon = $this->model->find( intval( $request['id'] ) );
 
         if ( ! $coupon ) {
-            return new WP_Error( 'not_found', __( 'Coupon not found.', 'eventin' ), [ 'status' => 404 ] );
+            return new WP_Error( 'not_found', __( 'Coupon not found.', 'wp-event-solution' ), [ 'status' => 404 ] );
         }
 
         return rest_ensure_response( $coupon );
@@ -210,7 +210,7 @@ class CouponController extends WP_REST_Controller {
         $deleted = $this->model->delete( intval( $request['id'] ) );
 
         if ( ! $deleted ) {
-            return new WP_Error( 'rest_cannot_delete', __( 'The coupon cannot be deleted.', 'eventin' ), [ 'status' => 500 ] );
+            return new WP_Error( 'rest_cannot_delete', __( 'The coupon cannot be deleted.', 'wp-event-solution' ), [ 'status' => 500 ] );
         }
 
         return rest_ensure_response( [ 'deleted' => true ] );
@@ -232,7 +232,7 @@ class CouponController extends WP_REST_Controller {
         $ids = array_map( 'intval', (array) $ids );
 
         if ( ! $ids ) {
-            return new WP_Error( 'rest_cannot_delete', __( 'Coupon ids cannot be empty.', 'eventin' ), [ 'status' => 400 ] );
+            return new WP_Error( 'rest_cannot_delete', __( 'Coupon ids cannot be empty.', 'wp-event-solution' ), [ 'status' => 400 ] );
         }
 
         $this->model->delete_many( $ids );

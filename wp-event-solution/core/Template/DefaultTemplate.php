@@ -72,7 +72,7 @@ class DefaultTemplate {
     public static function templates() {
         return [
             'ticket-template-one' => [
-                'name'        => __( 'Ticket Template One', 'eventin' ),
+                'name'        => __( 'Ticket Template One', 'wp-event-solution' ),
                 'type'        => 'ticket',
                 'orientation' => 'landscape',
                 'status'      => 'publish',
@@ -80,7 +80,7 @@ class DefaultTemplate {
                 'content'     => self::get_content( 'ticket-template-one' ),
             ],
             'ticket-template-two' => [
-                'name'       => __('Ticket Template Two', 'eventin'),
+                'name'       => __('Ticket Template Two', 'wp-event-solution'),
                 'type'        => 'ticket',
                 'orientation' => 'landscape',
                 'status'      => 'publish',
@@ -88,7 +88,7 @@ class DefaultTemplate {
                 'content'     => self::get_content( 'ticket-template-two' ),
             ],
             'certificate-template-one' => [
-                'name'        => __('Certificate Template One', 'eventin'),
+                'name'        => __('Certificate Template One', 'wp-event-solution'),
                 'type'        => 'certificate',
                 'orientation' => 'landscape',
                 'status'      => 'publish',
@@ -96,7 +96,7 @@ class DefaultTemplate {
                 'content'     => self::get_content( 'certificate-template-one' ),
             ],
             'event-template-one' => [
-                'name'        => __('Event Template One', 'eventin'),
+                'name'        => __('Event Template One', 'wp-event-solution'),
                 'type'        => 'event',
                 'orientation' => 'landscape',
                 'status'      => 'publish',
@@ -104,7 +104,7 @@ class DefaultTemplate {
                 'content'     => self::get_content( 'event-template-one' ),
             ],
             'event-template-two' => [
-                'name'        => __('Event Template Two', 'eventin'),
+                'name'        => __('Event Template Two', 'wp-event-solution'),
                 'type'        => 'event',
                 'orientation' => 'landscape',
                 'status'      => 'publish',
@@ -112,7 +112,7 @@ class DefaultTemplate {
                 'content'     => self::get_content( 'event-template-two' ),
             ],
             'event-template-three' => [
-                'name'        => __('Event Template Three', 'eventin'),
+                'name'        => __('Event Template Three', 'wp-event-solution'),
                 'type'        => 'event',
                 'orientation' => 'landscape',
                 'status'      => 'publish',

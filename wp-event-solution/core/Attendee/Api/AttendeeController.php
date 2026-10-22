@@ -71,7 +71,7 @@ class AttendeeController extends WP_REST_Controller {
 		    array(
 			    'args'   => array(
 				    'id' => array(
-					    'description' => __( 'Unique identifier for the post.', 'eventin' ),
+					    'description' => __( 'Unique identifier for the post.', 'wp-event-solution' ),
 					    'type'        => 'integer',
 				    ),
 			    ),
@@ -439,7 +439,7 @@ class AttendeeController extends WP_REST_Controller {
         if ( $event->is_expaired() ) {
             return new WP_Error(
                 'event_expired',
-                __( 'Please select another event. This event is already expired.', 'eventin' ),
+                __( 'Please select another event. This event is already expired.', 'wp-event-solution' ),
                 array( 'status' => 400 )
             );
         }
@@ -475,7 +475,7 @@ class AttendeeController extends WP_REST_Controller {
         if ( ! $created ) {
             return new WP_Error(
                 'attendee_create_error',
-                __( 'Attendee can not be created.', 'eventin' ),
+                __( 'Attendee can not be created.', 'wp-event-solution' ),
                 array( 'status' => 500 )
             );
         }
@@ -539,7 +539,7 @@ class AttendeeController extends WP_REST_Controller {
             if ($order_status != 'completed') {
                 return new WP_Error(
                     'attendee_update_error',
-                    __('Attendee status can not be success if order status is not completed.', 'eventin'),
+                    __('Attendee status can not be success if order status is not completed.', 'wp-event-solution'),
                     array('status' => 500)
                 );
             }
@@ -550,7 +550,7 @@ class AttendeeController extends WP_REST_Controller {
             if ($order_status == 'completed') {
                 return new WP_Error(
                     'attendee_update_error',
-                    __('You cannot set attendee status to failed if the order is completed.', 'eventin'),
+                    __('You cannot set attendee status to failed if the order is completed.', 'wp-event-solution'),
                     array('status' => 500)
                 );
             }
@@ -567,7 +567,7 @@ class AttendeeController extends WP_REST_Controller {
         if ( ! $updated ) {
             return new WP_Error(
                 'attendee_update_error',
-                __( 'Attendee can not be updated.', 'eventin' ),
+                __( 'Attendee can not be updated.', 'wp-event-solution' ),
                 array( 'status' => 500 )
             );
         }
@@ -642,7 +642,7 @@ class AttendeeController extends WP_REST_Controller {
         if ( ! $trashed ) {
             return new WP_Error(
                 'rest_cannot_delete',
-                __( 'The attendee cannot be deleted.', 'eventin' ),
+                __( 'The attendee cannot be deleted.', 'wp-event-solution' ),
                 array( 'status' => 500 )
             );
         }
@@ -678,7 +678,7 @@ class AttendeeController extends WP_REST_Controller {
         if ( ! $ids ) {
             return new WP_Error(
                 'rest_cannot_delete',
-                __( 'Attendee ids can not be empty.', 'eventin' ),
+                __( 'Attendee ids can not be empty.', 'wp-event-solution' ),
                 array( 'status' => 400 )
             );
         }
@@ -712,13 +712,13 @@ class AttendeeController extends WP_REST_Controller {
         if ( $count == 0 ) {
             return new WP_Error(
                 'rest_cannot_delete',
-                __( 'Attendee cannot be deleted.', 'eventin' ),
+                __( 'Attendee cannot be deleted.', 'wp-event-solution' ),
                 array( 'status' => 500 )
             );
         }
 
         // translators: %1$d is the number of attendees deleted, %2$d is the total number of attendees selected.
-        $message = sprintf( __( '%1$d Attendee are deleted of %2$d', 'eventin' ), $count, count( $ids ) );
+        $message = sprintf( __( '%1$d Attendee are deleted of %2$d', 'wp-event-solution' ), $count, count( $ids ) );
 
         return rest_ensure_response( $message );
     }
@@ -909,7 +909,7 @@ class AttendeeController extends WP_REST_Controller {
         $ids    = ! empty( $request['ids'] ) ? $request['ids'] : '';
 
         if ( ! $format ) {
-            return new WP_Error( 'format_error', __( 'Invalid data format', 'eventin' ) );
+            return new WP_Error( 'format_error', __( 'Invalid data format', 'wp-event-solution' ) );
         }
 
         // Export is a bulk READ of every attendee's name, email and phone. The
@@ -925,7 +925,7 @@ class AttendeeController extends WP_REST_Controller {
             if ( ! Ownership::can_manage_attendees( $ids ) ) {
                 return new WP_Error(
                     'rest_forbidden',
-                    __( 'Sorry, you are not allowed to export these attendees.', 'eventin' ),
+                    __( 'Sorry, you are not allowed to export these attendees.', 'wp-event-solution' ),
                     [ 'status' => 403 ]
                 );
             }
@@ -1003,7 +1003,7 @@ class AttendeeController extends WP_REST_Controller {
         $file = ! empty( $data['attendee_import'] ) ? $data['attendee_import'] : '';
 
         if ( ! $file ) {
-            return new WP_Error( 'empty_file', __( 'You must provide a valid file.', 'eventin' ), ['status' => 409] );
+            return new WP_Error( 'empty_file', __( 'You must provide a valid file.', 'wp-event-solution' ), ['status' => 409] );
         }
 
         $importer = new AttendeeImporter();
@@ -1014,7 +1014,7 @@ class AttendeeController extends WP_REST_Controller {
         }
 
         $response = [
-            'message' => __( 'Successfully imported attendee', 'eventin' ),
+            'message' => __( 'Successfully imported attendee', 'wp-event-solution' ),
         ];
 
         return rest_ensure_response( $response );
@@ -1077,18 +1077,18 @@ class AttendeeController extends WP_REST_Controller {
         $post = get_post( $id );
 
         if ( ! $post ) {
-            return new WP_Error( 'id_error', __( 'Invalid attendee id', 'eventin' ) );
+            return new WP_Error( 'id_error', __( 'Invalid attendee id', 'wp-event-solution' ) );
         }
 
         if ( 'etn-attendee' !== $post->post_type ) {
-            return new WP_Error( 'id_error', __( 'Invalid attendee id', 'eventin' ) );
+            return new WP_Error( 'id_error', __( 'Invalid attendee id', 'wp-event-solution' ) );
         }
 
         $attendee = new Attendee_Model( $id );
         $event    = new Event_Model( $attendee->etn_event_id );
 
         if ( ! is_email( $attendee->etn_email ) ) {
-            return new WP_Error( 'email_error', __( 'The attendee doesn\'t have valid email', 'eventin' ) );
+            return new WP_Error( 'email_error', __( 'The attendee doesn\'t have valid email', 'wp-event-solution' ) );
         }
 
         // A resend has to use whichever delivery system a real purchase would use —
@@ -1105,7 +1105,7 @@ class AttendeeController extends WP_REST_Controller {
             Mail::to( $attendee->etn_email )->from( $from )->send( new AttendeeOrderEmail( $event, $attendee ) );
 
             return rest_ensure_response( [
-                'message' => __( 'Successfully send ticket email', 'eventin' ),
+                'message' => __( 'Successfully send ticket email', 'wp-event-solution' ),
             ] );
         }
 
@@ -1143,7 +1143,7 @@ class AttendeeController extends WP_REST_Controller {
         ] );
 
         $response = [
-            'message'   => __( 'Successfully send ticket email', 'eventin' ),
+            'message'   => __( 'Successfully send ticket email', 'wp-event-solution' ),
         ];
 
         return rest_ensure_response( $response );
@@ -1216,18 +1216,18 @@ class AttendeeController extends WP_REST_Controller {
         $post = get_post( $id );
 
         if ( ! $post ) {
-            return new WP_Error( 'id_error', __( 'Invalid attendee id', 'eventin' ), ['status' => 422] );
+            return new WP_Error( 'id_error', __( 'Invalid attendee id', 'wp-event-solution' ), ['status' => 422] );
         }
 
         if ( 'etn-attendee' !== $post->post_type ) {
-            return new WP_Error( 'id_error', __( 'Invalid attendee id', 'eventin' ), ['status' => 422] );
+            return new WP_Error( 'id_error', __( 'Invalid attendee id', 'wp-event-solution' ), ['status' => 422] );
         }
 
         $attendee = new Attendee_Model( $id );
         $event    = new Event_Model( $attendee->etn_event_id );
 
         if ( ! is_email( $attendee->etn_email ) ) {
-            return new WP_Error( 'email_error', __( 'The attendee doesn\'t have valid email', 'eventin' ), ['status' => 422] );
+            return new WP_Error( 'email_error', __( 'The attendee doesn\'t have valid email', 'wp-event-solution' ), ['status' => 422] );
         }
 
         // When the Automation module is off the notification SDK isn't loaded, so
@@ -1243,7 +1243,7 @@ class AttendeeController extends WP_REST_Controller {
             Mail::to( $attendee->etn_email )->from( $from )->send( new AttendeeCertificateEmail( $event, $attendee ) );
 
             return rest_ensure_response( [
-                'message' => __( 'Successfully send certificate email', 'eventin' ),
+                'message' => __( 'Successfully send certificate email', 'wp-event-solution' ),
             ] );
         }
 
@@ -1253,7 +1253,8 @@ class AttendeeController extends WP_REST_Controller {
         // certificate is always produceable. Requiring per-event template here
         // wrongly blocked attendees on recurring/cloned occurrences whose child
         // post doesn't carry the parent's certificate_template meta.
-        $date_format = get_option( 'date_format' );
+        $date_format    = get_option( 'date_format' );
+        $event_timezone = ( new \Eventin\Admin\EventReminder() )->get_event_timezone( $event );
 
         // Route through the "Send Certificate" automation for consistency with the
         // event-level send, but scoped to just this attendee: the explicit
@@ -1269,8 +1270,8 @@ class AttendeeController extends WP_REST_Controller {
             'event_date'                 => $event->get_end_date( $date_format ),
             'event_time'                 => $event->get_end_time( etn_time_format() ),
             // Both timestamps so the flow's delay node can key off event start OR end.
-            'event_start_date_timestamp' => $this->get_event_date_timestamp( $event->get_start_date(), $event->get_start_time( 'H:i' ) ),
-            'event_end_date_timestamp'   => $this->get_event_date_timestamp( $event->get_end_date(), $event->get_end_time( 'H:i' ) ),
+            'event_start_date_timestamp' => $this->get_event_date_timestamp( $event->get_start_date(), $event->get_start_time( 'H:i' ), $event_timezone ),
+            'event_end_date_timestamp'   => $this->get_event_date_timestamp( $event->get_end_date(), $event->get_end_time( 'H:i' ), $event_timezone ),
             'event_location'             => $event->get_location_label(),
             'attendee_id'                => [ $attendee->id ],
             'attendee_email'             => [ $attendee->etn_email ],
@@ -1281,23 +1282,24 @@ class AttendeeController extends WP_REST_Controller {
         ] );
 
         $response = [
-            'message'   => __( 'Successfully send certificate', 'eventin' ),
+            'message'   => __( 'Successfully send certificate', 'wp-event-solution' ),
         ];
 
         return rest_ensure_response( $response );
     }
 
     /**
-     * Convert an event date + time (stored in site-local timezone) to a UTC timestamp.
+     * Convert an event date + time (stored in the event's timezone) to a UTC timestamp.
      *
      * Mirrors EventReminder::get_event_date_timestamp() so the automation flow's
      * delay node resolves the same instant regardless of which handler fired it.
      *
      * @param   string  $date
-     * @param   string  $time
+     * @param   string             $time
+     * @param   \DateTimeZone|null $timezone  Defaults to the site timezone.
      * @return  int
      */
-    private function get_event_date_timestamp( $date, $time ) {
+    private function get_event_date_timestamp( $date, $time, $timezone = null ) {
         $time = is_string( $time ) ? trim( $time ) : '';
 
         // Normalize any "digits + separator + digits" shape (e.g. "6h45", "6.45", "6 45") to "06:45".
@@ -1317,7 +1319,7 @@ class AttendeeController extends WP_REST_Controller {
         }
 
         try {
-            return ( new \DateTime( $date . ' ' . $formatted, wp_timezone() ) )->getTimestamp();
+            return ( new \DateTime( $date . ' ' . $formatted, $timezone instanceof \DateTimeZone ? $timezone : wp_timezone() ) )->getTimestamp();
         } catch ( \Exception $e ) {
             return 0;
         }
@@ -1371,7 +1373,7 @@ class AttendeeController extends WP_REST_Controller {
 		if ( ! $trashed ) {
 			return new WP_Error(
 				'rest_cannot_trashed',
-				__( 'The attendee cannot be trashed.', 'eventin' ),
+				__( 'The attendee cannot be trashed.', 'wp-event-solution' ),
 				array( 'status' => 500 )
 			);
 		}
@@ -1411,7 +1413,7 @@ class AttendeeController extends WP_REST_Controller {
 		if ( ! $untrashed ) {
 			return new WP_Error(
 				'rest_cannot_untrashed',
-				__( 'The attendee cannot be untrashed.', 'eventin' ),
+				__( 'The attendee cannot be untrashed.', 'wp-event-solution' ),
 				array( 'status' => 500 )
 			);
 		}

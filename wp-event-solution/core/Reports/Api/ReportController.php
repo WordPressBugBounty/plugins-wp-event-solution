@@ -51,7 +51,7 @@ class ReportController extends WP_REST_Controller {
             array(
                 'args' => array(
                     'id' => array(
-                        'description' => __( 'Unique identifier for the post.', 'eventin' ),
+                        'description' => __( 'Unique identifier for the post.', 'wp-event-solution' ),
                         'type'        => 'integer',
                     ),
                 ),

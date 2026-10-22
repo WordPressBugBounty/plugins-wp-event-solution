@@ -72,7 +72,7 @@ class SpeakerController extends WP_REST_Controller {
             array(
                 'args' => array(
                     'id' => array(
-                        'description' => __( 'Unique identifier for the post.', 'eventin' ),
+                        'description' => __( 'Unique identifier for the post.', 'wp-event-solution' ),
                         'type'        => 'integer',
                     ),
                 ),
@@ -103,7 +103,7 @@ class SpeakerController extends WP_REST_Controller {
             array(
                 'args' => array(
                     'id' => array(
-                        'description' => __( 'Unique identifier for the post.', 'eventin' ),
+                        'description' => __( 'Unique identifier for the post.', 'wp-event-solution' ),
                         'type'        => 'integer',
                     ),
                 ),
@@ -429,7 +429,7 @@ class SpeakerController extends WP_REST_Controller {
         $created = $user->create( $clone );
 
         if ( ! $created ) {
-            return new WP_Error( 'create_error', __( 'Speaker can not create from clone id. Please try again', 'eventin' ), ['status' => 409] );
+            return new WP_Error( 'create_error', __( 'Speaker can not create from clone id. Please try again', 'wp-event-solution' ), ['status' => 409] );
         }
 
         $item = User_Model::instance()->get_data( $created );
@@ -527,7 +527,7 @@ class SpeakerController extends WP_REST_Controller {
         if ( ! current_user_can( 'create_users' ) ) {
             return new WP_Error(
                 'rest_forbidden',
-                __( 'Sorry, you are not allowed to create user accounts.', 'eventin' ),
+                __( 'Sorry, you are not allowed to create user accounts.', 'wp-event-solution' ),
                 [ 'status' => 403 ]
             );
         }
@@ -539,7 +539,7 @@ class SpeakerController extends WP_REST_Controller {
         if ( $assigns_role && ! current_user_can( 'promote_users' ) ) {
             return new WP_Error(
                 'rest_forbidden',
-                __( 'Sorry, you are not allowed to assign roles to users.', 'eventin' ),
+                __( 'Sorry, you are not allowed to assign roles to users.', 'wp-event-solution' ),
                 [ 'status' => 403 ]
             );
         }
@@ -571,12 +571,12 @@ class SpeakerController extends WP_REST_Controller {
         
         // Validate target user exists
         if ( ! $target_user ) {
-            return new WP_Error('user_not_found', __( 'User does not exist', 'eventin' ), array('status' => 404));
+            return new WP_Error('user_not_found', __( 'User does not exist', 'wp-event-solution' ), array('status' => 404));
         }
         
         // only allow to edit `speaker` or `organizer`
         if ( ! current_user_can( 'edit_user', $target_user_id ) ) {
-            return new WP_Error('forbidden', __( 'Forbidden', 'eventin' ), array('status' => 403));
+            return new WP_Error('forbidden', __( 'Forbidden', 'wp-event-solution' ), array('status' => 403));
         }
         
         // only allow to edit `speaker` or `organizer`
@@ -584,7 +584,7 @@ class SpeakerController extends WP_REST_Controller {
             ! in_array('etn-speaker', (array)$target_user->roles, true) &&
             ! in_array('etn-organizer', (array)$target_user->roles, true)
         ) {
-            return new WP_Error('forbidden', __( 'Forbidden', 'eventin' ), array('status' => 403));
+            return new WP_Error('forbidden', __( 'Forbidden', 'wp-event-solution' ), array('status' => 403));
         }
         
         
@@ -608,7 +608,7 @@ class SpeakerController extends WP_REST_Controller {
             
             if ($assign_role) {
                 $response = [
-                    'message' => __('The email you provided is exist and assign speaker or organizer role', 'eventin')
+                    'message' => __('The email you provided is exist and assign speaker or organizer role', 'wp-event-solution')
                 ];
                 
                 return rest_ensure_response($response);
@@ -618,7 +618,7 @@ class SpeakerController extends WP_REST_Controller {
         $updated = $speaker->update($data);
         
         if (!$updated) {
-            return new WP_Error('update_error', __('Speaker can not updated. Please try again', 'eventin'), ['status' => 409]);
+            return new WP_Error('update_error', __('Speaker can not updated. Please try again', 'wp-event-solution'), ['status' => 409]);
         }
         
         $item = User_Model::instance()->get_data($updated);
@@ -656,7 +656,7 @@ class SpeakerController extends WP_REST_Controller {
         if ( ! $id || ! $this->is_speaker_or_organizer( $id ) ) {
             return new WP_Error(
                 'rest_speaker_invalid',
-                __( 'Invalid speaker id.', 'eventin' ),
+                __( 'Invalid speaker id.', 'wp-event-solution' ),
                 array( 'status' => 404 )
             );
         }
@@ -676,7 +676,7 @@ class SpeakerController extends WP_REST_Controller {
         if ( ! $deleted ) {
             return new WP_Error(
                 'rest_cannot_delete',
-                __( 'The speaker cannot be deleted.', 'eventin' ),
+                __( 'The speaker cannot be deleted.', 'wp-event-solution' ),
                 array( 'status' => 500 )
             );
         }
@@ -699,7 +699,7 @@ class SpeakerController extends WP_REST_Controller {
         if ( ! $ids ) {
             return new WP_Error(
                 'rest_cannot_delete',
-                __( 'Speaker ids can not be empty.', 'eventin' ),
+                __( 'Speaker ids can not be empty.', 'wp-event-solution' ),
                 array( 'status' => 400 )
             );
         }
@@ -742,13 +742,13 @@ class SpeakerController extends WP_REST_Controller {
         if ( 0 === $count ) {
             return new WP_Error(
                 'rest_cannot_delete',
-                __( 'Speaker cannot be deleted.', 'eventin' ),
+                __( 'Speaker cannot be deleted.', 'wp-event-solution' ),
                 array( 'status' => 500 )
             );
         }
 
         // translators: %1$d is the number of speakers deleted, %2$d is the total number of speakers selected.
-        $message = sprintf( __( '%1$d speakers are deleted of %2$d', 'eventin' ), $count, count( $ids ) );
+        $message = sprintf( __( '%1$d speakers are deleted of %2$d', 'wp-event-solution' ), $count, count( $ids ) );
 
         return rest_ensure_response( $message );
     }
@@ -893,7 +893,7 @@ class SpeakerController extends WP_REST_Controller {
 
 
         if ( isset( $input_data['hide_user'] ) ) {
-            $prepared_data['hide_user'] = $input_data['hide_user'];
+            $prepared_data['hide_user'] = rest_sanitize_boolean( $input_data['hide_user'] );
         }
         
         return $prepared_data;
@@ -994,7 +994,7 @@ class SpeakerController extends WP_REST_Controller {
         $ids    = ! empty( $request['ids'] ) ? $request['ids'] : '';
 
         if ( ! $format ) {
-            return new WP_Error( 'format_error', __( 'Invalid data format', 'eventin' ) );
+            return new WP_Error( 'format_error', __( 'Invalid data format', 'wp-event-solution' ) );
         }
 
         if ( ! $ids ) {
@@ -1014,7 +1014,7 @@ class SpeakerController extends WP_REST_Controller {
             if ( ! Ownership::can_read_user( $id ) ) {
                 return new WP_Error(
                     'rest_forbidden',
-                    __( 'Sorry, you are not allowed to export these records.', 'eventin' ),
+                    __( 'Sorry, you are not allowed to export these records.', 'wp-event-solution' ),
                     [ 'status' => 403 ]
                 );
             }
@@ -1054,7 +1054,7 @@ class SpeakerController extends WP_REST_Controller {
         $file = ! empty( $data['speaker_import'] ) ? $data['speaker_import'] : '';
 
         if ( ! $file ) {
-            return new WP_Error( 'empty_file', __( 'You must provide a valid file.', 'eventin' ), ['status' => 409] );
+            return new WP_Error( 'empty_file', __( 'You must provide a valid file.', 'wp-event-solution' ), ['status' => 409] );
         }
 
         $importer = new SpeakerImporter();
@@ -1064,7 +1064,7 @@ class SpeakerController extends WP_REST_Controller {
             return $result;
         }
 
-        return rest_ensure_response( ['message' => __( 'Successfully imported speakers', 'eventin' )] );
+        return rest_ensure_response( ['message' => __( 'Successfully imported speakers', 'wp-event-solution' )] );
     }
 
     /**
@@ -1089,7 +1089,7 @@ class SpeakerController extends WP_REST_Controller {
         $ids    = ! empty( $request['ids'] ) ? $request['ids'] : '';
 
         if ( ! $format ) {
-            return new WP_Error( 'format_error', __( 'Invalid data format', 'eventin' ) );
+            return new WP_Error( 'format_error', __( 'Invalid data format', 'wp-event-solution' ) );
         }
 
         if ( ! $ids ) {
@@ -1109,7 +1109,7 @@ class SpeakerController extends WP_REST_Controller {
             if ( ! Ownership::can_read_user( $id ) ) {
                 return new WP_Error(
                     'rest_forbidden',
-                    __( 'Sorry, you are not allowed to export these records.', 'eventin' ),
+                    __( 'Sorry, you are not allowed to export these records.', 'wp-event-solution' ),
                     [ 'status' => 403 ]
                 );
             }
@@ -1143,7 +1143,7 @@ class SpeakerController extends WP_REST_Controller {
         $file = ! empty( $data['organizer_import'] ) ? $data['organizer_import'] : '';
 
         if ( ! $file ) {
-            return new WP_Error( 'empty_file', __( 'You must provide a valid file.', 'eventin' ), ['status' => 409] );
+            return new WP_Error( 'empty_file', __( 'You must provide a valid file.', 'wp-event-solution' ), ['status' => 409] );
         }
 
         $importer = new SpeakerImporter();
@@ -1153,7 +1153,7 @@ class SpeakerController extends WP_REST_Controller {
             return $result;
         }
 
-        return rest_ensure_response( ['message' => __( 'Successfully imported organizers', 'eventin' )] );
+        return rest_ensure_response( ['message' => __( 'Successfully imported organizers', 'wp-event-solution' )] );
     }
 
     /**
@@ -1187,7 +1187,7 @@ class SpeakerController extends WP_REST_Controller {
         if ( ! current_user_can( 'edit_user', $user->ID ) ) {
             return new WP_Error(
                 'rest_forbidden',
-                __( 'Sorry, you are not allowed to modify this user.', 'eventin' ),
+                __( 'Sorry, you are not allowed to modify this user.', 'wp-event-solution' ),
                 [ 'status' => 403 ]
             );
         }
@@ -1205,7 +1205,7 @@ class SpeakerController extends WP_REST_Controller {
         $exists_with_role = empty( array_diff( $updated_roles, $user->roles ) );
 
         if ( $exists_with_role && !$is_for_update ) {
-            return new WP_Error( 'organizer_speaker_exists', __( 'Speaker or Organizer already exists', 'eventin' ), ['status' => 422] );
+            return new WP_Error( 'organizer_speaker_exists', __( 'Speaker or Organizer already exists', 'wp-event-solution' ), ['status' => 422] );
         }
 
         // Adding a plugin role to an account that already exists is a PROMOTION,
@@ -1229,7 +1229,7 @@ class SpeakerController extends WP_REST_Controller {
         if ( array_diff( $updated_roles, $user->roles ) && ! current_user_can( 'promote_user', $user->ID ) ) {
             return new WP_Error(
                 'rest_forbidden',
-                __( 'Sorry, you are not allowed to assign roles to this user.', 'eventin' ),
+                __( 'Sorry, you are not allowed to assign roles to this user.', 'wp-event-solution' ),
                 [ 'status' => 403 ]
             );
         }

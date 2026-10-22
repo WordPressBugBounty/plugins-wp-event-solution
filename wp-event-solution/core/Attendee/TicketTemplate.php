@@ -68,11 +68,11 @@ class TicketTemplate implements HookableInterface {
 			$get_arr = filter_input_array( INPUT_GET, FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 
 			if ( empty( $get_arr["attendee_id"] ) || empty( $get_arr["etn_info_edit_token"] ) ) {
-				wp_die( esc_html__( 'Invalid data', 'eventin' ) );
+				wp_die( esc_html__( 'Invalid data', 'wp-event-solution' ) );
 			}
 
 			if ( ! $this->verify_attendee_edit_token( $get_arr["attendee_id"], $get_arr["etn_info_edit_token"] ) ) {
-				wp_die( esc_html__( 'Invalid data', 'eventin' ) );
+				wp_die( esc_html__( 'Invalid data', 'wp-event-solution' ) );
 			}
 			$attendee_id = $get_arr["attendee_id"];
 			$event_id    = get_post_meta( $attendee_id, "etn_event_id", true );

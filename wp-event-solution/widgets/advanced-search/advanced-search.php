@@ -25,7 +25,7 @@ class Etn_Advanced_Search extends Widget_Base {
      * @return string Widget title.
      */
     public function get_title() {
-        return esc_html__( 'Eventin Advanced Search', 'eventin' );
+        return esc_html__( 'Eventin Advanced Search', 'wp-event-solution' );
     }
 
     /**
@@ -57,7 +57,7 @@ class Etn_Advanced_Search extends Widget_Base {
         $this->start_controls_section(
 			'etn_event_searc_settings_section',
 			[
-				'label' => esc_html__( 'Settings', 'eventin' ),
+				'label' => esc_html__( 'Settings', 'wp-event-solution' ),
 				'tab' => Controls_Manager::TAB_CONTENT,
 			]
 		);
@@ -65,10 +65,10 @@ class Etn_Advanced_Search extends Widget_Base {
 		$this->add_control(
 		'etn_event_input_filed_title',
 			[
-				'label'       => esc_html__( 'Input placeholder Text', 'eventin' ),
+				'label'       => esc_html__( 'Input placeholder Text', 'wp-event-solution' ),
 				'type'        => Controls_Manager::TEXT,
-				'default'     => esc_html__( 'Find your next event', 'eventin' ),
-				'placeholder' => esc_html__( 'Type your title here', 'eventin' ),
+				'default'     => esc_html__( 'Find your next event', 'wp-event-solution' ),
+				'placeholder' => esc_html__( 'Type your title here', 'wp-event-solution' ),
                 'separator'   => 'before',
             ]
         );
@@ -76,10 +76,10 @@ class Etn_Advanced_Search extends Widget_Base {
         $this->add_control(
         'etn_event_category_filed_title',
             [
-                'label'       => esc_html__( 'Category Text', 'eventin' ),
+                'label'       => esc_html__( 'Category Text', 'wp-event-solution' ),
                 'type'        => Controls_Manager::TEXT,
-                'default'     => esc_html__( 'Event Category', 'eventin' ),
-                'placeholder' => esc_html__( 'Type your title here', 'eventin' ),
+                'default'     => esc_html__( 'Event Category', 'wp-event-solution' ),
+                'placeholder' => esc_html__( 'Type your title here', 'wp-event-solution' ),
                 'separator'   => 'before',
             ]
         );
@@ -87,10 +87,10 @@ class Etn_Advanced_Search extends Widget_Base {
         $this->add_control(
         'etn_event_location_filed_title',
             [
-                'label'       => esc_html__( 'Location Text', 'eventin' ),
+                'label'       => esc_html__( 'Location Text', 'wp-event-solution' ),
                 'type'        => Controls_Manager::TEXT,
-                'default'     => esc_html__( 'Event Location', 'eventin' ),
-                'placeholder' => esc_html__( 'Type your title here', 'eventin' ),
+                'default'     => esc_html__( 'Event Location', 'wp-event-solution' ),
+                'placeholder' => esc_html__( 'Type your title here', 'wp-event-solution' ),
                 'separator'   => 'before',
             ]
 	    );
@@ -98,10 +98,10 @@ class Etn_Advanced_Search extends Widget_Base {
 		$this->add_control(
 			'etn_event_button_title',
 			[
-				'label'       => esc_html__( 'Button Text', 'eventin' ),
+				'label'       => esc_html__( 'Button Text', 'wp-event-solution' ),
 				'type'        => Controls_Manager::TEXT,
-				'default'     => esc_html__( 'Search Now', 'eventin' ),
-				'placeholder' => esc_html__( 'Type your title here', 'eventin' ),
+				'default'     => esc_html__( 'Search Now', 'wp-event-solution' ),
+				'placeholder' => esc_html__( 'Type your title here', 'wp-event-solution' ),
                 'separator'   => 'before',
 			]
 		);
@@ -114,7 +114,7 @@ class Etn_Advanced_Search extends Widget_Base {
         $this->start_controls_section(
             'search_style_section',
             [
-                'label' => esc_html__( 'Search Box', 'eventin' ),
+                'label' => esc_html__( 'Search Box', 'wp-event-solution' ),
                 'tab' => Controls_Manager::TAB_STYLE,
             ]
         );
@@ -122,7 +122,7 @@ class Etn_Advanced_Search extends Widget_Base {
                 Group_Control_Background::get_type(),
                 [
                     'name' => 'search_background_style',
-                    'label' => esc_html__( 'Background', 'eventin' ),
+                    'label' => esc_html__( 'Background', 'wp-event-solution' ),
                     'types' => [ 'classic', 'gradient' ],
                     'selector' => '{{WRAPPER}} .etn_event_inline_form',
                 ]
@@ -130,15 +130,15 @@ class Etn_Advanced_Search extends Widget_Base {
             $this->add_responsive_control(
                 'search_border_style',
                 [
-                    'label' => esc_html_x( 'Border Type', 'Border Control', 'eventin' ),
+                    'label' => esc_html_x( 'Border Type', 'Border Control', 'wp-event-solution' ),
                     'type' => Controls_Manager::SELECT,
                     'options' => [
-                        '' => esc_html__( 'None', 'eventin' ),
-                        'solid' => esc_html_x( 'Solid', 'Border Control', 'eventin' ),
-                        'double' => esc_html_x( 'Double', 'Border Control', 'eventin' ),
-                        'dotted' => esc_html_x( 'Dotted', 'Border Control', 'eventin' ),
-                        'dashed' => esc_html_x( 'Dashed', 'Border Control', 'eventin' ),
-                        'groove' => esc_html_x( 'Groove', 'Border Control', 'eventin' ),
+                        '' => esc_html__( 'None', 'wp-event-solution' ),
+                        'solid' => esc_html_x( 'Solid', 'Border Control', 'wp-event-solution' ),
+                        'double' => esc_html_x( 'Double', 'Border Control', 'wp-event-solution' ),
+                        'dotted' => esc_html_x( 'Dotted', 'Border Control', 'wp-event-solution' ),
+                        'dashed' => esc_html_x( 'Dashed', 'Border Control', 'wp-event-solution' ),
+                        'groove' => esc_html_x( 'Groove', 'Border Control', 'wp-event-solution' ),
                     ],
                     'selectors' => [
                         '{{WRAPPER}} .etn_event_inline_form' => 'border-style: {{VALUE}};',
@@ -148,7 +148,7 @@ class Etn_Advanced_Search extends Widget_Base {
             $this->add_responsive_control(
                 'search_border_width_style',
                 [
-                    'label' => esc_html_x( 'Border Width', 'Border Control', 'eventin' ),
+                    'label' => esc_html_x( 'Border Width', 'Border Control', 'wp-event-solution' ),
                     'type' => Controls_Manager::DIMENSIONS,
                     'selectors' => [
                         '{{WRAPPER}} .etn_event_inline_form' => 'border-width: {{TOP}}px {{RIGHT}}px {{BOTTOM}}px {{LEFT}}px;',
@@ -162,7 +162,7 @@ class Etn_Advanced_Search extends Widget_Base {
             $this->add_control(
                 'search_border_color_style',
                 [
-                    'label' => esc_html_x( 'Border Color', 'Border Control', 'eventin' ),
+                    'label' => esc_html_x( 'Border Color', 'Border Control', 'wp-event-solution' ),
                     'type' => Controls_Manager::COLOR,
                     'selectors' => [
                         '{{WRAPPER}} .etn_event_inline_form' => 'border-color: {{VALUE}};',
@@ -175,7 +175,7 @@ class Etn_Advanced_Search extends Widget_Base {
             $this->add_responsive_control(
                 'search_border_radius_style',
                 [
-                    'label' => esc_html__( 'Border Radius', 'eventin' ),
+                    'label' => esc_html__( 'Border Radius', 'wp-event-solution' ),
                     'type' => Controls_Manager::DIMENSIONS,
                     'size_units' => [ 'px', '%', 'em' ],
                     'selectors' => [
@@ -190,7 +190,7 @@ class Etn_Advanced_Search extends Widget_Base {
                 Group_Control_Box_Shadow::get_type(),
                 [
                     'name' => 'search_boxshadow_style',
-                    'label' => esc_html__( 'Box Shadow', 'eventin' ),
+                    'label' => esc_html__( 'Box Shadow', 'wp-event-solution' ),
                     'selector' => '{{WRAPPER}} .etn_event_inline_form',
                 ]
             );
@@ -201,14 +201,14 @@ class Etn_Advanced_Search extends Widget_Base {
         $this->start_controls_section(
             'search_input_group_style_section',
             [
-                'label' => esc_html__( 'Input Group', 'eventin' ),
+                'label' => esc_html__( 'Input Group', 'wp-event-solution' ),
                 'tab' => Controls_Manager::TAB_STYLE,
             ]
         );
             $this->add_control(
                 'search_input_group_padding',
                 [
-                    'label' =>esc_html__( 'Padding', 'eventin' ),
+                    'label' =>esc_html__( 'Padding', 'wp-event-solution' ),
                     'type' => Controls_Manager::DIMENSIONS,
                     'size_units' => [ 'px', '%', 'em' ],
                     'selectors' => [
@@ -219,7 +219,7 @@ class Etn_Advanced_Search extends Widget_Base {
             $this->add_control(
                 'search_input_group_margin',
                 [
-                    'label' =>esc_html__( 'Margin', 'eventin' ),
+                    'label' =>esc_html__( 'Margin', 'wp-event-solution' ),
                     'type' => Controls_Manager::DIMENSIONS,
                     'size_units' => [ 'px', '%', 'em' ],
                     'selectors' => [
@@ -231,15 +231,15 @@ class Etn_Advanced_Search extends Widget_Base {
             $this->add_responsive_control(
                 'search_input_group_border',
                 [
-                    'label' => esc_html_x( 'Border Type', 'Border Control', 'eventin' ),
+                    'label' => esc_html_x( 'Border Type', 'Border Control', 'wp-event-solution' ),
                     'type' => Controls_Manager::SELECT,
                     'options' => [
-                        '' => esc_html__( 'None', 'eventin' ),
-                        'solid' => esc_html_x( 'Solid', 'Border Control', 'eventin' ),
-                        'double' => esc_html_x( 'Double', 'Border Control', 'eventin' ),
-                        'dotted' => esc_html_x( 'Dotted', 'Border Control', 'eventin' ),
-                        'dashed' => esc_html_x( 'Dashed', 'Border Control', 'eventin' ),
-                        'groove' => esc_html_x( 'Groove', 'Border Control', 'eventin' ),
+                        '' => esc_html__( 'None', 'wp-event-solution' ),
+                        'solid' => esc_html_x( 'Solid', 'Border Control', 'wp-event-solution' ),
+                        'double' => esc_html_x( 'Double', 'Border Control', 'wp-event-solution' ),
+                        'dotted' => esc_html_x( 'Dotted', 'Border Control', 'wp-event-solution' ),
+                        'dashed' => esc_html_x( 'Dashed', 'Border Control', 'wp-event-solution' ),
+                        'groove' => esc_html_x( 'Groove', 'Border Control', 'wp-event-solution' ),
                     ],
                     'selectors' => [
                         '{{WRAPPER}} .etn_event_inline_form .input-group' => 'border-style: {{VALUE}};',
@@ -249,7 +249,7 @@ class Etn_Advanced_Search extends Widget_Base {
             $this->add_responsive_control(
                 'search_input_group_border_width',
                 [
-                    'label' => esc_html_x( 'Border Width', 'Border Control', 'eventin' ),
+                    'label' => esc_html_x( 'Border Width', 'Border Control', 'wp-event-solution' ),
                     'type' => Controls_Manager::DIMENSIONS,
                     'selectors' => [
                         '{{WRAPPER}} .etn_event_inline_form .input-group' => 'border-width: {{TOP}}px {{RIGHT}}px {{BOTTOM}}px {{LEFT}}px;',
@@ -263,7 +263,7 @@ class Etn_Advanced_Search extends Widget_Base {
             $this->add_control(
                 'search_input_group_border_color',
                 [
-                    'label' => esc_html_x( 'Border Color', 'Border Control', 'eventin' ),
+                    'label' => esc_html_x( 'Border Color', 'Border Control', 'wp-event-solution' ),
                     'type' => Controls_Manager::COLOR,
                     'selectors' => [
                         '{{WRAPPER}} .etn_event_inline_form .input-group' => 'border-color: {{VALUE}};',
@@ -276,7 +276,7 @@ class Etn_Advanced_Search extends Widget_Base {
             $this->add_responsive_control(
                 'search_input_group_border_radius',
                 [
-                    'label' => esc_html__( 'Border Radius', 'eventin' ),
+                    'label' => esc_html__( 'Border Radius', 'wp-event-solution' ),
                     'type' => Controls_Manager::DIMENSIONS,
                     'size_units' => [ 'px', '%', 'em' ],
                     'selectors' => [
@@ -294,7 +294,7 @@ class Etn_Advanced_Search extends Widget_Base {
         $this->start_controls_section(
             'search_input_icon_style_section',
             [
-                'label' => esc_html__( 'Input Icon', 'eventin' ),
+                'label' => esc_html__( 'Input Icon', 'wp-event-solution' ),
                 'tab' => Controls_Manager::TAB_STYLE,
             ]
         );
@@ -302,14 +302,14 @@ class Etn_Advanced_Search extends Widget_Base {
                 Group_Control_Typography::get_type(),
                 [
                     'name' => 'search_input_icon_typography',
-                    'label' => esc_html__( 'Typography', 'eventin' ),
+                    'label' => esc_html__( 'Typography', 'wp-event-solution' ),
                     'selector' => '{{WRAPPER}} .etn_event_inline_form .input-group-text',
                 ]
             );
             $this->add_control(
                 'search_input_icon_color',
                 [
-                    'label' =>esc_html__( 'Color', 'eventin' ),
+                    'label' =>esc_html__( 'Color', 'wp-event-solution' ),
                     'type' => Controls_Manager::COLOR,
                     'selectors' => [
                         '{{WRAPPER}} .etn_event_inline_form .input-group-text' => 'color: {{VALUE}};',
@@ -323,7 +323,7 @@ class Etn_Advanced_Search extends Widget_Base {
         $this->start_controls_section(
             'search_button_style_section',
             [
-                'label' => esc_html__( 'Search Button', 'eventin' ),
+                'label' => esc_html__( 'Search Button', 'wp-event-solution' ),
                 'tab' => Controls_Manager::TAB_STYLE,
             ]
         );
@@ -332,7 +332,7 @@ class Etn_Advanced_Search extends Widget_Base {
                 Group_Control_Typography::get_type(),
                 [
                     'name' => 'search_button_typography',
-                    'label' => esc_html__( 'Typography', 'eventin' ),
+                    'label' => esc_html__( 'Typography', 'wp-event-solution' ),
                     'selector' => '{{WRAPPER}} .etn_event_inline_form .etn-btn',
                 ]
             );
@@ -340,7 +340,7 @@ class Etn_Advanced_Search extends Widget_Base {
                 Group_Control_Background::get_type(),
                 [
                     'name' => 'search_button_background',
-                    'label' => esc_html__( 'Background', 'eventin' ),
+                    'label' => esc_html__( 'Background', 'wp-event-solution' ),
                     'types' => [ 'classic', 'gradient' ],
                     'selector' => '{{WRAPPER}} .etn_event_inline_form .etn-btn',
                 ]
@@ -349,15 +349,15 @@ class Etn_Advanced_Search extends Widget_Base {
             $this->add_responsive_control(
                 'search_button_border_style',
                 [
-                    'label' => esc_html_x( 'Border Type', 'Border Control', 'eventin' ),
+                    'label' => esc_html_x( 'Border Type', 'Border Control', 'wp-event-solution' ),
                     'type' => Controls_Manager::SELECT,
                     'options' => [
-                        '' => esc_html__( 'None', 'eventin' ),
-                        'solid' => esc_html_x( 'Solid', 'Border Control', 'eventin' ),
-                        'double' => esc_html_x( 'Double', 'Border Control', 'eventin' ),
-                        'dotted' => esc_html_x( 'Dotted', 'Border Control', 'eventin' ),
-                        'dashed' => esc_html_x( 'Dashed', 'Border Control', 'eventin' ),
-                        'groove' => esc_html_x( 'Groove', 'Border Control', 'eventin' ),
+                        '' => esc_html__( 'None', 'wp-event-solution' ),
+                        'solid' => esc_html_x( 'Solid', 'Border Control', 'wp-event-solution' ),
+                        'double' => esc_html_x( 'Double', 'Border Control', 'wp-event-solution' ),
+                        'dotted' => esc_html_x( 'Dotted', 'Border Control', 'wp-event-solution' ),
+                        'dashed' => esc_html_x( 'Dashed', 'Border Control', 'wp-event-solution' ),
+                        'groove' => esc_html_x( 'Groove', 'Border Control', 'wp-event-solution' ),
                     ],
                     'selectors' => [
                         '{{WRAPPER}} .etn_event_inline_form .etn-btn' => 'border-style: {{VALUE}};',
@@ -367,7 +367,7 @@ class Etn_Advanced_Search extends Widget_Base {
             $this->add_responsive_control(
                 'search_button_border_width',
                 [
-                    'label' => esc_html_x( 'Border Width', 'Border Control', 'eventin' ),
+                    'label' => esc_html_x( 'Border Width', 'Border Control', 'wp-event-solution' ),
                     'type' => Controls_Manager::DIMENSIONS,
                     'selectors' => [
                         '{{WRAPPER}} .etn_event_inline_form .etn-btn' => 'border-width: {{TOP}}px {{RIGHT}}px {{BOTTOM}}px {{LEFT}}px;',
@@ -381,7 +381,7 @@ class Etn_Advanced_Search extends Widget_Base {
             $this->add_control(
                 'search_button_border_color',
                 [
-                    'label' => esc_html_x( 'Border Color', 'Border Control', 'eventin' ),
+                    'label' => esc_html_x( 'Border Color', 'Border Control', 'wp-event-solution' ),
                     'type' => Controls_Manager::COLOR,
                     'selectors' => [
                         '{{WRAPPER}} .etn_event_inline_form .etn-btn' => 'border-color: {{VALUE}};',
@@ -394,7 +394,7 @@ class Etn_Advanced_Search extends Widget_Base {
             $this->add_responsive_control(
                 'search_button_border_radius',
                 [
-                    'label' => esc_html__( 'Border Radius', 'eventin' ),
+                    'label' => esc_html__( 'Border Radius', 'wp-event-solution' ),
                     'type' => Controls_Manager::DIMENSIONS,
                     'size_units' => [ 'px', '%', 'em' ],
                     'selectors' => [
@@ -409,7 +409,7 @@ class Etn_Advanced_Search extends Widget_Base {
                 Group_Control_Box_Shadow::get_type(),
                 [
                     'name' => 'search_button_boxshadow',
-                    'label' => esc_html__( 'Box Shadow', 'eventin' ),
+                    'label' => esc_html__( 'Box Shadow', 'wp-event-solution' ),
                     'selector' => '{{WRAPPER}} .etn_event_inline_form .etn-btn',
                 ]
             );
@@ -427,7 +427,7 @@ class Etn_Advanced_Search extends Widget_Base {
                 <?php
                     echo sprintf(
                         // translators: %1$s is the number of upcoming and expired events.
-                        esc_html__( 'Discover %1$s, Upcoming and Expire Events', 'eventin' ),
+                        esc_html__( 'Discover %1$s, Upcoming and Expire Events', 'wp-event-solution' ),
                         count($this->get_total_posts())
                     );
                 ?>

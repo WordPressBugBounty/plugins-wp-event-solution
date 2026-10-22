@@ -30,7 +30,7 @@ class EventDetailsPartsPro {
 		<div class="etn-event-speakers etn-single-event-speaker-block">
 			<h3 class="speaker-block-title">
 				<?php  
-					$event_speakers_title = apply_filters( 'etn_event_organizers_title', esc_html__("Speaker",  'eventin' ) );
+					$event_speakers_title = apply_filters( 'etn_event_organizers_title', esc_html__("Speaker",  'wp-event-solution' ) );
 					echo esc_html( $event_speakers_title );
 				?> 
 			</h3>
@@ -123,7 +123,7 @@ class EventDetailsPartsPro {
 						?>
 <!-- schedule tab start -->
 <div class="schedule-tab-wrapper etn-tab-wrapper schedule-style-1  no-shadow pt-0">
-    <h3 class="etn-tags-title"><?php echo esc_html__('Schedule:', 'eventin'); ?></h3>
+    <h3 class="etn-tags-title"><?php echo esc_html__('Schedule:', 'wp-event-solution'); ?></h3>
     <ul class='etn-nav'>
         <?php
 										$i = -1;

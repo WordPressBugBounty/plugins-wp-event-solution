@@ -150,16 +150,16 @@ if(class_exists('WooCommerce') && 'woocommerce' === $sells_engine) {
 								if ( ! isset( $event_options["etn_hide_seats_from_details"] ) ) {
 									if ( ! etn_is_ticket_sale_start( $start_date_time, $time_zone ) ) {
 										?>
-										<span class="seat-remaining-text"><?php echo esc_html__( '(Sale start on ', 'eventin' );  echo esc_html( $start_date->format( 'Y-m-d' ) .' ' . $start_time ) ;?> )</span>
+										<span class="seat-remaining-text"><?php echo esc_html__( '(Sale start on ', 'wp-event-solution' );  echo esc_html( $start_date->format( 'Y-m-d' ) .' ' . $start_time ) ;?> )</span>
 										<?php
 									}
 
 									elseif ( $etn_current_stock > 0 ) {
 										?>
 										<span class="seat-remaining-text">(<?php echo esc_html( $etn_current_stock );
-												echo esc_html__( ' seats remaining', 'eventin' ); ?>)</span>
+												echo esc_html__( ' seats remaining', 'wp-event-solution' ); ?>)</span>
 									<?php } else { ?>
-										<span class="seat-remaining-text">(<?php echo esc_html__( 'All tickets have been sold out', 'eventin' ); ?>)</span>
+										<span class="seat-remaining-text">(<?php echo esc_html__( 'All tickets have been sold out', 'wp-event-solution' ); ?>)</span>
 										<?php
 									}
 								}
@@ -170,7 +170,7 @@ if(class_exists('WooCommerce') && 'woocommerce' === $sells_engine) {
 							<div class="etn-ticket-divider"></div>
 							<div class="etn-ticket-price-body <?php echo esc_attr( $stock_outClass ) ?>">
 								<div class="ticket-price-item etn-ticket-price">
-									<label><?php echo esc_html__( "Ticket Price :", "eventin" ); ?></label>
+									<label><?php echo esc_html__( "Ticket Price :", "wp-event-solution" ); ?></label>
 									<strong>
 										<?php
 										$price = number_format( (float) $value['etn_ticket_price'], $price_decimal, $price_decimal_separator, $thousand_separator );
@@ -180,7 +180,7 @@ if(class_exists('WooCommerce') && 'woocommerce' === $sells_engine) {
 								</div>
 								<!-- Min , Max and stock quantity checking start -->
 								<div class="ticket-price-item etn-quantity">
-									<label for="ticket-input_<?php echo intval( $key ); ?>"><?php echo esc_html__( "Quantity :", "eventin" ); ?></label>
+									<label for="ticket-input_<?php echo intval( $key ); ?>"><?php echo esc_html__( "Quantity :", "wp-event-solution" ); ?></label>
 									<button type="button" class="qt-btn qt-sub" data-multi="-1"
 											data-key="<?php echo intval( $key ) ?>">-
 									</button>
@@ -191,20 +191,20 @@ if(class_exists('WooCommerce') && 'woocommerce' === $sells_engine) {
 											data-etn_min_ticket="<?php echo absint( $etn_min_ticket ); ?>"
 											data-etn_max_ticket="<?php echo absint( $etn_max_ticket ); ?>"
 											data-etn_current_stock="<?php echo absint( $etn_current_stock ); ?>"
-											data-stock_out="<?php echo esc_attr__( "All ticket has has been sold", "eventin" ) ?>"
+											data-stock_out="<?php echo esc_attr__( "All ticket has has been sold", "wp-event-solution" ) ?>"
 											data-cart_ticket_limit="<?php
 									// translators: %d is the maximum ticket quantity allowed per purchase.
-									echo sprintf( esc_attr__( "You have already added 5 tickets. You can't purchase more than %d tickets", "eventin" ), absint( $etn_max_ticket ) );
+									echo sprintf( esc_attr__( "You have already added 5 tickets. You can't purchase more than %d tickets", "wp-event-solution" ), absint( $etn_max_ticket ) );
 								?>"
 											data-stock_limit="<?php
 									// translators: %1$d is the stock limit quantity.
-									echo sprintf( esc_attr__( 'Stock limit %1$d. You can purchase within %1$d.', 'eventin' ), absint( $etn_current_stock ) );
+									echo sprintf( esc_attr__( 'Stock limit %1$d. You can purchase within %1$d.', 'wp-event-solution' ), absint( $etn_current_stock ) );
 								?>"
-											data-qty_message="<?php echo esc_attr__( "Total ticket quantity should be atleast ", "eventin" ) . absint( $etn_min_ticket ) . esc_attr__( " and can not be higher than ", "eventin" ) . absint( $etn_max_ticket ); ?>"
+											data-qty_message="<?php echo esc_attr__( "Total ticket quantity should be atleast ", "wp-event-solution" ) . absint( $etn_min_ticket ) . esc_attr__( " and can not be higher than ", "wp-event-solution" ) . absint( $etn_max_ticket ); ?>"
 											data-etn_cart_limit="<?php echo absint( $etn_cart_limit ); ?>"
 											data-etn_cart_limit_message="<?php
 									// translators: %1$d is the current cart quantity, %2$d is the maximum ticket quantity.
-									echo sprintf( esc_attr__( 'You have already added %1$d, Which is greater than maximum quantity %2$d. You can add maximum %2$d tickets.', 'eventin' ), absint( $etn_cart_limit ), absint( $etn_max_ticket ) );
+									echo sprintf( esc_attr__( 'You have already added %1$d, Which is greater than maximum quantity %2$d. You can add maximum %2$d tickets.', 'wp-event-solution' ), absint( $etn_cart_limit ), absint( $etn_max_ticket ) );
 								?>"/>
 									<button type="button" class="qt-btn qt-add" data-multi="1"
 											data-key="<?php echo intval( $key ) ?>">+
@@ -215,7 +215,7 @@ if(class_exists('WooCommerce') && 'woocommerce' === $sells_engine) {
 									class="ticket-price-item etn-subtotal"
 									data-subtotal="<?php echo esc_attr( number_format( (float) $value['etn_ticket_price'], $price_decimal, '.', '' ) ); ?>" 
 								>
-									<label><?php echo esc_html__( "Sub Total :", "eventin" ); ?></label>
+									<label><?php echo esc_html__( "Sub Total :", "wp-event-solution" ); ?></label>
 									<strong>
 										<?php
 										$price = '<span class="_sub_total_' . floatval( $key ) . '">0</span>';
@@ -241,12 +241,12 @@ if(class_exists('WooCommerce') && 'woocommerce' === $sells_engine) {
                 <div class="etn-variable-total-price">
                     <div id="etn_variable_ticket_form_price" class="etn_variable_ticket_form_price">
                         <div class="etn-total-quantity">
-                            <label><?php echo esc_html__( 'Total Quantity', "eventin" ); ?></label>
+                            <label><?php echo esc_html__( 'Total Quantity', "wp-event-solution" ); ?></label>
                             <strong class="variation_total_qty">0.00</strong>
                         </div>
 
                         <div class="etn-ticket-total-price">
-                            <label><?php echo esc_html__( 'Total Price', "eventin" ); ?></label>
+                            <label><?php echo esc_html__( 'Total Price', "wp-event-solution" ); ?></label>
                             <strong>
 								<?php
 								$price = '<span class="variation_total_price">0</span>';
@@ -276,14 +276,14 @@ if(class_exists('WooCommerce') && 'woocommerce' === $sells_engine) {
                    class="etn-btn etn-primary etn-add-to-cart-block disabled button button--loader <?php echo esc_attr( absint( $single_event_id ) ); ?>"
                    data-event_id="<?php echo esc_attr( absint( $single_event_id ) ); ?>" data-validation_checked="0"
                    data-multivendor_active="<?php echo ( $multivendor_active ) ? '1' : '0'; ?>" type="submit"
-                   value=""><?php $cart_button_text = apply_filters( 'etn_event_cart_button_text', esc_html__( "Buy ticket", "eventin" ) );
+                   value=""><?php $cart_button_text = apply_filters( 'etn_event_cart_button_text', esc_html__( "Buy ticket", "wp-event-solution" ) );
 			       echo esc_html( $cart_button_text ); ?></button>
 			<?php
 		} else {
 			?>
             <small>
-				<?php echo esc_html__( 'Please', 'eventin' ); ?> <a
-                        href="<?php echo esc_url( wp_login_url( get_permalink() ) ); ?>"><?php echo esc_html__( "Login", "eventin" ); ?></a> <?php echo esc_html__( ' to buy ticket!', "eventin" ); ?>
+				<?php echo esc_html__( 'Please', 'wp-event-solution' ); ?> <a
+                        href="<?php echo esc_url( wp_login_url( get_permalink() ) ); ?>"><?php echo esc_html__( "Login", "wp-event-solution" ); ?></a> <?php echo esc_html__( ' to buy ticket!', "wp-event-solution" ); ?>
             </small>
 			<?php
 		}

@@ -38,7 +38,7 @@ defined( 'ABSPATH' ) || exit;
                 } else {
                 ?>
         <div class="etn-event-faq-body">
-            <?php echo esc_html__("No FAQ found!", "eventin"); ?>
+            <?php echo esc_html__("No FAQ found!", "wp-event-solution"); ?>
         </div>
         <?php
             }

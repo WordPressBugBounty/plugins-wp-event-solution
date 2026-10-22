@@ -24,7 +24,7 @@ class RefundConfirmationMail extends Mailable {
     public function subject(): string {
         return sprintf(
             /* translators: %d is the order ID */
-            __( 'Refund processed for order #%d', 'eventin' ),
+            __( 'Refund processed for order #%d', 'wp-event-solution' ),
             (int) $this->order->id
         );
     }

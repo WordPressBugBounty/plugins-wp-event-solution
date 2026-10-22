@@ -136,15 +136,15 @@ endforeach;
 <div class="utility-dashboard-widget-block">
 	<div class="utility-footer-bar">
 		<a href="https://wpmet.com/support-ticket" target="_blank">
-			<?php echo esc_html__( 'Need Help?', 'eventin' ); ?>
+			<?php echo esc_html__( 'Need Help?', 'wp-event-solution' ); ?>
 			<span aria-hidden="true" class="dashicons dashicons-external"></span>
 		</a>
 		<a href="https://wpmet.com/blog/" target="_blank">
-		<?php echo esc_html__( 'Blog', 'eventin' ); ?>
+		<?php echo esc_html__( 'Blog', 'wp-event-solution' ); ?>
 			<span aria-hidden="true" class="dashicons dashicons-external"></span>
 		</a>
 		<a href="https://wpmet.com/fb-group" target="_blank" style="color: #27ae60;">
-			<?php echo esc_html__( 'Facebook Community', 'eventin' ); ?>
+			<?php echo esc_html__( 'Facebook Community', 'wp-event-solution' ); ?>
 			<span aria-hidden="true" class="dashicons dashicons-external"></span>
 		</a>
 	</div>

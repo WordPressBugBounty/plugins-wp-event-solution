@@ -25,7 +25,7 @@ defined( 'ABSPATH' ) || exit;
 <!-- schedule tab start -->
 <div class=" schedule-tab-wrapper etn-tab-wrapper schedule-style-1  no-shadow pt-0                                                                                                                                                                     <?php echo esc_attr($container_class); ?>">
     <div class="eventin-block-container">
-    <h3 class="etn-tags-title"><?php echo esc_html__('Schedule:', 'eventin'); ?></h3>
+    <h3 class="etn-tags-title"><?php echo esc_html__('Schedule:', 'wp-event-solution'); ?></h3>
         <ul class='etn-nav'>
             <?php
                 $i = -1;

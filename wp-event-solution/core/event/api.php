@@ -82,7 +82,7 @@ class Api extends \Etn\Base\Api_Handler {
 
 		$status_code     = 0;
 		$messages        = $content        = [];
-		$translated_text = ['see_details_text' => esc_html__( 'See Details', 'eventin' )];
+		$translated_text = ['see_details_text' => esc_html__( 'See Details', 'wp-event-solution' )];
 		$request         = $this->request;
 
 		if ( ! empty( $request['id'] ) && is_numeric( $request['id'] ) ) {
@@ -96,7 +96,7 @@ class Api extends \Etn\Base\Api_Handler {
 			if ( ! \Eventin\AccessControl\Ownership::can_read_post( $event_id, 'etn' ) ) {
 				return [
 					'status_code' => 0,
-					'messages'    => [ 'error' => esc_html__( 'Event not found.', 'eventin' ) ],
+					'messages'    => [ 'error' => esc_html__( 'Event not found.', 'wp-event-solution' ) ],
 					'content'     => [],
 				];
 			}
@@ -221,7 +221,7 @@ class Api extends \Etn\Base\Api_Handler {
 			return [
 				'status_code' => 200,
 				'messages'    => [
-					'success' => esc_html__( 'Event data retrieve successful', 'eventin' ),
+					'success' => esc_html__( 'Event data retrieve successful', 'wp-event-solution' ),
 				],
 				'content'     => $content,
 			];
@@ -297,7 +297,7 @@ class Api extends \Etn\Base\Api_Handler {
 
 		// Require proper capability - permission callback handles this but double-check
 		if ( ! current_user_can( 'manage_options' ) ) {
-			$messages[] = esc_html__( 'You haven\'t authorization permission to view settings.', 'eventin' );
+			$messages[] = esc_html__( 'You haven\'t authorization permission to view settings.', 'wp-event-solution' );
 		} else {
 			if ( ! empty( $settings ) ) {
 				$status_code         = 1;
@@ -335,7 +335,7 @@ class Api extends \Etn\Base\Api_Handler {
 
 		// Require proper capability - permission callback handles this but double-check
 		if ( ! current_user_can( 'manage_options' ) ) {
-			$messages[] = esc_html__( 'You haven\'t authorization permission to update settings.', 'eventin' );
+			$messages[] = esc_html__( 'You haven\'t authorization permission to update settings.', 'wp-event-solution' );
 		} else {
 			if ( isset( $request ) && ! empty( $request ) ) {
 				$status_code  = 1;
@@ -574,11 +574,11 @@ class Api extends \Etn\Base\Api_Handler {
 		$event    = get_post( $event_id );
 
 		if ( ! $event_id ) {
-			return new WP_Error( 'event_id_err', __( 'Please enter a event id', 'eventin' ) );
+			return new WP_Error( 'event_id_err', __( 'Please enter a event id', 'wp-event-solution' ) );
 		}
 
 		if ( ! $event ) {
-			return new WP_Error( 'event_not_found', __( 'Event not found.', 'eventin' ) );
+			return new WP_Error( 'event_not_found', __( 'Event not found.', 'wp-event-solution' ) );
 		}
 
 		// The central v1 permission check only verifies the wp_rest nonce, so
@@ -587,7 +587,7 @@ class Api extends \Etn\Base\Api_Handler {
 		// event by id and had no status test at all, so iterating ids returned
 		// every draft and private event on the site.
 		if ( ! \Eventin\AccessControl\Ownership::can_read_post( $event_id, 'etn' ) ) {
-			return new WP_Error( 'event_not_found', __( 'Event not found.', 'eventin' ), [ 'status' => 404 ] );
+			return new WP_Error( 'event_not_found', __( 'Event not found.', 'wp-event-solution' ), [ 'status' => 404 ] );
 		}
 
 		return $this->prepare_event( $event );
@@ -603,7 +603,7 @@ class Api extends \Etn\Base\Api_Handler {
 		$event_ids = isset( $request['ids'] ) ? explode( ',', $request['ids'] ) : [];
 
 		if ( empty( $event_ids ) ) {
-			return new WP_Error( 'event_id_required', __( 'Event id is required.', 'eventin' ) );
+			return new WP_Error( 'event_id_required', __( 'Event id is required.', 'wp-event-solution' ) );
 		}
 
 		$user_id = get_current_user_id();
@@ -613,14 +613,14 @@ class Api extends \Etn\Base\Api_Handler {
 		// an unauthenticated caller through. Deleting events is a real, capable,
 		// logged-in user's action — reject guests outright before any comparison.
 		if ( ! $user_id ) {
-			return new WP_Error( 'unauthorized', __( 'Unauthorized user. Sorry you are not allowed to do that', 'eventin' ), [ 'status' => 401 ] );
+			return new WP_Error( 'unauthorized', __( 'Unauthorized user. Sorry you are not allowed to do that', 'wp-event-solution' ), [ 'status' => 401 ] );
 		}
 
 		$is_admin = current_user_can( 'manage_options' );
 
 		// Gate on a real capability, not just the author comparison.
 		if ( ! $is_admin && ! current_user_can( 'etn_manage_event' ) ) {
-			return new WP_Error( 'unauthorized', __( 'Unauthorized user. Sorry you are not allowed to do that', 'eventin' ), [ 'status' => 403 ] );
+			return new WP_Error( 'unauthorized', __( 'Unauthorized user. Sorry you are not allowed to do that', 'wp-event-solution' ), [ 'status' => 403 ] );
 		}
 
 		foreach ( $event_ids as $event_id ) {
@@ -630,23 +630,23 @@ class Api extends \Etn\Base\Api_Handler {
 			// Only ever delete Eventin events through this endpoint — never arbitrary
 			// pages / products / orders that happen to share an author id.
 			if ( ! $event || 'etn' !== $event->post_type ) {
-				return new WP_Error( 'event_not_found', __( 'Event not found.', 'eventin' ), [ 'status' => 404 ] );
+				return new WP_Error( 'event_not_found', __( 'Event not found.', 'wp-event-solution' ), [ 'status' => 404 ] );
 			}
 
 			// The capability is collection-level. The ownership helper maps Dokan
 			// staff to their vendor owner while still rejecting foreign stores.
 			if ( ! $is_admin && ! \Eventin\AccessControl\Ownership::can_manage_post( $event_id, 'etn' ) ) {
-				return new WP_Error( 'unauthorized', __( 'Unauthorized user. Sorry you are not allowed to do that', 'eventin' ), [ 'status' => 403 ] );
+				return new WP_Error( 'unauthorized', __( 'Unauthorized user. Sorry you are not allowed to do that', 'wp-event-solution' ), [ 'status' => 403 ] );
 			}
 
 			if ( is_wp_error( wp_delete_post( $event_id, true ) ) ) {
-				return new WP_Error( 'unable_to_delete', __( 'Unable to delete one or more event. Please try again.', 'eventin' ) );
+				return new WP_Error( 'unable_to_delete', __( 'Unable to delete one or more event. Please try again.', 'wp-event-solution' ) );
 			}
 		}
 
 		return [
 			'status_code' => 200,
-			'message'     => __( 'Successfully deleted', 'eventin' ),
+			'message'     => __( 'Successfully deleted', 'wp-event-solution' ),
 		];
 	}
 
@@ -804,11 +804,11 @@ class Api extends \Etn\Base\Api_Handler {
 	*/
 	public function post_seatmap() {
 		if ( ! current_user_can( 'manage_options' ) ) {
-            return new WP_Error( 'unauthorized', __( 'Unauthorized user. Sorry you are not allowed to do that', 'eventin' ), [ 'status' => 403 ] );
+            return new WP_Error( 'unauthorized', __( 'Unauthorized user. Sorry you are not allowed to do that', 'wp-event-solution' ), [ 'status' => 403 ] );
         }
 		
 		$status_code        = 0;
-		$messages           = [esc_html__( 'Something is Wrong', 'eventin' )];
+		$messages           = [esc_html__( 'Something is Wrong', 'wp-event-solution' )];
 		$request            = $this->request;
 		$event_id           = ! empty( $request['event_id'] ) ? intval( $request['event_id'] ) : 0;
 		$seat_plan          = ! empty( $request['seat_plan'] ) ?  $request['seat_plan']  : [];
@@ -839,9 +839,9 @@ class Api extends \Etn\Base\Api_Handler {
 			update_post_meta( $event_id, 'seat_plan', $seat_plan );
 			update_post_meta( $event_id, 'seat_plan_settings', $seat_plan_settings );
 			update_post_meta( $event_id, 'enable_seatmap', true );
-			$messages = [esc_html__( 'Event Seat Mapping has been saved successfully', 'eventin' )];
+			$messages = [esc_html__( 'Event Seat Mapping has been saved successfully', 'wp-event-solution' )];
 		}else{
-			$messages = [esc_html__( 'Event ID not found', 'eventin' )];
+			$messages = [esc_html__( 'Event ID not found', 'wp-event-solution' )];
 		}
 
 		$data = [
@@ -880,7 +880,7 @@ class Api extends \Etn\Base\Api_Handler {
 			}
 			
 		} else {
-			$messages[] = esc_html__( 'You haven\'t authorization permission to update settings.', 'eventin' );
+			$messages[] = esc_html__( 'You haven\'t authorization permission to update settings.', 'wp-event-solution' );
 		}
 		
 		return [

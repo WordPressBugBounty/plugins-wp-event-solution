@@ -21,7 +21,7 @@ if ( $data && $organizers ) :
 <div class="etn-event-organizers etn-organizer-style-1">
     <h4 class="etn-title">
         <?php  
-            $event_organizers_title = apply_filters( 'etn_event_organizers_title', esc_html__("Organizer:",  'eventin' ) );
+            $event_organizers_title = apply_filters( 'etn_event_organizers_title', esc_html__("Organizer:",  'wp-event-solution' ) );
             echo esc_html( $event_organizers_title );
         ?> 
     </h4>
@@ -59,7 +59,7 @@ if ( $data && $organizers ) :
                         ?>
                         <div class="etn-organizer-email">
                             <span class="etn-label-name">
-                                <?php echo esc_html__('Email :',  'eventin' ); ?>
+                                <?php echo esc_html__('Email :',  'wp-event-solution' ); ?>
                             </span>
                             <a href="mailto:<?php echo esc_attr($email); ?>"><?php echo esc_html($email); ?></a>
                         </div>
@@ -70,7 +70,7 @@ if ( $data && $organizers ) :
                     if (is_array( $social ) && !empty( $social ) ) { 
                         ?>
                         <div class="etn-social etn-social-style-1">
-                            <!-- <span class="etn-label-name"><?php echo esc_html__('Social :',  'eventin' ); ?></span> -->
+                            <!-- <span class="etn-label-name"><?php echo esc_html__('Social :',  'wp-event-solution' ); ?></span> -->
                             <?php 
                                 foreach ($social as $social_value) {
 									// Validate and sanitize each value

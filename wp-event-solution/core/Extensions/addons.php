@@ -36,10 +36,10 @@ defined( 'ABSPATH' ) || exit;
 		<div class="etn-col-md-5">
 			<div class="etn-addons-content">
 				<h1 class="etn-main-title">
-					<?php echo esc_html__( 'Extensions to Power Up Your Plugins', 'eventin' ); ?>
+					<?php echo esc_html__( 'Extensions to Power Up Your Plugins', 'wp-event-solution' ); ?>
 				</h1>
 				<p class="etn-desc">
-					<?php echo esc_html__( 'Extensions are quick solutions our team came up with to solve specific issues you may need. (Note - extensions are not covered by our support team.)', 'eventin' ); ?>
+					<?php echo esc_html__( 'Extensions are quick solutions our team came up with to solve specific issues you may need. (Note - extensions are not covered by our support team.)', 'wp-event-solution' ); ?>
 				</p>
 			</div>
 		</div>
@@ -48,7 +48,7 @@ defined( 'ABSPATH' ) || exit;
 		<div class="module-sec">
 			<div class="etn-row">
 				<div class="etn-col-12">
-					<h2 class="etn-addon-title"><?php echo esc_html__( 'Modules', 'eventin' ); ?></h2>
+					<h2 class="etn-addon-title"><?php echo esc_html__( 'Modules', 'wp-event-solution' ); ?></h2>
 				</div>
 				<div class="etn-col-md-6 etn-col-lg-4">
 					<div class="etn-label-item etn-addons-item">
@@ -64,24 +64,24 @@ defined( 'ABSPATH' ) || exit;
 							<div class="etn-label-content">
 								<label for="dokan_mod">
 									<?php if ( ! class_exists( 'Wpeventin_Pro' ) ) {?>
-										<a target="_blank" title="<?php echo esc_attr( 'Go Pro', 'eventin' ); ?>" class="etn-pro-deactive" href="<?php echo esc_url( \Etn\Bootstrap::get_pro_link() ) ?>">
-											<?php esc_html_e( 'Dokan', 'eventin' );?>
+										<a target="_blank" title="<?php echo esc_attr__( 'Go Pro', 'wp-event-solution' ); ?>" class="etn-pro-deactive" href="<?php echo esc_url( \Etn\Bootstrap::get_pro_link() ) ?>">
+											<?php esc_html_e( 'Dokan', 'wp-event-solution' );?>
 										</a>
 									<?php } else {?>
-<?php esc_html_e( 'Dokan', 'eventin' );?>
+<?php esc_html_e( 'Dokan', 'wp-event-solution' );?>
 <?php }?>
 								</label>
 								<div class="etn-desc">
-									<?php esc_html_e( 'It allows you to create a Multivendor Event marketplace and make commission for each sale.', 'eventin' );?>
+									<?php esc_html_e( 'It allows you to create a Multivendor Event marketplace and make commission for each sale.', 'wp-event-solution' );?>
 								</div>
 								<?php if ( ! class_exists( 'Wpeventin_Pro' ) ) {?>
 									<a target="_blank" href="https://themewinter.com/eventin/#ts-pricing-list" class="etn-btn-text">
-										<?php echo esc_html__( 'Upgrade to Pro', 'eventin' ); ?>
+										<?php echo esc_html__( 'Upgrade to Pro', 'wp-event-solution' ); ?>
 									</a>
 								<?php } else {
 										if ( ! class_exists( 'WeDevs_Dokan' ) ):
 									?>
-										<p class="etn-warning-text"><?php echo esc_html__( 'NB: Need to active Dokan plugin', 'eventin' ); ?></p>
+										<p class="etn-warning-text"><?php echo esc_html__( 'NB: Need to active Dokan plugin', 'wp-event-solution' ); ?></p>
 									<?php endif;
 									}?>
 							</div>
@@ -100,7 +100,7 @@ defined( 'ABSPATH' ) || exit;
 							<?php }?>
 						</div>
 						<?php if ( ! class_exists( 'Wpeventin_Pro' ) ) {?>
-							<span class="etn-badge"><?php echo esc_html__( 'Pro', 'eventin' ); ?></span>
+							<span class="etn-badge"><?php echo esc_html__( 'Pro', 'wp-event-solution' ); ?></span>
 						<?php }?>
 					</div>
 				</div>
@@ -116,24 +116,24 @@ defined( 'ABSPATH' ) || exit;
 							<div class="etn-label-content">
 								<label for="buddyboss_mod">
 									<?php if ( ! class_exists( 'Wpeventin_Pro' ) ) {?>
-										<a target="_blank" title="<?php echo esc_attr( 'Go Pro', 'eventin' ); ?>" class="etn-pro-deactive" href="<?php echo esc_url( \Etn\Bootstrap::get_pro_link() ) ?>">
-											<?php esc_html_e( 'BuddyBoss', 'eventin' );?>
+										<a target="_blank" title="<?php echo esc_attr__( 'Go Pro', 'wp-event-solution' ); ?>" class="etn-pro-deactive" href="<?php echo esc_url( \Etn\Bootstrap::get_pro_link() ) ?>">
+											<?php esc_html_e( 'BuddyBoss', 'wp-event-solution' );?>
 										</a>
 									<?php } else {
-											esc_html_e( 'BuddyBoss', 'eventin' );
+											esc_html_e( 'BuddyBoss', 'wp-event-solution' );
 									}?>
 								</label>
 								<div class="etn-desc">
-									<?php esc_html_e( 'It allows you to create and manage events and sell tickets inside the BuddyBoss theme.', 'eventin' );?>
+									<?php esc_html_e( 'It allows you to create and manage events and sell tickets inside the BuddyBoss theme.', 'wp-event-solution' );?>
 								</div>
 								<?php if ( ! class_exists( 'Wpeventin_Pro' ) ) {?>
 									<a target="_blank" href="https://themewinter.com/eventin/#ts-pricing-list" class="etn-btn-text">
-										<?php echo esc_html__( 'Upgrade to Pro', 'eventin' ); ?>
+										<?php echo esc_html__( 'Upgrade to Pro', 'wp-event-solution' ); ?>
 									</a>
 								<?php
 									} else {
 									if ( ! class_exists( 'BuddyPress' ) ): ?>
-											<p class="etn-warning-text"><?php echo esc_html__( 'NB: Need to active BuddyBoss plugin', 'eventin' ); ?></p>
+											<p class="etn-warning-text"><?php echo esc_html__( 'NB: Need to active BuddyBoss plugin', 'wp-event-solution' ); ?></p>
 										<?php endif;
 										}?>
 							</div>
@@ -152,7 +152,7 @@ defined( 'ABSPATH' ) || exit;
 							<?php }?>
 						</div>
 						<?php if ( ! class_exists( 'Wpeventin_Pro' ) ) {?>
-							<span class="etn-badge"><?php echo esc_html__( 'Pro', 'eventin' ); ?></span>
+							<span class="etn-badge"><?php echo esc_html__( 'Pro', 'wp-event-solution' ); ?></span>
 						<?php }?>
 					</div>
 				</div>
@@ -172,24 +172,24 @@ defined( 'ABSPATH' ) || exit;
 							<div class="etn-label-content">
 								<label for="certificate_builder_mod">
 									<?php if ( ! class_exists( 'Wpeventin_Pro' ) ) {?>
-										<a title="<?php echo esc_attr( 'Go Pro', 'eventin' ); ?>" class="etn-pro-deactive" href="<?php echo esc_url( \Etn\Bootstrap::get_pro_link() ) ?>" target="_blank">
-											<?php esc_html_e( 'Certificate Builder', 'eventin' );?>
+										<a title="<?php echo esc_attr__( 'Go Pro', 'wp-event-solution' ); ?>" class="etn-pro-deactive" href="<?php echo esc_url( \Etn\Bootstrap::get_pro_link() ) ?>" target="_blank">
+											<?php esc_html_e( 'Certificate Builder', 'wp-event-solution' );?>
 										</a>
 									<?php } else {?>
-<?php esc_html_e( 'Certificate Builder', 'eventin' );?>
+<?php esc_html_e( 'Certificate Builder', 'wp-event-solution' );?>
 <?php }?>
 								</label>
 								<div class="etn-desc">
-									<?php esc_html_e( 'You can design and send a PDF certificate for the event attendee.', 'eventin' );?>
+									<?php esc_html_e( 'You can design and send a PDF certificate for the event attendee.', 'wp-event-solution' );?>
 								</div>
 								<?php if ( ! class_exists( 'Wpeventin_Pro' ) ) {?>
 									<a href="https://themewinter.com/eventin/#ts-pricing-list" target="_blank" class="etn-btn-text">
-										<?php echo esc_html__( 'Upgrade to Pro', 'eventin' ); ?>
+										<?php echo esc_html__( 'Upgrade to Pro', 'wp-event-solution' ); ?>
 									</a>
 								<?php } else {?>
 									<ul class="demo-link">
-										<li><a href="<?php echo esc_url( admin_url( 'admin.php?page=eventin#/settings/event-settings/attendees' ) ); ?>"><?php echo esc_html__( 'Go to Settings', 'eventin' ); ?></a></li>
-										<li><a href="https://product.themewinter.com/eventin/" target="_blank"><?php echo esc_html__( 'View Demo', 'eventin' ); ?></a></li>
+										<li><a href="<?php echo esc_url( admin_url( 'admin.php?page=eventin#/settings/event-settings/attendees' ) ); ?>"><?php echo esc_html__( 'Go to Settings', 'wp-event-solution' ); ?></a></li>
+										<li><a href="https://product.themewinter.com/eventin/" target="_blank"><?php echo esc_html__( 'View Demo', 'wp-event-solution' ); ?></a></li>
 									</ul>
 								<?php }?>
 							</div>
@@ -208,7 +208,7 @@ defined( 'ABSPATH' ) || exit;
 							<?php }?>
 						</div>
 						<?php if ( ! class_exists( 'Wpeventin_Pro' ) ) {?>
-							<span class="etn-badge"><?php echo esc_html__( 'Pro', 'eventin' ); ?></span>
+							<span class="etn-badge"><?php echo esc_html__( 'Pro', 'wp-event-solution' ); ?></span>
 						<?php }?>
 					</div>
 				</div>
@@ -227,24 +227,24 @@ defined( 'ABSPATH' ) || exit;
 							<div class="etn-label-content">
 								<label for="rsvp_mod">
 									<?php if ( ! class_exists( 'Wpeventin_Pro' ) ) {?>
-										<a target="_blank" title="<?php echo esc_attr( 'Go Pro', 'eventin' ); ?>" class="etn-pro-deactive" href="<?php echo esc_url( \Etn\Bootstrap::get_pro_link() ) ?>">
-											<?php esc_html_e( 'RSVP Module', 'eventin' );?>
+										<a target="_blank" title="<?php echo esc_attr__( 'Go Pro', 'wp-event-solution' ); ?>" class="etn-pro-deactive" href="<?php echo esc_url( \Etn\Bootstrap::get_pro_link() ) ?>">
+											<?php esc_html_e( 'RSVP Module', 'wp-event-solution' );?>
 										</a>
 									<?php } else {?>
-<?php esc_html_e( 'RSVP Module', 'eventin' );?>
+<?php esc_html_e( 'RSVP Module', 'wp-event-solution' );?>
 <?php }?>
 								</label>
 								<div class="etn-desc">
-									<?php esc_html_e( 'It allows you to add RSVP at your upcoming events and grab user\'s attention easily.', 'eventin' );?>
+									<?php esc_html_e( 'It allows you to add RSVP at your upcoming events and grab user\'s attention easily.', 'wp-event-solution' );?>
 								</div>
 								<?php if ( ! class_exists( 'Wpeventin_Pro' ) ) {?>
 									<a target="_blank" href="https://themewinter.com/eventin/#ts-pricing-list" class="etn-btn-text">
-										<?php echo esc_html__( 'Upgrade to Pro', 'eventin' ); ?>
+										<?php echo esc_html__( 'Upgrade to Pro', 'wp-event-solution' ); ?>
 									</a>
 								<?php } else {?>
 									<ul class="demo-link">
-										<li><a href="<?php echo esc_url( admin_url( 'admin.php?page=eventin#/settings/email/purchase-email' ) ); ?>"><?php echo esc_html__( 'Go to Settings', 'eventin' ); ?></a></li>
-										<li><a href="https://product.themewinter.com/eventin/"><?php echo esc_html__( 'View Demo', 'eventin' ); ?></a></li>
+										<li><a href="<?php echo esc_url( admin_url( 'admin.php?page=eventin#/settings/email/purchase-email' ) ); ?>"><?php echo esc_html__( 'Go to Settings', 'wp-event-solution' ); ?></a></li>
+										<li><a href="https://product.themewinter.com/eventin/"><?php echo esc_html__( 'View Demo', 'wp-event-solution' ); ?></a></li>
 									</ul>
 								<?php }?>
 							</div>
@@ -263,7 +263,7 @@ defined( 'ABSPATH' ) || exit;
 							<?php }?>
 						</div>
 						<?php if ( ! class_exists( 'Wpeventin_Pro' ) ) {?>
-							<span class="etn-badge"><?php echo esc_html__( 'Pro', 'eventin' ); ?></span>
+							<span class="etn-badge"><?php echo esc_html__( 'Pro', 'wp-event-solution' ); ?></span>
 						<?php }?>
 					</div>
 				</div>
@@ -284,24 +284,24 @@ defined( 'ABSPATH' ) || exit;
 							<div class="etn-label-content">
 								<label for="googlemeet_mod">
 									<?php if ( ! class_exists( 'Wpeventin_Pro' ) ) {?>
-										<a target="_blank" title="<?php echo esc_attr( 'Go Pro', 'eventin' ); ?>" class="etn-pro-deactive" href="<?php echo esc_url( \Etn\Bootstrap::get_pro_link() ) ?>">
-											<?php esc_html_e( 'Google Meet', 'eventin' );?>
+										<a target="_blank" title="<?php echo esc_attr__( 'Go Pro', 'wp-event-solution' ); ?>" class="etn-pro-deactive" href="<?php echo esc_url( \Etn\Bootstrap::get_pro_link() ) ?>">
+											<?php esc_html_e( 'Google Meet', 'wp-event-solution' );?>
 										</a>
 									<?php } else {?>
-<?php esc_html_e( 'Google Meet', 'eventin' );?>
+<?php esc_html_e( 'Google Meet', 'wp-event-solution' );?>
 <?php }?>
 								</label>
 								<div class="etn-desc">
-									<?php esc_html_e( 'Use Google Meet to host your meetings and manage virtual events from your dashboard.', 'eventin' );?>
+									<?php esc_html_e( 'Use Google Meet to host your meetings and manage virtual events from your dashboard.', 'wp-event-solution' );?>
 								</div>
 								<?php if ( ! class_exists( 'Wpeventin_Pro' ) ) {?>
 									<a target="_blank" href="https://themewinter.com/eventin/#ts-pricing-list" class="etn-btn-text">
-										<?php echo esc_html__( 'Upgrade to Pro', 'eventin' ); ?>
+										<?php echo esc_html__( 'Upgrade to Pro', 'wp-event-solution' ); ?>
 									</a>
 								<?php } else {?>
 									<ul class="demo-link">
-										<li><a href="<?php echo esc_url( admin_url( 'admin.php?page=eventin#/settings/integrations/google-meet' ) ); ?>"><?php echo esc_html__( 'Go to Settings', 'eventin' ); ?></a></li>
-										<li><a href="https://product.themewinter.com/eventin/"><?php echo esc_html__( 'View Demo', 'eventin' ); ?></a></li>
+										<li><a href="<?php echo esc_url( admin_url( 'admin.php?page=eventin#/settings/integrations/google-meet' ) ); ?>"><?php echo esc_html__( 'Go to Settings', 'wp-event-solution' ); ?></a></li>
+										<li><a href="https://product.themewinter.com/eventin/"><?php echo esc_html__( 'View Demo', 'wp-event-solution' ); ?></a></li>
 									</ul>
 								<?php }?>
 							</div>
@@ -320,7 +320,7 @@ defined( 'ABSPATH' ) || exit;
 							<?php }?>
 						</div>
 						<?php if ( ! class_exists( 'Wpeventin_Pro' ) ) {?>
-							<span class="etn-badge"><?php echo esc_html__( 'Pro', 'eventin' ); ?></span>
+							<span class="etn-badge"><?php echo esc_html__( 'Pro', 'wp-event-solution' ); ?></span>
 						<?php }?>
 					</div>
 				</div>
@@ -366,26 +366,26 @@ defined( 'ABSPATH' ) || exit;
 							<div class="etn-label-content">
 								<label for="fb_event">
 									<?php if ( ! class_exists( 'Wpeventin_Pro' ) ) {?>
-											<a target="_blank" title="<?php echo esc_attr( 'Go Pro', 'eventin' ); ?>" class="etn-pro-deactive" href="https://themewinter.com/eventin/#ts-pricing-list">
-												<?php esc_html_e( 'Facebook Event', 'eventin' );?>
+											<a target="_blank" title="<?php echo esc_attr__( 'Go Pro', 'wp-event-solution' ); ?>" class="etn-pro-deactive" href="https://themewinter.com/eventin/#ts-pricing-list">
+												<?php esc_html_e( 'Facebook Event', 'wp-event-solution' );?>
 											</a>
 									<?php } else {?>
-										<?php esc_html_e( 'Facebook Event', 'eventin' );?>
+										<?php esc_html_e( 'Facebook Event', 'wp-event-solution' );?>
 									<?php }?>
 								</label>
 								<div class="etn-desc">
-									<?php esc_html_e( 'It allows you to import events from Facebook easily. And you can show it in different place on your website.', 'eventin' );?>
+									<?php esc_html_e( 'It allows you to import events from Facebook easily. And you can show it in different place on your website.', 'wp-event-solution' );?>
 								</div>
 								<?php if ( ! class_exists( 'Wpeventin_Pro' ) ){ ?>
 									<a target="_blank" href="https://themewinter.com/eventin/#ts-pricing-list" class="etn-btn-text">
-										<?php echo esc_html__( 'Upgrade to Pro', 'eventin' ); ?>
+										<?php echo esc_html__( 'Upgrade to Pro', 'wp-event-solution' ); ?>
 									</a>
 								<?php } else if ( ! class_exists( 'EtnFBAddon' ) ) { ?>
-									<p class="etn-warning-text"><?php echo esc_html__( 'NB: Need to active Eventin Facebook plugin', 'eventin' ); ?></p>
+									<p class="etn-warning-text"><?php echo esc_html__( 'NB: Need to active Eventin Facebook plugin', 'wp-event-solution' ); ?></p>
 								<?php } else { ?>
 									<ul class="demo-link">
-										<li><a href="<?php echo esc_url( admin_url( 'admin.php?page=eventin#/settings/event-settings/event-details' ) ); ?>"><?php echo esc_html__( 'Go to Settings', 'eventin' ); ?></a></li>
-										<li><a href="<?php echo esc_url('https://product.themewinter.com/eventin/facebook-events/') ;?>"><?php echo esc_html__( 'View Demo', 'eventin' ); ?></a></li>
+										<li><a href="<?php echo esc_url( admin_url( 'admin.php?page=eventin#/settings/event-settings/event-details' ) ); ?>"><?php echo esc_html__( 'Go to Settings', 'wp-event-solution' ); ?></a></li>
+										<li><a href="<?php echo esc_url('https://product.themewinter.com/eventin/facebook-events/') ;?>"><?php echo esc_html__( 'View Demo', 'wp-event-solution' ); ?></a></li>
 									</ul>
 								<?php } ?>
 
@@ -405,7 +405,7 @@ defined( 'ABSPATH' ) || exit;
 							<?php }?>
 						</div>
 						<?php if ( ! class_exists( 'Wpeventin_Pro' ) ) {?>
-							<span class="etn-badge"><?php echo esc_html__( 'Pro', 'eventin' ); ?></span>
+							<span class="etn-badge"><?php echo esc_html__( 'Pro', 'wp-event-solution' ); ?></span>
 						<?php }?>
 					</div>
 				</div>
@@ -422,24 +422,24 @@ defined( 'ABSPATH' ) || exit;
 							<div class="etn-label-content">
 								<label for="seat_map">
 									<?php if ( ! class_exists( 'Wpeventin_Pro' ) ) {?>
-											<a target="_blank" title="<?php echo esc_attr( 'Go Pro', 'eventin' ); ?>" class="etn-pro-deactive" href="https://arraytics.com/timetics/">
-												<?php esc_html_e( 'Seat Map', 'eventin' );?>
+											<a target="_blank" title="<?php echo esc_attr__( 'Go Pro', 'wp-event-solution' ); ?>" class="etn-pro-deactive" href="https://arraytics.com/timetics/">
+												<?php esc_html_e( 'Seat Map', 'wp-event-solution' );?>
 											</a>
 									<?php } else {?>
-										<?php esc_html_e( 'Seat Map', 'eventin' );?>
+										<?php esc_html_e( 'Seat Map', 'wp-event-solution' );?>
 									<?php }?>
 								</label>
 								<div class="etn-desc">
-									<?php esc_html_e( 'With the features, you can now add a visual seat plan with different ticket pricing for events.', 'eventin' );?>
+									<?php esc_html_e( 'With the features, you can now add a visual seat plan with different ticket pricing for events.', 'wp-event-solution' );?>
 								</div>
 								<?php if ( ! class_exists( 'TimeticsPro' ) ){ ?>
-									<p class="etn-warning-text"><?php echo esc_html__( 'NB: Need to active Timetics Pro plugin', 'eventin' ); ?></p>
+									<p class="etn-warning-text"><?php echo esc_html__( 'NB: Need to active Timetics Pro plugin', 'wp-event-solution' ); ?></p>
 									<a target="_blank" href="https://arraytics.com/timetics/" class="etn-btn-text">
-										<?php echo esc_html__( 'Upgrade Timetics Pro', 'eventin' ); ?>
+										<?php echo esc_html__( 'Upgrade Timetics Pro', 'wp-event-solution' ); ?>
 									</a>
 								<?php } else { ?>
 									<ul class="demo-link">
-										<li><a href="https://product.themewinter.com/eventin/"><?php echo esc_html__( 'View Demo', 'eventin' ); ?></a></li>
+										<li><a href="https://product.themewinter.com/eventin/"><?php echo esc_html__( 'View Demo', 'wp-event-solution' ); ?></a></li>
 									</ul>
 								<?php } ?>
 
@@ -468,7 +468,7 @@ defined( 'ABSPATH' ) || exit;
 		<div class="module-sec">
 			<div class="etn-row">
 				<div class="etn-col-12">
-					<h2 class="etn-addon-title"><?php echo esc_html__( 'Addons', 'eventin' ); ?></h2>
+					<h2 class="etn-addon-title"><?php echo esc_html__( 'Addons', 'wp-event-solution' ); ?></h2>
 				</div>
 				<div class="etn-col-md-6 etn-col-lg-4">
 					<div class="etn-label-item etn-addons-item">
@@ -482,15 +482,15 @@ defined( 'ABSPATH' ) || exit;
 							</div>
 							<div class="etn-label-content">
 								<label for="divi_mod">
-										<a target="_blank" title="<?php echo esc_attr( 'Go Pro', 'eventin' ); ?>" class="etn-pro-deactive" href="https://themewinter.com/eventin/#ts-pricing-list">
-											<?php esc_html_e( 'Eventin Divi Addon', 'eventin' );?>
+										<a target="_blank" title="<?php echo esc_attr__( 'Go Pro', 'wp-event-solution' ); ?>" class="etn-pro-deactive" href="https://themewinter.com/eventin/#ts-pricing-list">
+											<?php esc_html_e( 'Eventin Divi Addon', 'wp-event-solution' );?>
 										</a>
 								</label>
 								<div class="etn-desc">
-									<?php esc_html_e( 'It enable the Eventin featured and module inside DIVI editing panel.', 'eventin' );?>
+									<?php esc_html_e( 'It enable the Eventin featured and module inside DIVI editing panel.', 'wp-event-solution' );?>
 								</div>
 									<?php $plugin = $pluginStatus->get_status( 'eventin-divi-addon/eventin-divi-addon.php' );?>
-									<a data-plugin_status="<?php echo esc_attr( $plugin['status'] ); ?>" data-activation_url="<?php echo esc_url( $plugin['activation_url'] ); ?>" href="<?php echo esc_url( $plugin['installation_url'] ); ?>" class="etn-btn-text etn-addon-install_plugin<?php echo $plugin['status'] == 'activated' ? 'activated' : ''; ?>"><?php echo esc_html( $plugin['title'], 'eventin' ); ?></a>
+									<a data-plugin_status="<?php echo esc_attr( $plugin['status'] ); ?>" data-activation_url="<?php echo esc_url( $plugin['activation_url'] ); ?>" href="<?php echo esc_url( $plugin['installation_url'] ); ?>" class="etn-btn-text etn-addon-install_plugin<?php echo $plugin['status'] == 'activated' ? 'activated' : ''; ?>"><?php echo esc_html( $plugin['title'] ); ?></a>
 							</div>
 						</div>
 					</div>
@@ -509,23 +509,23 @@ defined( 'ABSPATH' ) || exit;
 							<div class="etn-label-content">
 								<label for="divi_mod">
 									<?php if ( ! class_exists( 'Wpeventin_Pro' ) ) {?>
-										<a target="_blank" title="<?php echo esc_attr( 'Go Pro', 'eventin' ); ?>" class="etn-pro-deactive" href="https://themewinter.com/eventin/#ts-pricing-list">
-											<?php esc_html_e( 'Eventin Bricks Addon', 'eventin' );?>
+										<a target="_blank" title="<?php echo esc_attr__( 'Go Pro', 'wp-event-solution' ); ?>" class="etn-pro-deactive" href="https://themewinter.com/eventin/#ts-pricing-list">
+											<?php esc_html_e( 'Eventin Bricks Addon', 'wp-event-solution' );?>
 										</a>
 									<?php } else {?>
-<?php esc_html_e( 'Eventin Bricks Addon', 'eventin' );?>
+<?php esc_html_e( 'Eventin Bricks Addon', 'wp-event-solution' );?>
 <?php }?>
 								</label>
 								<div class="etn-desc">
-									<?php esc_html_e( 'It\'s enable the Eventin featured and module inside Bricks editing panel.', 'eventin' );?>
+									<?php esc_html_e( 'It\'s enable the Eventin featured and module inside Bricks editing panel.', 'wp-event-solution' );?>
 								</div>
 								<?php if ( ! class_exists( 'Wpeventin_Pro' ) ) {?>
 									<a target="_blank" href="https://themewinter.com/eventin/#ts-pricing-list" class="etn-btn-text">
-										<?php echo esc_html__( 'Upgrade to Pro', 'eventin' ); ?>
+										<?php echo esc_html__( 'Upgrade to Pro', 'wp-event-solution' ); ?>
 									</a>
 								<?php } else {?>
 									<a target="_blank" href="https://themewinter.com/docs/plugins/plugin-docs/integration/bricks-builder-integration/" class="etn-btn-text">
-										<?php echo esc_html__( 'Documentation', 'eventin' ); ?>
+										<?php echo esc_html__( 'Documentation', 'wp-event-solution' ); ?>
 									</a>
 								<?php }?>
 							</div>
@@ -540,7 +540,7 @@ defined( 'ABSPATH' ) || exit;
 							<?php }?>
 						</div>
 						<?php if ( ! class_exists( 'Wpeventin_Pro' ) ) {?>
-							<span class="etn-badge"><?php echo esc_html__( 'Pro', 'eventin' ); ?></span>
+							<span class="etn-badge"><?php echo esc_html__( 'Pro', 'wp-event-solution' ); ?></span>
 						<?php }?>
 					</div>
 				</div>
@@ -562,23 +562,23 @@ defined( 'ABSPATH' ) || exit;
 							<div class="etn-label-content">
 								<label for="oxy_mod">
 									<?php if ( ! class_exists( 'Wpeventin_Pro' ) ) {?>
-										<a target="_blank" title="<?php echo esc_attr( 'Go Pro', 'eventin' ); ?>" class="etn-pro-deactive" href="https://themewinter.com/eventin/#ts-pricing-list">
-											<?php esc_html_e( 'Eventin Oxygen Addon', 'eventin' );?>
+										<a target="_blank" title="<?php echo esc_attr__( 'Go Pro', 'wp-event-solution' ); ?>" class="etn-pro-deactive" href="https://themewinter.com/eventin/#ts-pricing-list">
+											<?php esc_html_e( 'Eventin Oxygen Addon', 'wp-event-solution' );?>
 										</a>
 									<?php } else {?>
-<?php esc_html_e( 'Eventin Oxygen Addon', 'eventin' );?>
+<?php esc_html_e( 'Eventin Oxygen Addon', 'wp-event-solution' );?>
 <?php }?>
 								</label>
 								<div class="etn-desc">
-									<?php esc_html_e( 'It\'s enable the Eventin featured and module inside Oxygen editing panel.', 'eventin' );?>
+									<?php esc_html_e( 'It\'s enable the Eventin featured and module inside Oxygen editing panel.', 'wp-event-solution' );?>
 								</div>
 								<?php if ( ! class_exists( 'Wpeventin_Pro' ) ) {?>
 									<a target="_blank" href="https://themewinter.com/eventin/#ts-pricing-list" class="etn-btn-text">
-										<?php echo esc_html__( 'Upgrade to Pro', 'eventin' ); ?>
+										<?php echo esc_html__( 'Upgrade to Pro', 'wp-event-solution' ); ?>
 									</a>
 								<?php } else {?>
 									<a target="_blank" href="https://themewinter.com/docs/plugins/plugin-docs/integration/oxygen-builder-integration-pro/" class="etn-btn-text">
-										<?php echo esc_html__( 'Documentation', 'eventin' ); ?>
+										<?php echo esc_html__( 'Documentation', 'wp-event-solution' ); ?>
 									</a>
 								<?php }?>
 							</div>
@@ -593,7 +593,7 @@ defined( 'ABSPATH' ) || exit;
 							<?php }?>
 						</div>
 						<?php if ( ! class_exists( 'Wpeventin_Pro' ) ) {?>
-							<span class="etn-badge"><?php echo esc_html__( 'Pro', 'eventin' ); ?></span>
+							<span class="etn-badge"><?php echo esc_html__( 'Pro', 'wp-event-solution' ); ?></span>
 						<?php }?>
 					</div>
 				</div>
@@ -602,7 +602,7 @@ defined( 'ABSPATH' ) || exit;
 
 		<div class="mt-4 etn_submit_wrap">
 			<input type="hidden" name="etn_addons_action" value="addons_save">
-			<input type="submit" name="submit" id="eventin_addons_submit" class="etn-btn etn-btn-primary etn_save_settings" value="<?php esc_attr_e( 'Save Change', 'eventin' );?>">
+			<input type="submit" name="submit" id="eventin_addons_submit" class="etn-btn etn-btn-primary etn_save_settings" value="<?php esc_attr_e( 'Save Change', 'wp-event-solution' );?>">
 		</div>
 		<?php wp_nonce_field( 'eventin-addons-page', 'eventin-addons-page' );?>
 	</form>

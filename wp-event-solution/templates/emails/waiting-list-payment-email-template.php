@@ -13,14 +13,14 @@ defined( 'ABSPATH' ) || exit;
 ?>
 
 <h2 style="font-size:22px;font-weight:600;color:#020617;margin:0 0 12px;">
-    <?php esc_html_e( 'A spot has opened up for you!', 'eventin' ); ?>
+    <?php esc_html_e( 'A spot has opened up for you!', 'wp-event-solution' ); ?>
 </h2>
 
 <p style="font-size:14px;line-height:22px;color:#556880;margin:0 0 24px;">
     <?php
     printf(
         /* translators: 1: customer first name  2: event title */
-        esc_html__( 'Hi %1$s, great news — a ticket for %2$s is now available. Click the button below to review your order and complete payment before the spot is taken.', 'eventin' ),
+        esc_html__( 'Hi %1$s, great news — a ticket for %2$s is now available. Click the button below to review your order and complete payment before the spot is taken.', 'wp-event-solution' ),
         esc_html( $order->customer_fname ),
         esc_html( $event->get_title() )
     );
@@ -32,7 +32,7 @@ defined( 'ABSPATH' ) || exit;
     <span style="font-weight:600;">
         <?php
         /* translators: %d: order ID */
-        printf( esc_html__( 'Order #%d', 'eventin' ), esc_html( $order->id ) );
+        printf( esc_html__( 'Order #%d', 'wp-event-solution' ), esc_html( $order->id ) );
         ?>
     </span>
 </div>
@@ -74,7 +74,7 @@ defined( 'ABSPATH' ) || exit;
         <?php endif; ?>
         <tr>
             <td style="padding:8px 0;font-size:14px;font-weight:700;color:#334155;border-top:1px solid #e2e8f0;">
-                <?php esc_html_e( 'Total:', 'eventin' ); ?>
+                <?php esc_html_e( 'Total:', 'wp-event-solution' ); ?>
             </td>
             <td style="padding:8px 0;text-align:right;font-size:14px;font-weight:700;color:#334155;border-top:1px solid #e2e8f0;">
                 <?php
@@ -104,12 +104,12 @@ defined( 'ABSPATH' ) || exit;
             border-radius:6px;
         "
     >
-        <?php esc_html_e( 'View Order & Pay', 'eventin' ); ?>
+        <?php esc_html_e( 'View Order & Pay', 'wp-event-solution' ); ?>
     </a>
 </div>
 
 <p style="font-size:13px;color:#94a3b8;margin-top:16px;">
-    <?php esc_html_e( 'Or copy this link into your browser:', 'eventin' ); ?>
+    <?php esc_html_e( 'Or copy this link into your browser:', 'wp-event-solution' ); ?>
     <br>
     <a href="<?php echo esc_url( $payment_url ); ?>" style="color:#6c2bd9;word-break:break-all;">
         <?php echo esc_url( $payment_url ); ?>

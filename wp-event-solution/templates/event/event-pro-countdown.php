@@ -26,9 +26,9 @@ $current_time = time();
 
 <div class="etn_count_down_block">
     <?php if ( $start_date_time && $end_date_time && $current_time > $start_date_time && $current_time < $end_date_time ) :?>
-    <p class="etn-countdown-expired"><?php esc_html_e( 'This event is going on', 'eventin' ); ?></p>
+    <p class="etn-countdown-expired"><?php esc_html_e( 'This event is going on', 'wp-event-solution' ); ?></p>
     <?php elseif ( $end_date_time && $current_time > $end_date_time ): ?>
-    <p class="etn-countdown-expired"><?php esc_html_e( 'This event has expired', 'eventin' ); ?></p>
+    <p class="etn-countdown-expired"><?php esc_html_e( 'This event has expired', 'wp-event-solution' ); ?></p>
     <?php else: ?>
     <div class="etn-event-countdown-wrap etn-countdown1 etn-countdown-parent"
         data-start-date="<?php echo esc_attr( $counter_start_time ); ?>"

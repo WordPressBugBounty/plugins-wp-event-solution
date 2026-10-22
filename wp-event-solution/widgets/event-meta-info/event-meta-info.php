@@ -22,7 +22,7 @@ class Etn_Event_Meta_Info extends Widget_Base {
      * @return string Widget title.
      */
     public function get_title() {
-        return esc_html__( 'Event Meta Info', 'eventin' );
+        return esc_html__( 'Event Meta Info', 'wp-event-solution' );
     }
 
     /**
@@ -52,18 +52,18 @@ class Etn_Event_Meta_Info extends Widget_Base {
         $this->start_controls_section(
             'section_tab',
             [
-                'label' => esc_html__( 'Eventin Event', 'eventin' ),
+                'label' => esc_html__( 'Eventin Event', 'wp-event-solution' ),
             ]
         );
 
         $this->add_control(
             'style',
             [
-                'label'   => esc_html__( 'Style', 'eventin' ),
+                'label'   => esc_html__( 'Style', 'wp-event-solution' ),
                 'type'    => Controls_Manager::SELECT,
                 'default' => 'style-1',
                 'options' => [
-                    'style-1' => esc_html__( 'Style 1', 'eventin' ),
+                    'style-1' => esc_html__( 'Style 1', 'wp-event-solution' ),
                 ],
             ]
         );
@@ -72,7 +72,7 @@ class Etn_Event_Meta_Info extends Widget_Base {
             $this->add_control(
                 "event_id",
                 [
-                    "label"     => esc_html__("Select Event", "eventin"),
+                    "label"     => esc_html__("Select Event", "wp-event-solution"),
                     "type"      => Controls_Manager::SELECT2,
                     "multiple"  => false,
                     "options"   => Helper::get_events(),
@@ -86,7 +86,7 @@ class Etn_Event_Meta_Info extends Widget_Base {
          $this->start_controls_section(
             'title_section',
             [
-                'label' => esc_html__( 'List Style', 'eventin' ),
+                'label' => esc_html__( 'List Style', 'wp-event-solution' ),
                 'tab'   => \Elementor\Controls_Manager::TAB_STYLE,
             ]
         );
@@ -95,7 +95,7 @@ class Etn_Event_Meta_Info extends Widget_Base {
             \Elementor\Group_Control_Typography::get_type(),
             [
                 'name'     => 'title_typography',
-                'label'    => esc_html__( 'Typography', 'eventin' ),
+                'label'    => esc_html__( 'Typography', 'wp-event-solution' ),
                 'selector' => '{{WRAPPER}} .etn-event-meta-info ul li',
             ]
         );

@@ -221,22 +221,22 @@ class Permission {
      */
     private static function permissions() {
         return [
-            'etn_manage_dashboard'     => __( 'Dashboard', 'eventin' ),
-            'etn_manage_template'      => __( 'Template', 'eventin' ),
-            'etn_manage_event'         => __( 'Events', 'eventin' ),
-            'etn_manage_organizer'     => __( 'Organizer', 'eventin' ),
-            'etn_manage_schedule'      => __( 'Schedules', 'eventin' ),
-            'etn_manage_order'         => __( 'Orders', 'eventin' ),
-            'etn_manage_attendee'      => __( 'Attendees', 'eventin' ),
-            'etn_manage_shortcode'     => __( 'Shortcodes', 'eventin' ),
-            'etn_manage_setting'       => __( 'Settings', 'eventin' ),
-            'etn_manage_license'       => __( 'License', 'eventin' ),
-            'etn_manage_addons'        => __( 'Extensions', 'eventin' ),
-            'etn_manage_our_plugins'   => __( 'Our Plugins', 'eventin' ),
-            'etn_manage_get_help'      => __( 'Get Help', 'eventin' ),
-            'etn_manage_go_pro'        => __( 'Upgrade to Pro', 'eventin' ),
-            'etn_manage_qr_scan'       => __( 'QR Scan Access', 'eventin' ),
-            'etn_manage_coupon'        => __( 'Coupons', 'eventin' ),
+            'etn_manage_dashboard'     => __( 'Dashboard', 'wp-event-solution' ),
+            'etn_manage_template'      => __( 'Template', 'wp-event-solution' ),
+            'etn_manage_event'         => __( 'Events', 'wp-event-solution' ),
+            'etn_manage_organizer'     => __( 'Organizer', 'wp-event-solution' ),
+            'etn_manage_schedule'      => __( 'Schedules', 'wp-event-solution' ),
+            'etn_manage_order'         => __( 'Orders', 'wp-event-solution' ),
+            'etn_manage_attendee'      => __( 'Attendees', 'wp-event-solution' ),
+            'etn_manage_shortcode'     => __( 'Shortcodes', 'wp-event-solution' ),
+            'etn_manage_setting'       => __( 'Settings', 'wp-event-solution' ),
+            'etn_manage_license'       => __( 'License', 'wp-event-solution' ),
+            'etn_manage_addons'        => __( 'Extensions', 'wp-event-solution' ),
+            'etn_manage_our_plugins'   => __( 'Our Plugins', 'wp-event-solution' ),
+            'etn_manage_get_help'      => __( 'Get Help', 'wp-event-solution' ),
+            'etn_manage_go_pro'        => __( 'Upgrade to Pro', 'wp-event-solution' ),
+            'etn_manage_qr_scan'       => __( 'QR Scan Access', 'wp-event-solution' ),
+            'etn_manage_coupon'        => __( 'Coupons', 'wp-event-solution' ),
         ];
     }
 

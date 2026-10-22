@@ -19,7 +19,7 @@ class Etn_Product_Data_Store_CPT extends WC_Product_Data_Store_CPT implements WC
         $product->set_defaults();
 
         if ( !$product->get_id() || !( $post_object = get_post( $product->get_id() ) ) || !in_array( $post_object->post_type, ['etn', 'product'] ) ) {
-            throw new Exception( esc_html__( 'Invalid product.', 'eventin' ) );
+            throw new Exception( esc_html__( 'Invalid product.', 'wp-event-solution' ) );
         }
 
         // $id = $product->get_id();

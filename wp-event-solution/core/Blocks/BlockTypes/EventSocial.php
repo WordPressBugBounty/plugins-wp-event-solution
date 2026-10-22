@@ -62,7 +62,7 @@ defined( 'ABSPATH' ) || exit;
             if ( empty( $event_socials ) ) {
                 if ( $this->is_editor() ) {
                     return '<div style="padding:16px;border:1px dashed #ccc;color:#888;">'
-                        . esc_html__( 'Event Social: no social links set for this event.', 'eventin' )
+                        . esc_html__( 'Event Social: no social links set for this event.', 'wp-event-solution' )
                         . '</div>';
                 }
 

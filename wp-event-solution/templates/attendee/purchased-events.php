@@ -2,11 +2,11 @@
 defined( 'ABSPATH' ) || exit;
 
 $header_columns = [
-	'order' 	 		=> esc_html__( 'Order', 'eventin' ),
-	'event' 	 		=> esc_html__( 'Event', 'eventin' ),
-	'event_start_date' 	=> esc_html__( 'Event Start Date', 'eventin' ),
-	'order_status' 		=> esc_html__( 'Order Status', 'eventin' ),
-	'action' 	 		=> esc_html__( 'Action', 'eventin' ),
+	'order' 	 		=> esc_html__( 'Order', 'wp-event-solution' ),
+	'event' 	 		=> esc_html__( 'Event', 'wp-event-solution' ),
+	'event_start_date' 	=> esc_html__( 'Event Start Date', 'wp-event-solution' ),
+	'order_status' 		=> esc_html__( 'Order Status', 'wp-event-solution' ),
+	'action' 	 		=> esc_html__( 'Action', 'wp-event-solution' ),
 ]
 ?>
 
@@ -30,7 +30,7 @@ $header_columns = [
 					<td class="woocommerce-orders-table__cell woocommerce-orders-table__cell-<?php echo esc_attr( $column_id ); ?>" data-title="<?php echo esc_attr( $column_name ); ?>">
 						<?php if ( 'order' === $column_id ) : ?>
 							<a href="<?php echo esc_url( $user_event->order_url ); ?>">
-								<?php echo esc_html( _x( '#', 'hash before order number', 'eventin' ) . $user_event->order_id ); ?>
+								<?php echo esc_html( _x( '#', 'hash before order number', 'wp-event-solution' ) . $user_event->order_id ); ?>
 							</a>
 
 						<?php elseif ( 'event' === $column_id ) : ?>
@@ -46,7 +46,7 @@ $header_columns = [
 					
 						<?php elseif ( 'action' === $column_id ) : ?>
 							<?php
-								echo '<a href="' . esc_url( $user_event->order_url ) . '" target="_blank" class="woocommerce-button button ">' . esc_html__( 'View', 'eventin' ) . '</a>';
+								echo '<a href="' . esc_url( $user_event->order_url ) . '" target="_blank" class="woocommerce-button button ">' . esc_html__( 'View', 'wp-event-solution' ) . '</a>';
 							?>
 						<?php endif; ?>
 					</td>

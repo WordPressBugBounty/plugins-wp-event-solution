@@ -55,7 +55,7 @@ class Speaker_role extends Role {
         $role = [
             [
                 'name'         => 'etn-speaker',
-                'display_name' => esc_html__( 'Eventin Speaker', 'eventin' ),
+                'display_name' => esc_html__( 'Eventin Speaker', 'wp-event-solution' ),
                 'capabilities' => [
                     'read'                   => true,
                     'delete_posts'           => true,
@@ -76,7 +76,7 @@ class Speaker_role extends Role {
             ], 
             [
                 'name'         => 'etn-organizer',
-                'display_name' => esc_html__( 'Eventin Organizer', 'eventin' ),
+                'display_name' => esc_html__( 'Eventin Organizer', 'wp-event-solution' ),
                 'capabilities' => [
                     'read'                   => true,
                     'delete_posts'           => true,

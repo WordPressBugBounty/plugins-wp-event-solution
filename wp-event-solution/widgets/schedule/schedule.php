@@ -28,7 +28,7 @@ class Etn_Schedule extends Widget_Base {
      * @return string Widget title.
      */
     public function get_title() {
-        return esc_html__( 'Eventin schedule Tab', 'eventin' );
+        return esc_html__( 'Eventin schedule Tab', 'wp-event-solution' );
     }
 
     /**
@@ -53,25 +53,25 @@ class Etn_Schedule extends Widget_Base {
         $this->start_controls_section(
             'section_tab',
             [
-                'label' => esc_html__( 'Schedule settings', 'eventin' ),
+                'label' => esc_html__( 'Schedule settings', 'wp-event-solution' ),
             ]
         );
         $this->add_control(
             'schedule_style',
             [
-                'label'   => esc_html__( 'Schedule Style', 'eventin' ),
+                'label'   => esc_html__( 'Schedule Style', 'wp-event-solution' ),
                 'type'    => Controls_Manager::SELECT,
                 'default' => 'schedule-1',
                 'options' => [
-                    'schedule-1' => esc_html__( 'Schedule 1', 'eventin' ),
-                    'schedule-2' => esc_html__( 'Schedule 2', 'eventin' ),
+                    'schedule-1' => esc_html__( 'Schedule 1', 'wp-event-solution' ),
+                    'schedule-2' => esc_html__( 'Schedule 2', 'wp-event-solution' ),
                 ],
             ]
         );
         $this->add_control(
             'schedule_id',
             [
-                'label'    => esc_html__( 'Schedule', 'eventin' ),
+                'label'    => esc_html__( 'Schedule', 'wp-event-solution' ),
                 'type'     => Controls_Manager::SELECT2,
                 'multiple' => true,
                 'options'  => $this->get_schedules(),
@@ -80,12 +80,12 @@ class Etn_Schedule extends Widget_Base {
         $this->add_control(
             'etn_schedule_order',
             [
-                'label'   => esc_html__( 'Schedule order', 'eventin' ),
+                'label'   => esc_html__( 'Schedule order', 'wp-event-solution' ),
                 'type'    => Controls_Manager::SELECT,
                 'default' => 'DESC',
                 'options' => [
-                    'DESC' => esc_html__( 'Descending', 'eventin' ),
-                    'ASC'  => esc_html__( 'Ascending', 'eventin' ),
+                    'DESC' => esc_html__( 'Descending', 'wp-event-solution' ),
+                    'ASC'  => esc_html__( 'Ascending', 'wp-event-solution' ),
                 ],
             ]
         );
@@ -93,10 +93,10 @@ class Etn_Schedule extends Widget_Base {
         $this->add_control(
 			'show_speaker_section',
 			[
-				'label' => esc_html__( 'Show Speakers', 'eventin' ),
+				'label' => esc_html__( 'Show Speakers', 'wp-event-solution' ),
 				'type' => \Elementor\Controls_Manager::SWITCHER,
-				'label_on' => esc_html__( 'Show', 'eventin' ),
-				'label_off' => esc_html__( 'Hide', 'eventin' ),
+				'label_on' => esc_html__( 'Show', 'wp-event-solution' ),
+				'label_off' => esc_html__( 'Hide', 'wp-event-solution' ),
 				'return_value' => 'yes',
 				'default' => 'yes',
                 'condition'    => [
@@ -113,30 +113,30 @@ class Etn_Schedule extends Widget_Base {
         $this->start_controls_section(
             'nav_style',
             [
-                'label' => esc_html__( 'Nav style', 'eventin' ),
+                'label' => esc_html__( 'Nav style', 'wp-event-solution' ),
                 'tab'   => \Elementor\Controls_Manager::TAB_STYLE,
             ]
         );
         $this->add_responsive_control(
             'nav_align', [
-                'label'     => esc_html__( 'Alignment', 'eventin' ),
+                'label'     => esc_html__( 'Alignment', 'wp-event-solution' ),
                 'type'      => Controls_Manager::CHOOSE,
                 'options'   => [
 
                     'left'    => [
-                        'title' => esc_html__( 'Left', 'eventin' ),
+                        'title' => esc_html__( 'Left', 'wp-event-solution' ),
                         'icon'  => 'fa fa-align-left',
                     ],
                     'center'  => [
-                        'title' => esc_html__( 'Center', 'eventin' ),
+                        'title' => esc_html__( 'Center', 'wp-event-solution' ),
                         'icon'  => 'fa fa-align-center',
                     ],
                     'right'   => [
-                        'title' => esc_html__( 'Right', 'eventin' ),
+                        'title' => esc_html__( 'Right', 'wp-event-solution' ),
                         'icon'  => 'fa fa-align-right',
                     ],
                     'justify' => [
-                        'title' => esc_html__( 'Justified', 'eventin' ),
+                        'title' => esc_html__( 'Justified', 'wp-event-solution' ),
                         'icon'  => 'fa fa-align-justify',
                     ],
                 ],
@@ -153,7 +153,7 @@ class Etn_Schedule extends Widget_Base {
             \Elementor\Group_Control_Typography::get_type(),
             [
                 'name'     => 'etn_nav_typography',
-                'label'    => esc_html__( 'Nav Title Typography', 'eventin' ),
+                'label'    => esc_html__( 'Nav Title Typography', 'wp-event-solution' ),
                 'selector' => '{{WRAPPER}} .etn-nav li a',
             ]
         );
@@ -163,7 +163,7 @@ class Etn_Schedule extends Widget_Base {
             \Elementor\Group_Control_Typography::get_type(),
             [
                 'name'     => 'etn_nav_sub_typography',
-                'label'    => esc_html__( 'Nav Sub Title Typography', 'eventin' ),
+                'label'    => esc_html__( 'Nav Sub Title Typography', 'wp-event-solution' ),
                 'selector' => '{{WRAPPER}} .schedule-tab-wrapper .etn-nav li a .etn-day',
             ]
         );
@@ -177,14 +177,14 @@ class Etn_Schedule extends Widget_Base {
         $this->start_controls_tab(
             'etn_nav_normal_tab',
             [
-                'label' => esc_html__( 'Normal', 'eventin' ),
+                'label' => esc_html__( 'Normal', 'wp-event-solution' ),
             ]
         );
 
         $this->add_control(
             'etn_nav_color',
             [
-                'label'     => esc_html__( 'Nav Title Color', 'eventin' ),
+                'label'     => esc_html__( 'Nav Title Color', 'wp-event-solution' ),
                 'type'      => Controls_Manager::COLOR,
                 'selectors' => [
                     '{{WRAPPER}} .etn-nav li a' => 'color: {{VALUE}};',
@@ -194,7 +194,7 @@ class Etn_Schedule extends Widget_Base {
         $this->add_control(
             'etn_nav_sub_color',
             [
-                'label'     => esc_html__( 'Nav Subtitle color', 'eventin' ),
+                'label'     => esc_html__( 'Nav Subtitle color', 'wp-event-solution' ),
                 'type'      => Controls_Manager::COLOR,
                 'selectors' => [
                     '{{WRAPPER}} .schedule-tab-wrapper .etn-nav li a .etn-day' => 'color: {{VALUE}};',
@@ -205,7 +205,7 @@ class Etn_Schedule extends Widget_Base {
             Group_Control_Border::get_type(),
             [
                 'name'     => 'nav_border',
-                'label'    => esc_html__( 'Border', 'eventin' ),
+                'label'    => esc_html__( 'Border', 'wp-event-solution' ),
                 'selector' => '{{WRAPPER}} .etn-nav li a',
             ]
         );
@@ -217,13 +217,13 @@ class Etn_Schedule extends Widget_Base {
         $this->start_controls_tab(
             'etn_nav_active_tab',
             [
-                'label' => esc_html__( 'Active', 'eventin' ),
+                'label' => esc_html__( 'Active', 'wp-event-solution' ),
             ]
         );
         $this->add_control(
             'etn_nav_active_color',
             [
-                'label'     => esc_html__( 'Nav active color', 'eventin' ),
+                'label'     => esc_html__( 'Nav active color', 'wp-event-solution' ),
                 'type'      => Controls_Manager::COLOR,
                 'selectors' => [
                     '{{WRAPPER}} .etn-nav li a.etn-active'                  => 'color: {{VALUE}};',
@@ -234,7 +234,7 @@ class Etn_Schedule extends Widget_Base {
         $this->add_control(
             'etn_nav_sub_active_color',
             [
-                'label'     => esc_html__( 'Nav Subtitle Active color', 'eventin' ),
+                'label'     => esc_html__( 'Nav Subtitle Active color', 'wp-event-solution' ),
                 'type'      => Controls_Manager::COLOR,
                 'selectors' => [
                     '{{WRAPPER}} .schedule-tab-wrapper .etn-nav li a.etn-active .etn-day' => 'color: {{VALUE}};',
@@ -244,7 +244,7 @@ class Etn_Schedule extends Widget_Base {
         $this->add_control(
             'etn_nav_angle_active_color',
             [
-                'label'     => esc_html__( 'Nav Angle Active color', 'eventin' ),
+                'label'     => esc_html__( 'Nav Angle Active color', 'wp-event-solution' ),
                 'type'      => Controls_Manager::COLOR,
                 'selectors' => [
                     '{{WRAPPER}} .schedule-tab-wrapper .etn-nav li a:after' => 'border-color: {{VALUE}}  transparent transparent transparent;',
@@ -255,7 +255,7 @@ class Etn_Schedule extends Widget_Base {
             Group_Control_Border::get_type(),
             [
                 'name'     => 'nav_borderactive',
-                'label'    => esc_html__( 'Border active', 'eventin' ),
+                'label'    => esc_html__( 'Border active', 'wp-event-solution' ),
                 'selector' => '{{WRAPPER}} .etn-nav li a.etn-active',
             ]
         );
@@ -272,7 +272,7 @@ class Etn_Schedule extends Widget_Base {
         $this->start_controls_section(
             'schedule_item_style',
             [
-                'label' => esc_html__( 'Schedule Item Style', 'eventin' ),
+                'label' => esc_html__( 'Schedule Item Style', 'wp-event-solution' ),
                 'tab'   => \Elementor\Controls_Manager::TAB_STYLE,
             ]
         );
@@ -280,7 +280,7 @@ class Etn_Schedule extends Widget_Base {
         $this->add_responsive_control(
             'etn_schedule_item_padding',
             [
-                'label'      => esc_html__( 'Padding', 'eventin' ),
+                'label'      => esc_html__( 'Padding', 'wp-event-solution' ),
                 'type'       => Controls_Manager::DIMENSIONS,
                 'size_units' => ['px', 'em', '%'],
                 'selectors'  => [
@@ -292,7 +292,7 @@ class Etn_Schedule extends Widget_Base {
         $this->add_responsive_control(
             'etn_schedule_item_margin',
             [
-                'label'      => esc_html__( 'Margin', 'eventin' ),
+                'label'      => esc_html__( 'Margin', 'wp-event-solution' ),
                 'type'       => Controls_Manager::DIMENSIONS,
                 'size_units' => ['px', 'em', '%'],
                 'selectors'  => [
@@ -305,7 +305,7 @@ class Etn_Schedule extends Widget_Base {
             Group_Control_Border::get_type(),
             [
                 'name'     => 'etn_schedule_item_border',
-                'label'    => esc_html__( 'Border', 'eventin' ),
+                'label'    => esc_html__( 'Border', 'wp-event-solution' ),
                 'selector' => '{{WRAPPER}} .etn-schedule-wrap .etn-single-schedule-item',
             ]
         );
@@ -313,7 +313,7 @@ class Etn_Schedule extends Widget_Base {
         $this->add_responsive_control(
             'etn_schedule_item_border_radius',
             [
-                'label'      => esc_html__( 'Border Radius', 'eventin' ),
+                'label'      => esc_html__( 'Border Radius', 'wp-event-solution' ),
                 'type'       => Controls_Manager::DIMENSIONS,
                 'size_units' => ['px', 'em', '%'],
                 'selectors'  => [
@@ -326,7 +326,7 @@ class Etn_Schedule extends Widget_Base {
             Group_Control_Box_Shadow::get_type(),
             [
                 'name'     => 'etn_schedule_item_box_shadow',
-                'label'    => esc_html__( 'Box Shadow', 'eventin' ),
+                'label'    => esc_html__( 'Box Shadow', 'wp-event-solution' ),
                 'selector' => '{{WRAPPER}} .etn-schedule-wrap .etn-single-schedule-item',
             ]
         );
@@ -335,7 +335,7 @@ class Etn_Schedule extends Widget_Base {
             Group_Control_Background::get_type(),
             [
                 'name'     => 'etn_schedule_item_background',
-                'label'    => esc_html__( 'Background', 'eventin' ),
+                'label'    => esc_html__( 'Background', 'wp-event-solution' ),
                 'types'    => ['classic', 'gradient'],
                 'selector' => '{{WRAPPER}} .etn-schedule-wrap .etn-single-schedule-item',
             ]
@@ -348,7 +348,7 @@ class Etn_Schedule extends Widget_Base {
         $this->start_controls_section(
             'title_style',
             [
-                'label' => esc_html__( 'Title style', 'eventin' ),
+                'label' => esc_html__( 'Title style', 'wp-event-solution' ),
                 'tab'   => \Elementor\Controls_Manager::TAB_STYLE,
             ]
         );
@@ -357,7 +357,7 @@ class Etn_Schedule extends Widget_Base {
             \Elementor\Group_Control_Typography::get_type(),
             [
                 'name'     => 'etn_title_typography',
-                'label'    => esc_html__( 'Title Typography', 'eventin' ),
+                'label'    => esc_html__( 'Title Typography', 'wp-event-solution' ),
                 'selector' => '{{WRAPPER}} .etn-schedule-content .etn-title',
             ]
         );
@@ -365,7 +365,7 @@ class Etn_Schedule extends Widget_Base {
         $this->add_control(
             'etn_title_color',
             [
-                'label'     => esc_html__( 'Title color', 'eventin' ),
+                'label'     => esc_html__( 'Title color', 'wp-event-solution' ),
                 'type'      => Controls_Manager::COLOR,
                 'selectors' => [
                     '{{WRAPPER}} .etn-schedule-content .etn-title' => 'color: {{VALUE}};',
@@ -376,7 +376,7 @@ class Etn_Schedule extends Widget_Base {
         $this->add_responsive_control(
             'etn_title_margin',
             [
-                'label'      => esc_html__( 'Title Margin', 'eventin' ),
+                'label'      => esc_html__( 'Title Margin', 'wp-event-solution' ),
                 'type'       => Controls_Manager::DIMENSIONS,
                 'size_units' => ['px', 'em', '%'],
                 'selectors'  => [
@@ -389,7 +389,7 @@ class Etn_Schedule extends Widget_Base {
             Group_Control_Border::get_type(),
             [
                 'name'     => 'etn_title_border',
-                'label'    => esc_html__( 'Title Border', 'eventin' ),
+                'label'    => esc_html__( 'Title Border', 'wp-event-solution' ),
                 'selector' => '{{WRAPPER}} .etn-schedule-wrap .etn-schedule-content .etn-title',
             ]
         );
@@ -401,7 +401,7 @@ class Etn_Schedule extends Widget_Base {
         $this->start_controls_section(
             'desc_style',
             [
-                'label' => esc_html__( 'Description style', 'eventin' ),
+                'label' => esc_html__( 'Description style', 'wp-event-solution' ),
                 'tab'   => \Elementor\Controls_Manager::TAB_STYLE,
             ]
         );
@@ -410,7 +410,7 @@ class Etn_Schedule extends Widget_Base {
             \Elementor\Group_Control_Typography::get_type(),
             [
                 'name'     => 'etn_desc_typography',
-                'label'    => esc_html__( 'Desc Typography', 'eventin' ),
+                'label'    => esc_html__( 'Desc Typography', 'wp-event-solution' ),
                 'selector' => '{{WRAPPER}} .etn-schedule-content p',
             ]
         );
@@ -418,7 +418,7 @@ class Etn_Schedule extends Widget_Base {
         $this->add_control(
             'etn_desc_color',
             [
-                'label'     => esc_html__( 'Desc color', 'eventin' ),
+                'label'     => esc_html__( 'Desc color', 'wp-event-solution' ),
                 'type'      => Controls_Manager::COLOR,
                 'selectors' => [
                     '{{WRAPPER}} .etn-schedule-content p' => 'color: {{VALUE}};',
@@ -429,7 +429,7 @@ class Etn_Schedule extends Widget_Base {
         $this->add_responsive_control(
             'etn_desc_margin',
             [
-                'label'      => esc_html__( 'Description Margin', 'eventin' ),
+                'label'      => esc_html__( 'Description Margin', 'wp-event-solution' ),
                 'type'       => Controls_Manager::DIMENSIONS,
                 'size_units' => ['px', 'em', '%'],
                 'selectors'  => [
@@ -445,7 +445,7 @@ class Etn_Schedule extends Widget_Base {
         $this->start_controls_section(
             'schedule_time_style',
             [
-                'label' => esc_html__( 'Schedule time style', 'eventin' ),
+                'label' => esc_html__( 'Schedule time style', 'wp-event-solution' ),
                 'tab'   => \Elementor\Controls_Manager::TAB_STYLE,
             ]
         );
@@ -454,7 +454,7 @@ class Etn_Schedule extends Widget_Base {
             \Elementor\Group_Control_Typography::get_type(),
             [
                 'name'     => 'etn_schedule_time_typography',
-                'label'    => esc_html__( 'Schedule Time Typography', 'eventin' ),
+                'label'    => esc_html__( 'Schedule Time Typography', 'wp-event-solution' ),
                 'selector' => '{{WRAPPER}}  .etn-schedule-info span , {{WRAPPER}} .etn-schedule-info span i',
             ]
         );
@@ -462,7 +462,7 @@ class Etn_Schedule extends Widget_Base {
         $this->add_control(
             'etn_schedule_time_color',
             [
-                'label'     => esc_html__( 'Schedule Time Color', 'eventin' ),
+                'label'     => esc_html__( 'Schedule Time Color', 'wp-event-solution' ),
                 'type'      => Controls_Manager::COLOR,
                 'selectors' => [
                     '{{WRAPPER}} .etn-schedule-info span , {{WRAPPER}} .etn-schedule-info span i ' => 'color: {{VALUE}};',
@@ -472,7 +472,7 @@ class Etn_Schedule extends Widget_Base {
         $this->add_control(
             'etn_schedule_time__bgcolor',
             [
-                'label'     => esc_html__( 'Schedule Time BG Color', 'eventin' ),
+                'label'     => esc_html__( 'Schedule Time BG Color', 'wp-event-solution' ),
                 'type'      => Controls_Manager::COLOR,
                 'selectors' => [
                     '{{WRAPPER}} .etn-schedule-info span  , {{WRAPPER}} .etn-schedule-info span i ' => 'background-color: {{VALUE}};',

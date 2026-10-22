@@ -90,7 +90,7 @@ class Hooks {
      */
     public function user_row_action_organizer($actions, $user_object) {
         $is_organizer = in_array( 'etn-organizer', $user_object->roles );
-        $button_text = $is_organizer ? esc_html__( 'Remove from Organizer', 'eventin' ) : esc_html__( 'Make Organizer', 'eventin' );
+        $button_text = $is_organizer ? esc_html__( 'Remove from Organizer', 'wp-event-solution' ) : esc_html__( 'Make Organizer', 'wp-event-solution' );
         $action = $is_organizer ? 'remove_organizer' : 'make_organizer';
 
         $actions['organizer'] = "<a class='etn-organizer' href='" . wp_nonce_url("users.php?action=$action&amp;users=$user_object->ID", 'bulk-users') . "'>" . $button_text . '</a>';
@@ -108,7 +108,7 @@ class Hooks {
     public function user_row_action_speaker($actions, $user_object) {
         
         $is_speaker = in_array( 'etn-speaker', $user_object->roles );
-        $button_text = $is_speaker ? esc_html__( 'Remove from Speaker', 'eventin' ) : esc_html__( 'Make Speaker', 'eventin' );
+        $button_text = $is_speaker ? esc_html__( 'Remove from Speaker', 'wp-event-solution' ) : esc_html__( 'Make Speaker', 'wp-event-solution' );
         $action = $is_speaker ? 'remove_speaker' : 'make_speaker';
 
         $actions['speaker'] = "<a class='etn-speaker' href='" . wp_nonce_url("users.php?action=$action&amp;users=$user_object->ID", 'bulk-users') . "'>" . $button_text . '</a>';

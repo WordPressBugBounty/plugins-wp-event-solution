@@ -40,7 +40,7 @@ class StaticTemplateConfig {
             'event' => [
                 self::entry( [
                     'id'           => 'event-one',
-                    'name'         => __( 'Event Template One', 'eventin' ),
+                    'name'         => __( 'Event Template One', 'wp-event-solution' ),
                     'type'         => 'event',
                     'orientation'  => 'portrait',
                     'thumbnail'    => $assets . 'landing_template_1.webp',
@@ -49,7 +49,7 @@ class StaticTemplateConfig {
                 ] ),
                 self::entry( [
                     'id'           => 'event-two',
-                    'name'         => __( 'Event Template Two', 'eventin' ),
+                    'name'         => __( 'Event Template Two', 'wp-event-solution' ),
                     'type'         => 'event',
                     'orientation'  => 'portrait',
                     'thumbnail'    => $assets . 'landing_template_2.webp',
@@ -58,7 +58,7 @@ class StaticTemplateConfig {
                 ] ),
                 self::entry( [
                     'id'           => 'event-three',
-                    'name'         => __( 'Event Template Three', 'eventin' ),
+                    'name'         => __( 'Event Template Three', 'wp-event-solution' ),
                     'type'         => 'event',
                     'orientation'  => 'portrait',
                     'thumbnail'    => $assets . 'landing_template_3.webp',
@@ -73,7 +73,7 @@ class StaticTemplateConfig {
             'ticket' => [
                 self::entry( [
                     'id'           => 'style-1',
-                    'name'         => __( 'Template One', 'eventin' ),
+                    'name'         => __( 'Template One', 'wp-event-solution' ),
                     'type'         => 'ticket',
                     'orientation'  => 'landscape',
                     'thumbnail'    => $assets . 'ticket_template_1.webp',
@@ -82,7 +82,7 @@ class StaticTemplateConfig {
                 ] ),
                 self::entry( [
                     'id'           => 'style-2',
-                    'name'         => __( 'Template Two', 'eventin' ),
+                    'name'         => __( 'Template Two', 'wp-event-solution' ),
                     'type'         => 'ticket',
                     'orientation'  => 'landscape',
                     'thumbnail'    => $assets . 'ticket_template_2.webp',
@@ -102,7 +102,7 @@ class StaticTemplateConfig {
             'speaker' => [
                 self::entry( [
                     'id'           => 'speaker-one',
-                    'name'         => __( 'Template One', 'eventin' ),
+                    'name'         => __( 'Template One', 'wp-event-solution' ),
                     'type'         => 'speaker',
                     'orientation'  => 'portrait',
                     'thumbnail'    => $assets . 'speaker_template_1.webp',
@@ -111,7 +111,7 @@ class StaticTemplateConfig {
                 ] ),
                 self::entry( [
                     'id'           => 'speaker-two-lite',
-                    'name'         => __( 'Template Two', 'eventin' ),
+                    'name'         => __( 'Template Two', 'wp-event-solution' ),
                     'type'         => 'speaker',
                     'orientation'  => 'portrait',
                     'thumbnail'    => $assets . 'speaker_template_2.webp',
@@ -120,7 +120,7 @@ class StaticTemplateConfig {
                 ] ),
                 self::entry( [
                     'id'           => 'speaker-two',
-                    'name'         => __( 'Template Three', 'eventin' ),
+                    'name'         => __( 'Template Three', 'wp-event-solution' ),
                     'type'         => 'speaker',
                     'orientation'  => 'portrait',
                     'thumbnail'    => $assets . 'speaker_template_3.webp',
@@ -129,7 +129,7 @@ class StaticTemplateConfig {
                 ] ),
                 self::entry( [
                     'id'           => 'speaker-three',
-                    'name'         => __( 'Template Four', 'eventin' ),
+                    'name'         => __( 'Template Four', 'wp-event-solution' ),
                     'type'         => 'speaker',
                     'orientation'  => 'portrait',
                     'thumbnail'    => $assets . 'speaker_template_4.webp',

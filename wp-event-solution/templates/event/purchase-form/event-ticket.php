@@ -14,7 +14,7 @@ use Etn\Utils\Helper;
 			?>
 			<h4 class="etn-widget-title etn-title etn-form-title">
 				<?php
-				$attendee_form_title = apply_filters( 'etn_event_purchase_form_title', esc_html__( "Registration Form", "eventin" ) );
+				$attendee_form_title = apply_filters( 'etn_event_purchase_form_title', esc_html__( "Registration Form", "wp-event-solution" ) );
 				echo esc_html( $attendee_form_title );
 				?>
 			</h4>
@@ -39,7 +39,7 @@ use Etn\Utils\Helper;
 
 		} else {
 			?>
-			<h6><?php echo esc_html__( 'No Tickets Available!!', "eventin" ); ?></h6>
+			<h6><?php echo esc_html__( 'No Tickets Available!!', "wp-event-solution" ); ?></h6>
 			<?php
 		}
 	}
@@ -48,7 +48,7 @@ use Etn\Utils\Helper;
 	if ( isset( $is_zoom_event ) && ( "on" == $is_zoom_event || "yes" == $is_zoom_event ) ) {
 		?>
         <div class="etn-zoom-event-notice">
-			<?php echo esc_html__( "[Note: This event will be held on zoom. Attendee will get zoom meeting URL through email]", "eventin" ); ?>
+			<?php echo esc_html__( "[Note: This event will be held on zoom. Attendee will get zoom meeting URL through email]", "wp-event-solution" ); ?>
         </div>
 		<?php
 	}

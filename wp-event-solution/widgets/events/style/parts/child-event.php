@@ -22,7 +22,7 @@ if ( !empty( $show_child_event ) && 'yes' == $show_child_event ) {
                                 <?php elseif ( get_the_post_thumbnail_url( $item->ID ) ) : ?>
                                     <?php echo get_the_post_thumbnail( $item->ID, 'large' );  ?>
                                 <?php else: ?>
-                                    <img class="etn-event-placeholder" src="<?php echo esc_url(\Wpeventin::assets_url() . 'images/placeholder.jpg'); ?>" alt="<?php echo esc_attr__('Event placeholder image', 'eventin'); ?>">
+                                    <img class="etn-event-placeholder" src="<?php echo esc_url(\Wpeventin::assets_url() . 'images/placeholder.jpg'); ?>" alt="<?php echo esc_attr__('Event placeholder image', 'wp-event-solution'); ?>">
                                 <?php endif; ?>
                             </a>
                             <div class="etn-event-category">
@@ -52,11 +52,11 @@ if ( !empty( $show_child_event ) && 'yes' == $show_child_event ) {
                                         $show_form_button = apply_filters("etn_form_submit_visibility", true, $item->ID);
                                         if ($show_form_button === false) {
                                             ?>
-                                            <a href="#" class="etn-btn etn-btn-border"><?php echo esc_html__('Expired!', "eventin"); ?> </a>
+                                            <a href="#" class="etn-btn etn-btn-border"><?php echo esc_html__('Expired!', "wp-event-solution"); ?> </a>
                                             <?php
                                         } else {
                                             ?>
-                                            <a href="<?php echo esc_url(get_the_permalink($item->ID)); ?>" class="etn-btn etn-btn-border" title="<?php echo esc_attr(get_the_title($item->ID)); ?>"><?php echo esc_html__('Attend', 'eventin') ?> <i class="etn-icon etm-arrow-right"></i></a>
+                                            <a href="<?php echo esc_url(get_the_permalink($item->ID)); ?>" class="etn-btn etn-btn-border" title="<?php echo esc_attr(get_the_title($item->ID)); ?>"><?php echo esc_html__('Attend', 'wp-event-solution') ?> <i class="etn-icon etm-arrow-right"></i></a>
                                             <?php
                                         }
                                     ?>

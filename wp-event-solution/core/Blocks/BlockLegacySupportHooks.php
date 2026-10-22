@@ -39,7 +39,7 @@ class BlockLegacySupportHooks implements HookableInterface {
             [
                 [
                     'slug'  => 'eventin-blocks',
-                    'title' => __( 'Eventin', 'eventin' ),
+                    'title' => __( 'Eventin', 'wp-event-solution' ),
                 ],
             ]
         );
@@ -55,7 +55,7 @@ class BlockLegacySupportHooks implements HookableInterface {
         wp_enqueue_script( 'eventin-block-js' );
 
         if ( function_exists( 'wp_set_script_translations' ) ) {
-            wp_set_script_translations( 'eventin-block-js', 'eventin' );
+            wp_set_script_translations( 'eventin-block-js', 'wp-event-solution' );
         }
 
         wp_enqueue_style( 'eventin-block-editor-style-css' );

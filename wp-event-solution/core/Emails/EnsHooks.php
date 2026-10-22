@@ -347,8 +347,8 @@ class EnsHooks {
             $certificate_url = site_url( "etn-attendee?etn_action=download_certificate&attendee_id={$this->attendee->id}&event_id={$this->event->id}&etn_info_edit_token={$this->attendee->etn_info_edit_token}" );
             $ticket_url      = site_url( "etn-attendee?etn_action=download_ticket&attendee_id={$this->attendee->id}&etn_info_edit_token={$this->attendee->etn_info_edit_token}" );
 
-            $certificate_link = sprintf( '<a href="%s">%s</a>', esc_url( $certificate_url ), esc_html__( 'Download Certificate', 'eventin' ) );
-            $ticket_link      = sprintf( '<a href="%s">%s</a>', esc_url( $ticket_url ), esc_html__( 'Download Ticket', 'eventin' ) );
+            $certificate_link = sprintf( '<a href="%s">%s</a>', esc_url( $certificate_url ), esc_html__( 'Download Certificate', 'wp-event-solution' ) );
+            $ticket_link      = sprintf( '<a href="%s">%s</a>', esc_url( $ticket_url ), esc_html__( 'Download Ticket', 'wp-event-solution' ) );
         }
 
         $content = strtr( $content, [

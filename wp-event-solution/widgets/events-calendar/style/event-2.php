@@ -75,11 +75,11 @@ $data           = Helper::post_data_query('etn', $event_count, $order, $event_ca
 																$show_form_button = apply_filters("etn_form_submit_visibility", true, $value->ID);
 																if ($show_form_button === false) {
 																		?>
-																		<a href="#" class="etn-btn etn-btn-border"><?php echo esc_html__('Expired!', "eventin"); ?> </a>
+																		<a href="#" class="etn-btn etn-btn-border"><?php echo esc_html__('Expired!', "wp-event-solution"); ?> </a>
 																		<?php
 																} else {
 																		?>
-																		<a href="<?php echo esc_url(get_the_permalink($value->ID)); ?>" class="etn-btn etn-btn-border" title="<?php echo esc_attr(get_the_title($value->ID)); ?>"><?php echo esc_html__('Attend', 'eventin') ?> <i class="etn-icon etn-arrow-right"></i></a>
+																		<a href="<?php echo esc_url(get_the_permalink($value->ID)); ?>" class="etn-btn etn-btn-border" title="<?php echo esc_attr(get_the_title($value->ID)); ?>"><?php echo esc_html__('Attend', 'wp-event-solution') ?> <i class="etn-icon etn-arrow-right"></i></a>
 																		<?php
 																}
 																?>
@@ -94,7 +94,7 @@ $data           = Helper::post_data_query('etn', $event_count, $order, $event_ca
 				}
 		}else{
 				?>
-				<p class="etn-not-found-post"><?php echo esc_html__('No Post Found', 'eventin'); ?></p>
+				<p class="etn-not-found-post"><?php echo esc_html__('No Post Found', 'wp-event-solution'); ?></p>
 				<?php
 		} ?>
 </div>

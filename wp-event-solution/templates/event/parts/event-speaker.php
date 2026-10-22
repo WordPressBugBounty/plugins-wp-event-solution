@@ -1,7 +1,7 @@
 <?php defined( 'ABSPATH' ) || exit; ?>
 <div class="etn-event-speakers etn-single-event-speaker-block eventin-block-container <?php echo esc_attr( $container_class ); ?> ">
     <h3 class="speaker-block-title">
-        <?php esc_html_e( 'Speakers', 'eventin' ); ?>
+        <?php esc_html_e( 'Speakers', 'wp-event-solution' ); ?>
     </h3>
     <?php if ( $event_speakers ): ?>
     <div class="etn-single-event-speaker-grid-wrapper eventin-block-container">
@@ -48,6 +48,6 @@
         <?php endforeach; ?>
     </div>
     <?php else: ?>
-    <p><?php esc_html_e( 'No speakers found', 'eventin' ); ?></p>
+    <p><?php esc_html_e( 'No speakers found', 'wp-event-solution' ); ?></p>
     <?php endif; ?>
 </div>

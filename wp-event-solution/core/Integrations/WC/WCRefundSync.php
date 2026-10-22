@@ -134,7 +134,7 @@ class WCRefundSync {
                 'eventin_wc_refund_exceeds_remaining',
                 sprintf(
                     /* translators: 1: amount left to refund in WooCommerce, 2: WooCommerce order number */
-                    __( 'WooCommerce can only refund %1$s more on order #%2$s. Part of it was already refunded in WooCommerce. Enter a smaller amount.', 'eventin' ),
+                    __( 'WooCommerce can only refund %1$s more on order #%2$s. Part of it was already refunded in WooCommerce. Enter a smaller amount.', 'wp-event-solution' ),
                     number_format( $remaining, 2 ),
                     $wc_order->get_order_number()
                 ),
@@ -186,7 +186,7 @@ class WCRefundSync {
                     'eventin_wc_refund_failed',
                     sprintf(
                         /* translators: %s: error message from the payment gateway */
-                        __( 'The payment gateway did not refund the money: %s', 'eventin' ),
+                        __( 'The payment gateway did not refund the money: %s', 'wp-event-solution' ),
                         $refund->get_error_message()
                     ),
                     [ 'status' => 422 ]

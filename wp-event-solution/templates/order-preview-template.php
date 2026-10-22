@@ -32,16 +32,16 @@ if ( $order_id && $order_token ) {
                 $event = new \Etn\Core\Event\Event_Model( $order->event_id );
                 $valid = true;
             } else {
-                $error_msg = __( 'This payment link is no longer valid.', 'eventin' );
+                $error_msg = __( 'This payment link is no longer valid.', 'wp-event-solution' );
             }
         } else {
-            $error_msg = __( 'Order not found.', 'eventin' );
+            $error_msg = __( 'Order not found.', 'wp-event-solution' );
         }
     } else {
-        $error_msg = __( 'Invalid or expired payment link.', 'eventin' );
+        $error_msg = __( 'Invalid or expired payment link.', 'wp-event-solution' );
     }
 } else {
-    $error_msg = __( 'Missing order information.', 'eventin' );
+    $error_msg = __( 'Missing order information.', 'wp-event-solution' );
 }
 
 // ----------------------------------------------------------------
@@ -101,10 +101,10 @@ if ( wp_is_block_theme() ) {
     <!-- Header -->
     <div style="text-align:center;margin-bottom:32px;">
         <h1 style="font-size:26px;font-weight:700;color:#020617;margin:0 0 8px;">
-            <?php esc_html_e( 'Complete Your Payment', 'eventin' ); ?>
+            <?php esc_html_e( 'Complete Your Payment', 'wp-event-solution' ); ?>
         </h1>
         <p style="font-size:14px;color:#64748b;margin:0;">
-            <?php esc_html_e( 'A spot is waiting for you. Review your order and proceed to pay.', 'eventin' ); ?>
+            <?php esc_html_e( 'A spot is waiting for you. Review your order and proceed to pay.', 'wp-event-solution' ); ?>
         </p>
     </div>
 
@@ -114,7 +114,7 @@ if ( wp_is_block_theme() ) {
         <!-- Event info -->
         <div style="background:#f8fafc;padding:20px 24px;border-bottom:1px solid #e2e8f0;">
             <p style="margin:0 0 4px;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#94a3b8;">
-                <?php esc_html_e( 'Event', 'eventin' ); ?>
+                <?php esc_html_e( 'Event', 'wp-event-solution' ); ?>
             </p>
             <h2 style="margin:0 0 6px;font-size:18px;font-weight:600;color:#0f172a;">
                 <?php echo esc_html( $event->get_title() ); ?>
@@ -137,7 +137,7 @@ if ( wp_is_block_theme() ) {
             <span style="font-size:13px;color:#64748b;">
                 <?php
                 /* translators: %d: order ID */
-                printf( esc_html__( 'Order #%d', 'eventin' ), esc_html( $order->id ) );
+                printf( esc_html__( 'Order #%d', 'wp-event-solution' ), esc_html( $order->id ) );
                 ?>
             </span>
             <span style="font-size:13px;color:#64748b;">
@@ -192,7 +192,7 @@ if ( wp_is_block_theme() ) {
         <!-- Total -->
         <div style="padding:16px 24px;background:#f8fafc;display:flex;justify-content:space-between;align-items:center;">
             <span style="font-size:15px;font-weight:700;color:#0f172a;">
-                <?php esc_html_e( 'Total', 'eventin' ); ?>
+                <?php esc_html_e( 'Total', 'wp-event-solution' ); ?>
             </span>
             <span style="font-size:15px;font-weight:700;color:#0f172a;">
                 <?php
@@ -221,7 +221,7 @@ if ( wp_is_block_theme() ) {
                 border-radius:8px;
             "
         >
-            <?php esc_html_e( 'Complete Payment', 'eventin' ); ?>
+            <?php esc_html_e( 'Complete Payment', 'wp-event-solution' ); ?>
         </a>
     </div>
 

@@ -197,12 +197,12 @@ if (!wp_doing_ajax()) {
                 </div>
 
                 <h2 class="etn-no-events-title">
-                    <?php esc_html_e('No Events', 'eventin'); ?>
-                    <span><?php esc_html_e('Found', 'eventin'); ?></span>
+                    <?php esc_html_e('No Events', 'wp-event-solution'); ?>
+                    <span><?php esc_html_e('Found', 'wp-event-solution'); ?></span>
                 </h2>
 
                 <p class="etn-no-events-desc">
-                    <?php esc_html_e("We couldn't find any events matching your current search. Try changing filters or explore upcoming events.", 'eventin'); ?>
+                    <?php esc_html_e("We couldn't find any events matching your current search. Try changing filters or explore upcoming events.", 'wp-event-solution'); ?>
                 </p>
 
                 <a href="<?php echo esc_url(get_post_type_archive_link('etn')); ?>" class="etn-no-events-btn">
@@ -221,7 +221,7 @@ if (!wp_doing_ajax()) {
                         </defs>
                     </svg>
 
-                    <?php esc_html_e('Browse All Events', 'eventin'); ?>
+                    <?php esc_html_e('Browse All Events', 'wp-event-solution'); ?>
                 </a>
 
             </div>

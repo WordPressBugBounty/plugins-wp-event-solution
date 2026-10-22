@@ -44,6 +44,6 @@
         <?php endforeach; ?>
     </div>
     <?php else: ?>
-    <p><?php esc_html_e('No organizer found', 'eventin'); ?></p>
+    <p><?php esc_html_e('No organizer found', 'wp-event-solution'); ?></p>
     <?php endif; ?>
 </div>

@@ -138,7 +138,7 @@ class Hooks {
         }
 
         if ( ! $user_id ) {
-            return '<p class="etn-not-found-post">' . esc_html__( 'No Post Found', 'eventin' ) . '</p>';
+            return '<p class="etn-not-found-post">' . esc_html__( 'No Post Found', 'wp-event-solution' ) . '</p>';
         }
 
         $allowed_styles = ['event-1', 'event-2'];
@@ -253,7 +253,7 @@ class Hooks {
         // Fail closed: an empty $post__in is treated as "no filter" by WP_Query, which
         // would list every event instead of none.
         if ( empty( $post__in ) ) {
-            echo '<p class="etn-not-found-post">' . esc_html__( 'No Post Found', 'eventin' ) . '</p>';
+            echo '<p class="etn-not-found-post">' . esc_html__( 'No Post Found', 'wp-event-solution' ) . '</p>';
         } elseif ( file_exists( \Wpeventin::widgets_dir() . "events/style/{$style}.php" ) ) {
             include \Wpeventin::widgets_dir() . "events/style/{$style}.php";
         }
@@ -307,13 +307,13 @@ class Hooks {
         }
 
         $role_label = ( 'organizer' === $type )
-            ? esc_html__( 'Organizer', 'eventin' )
-            : esc_html__( 'Speaker', 'eventin' );
+            ? esc_html__( 'Organizer', 'wp-event-solution' )
+            : esc_html__( 'Speaker', 'wp-event-solution' );
 
         // translators: %s is the speaker / organizer name.
         $events_label_template = ( 'organizer' === $type )
-            ? esc_html__( 'Events by %s', 'eventin' )
-            : esc_html__( 'Events featuring %s', 'eventin' );
+            ? esc_html__( 'Events by %s', 'wp-event-solution' )
+            : esc_html__( 'Events featuring %s', 'wp-event-solution' );
 
         ob_start();
         $this->print_user_profile_header_styles();
@@ -355,13 +355,13 @@ class Hooks {
                     <?php if ( $email || $phone || ! empty( $socials ) ) : ?>
                         <div class="etn-uep-hero__contact">
                             <?php if ( $email ) : ?>
-                                <a class="etn-uep-hero__contact-link" href="mailto:<?php echo esc_attr( $email ); ?>" aria-label="<?php echo esc_attr__( 'Email', 'eventin' ); ?>">
+                                <a class="etn-uep-hero__contact-link" href="mailto:<?php echo esc_attr( $email ); ?>" aria-label="<?php echo esc_attr__( 'Email', 'wp-event-solution' ); ?>">
                                     <span class="etn-uep-icon" aria-hidden="true">&#9993;</span>
                                     <span class="etn-uep-hero__contact-text"><?php echo esc_html( $email ); ?></span>
                                 </a>
                             <?php endif; ?>
                             <?php if ( $phone ) : ?>
-                                <a class="etn-uep-hero__contact-link" href="tel:<?php echo esc_attr( preg_replace( '/[^0-9+]/', '', $phone ) ); ?>" aria-label="<?php echo esc_attr__( 'Phone', 'eventin' ); ?>">
+                                <a class="etn-uep-hero__contact-link" href="tel:<?php echo esc_attr( preg_replace( '/[^0-9+]/', '', $phone ) ); ?>" aria-label="<?php echo esc_attr__( 'Phone', 'wp-event-solution' ); ?>">
                                     <span class="etn-uep-icon" aria-hidden="true">&#9742;</span>
                                     <span class="etn-uep-hero__contact-text"><?php echo esc_html( $phone ); ?></span>
                                 </a>
@@ -504,14 +504,14 @@ class Hooks {
 
         $extra_controls = [
             'limit' => $event_count, 
-            'select_cat_text' => esc_html__('All Categories', 'eventin'),
+            'select_cat_text' => esc_html__('All Categories', 'wp-event-solution'),
             'show_desc' => $show_desc,
             'show_upcoming_event' => $show_upcoming_event,
             'calendar_show' =>$calendar_show,
             'style' =>$style,
             'filter_with_status' => $filter_with_status,
-            'selected_date_text' => esc_html__('Showing events for', 'eventin'),
-            'event_notice' => esc_html__('No event found on the selected date. Please select another date or month.', 'eventin'),
+            'selected_date_text' => esc_html__('Showing events for', 'wp-event-solution'),
+            'event_notice' => esc_html__('No event found on the selected date. Please select another date or month.', 'wp-event-solution'),
             'post_parent' => $post_parent
         ];
         $data_controls = json_encode( $extra_controls );
@@ -840,7 +840,7 @@ class Hooks {
         }else if(file_exists( \Wpeventin::widgets_dir() . "speakers/style/speaker-3.php" ) && $style =='speaker-2'){
             include \Wpeventin::widgets_dir() . "speakers/style/speaker-3.php";
         }else{
-            echo esc_html__('No style found', 'eventin');
+            echo esc_html__('No style found', 'wp-event-solution');
         }
 
         return ob_get_clean();
@@ -893,7 +893,7 @@ class Hooks {
             <p class="etn_search_bottom_area_text"><?php
                 $etn_search_count = count( helper::get_eventin_search_data() );
                 // translators: %d is the number of upcoming and expired events.
-                echo sprintf( esc_html( _n( 'Discover %d Upcoming and Expire Event', 'Discover %d Upcoming and Expire Events', $etn_search_count, 'eventin' ) ), absint( $etn_search_count ) );
+                echo sprintf( esc_html( _n( 'Discover %d Upcoming and Expire Event', 'Discover %d Upcoming and Expire Events', $etn_search_count, 'wp-event-solution' ) ), absint( $etn_search_count ) );
             ?></p>
             </div>
         <?php
@@ -919,17 +919,17 @@ class Hooks {
                 <div class="meeting-wrapper">
                     <div class="meeting-row">
                         <div class="meeting-info">
-                            <p><?php echo esc_html__( 'Join url', 'eventin' ); ?></p>
+                            <p><?php echo esc_html__( 'Join url', 'wp-event-solution' ); ?></p>
                         </div>
                         <div class="meeting-info info-right">
-                            <a href="<?php echo esc_url( $meeting_link ) ?>"><?php echo esc_html__( 'Join url', 'eventin' ); ?></a>
+                            <a href="<?php echo esc_url( $meeting_link ) ?>"><?php echo esc_html__( 'Join url', 'wp-event-solution' ); ?></a>
                         </div>
                     </div><!-- row end -->
                 </div><!-- mettin-wrapper end -->
             <?php
         } else {
             ?>
-                <p><?php echo esc_html__( 'This is not a zoom event', 'eventin' ); ?></p>
+                <p><?php echo esc_html__( 'This is not a zoom event', 'wp-event-solution' ); ?></p>
             <?php
         }
         

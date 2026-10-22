@@ -49,7 +49,7 @@ class Integration implements HookableInterface {
         $user_id = get_current_user_id();
 
         if ( ! $user_id || ! current_user_can( 'manage_options' ) ) {
-            wp_die( esc_html__( 'You do not have permission to authorize integrations.', 'eventin' ), '', [ 'response' => 403 ] );
+            wp_die( esc_html__( 'You do not have permission to authorize integrations.', 'wp-event-solution' ), '', [ 'response' => 403 ] );
         }
 
         $matched_key = '';
@@ -69,7 +69,7 @@ class Integration implements HookableInterface {
         }
 
         if ( ! $matched_key ) {
-            wp_die( esc_html__( 'Invalid OAuth state — authorization rejected.', 'eventin' ), '', [ 'response' => 403 ] );
+            wp_die( esc_html__( 'Invalid OAuth state — authorization rejected.', 'wp-event-solution' ), '', [ 'response' => 403 ] );
         }
 
         delete_transient( $matched_key );

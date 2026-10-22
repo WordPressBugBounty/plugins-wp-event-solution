@@ -169,7 +169,7 @@ class TourController extends WP_REST_Controller {
         if ( ! $tour_id ) {
             return new WP_Error(
                 'eventin_tour_invalid_id',
-                __( 'Invalid tour id.', 'eventin' ),
+                __( 'Invalid tour id.', 'wp-event-solution' ),
                 [ 'status' => 400 ]
             );
         }
@@ -179,7 +179,7 @@ class TourController extends WP_REST_Controller {
         if ( ! in_array( $status, self::STATUSES, true ) ) {
             return new WP_Error(
                 'eventin_tour_invalid_status',
-                __( 'Invalid tour status.', 'eventin' ),
+                __( 'Invalid tour status.', 'wp-event-solution' ),
                 [ 'status' => 400 ]
             );
         }
@@ -220,19 +220,19 @@ class TourController extends WP_REST_Controller {
     protected function get_state_args() {
         return [
             'status'  => [
-                'description' => __( 'Tour status.', 'eventin' ),
+                'description' => __( 'Tour status.', 'wp-event-solution' ),
                 'type'        => 'string',
                 'required'    => true,
                 'enum'        => self::STATUSES,
             ],
             'step'    => [
-                'description'       => __( 'Zero based index of the step the user reached.', 'eventin' ),
+                'description'       => __( 'Zero based index of the step the user reached.', 'wp-event-solution' ),
                 'type'              => 'integer',
                 'default'           => 0,
                 'sanitize_callback' => 'absint',
             ],
             'version' => [
-                'description'       => __( 'Version of the tour definition that was shown.', 'eventin' ),
+                'description'       => __( 'Version of the tour definition that was shown.', 'wp-event-solution' ),
                 'type'              => 'integer',
                 'default'           => 1,
                 'sanitize_callback' => 'absint',

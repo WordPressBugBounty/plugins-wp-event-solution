@@ -7,8 +7,8 @@ defined( 'ABSPATH' ) || die();
     <?php
         the_posts_pagination(array(
             'mid_size' => 2,
-            'prev_text' => esc_html__('Previous', 'eventin'),
-            'next_text' => esc_html__('Next', 'eventin'),
+            'prev_text' => esc_html__('Previous', 'wp-event-solution'),
+            'next_text' => esc_html__('Next', 'wp-event-solution'),
         ));
     ?>
     <?php do_action( 'etn_after_event_archive_pagination_content' );?>

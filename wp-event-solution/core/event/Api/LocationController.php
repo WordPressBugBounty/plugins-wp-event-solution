@@ -55,7 +55,7 @@ class LocationController extends WP_REST_Controller {
             array(
                 'args' => array(
                     'id' => array(
-                        'description' => __( 'Unique identifier for the post.', 'eventin' ),
+                        'description' => __( 'Unique identifier for the post.', 'wp-event-solution' ),
                         'type'        => 'integer',
                     ),
                 ),
@@ -130,7 +130,7 @@ class LocationController extends WP_REST_Controller {
     protected function get_location( $id ) {
         $error = new WP_Error(
             'rest_location_invalid',
-            __( 'Location does not exist.', 'eventin' ),
+            __( 'Location does not exist.', 'wp-event-solution' ),
             array( 'status' => 404 )
         );
 

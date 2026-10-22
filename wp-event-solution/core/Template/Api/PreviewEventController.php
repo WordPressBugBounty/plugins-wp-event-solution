@@ -97,7 +97,7 @@ class PreviewEventController extends WP_REST_Controller {
         if ( ! $post || $post_type !== $post->post_type ) {
             return new WP_Error(
                 'eventin_preview_not_found',
-                __( 'The requested preview content does not exist.', 'eventin' ),
+                __( 'The requested preview content does not exist.', 'wp-event-solution' ),
                 [ 'status' => 404 ]
             );
         }
@@ -105,7 +105,7 @@ class PreviewEventController extends WP_REST_Controller {
         if ( 'publish' !== $post->post_status && ! current_user_can( 'read_post', $post->ID ) ) {
             return new WP_Error(
                 'eventin_preview_forbidden',
-                __( 'You are not allowed to preview this content.', 'eventin' ),
+                __( 'You are not allowed to preview this content.', 'wp-event-solution' ),
                 [ 'status' => 403 ]
             );
         }

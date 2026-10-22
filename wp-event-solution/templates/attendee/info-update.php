@@ -42,7 +42,7 @@ use Etn\Utils\Helper;
     <div class="etn-event-single-wrap">
         <div class="etn-container">
             <div class="etn-attendee-form">
-                <h3 class="attendee-title"><?php echo esc_html__( "Update Attendee Details", "eventin" ); ?></h3>
+                <h3 class="attendee-title"><?php echo esc_html__( "Update Attendee Details", "wp-event-solution" ); ?></h3>
                 <form action="<?php echo esc_url( $action_url );?>" method="post" class="attende_form attendee-ticket-update-form">
                     <div class="etn-attendee-form-wrap">
                         <?php
@@ -150,7 +150,7 @@ use Etn\Utils\Helper;
 				                        <?php
 			                        }
 			                        else { ?>
-                                        <p class="error-text"><?php echo esc_html__( 'Please Select input type & label name from admin', 'eventin' ); ?></p>
+                                        <p class="error-text"><?php echo esc_html__( 'Please Select input type & label name from admin', 'wp-event-solution' ); ?></p>
 				                        <?php
 			                        }
 		                        }
@@ -286,7 +286,7 @@ use Etn\Utils\Helper;
                                         <?php
                                     }
                                     else { ?>
-                                        <p class="error-text"><?php echo esc_html__( 'Please Select input type & label name from admin', 'eventin' ); ?></p>
+                                        <p class="error-text"><?php echo esc_html__( 'Please Select input type & label name from admin', 'wp-event-solution' ); ?></p>
                                     <?php
                                     }
                                 }
@@ -298,7 +298,7 @@ use Etn\Utils\Helper;
                     <input type="hidden" name="etn_attendee_details_update_action" value="etn_attendee_details_update_action" required/>
                     <input type="hidden" name="etn_attendee_id" value="<?php echo esc_html( $user_id ); ?>" required/>
                     <input type="hidden" name="etn_info_edit_token" value="<?php echo esc_html( $access_token ); ?>" required/>
-                    <input type="submit" name="submit" class="etn-btn etn-primary attendee_update_submit" value="<?php echo esc_html__( "Update", "eventin" ); ?>" />
+                    <input type="submit" name="submit" class="etn-btn etn-primary attendee_update_submit" value="<?php echo esc_html__( "Update", "wp-event-solution" ); ?>" />
                 </form>
             </div>
         </div>

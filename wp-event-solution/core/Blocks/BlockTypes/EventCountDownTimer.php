@@ -68,7 +68,7 @@ class EventCountDownTimer extends AbstractBlock
                     <path fill="currentColor" d="M13 13h-2V7h2v6zm0 4h-2v-2h2v2zM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>
                 </svg>
                 <p style="margin: 0; font-size: 14px; font-weight: 500;">' .
-                esc_html__("This event has already started. Countdown timer is not available.", 'eventin') .
+                esc_html__("This event has already started. Countdown timer is not available.", 'wp-event-solution') .
                 '</p>
             </div>';
         }

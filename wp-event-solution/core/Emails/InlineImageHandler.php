@@ -43,16 +43,41 @@ class InlineImageHandler {
     /**
      * Supported image mime subtypes mapped to file extensions.
      *
+     * Only raster image types that can be verified from their decoded bytes are
+     * allowed. `svg+xml` is intentionally NOT here: an SVG is an XML document
+     * that can carry `<script>`, and it would be served from the site's own
+     * origin with `Content-Type: image/svg+xml`, so writing one is a stored XSS
+     * vector. Every subtype here maps to an `IMAGETYPE_*` constant in
+     * {@see self::IMAGE_TYPES} so the decoded bytes can be checked against the
+     * claimed subtype before anything is written to disk.
+     *
      * @var array
      */
     private $extensions = [
-        'png'     => 'png',
-        'jpeg'    => 'jpg',
-        'jpg'     => 'jpg',
-        'gif'     => 'gif',
-        'webp'    => 'webp',
-        'bmp'     => 'bmp',
-        'svg+xml' => 'svg',
+        'png'  => 'png',
+        'jpeg' => 'jpg',
+        'jpg'  => 'jpg',
+        'gif'  => 'gif',
+        'webp' => 'webp',
+        'bmp'  => 'bmp',
+    ];
+
+    /**
+     * Expected `IMAGETYPE_*` value for each allowed subtype.
+     *
+     * The decoded bytes must actually be an image of this type — a mismatch (or
+     * anything `getimagesizefromstring()` can't recognise as a real raster
+     * image, such as an SVG or a script) is rejected instead of written.
+     *
+     * @var array
+     */
+    private $image_types = [
+        'png'  => IMAGETYPE_PNG,
+        'jpeg' => IMAGETYPE_JPEG,
+        'jpg'  => IMAGETYPE_JPEG,
+        'gif'  => IMAGETYPE_GIF,
+        'webp' => IMAGETYPE_WEBP,
+        'bmp'  => IMAGETYPE_BMP,
     ];
 
     /**
@@ -163,6 +188,18 @@ class InlineImageHandler {
         $binary = base64_decode( $base64, true );
 
         if ( false === $binary || '' === $binary ) {
+            return false;
+        }
+
+        // Verify the decoded bytes are actually a raster image of the claimed
+        // type. This rejects SVG/XML, scripts, and any mismatched or malformed
+        // payload before it can be written to a public URL.
+        $size = @getimagesizefromstring( $binary );
+
+        if ( false === $size
+            || empty( $size[2] )
+            || ! isset( $this->image_types[ $subtype ] )
+            || $size[2] !== $this->image_types[ $subtype ] ) {
             return false;
         }
 

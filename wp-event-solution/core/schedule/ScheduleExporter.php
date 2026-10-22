@@ -93,11 +93,11 @@ class ScheduleExporter implements PostExporterInterface {
      */
     private function get_columns() {
         return [
-            'id'            => __( 'Id', 'eventin' ),
-            'program_title' => __( 'Program Title', 'eventin' ),
-            'date'          => __( 'Date', 'eventin' ),
-            'day_name'      => __( 'Day Name', 'eventin' ),
-            'schedule_slot' => __( 'Schedule Slot', 'eventin' ),
+            'id'            => __( 'Id', 'wp-event-solution' ),
+            'program_title' => __( 'Program Title', 'wp-event-solution' ),
+            'date'          => __( 'Date', 'wp-event-solution' ),
+            'day_name'      => __( 'Day Name', 'wp-event-solution' ),
+            'schedule_slot' => __( 'Schedule Slot', 'wp-event-solution' ),
         ];
     }
 }

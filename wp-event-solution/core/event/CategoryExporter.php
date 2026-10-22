@@ -107,14 +107,14 @@ class CategoryExporter implements PostExporterInterface {
      */
     private function get_columns() {
         return [
-            'id'          => __( 'ID', 'eventin' ),
-            'name'        => __( 'Name', 'eventin' ),
-            'slug'        => __( 'Slug', 'eventin' ),
-            'description' => __( 'Description', 'eventin' ),
-            'parent'      => __( 'Parent ID', 'eventin' ),
-            'parent_name' => __( 'Parent Name', 'eventin' ),
-            'color'       => __( 'Color', 'eventin' ),
-            'count'       => __( 'Event Count', 'eventin' ),
+            'id'          => __( 'ID', 'wp-event-solution' ),
+            'name'        => __( 'Name', 'wp-event-solution' ),
+            'slug'        => __( 'Slug', 'wp-event-solution' ),
+            'description' => __( 'Description', 'wp-event-solution' ),
+            'parent'      => __( 'Parent ID', 'wp-event-solution' ),
+            'parent_name' => __( 'Parent Name', 'wp-event-solution' ),
+            'color'       => __( 'Color', 'wp-event-solution' ),
+            'count'       => __( 'Event Count', 'wp-event-solution' ),
         ];
     }
 

@@ -105,7 +105,7 @@ class PaymentController extends WP_REST_Controller
 		if (! $post || 'etn-order' !== $post->post_type) {
 			return new WP_Error(
 				'invalid_order',
-				__('Invalid order.', 'eventin'),
+				__('Invalid order.', 'wp-event-solution'),
 				['status' => 404]
 			);
 		}
@@ -151,7 +151,7 @@ class PaymentController extends WP_REST_Controller
 
 		return new WP_Error(
 			'rest_forbidden',
-			__('Sorry, you are not allowed to do that.', 'eventin'),
+			__('Sorry, you are not allowed to do that.', 'wp-event-solution'),
 			['status' => 403]
 		);
 	}
@@ -180,7 +180,7 @@ class PaymentController extends WP_REST_Controller
 		}
 
 		if ($payment_method == 'sure_cart' && (!class_exists('\SureCart') || !class_exists(SureCart::class))) {
-			return new WP_Error('payment_error', __('Please activate SureCart and Eventin Surecart Addon', 'eventin'));
+			return new WP_Error('payment_error', __('Please activate SureCart and Eventin Surecart Addon', 'wp-event-solution'));
 		}
 
 		if ($payment_method == 'fluentcart' && (!class_exists(FluentCartPayment::class) || !class_exists('FluentCart\App\App'))) {
@@ -188,12 +188,12 @@ class PaymentController extends WP_REST_Controller
 		}
 
 		if (($payment_method == 'stripe' || $payment_method == 'paypal') && !class_exists('Wpeventin_Pro')) {
-			return new WP_Error('payment_error', __('Please activate Eventin Pro', 'eventin'));
+			return new WP_Error('payment_error', __('Please activate Eventin Pro', 'wp-event-solution'));
 		}
 
 		// Razorpay ships with newer Pro versions only, so check for the class itself.
 		if ($payment_method == 'razorpay' && (!class_exists('Wpeventin_Pro') || !class_exists(RazorpayPayment::class))) {
-			return new WP_Error('payment_error', __('Please activate or update Eventin Pro', 'eventin'));
+			return new WP_Error('payment_error', __('Please activate or update Eventin Pro', 'wp-event-solution'));
 		}
 
 		$payment         = PaymentFactory::get_method($payment_method);
@@ -201,7 +201,7 @@ class PaymentController extends WP_REST_Controller
 		$validate_ticket = $order->validate_ticket(true);
 
 		if (($payment instanceof WCPayment) && !class_exists('WooCommerce')) {
-			return new WP_Error('payment_error', __('WooCommerce is not active', 'eventin'));
+			return new WP_Error('payment_error', __('WooCommerce is not active', 'wp-event-solution'));
 		}
 
 		if (is_wp_error($validate_ticket)) {
@@ -361,12 +361,12 @@ class PaymentController extends WP_REST_Controller
 		}
 
 		if (! in_array($data['payment_method'], ['stripe', 'paypal', 'razorpay', 'free-ticket', 'local_payment', 'sure_cart', 'fluentcart'], true)) {
-			return new WP_Error('invalid_payment_method', __('Invalid payment method.', 'eventin'), ['status' => 400]);
+			return new WP_Error('invalid_payment_method', __('Invalid payment method.', 'wp-event-solution'), ['status' => 400]);
 		}
 
 		$is_admin_order_manager = current_user_can('etn_manage_order') || current_user_can('manage_options');
 		if ('local_payment' === $payment_method && ! etn_get_option('local_payment_status') && ! $is_admin_order_manager) {
-			return new WP_Error('invalid_payment_method', __('Invalid payment method.', 'eventin'), ['status' => 400]);
+			return new WP_Error('invalid_payment_method', __('Invalid payment method.', 'wp-event-solution'), ['status' => 400]);
 		}
 
 		if ('free-ticket' === $data['payment_method']) {
@@ -374,7 +374,7 @@ class PaymentController extends WP_REST_Controller
 			if ($order->total_price >  0) {
 				return rest_ensure_response([
 					'success' => false,
-					'message' => __('Payment Update Failed..', 'eventin'),
+					'message' => __('Payment Update Failed..', 'wp-event-solution'),
 				]);
 			}
 		} else {
@@ -489,18 +489,18 @@ class PaymentController extends WP_REST_Controller
 		if ('completed' === $order->status) {
 			$response = [
 				'success' => true,
-				'message' => __('Successfully payment updated', 'eventin'),
+				'message' => __('Successfully payment updated', 'wp-event-solution'),
 			];
 			return rest_ensure_response($response);
 		}
 
 		if ('success' !== $payment_status) {
-			return new WP_Error('payment_error', __('Failed to completed your order', 'eventin'), ['status' => 422]);
+			return new WP_Error('payment_error', __('Failed to completed your order', 'wp-event-solution'), ['status' => 422]);
 		}
 
 
 		if ('wc' === $order->payment_method && !$this->wc_payment($order_id)) {
-			return new WP_Error('payment_error', __('Invalid payment', 'eventin'), ['status' => 422]);
+			return new WP_Error('payment_error', __('Invalid payment', 'wp-event-solution'), ['status' => 422]);
 		}
 
 		$order->update([
@@ -513,7 +513,7 @@ class PaymentController extends WP_REST_Controller
 		$response = [
 			'success' => true,
 			"wc_payment_done" => $this->wc_payment($order_id),
-			'message' => __('Successfully payment updated', 'eventin'),
+			'message' => __('Successfully payment updated', 'wp-event-solution'),
 		];
 
 		return rest_ensure_response($response);
@@ -611,7 +611,7 @@ class PaymentController extends WP_REST_Controller
 		$total_posts = $post_query->found_posts;
 
 		if ($total_posts) {
-			return new WP_Error('duplicate_transaction', __('Unexpected Error', 'eventin'));
+			return new WP_Error('duplicate_transaction', __('Unexpected Error', 'wp-event-solution'));
 		}
 
 		return true;
@@ -642,7 +642,7 @@ class PaymentController extends WP_REST_Controller
 		$stored         = (string) $order->payment_id;
 
 		if ('' === $transaction_id || '' === $stored || ! hash_equals($stored, $transaction_id)) {
-			return new WP_Error('payment_transaction_mismatch', __('Payment Update Failed..', 'eventin'));
+			return new WP_Error('payment_transaction_mismatch', __('Payment Update Failed..', 'wp-event-solution'));
 		}
 
 		return true;
@@ -674,7 +674,7 @@ class PaymentController extends WP_REST_Controller
 		$expected_amount = round(floatval($order->total_price), 2);
 
 		if (null !== $paid_amount && round(floatval($paid_amount), 2) + 0.01 < $expected_amount) {
-			return new WP_Error('payment_amount_mismatch', __('Payment Update Failed..', 'eventin'));
+			return new WP_Error('payment_amount_mismatch', __('Payment Update Failed..', 'wp-event-solution'));
 		}
 
 		$expected_currency = (string) $order->currency;
@@ -685,7 +685,7 @@ class PaymentController extends WP_REST_Controller
 
 		if ('' !== (string) $paid_currency && '' !== $expected_currency
 			&& 0 !== strcasecmp((string) $paid_currency, $expected_currency)) {
-			return new WP_Error('payment_currency_mismatch', __('Payment Update Failed..', 'eventin'));
+			return new WP_Error('payment_currency_mismatch', __('Payment Update Failed..', 'wp-event-solution'));
 		}
 
 		return true;
@@ -741,13 +741,13 @@ class PaymentController extends WP_REST_Controller
 		try {
 			$response = StripePayment::retrieveIntent($stripe_transaction_id);
 		} catch (\Exception $exception) {
-			return new WP_Error('stripe_error', __('Unexpected Error', 'eventin'));
+			return new WP_Error('stripe_error', __('Unexpected Error', 'wp-event-solution'));
 		}
 
 		$intent = isset($response['status']) && is_array($response['status']) ? $response['status'] : [];
 
 		if (! isset($intent['status']) || 'succeeded' !== $intent['status']) {
-			return new WP_Error('payment_failed', __('Payment Update Failed..', 'eventin'));
+			return new WP_Error('payment_failed', __('Payment Update Failed..', 'wp-event-solution'));
 		}
 
 		if ($order) {
@@ -791,7 +791,7 @@ class PaymentController extends WP_REST_Controller
 		try {
 			$paypalPayment = new PaypalPayment();
 		} catch (\Exception $exception) {
-			return new WP_Error('paypal_error', __('Unexpected Error', 'eventin'));
+			return new WP_Error('paypal_error', __('Unexpected Error', 'wp-event-solution'));
 		}
 
 		$response = $paypalPayment->retrievePaymentCapture($paypal_transaction_id);
@@ -799,7 +799,7 @@ class PaymentController extends WP_REST_Controller
 		$paypal_order = isset($response['status']) && is_array($response['status']) ? $response['status'] : [];
 
 		if (! isset($paypal_order['status']) || ! in_array($paypal_order['status'], ["APPROVED", "COMPLETED"], true)) {
-			return new WP_Error('payment_failed', __('Payment Update Failed', 'eventin'));
+			return new WP_Error('payment_failed', __('Payment Update Failed', 'wp-event-solution'));
 		}
 
 		if ($order) {
@@ -836,7 +836,7 @@ class PaymentController extends WP_REST_Controller
 	private function handle_razorpay_validation($data, $temporary_status, $order)
 	{
 		if (! class_exists(RazorpayPayment::class)) {
-			return new WP_Error('razorpay_error', __('Unexpected Error', 'eventin'));
+			return new WP_Error('razorpay_error', __('Unexpected Error', 'wp-event-solution'));
 		}
 
 		$razorpay_order_id = isset($data['razorpay_transaction_id']) ? sanitize_text_field($data['razorpay_transaction_id']) : '';
@@ -863,14 +863,14 @@ class PaymentController extends WP_REST_Controller
 		);
 
 		if (! $is_signature_valid) {
-			return new WP_Error('payment_failed', __('Payment Update Failed..', 'eventin'));
+			return new WP_Error('payment_failed', __('Payment Update Failed..', 'wp-event-solution'));
 		}
 
 		$razorpay_payment = new RazorpayPayment();
 		$payment          = $razorpay_payment->get_payment($payment_id);
 
 		if (is_wp_error($payment) || ! isset($payment['order_id']) || ! hash_equals($razorpay_order_id, (string) $payment['order_id'])) {
-			return new WP_Error('payment_failed', __('Payment Update Failed..', 'eventin'));
+			return new WP_Error('payment_failed', __('Payment Update Failed..', 'wp-event-solution'));
 		}
 
 		if (isset($payment['status']) && 'authorized' === $payment['status']) {
@@ -878,7 +878,7 @@ class PaymentController extends WP_REST_Controller
 		}
 
 		if (is_wp_error($payment) || ! isset($payment['status']) || 'captured' !== $payment['status']) {
-			return new WP_Error('payment_failed', __('Payment Update Failed..', 'eventin'));
+			return new WP_Error('payment_failed', __('Payment Update Failed..', 'wp-event-solution'));
 		}
 
 		$currency = isset($payment['currency']) ? (string) $payment['currency'] : '';
@@ -916,7 +916,7 @@ class PaymentController extends WP_REST_Controller
 	private function handle_surecart_validation($surecart_checkout_id, $temporary_status, $order)
 	{
 		if (empty($surecart_checkout_id)) {
-			return new WP_Error('missing_checkout_id', __('SureCart checkout ID is required', 'eventin'));
+			return new WP_Error('missing_checkout_id', __('SureCart checkout ID is required', 'wp-event-solution'));
 		}
 
 		$validation = $this->validate_payment_transaction($surecart_checkout_id, $temporary_status);
@@ -927,19 +927,19 @@ class PaymentController extends WP_REST_Controller
 
 		// Can't reach the gateway to verify → refuse to complete the order.
 		if (! class_exists(SureCart::class) || ! class_exists('SureCart\Models\ApiToken')) {
-			return new WP_Error('payment_unverified', __('Unable to verify SureCart payment', 'eventin'));
+			return new WP_Error('payment_unverified', __('Unable to verify SureCart payment', 'wp-event-solution'));
 		}
 
 		$checkout = ( new SureCart() )->get_checkout_status($surecart_checkout_id);
 
 		if (is_wp_error($checkout) || ! is_array($checkout)) {
-			return new WP_Error('payment_unverified', __('Unable to verify SureCart payment', 'eventin'));
+			return new WP_Error('payment_unverified', __('Unable to verify SureCart payment', 'wp-event-solution'));
 		}
 
 		// The checkout must actually be paid (same signal SureCartWebhook trusts).
 		$status = isset($checkout['status']) ? $checkout['status'] : '';
 		if ('paid' !== $status) {
-			return new WP_Error('payment_failed', __('Payment Update Failed..', 'eventin'));
+			return new WP_Error('payment_failed', __('Payment Update Failed..', 'wp-event-solution'));
 		}
 
 		// And it must be the checkout we created for THIS order (metadata is stamped
@@ -947,7 +947,7 @@ class PaymentController extends WP_REST_Controller
 		// replayed to complete this one.
 		$checkout_order_id = isset($checkout['metadata']['eventin_order_id']) ? intval($checkout['metadata']['eventin_order_id']) : 0;
 		if (! $checkout_order_id || $checkout_order_id !== intval($order->id)) {
-			return new WP_Error('payment_mismatch', __('Payment does not match this order', 'eventin'));
+			return new WP_Error('payment_mismatch', __('Payment does not match this order', 'wp-event-solution'));
 		}
 
 		return true;
@@ -968,7 +968,7 @@ class PaymentController extends WP_REST_Controller
 	private function handle_fluentcart_validation($fluentcart_cart_hash, $temporary_status, $order)
 	{
 		if (empty($fluentcart_cart_hash)) {
-			return new WP_Error('missing_cart_hash', __('FluentCart cart hash is required', 'eventin'));
+			return new WP_Error('missing_cart_hash', __('FluentCart cart hash is required', 'wp-event-solution'));
 		}
 
 		$validation = $this->validate_payment_transaction($fluentcart_cart_hash, $temporary_status);
@@ -979,20 +979,20 @@ class PaymentController extends WP_REST_Controller
 
 		// Can't reach FluentCart to verify → refuse to complete the order.
 		if (! class_exists('FluentCart\App\Models\Cart') || ! class_exists('FluentCart\App\Helpers\Status')) {
-			return new WP_Error('payment_unverified', __('Unable to verify FluentCart payment', 'eventin'));
+			return new WP_Error('payment_unverified', __('Unable to verify FluentCart payment', 'wp-event-solution'));
 		}
 
 		$cart = \FluentCart\App\Models\Cart::with('order')->find($fluentcart_cart_hash);
 		$fc_order = ($cart && $cart->order) ? $cart->order : null;
 
 		if (! $fc_order) {
-			return new WP_Error('payment_unverified', __('Unable to verify FluentCart payment', 'eventin'));
+			return new WP_Error('payment_unverified', __('Unable to verify FluentCart payment', 'wp-event-solution'));
 		}
 
 		// The FluentCart order must be paid.
 		$success_statuses = \FluentCart\App\Helpers\Status::getOrderPaymentSuccessStatuses();
 		if (! in_array($fc_order->payment_status, $success_statuses, true)) {
-			return new WP_Error('payment_failed', __('Payment Update Failed..', 'eventin'));
+			return new WP_Error('payment_failed', __('Payment Update Failed..', 'wp-event-solution'));
 		}
 
 		// And it must be the FluentCart order created for THIS Eventin order — the
@@ -1013,7 +1013,7 @@ class PaymentController extends WP_REST_Controller
 		}
 
 		if (! $belongs_to_order) {
-			return new WP_Error('payment_mismatch', __('Payment does not match this order', 'eventin'));
+			return new WP_Error('payment_mismatch', __('Payment does not match this order', 'wp-event-solution'));
 		}
 
 		return true;

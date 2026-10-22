@@ -6,7 +6,7 @@ defined( 'ABSPATH' ) || exit;
 ?>
 <div class="etn-accordion-wrap etn-event-single-content-wrap etn-faq-style-1
 <?php echo esc_attr($container_class); ?>">
-    <h2 class="faq-title"><?php echo esc_html__("Frequently Asked Questions", "eventin"); ?></h2>
+    <h2 class="faq-title"><?php echo esc_html__("Frequently Asked Questions", "wp-event-solution"); ?></h2>
     <?php
         if (is_array($etn_faqs) && ! empty($etn_faqs)) {
             foreach ($etn_faqs as $key => $faq) {
@@ -39,7 +39,7 @@ defined( 'ABSPATH' ) || exit;
                 } else {
                 ?>
         <div class="etn-event-faq-body">
-            <?php echo esc_html__("No FAQ found!", "eventin"); ?>
+            <?php echo esc_html__("No FAQ found!", "wp-event-solution"); ?>
         </div>
         <?php
             }

@@ -66,53 +66,53 @@ class PropertySchema {
         return [
             [
                 'name'      => 'eventin_last_event_name',
-                'label'     => __( 'Eventin: Last Event', 'eventin' ),
+                'label'     => __( 'Eventin: Last Event', 'wp-event-solution' ),
                 'type'      => 'string',
                 'fieldType' => 'text',
             ],
             [
                 'name'      => 'eventin_last_event_id',
-                'label'     => __( 'Eventin: Last Event ID', 'eventin' ),
+                'label'     => __( 'Eventin: Last Event ID', 'wp-event-solution' ),
                 'type'      => 'number',
                 'fieldType' => 'number',
             ],
             [
                 'name'      => 'eventin_last_order_id',
-                'label'     => __( 'Eventin: Last Order ID', 'eventin' ),
+                'label'     => __( 'Eventin: Last Order ID', 'wp-event-solution' ),
                 'type'      => 'number',
                 'fieldType' => 'number',
             ],
             [
                 'name'      => 'eventin_last_order_total',
-                'label'     => __( 'Eventin: Last Order Total', 'eventin' ),
+                'label'     => __( 'Eventin: Last Order Total', 'wp-event-solution' ),
                 'type'      => 'number',
                 'fieldType' => 'number',
             ],
             [
                 'name'      => 'eventin_ticket_type',
-                'label'     => __( 'Eventin: Ticket Type', 'eventin' ),
+                'label'     => __( 'Eventin: Ticket Type', 'wp-event-solution' ),
                 'type'      => 'string',
                 'fieldType' => 'text',
             ],
             [
                 'name'      => 'eventin_registration_date',
-                'label'     => __( 'Eventin: Registration Date', 'eventin' ),
+                'label'     => __( 'Eventin: Registration Date', 'wp-event-solution' ),
                 'type'      => 'datetime',
                 'fieldType' => 'date',
             ],
             [
                 'name'      => 'eventin_attendee_type',
-                'label'     => __( 'Eventin: Contact Type', 'eventin' ),
+                'label'     => __( 'Eventin: Contact Type', 'wp-event-solution' ),
                 'type'      => 'enumeration',
                 'fieldType' => 'select',
                 'options'   => [
                     [
-                        'label'        => __( 'Purchaser', 'eventin' ),
+                        'label'        => __( 'Purchaser', 'wp-event-solution' ),
                         'value'        => 'purchaser',
                         'displayOrder' => 0,
                     ],
                     [
-                        'label'        => __( 'Attendee', 'eventin' ),
+                        'label'        => __( 'Attendee', 'wp-event-solution' ),
                         'value'        => 'attendee',
                         'displayOrder' => 1,
                     ],
@@ -187,7 +187,7 @@ class PropertySchema {
             HubSpotClient::property_path( self::OBJECT_TYPE, 'groups' ),
             [
                 'name'         => self::GROUP_NAME,
-                'label'        => __( 'Eventin', 'eventin' ),
+                'label'        => __( 'Eventin', 'wp-event-solution' ),
                 'displayOrder' => -1,
             ]
         );

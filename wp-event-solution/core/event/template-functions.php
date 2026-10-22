@@ -353,13 +353,13 @@ if ( ! function_exists( 'etn_before_recurring_event_form_content' ) ) {
 		$freq_title = '';
 
 		if ( $freq['recurrence_freq'] === 'day' ) {
-			$freq_title .= esc_html__( 'Daily Event Schedule :', 'eventin' );
+			$freq_title .= esc_html__( 'Daily Event Schedule :', 'wp-event-solution' );
 		} else if ( $freq['recurrence_freq'] === 'week' ) {
-			$freq_title .= esc_html__( 'Weekly Event Schedule :', 'eventin' );
+			$freq_title .= esc_html__( 'Weekly Event Schedule :', 'wp-event-solution' );
 		} else if ( $freq['recurrence_freq'] === 'month' ) {
-			$freq_title .= esc_html__( 'Monthly Event Schedule :', 'eventin' );
+			$freq_title .= esc_html__( 'Monthly Event Schedule :', 'wp-event-solution' );
 		} else if ( $freq['recurrence_freq'] === 'year' ) {
-			$freq_title .= esc_html__( 'Yearly Event Schedule :', 'eventin' );
+			$freq_title .= esc_html__( 'Yearly Event Schedule :', 'wp-event-solution' );
 		}
 
 		?>
@@ -383,7 +383,7 @@ if ( ! function_exists( 'etn_after_recurring_event_form_content' ) ) {
 		?>
     <div class="etn-recurring-event-wrapper">
         <button id="seeMore" type="button">
-            <?php echo esc_html__( 'Show More Event', 'eventin' ); ?>
+            <?php echo esc_html__( 'Show More Event', 'wp-event-solution' ); ?>
             <i class="etn-icon etn-plus"></i>
         </button>
     </div>

@@ -26,7 +26,7 @@ class ExporterFactory {
                 return new JsonExporter();
 
             default:
-                throw new Exception( esc_html__( 'Unknown format', 'eventin' ) );
+                throw new Exception( esc_html__( 'Unknown format', 'wp-event-solution' ) );
         }
     }
 }

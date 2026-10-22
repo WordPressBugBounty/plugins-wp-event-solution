@@ -36,7 +36,7 @@ class EventDetailsParts {
 				?>
                 <h4 class="etn-tags-title">
 					<?php
-					$tag_title = apply_filters( 'etn_event_tag_list_title', esc_html__( 'Tags', "eventin" ) );
+					$tag_title = apply_filters( 'etn_event_tag_list_title', esc_html__( 'Tags', "wp-event-solution" ) );
 					echo esc_html( $tag_title );
 					?>
                 </h4>
@@ -77,7 +77,7 @@ class EventDetailsParts {
             <div class="etn-widget etn-event-organizers">
                 <h4 class="etn-widget-title etn-title">
 					<?php
-					$event_organizers_title = apply_filters( 'etn_event_organizers_title', esc_html__( "Organizers", "eventin" ) );
+					$event_organizers_title = apply_filters( 'etn_event_organizers_title', esc_html__( "Organizers", "wp-event-solution" ) );
 					echo esc_html( $event_organizers_title );
 					?>
                 </h4>
@@ -110,13 +110,13 @@ class EventDetailsParts {
 
 						<?php if ( $email  && $email_show ) { ?>
                             <div class="etn-organizer-email">
-                                <span class="etn-label-name"><?php echo esc_html__( 'Email :', "eventin" ); ?></span>
+                                <span class="etn-label-name"><?php echo esc_html__( 'Email :', "wp-event-solution" ); ?></span>
                                 <a href="mailto:<?php echo esc_attr( $email ); ?>"><?php echo esc_html( $email ); ?></a>
                             </div>
 						<?php } ?>
 						<?php if ( is_array( $social ) && ! empty( $social ) ) { ?>
                             <div class="etn-social">
-                                <!-- <span class="etn-label-name"><?php echo esc_html__( 'Social :', "eventin" ); ?></span> -->
+                                <!-- <span class="etn-label-name"><?php echo esc_html__( 'Social :', "wp-event-solution" ); ?></span> -->
 								<?php 
                                 foreach ($social as $social_value) {
 									// Validate and sanitize each value
@@ -250,12 +250,12 @@ class EventDetailsParts {
 						?>
                         <li>
 							<?php if ( $data['event_start_date'] !== $data['event_end_date']): ?>
-                            <span> <?php echo esc_html__( 'Date :', "eventin" ); ?></span>
+                            <span> <?php echo esc_html__( 'Date :', "wp-event-solution" ); ?></span>
 							<?php echo esc_html( $start_date . $separate . $end_date ); ?>
 							
 
 							<?php else: ?>
-								<span> <?php echo esc_html__( 'Date : ', "eventin" ); ?></span>
+								<span> <?php echo esc_html__( 'Date : ', "wp-event-solution" ); ?></span>
 							<?php echo esc_html( $start_date ); ?>
 							<?php endif; ?>
                         </li>
@@ -268,7 +268,7 @@ class EventDetailsParts {
 						$separate = ! empty( $data['event_end_time'] ) ? ' - ' : '';
 						?>
                         <li>
-                            <span><?php echo esc_html__( 'Time : ', "eventin" ); ?></span>
+                            <span><?php echo esc_html__( 'Time : ', "wp-event-solution" ); ?></span>
 							<?php echo esc_html( $start_time . $separate . $end_time ); ?>
                             <span class="etn-event-timezone">
                             <?php
@@ -291,7 +291,7 @@ class EventDetailsParts {
 					if ( empty( $event_options["etn_hide_location_from_details"] ) && ! empty( $location) ) {
 						?>
                         <li>
-                            <span><?php echo esc_html__( 'Venue : ', "eventin" ) ?></span>
+                            <span><?php echo esc_html__( 'Venue : ', "wp-event-solution" ) ?></span>
 							<?php  
 								echo esc_html( $location ); 
 							?>
@@ -306,7 +306,7 @@ class EventDetailsParts {
 							if( ! empty( $event_terms ) ) :
 						?>
 							<li>
-								<span><?php echo esc_html__( 'Venue : ', "eventin" ) ?></span>
+								<span><?php echo esc_html__( 'Venue : ', "wp-event-solution" ) ?></span>
 								<?php foreach ( $event_terms as $term ) : ?>
 									<span class="etn-location-name"><?php echo esc_html( $term->name ); ?></span>
 								<?php endforeach; ?>
@@ -343,7 +343,7 @@ class EventDetailsParts {
 				<h3 class="etn-faq-heading">
 					<?php
 					echo esc_html(
-						apply_filters( 'etn_event_faq_title', __( 'Frequently Asked Questions', 'eventin' ) )
+						apply_filters( 'etn_event_faq_title', __( 'Frequently Asked Questions', 'wp-event-solution' ) )
 					);
 					?>
 				</h3>
@@ -377,7 +377,7 @@ class EventDetailsParts {
 
 				<?php else : ?>
 					<div class="etn-event-faq-body">
-						<?php echo esc_html__( 'No FAQ found!', 'eventin' ); ?>
+						<?php echo esc_html__( 'No FAQ found!', 'wp-event-solution' ); ?>
 					</div>
 				<?php endif; ?>
 			</div>

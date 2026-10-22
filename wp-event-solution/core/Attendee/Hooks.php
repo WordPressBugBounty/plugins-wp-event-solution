@@ -54,7 +54,7 @@ class Hooks {
      */
     public function add_purchased_events_link_my_account( $items ) {
         $extra_item = [ 
-            'purchased-events' => esc_html__( 'Purchased events', 'eventin' )
+            'purchased-events' => esc_html__( 'Purchased events', 'wp-event-solution' )
         ];
 
         $split_1 = array_slice( $items, 0, 3 );
@@ -103,7 +103,7 @@ class Hooks {
         if (!empty($user_events)) {
             include_once \Wpeventin::templates_dir() . "attendee/purchased-events.php";
         } else {
-            echo esc_html__('No event has been purchased yet!', 'eventin');
+            echo esc_html__('No event has been purchased yet!', 'wp-event-solution');
         }
     }
 

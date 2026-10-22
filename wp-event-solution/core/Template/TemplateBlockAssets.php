@@ -52,7 +52,7 @@ class TemplateBlockAssets implements HookableInterface
                 Wpeventin::version(),
                 true
             );
-            wp_set_script_translations('etn-blocks', 'eventin');
+            wp_set_script_translations('etn-blocks', 'wp-event-solution');
             wp_enqueue_style('eventin-blocks-editor-style', Wpeventin::plugin_url() . 'build/css/gutenberg-blocks.css', [], Wpeventin::version(), 'all');
 
             // Load the etn-icon font into the block editor canvas (iframe). Only styles

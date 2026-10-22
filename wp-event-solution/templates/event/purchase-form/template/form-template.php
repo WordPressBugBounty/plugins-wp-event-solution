@@ -6,9 +6,9 @@
             <div class="etn-form-ticket-text">
                 <?php
                 if( $etn_ticket_unlimited ){
-                    echo esc_html__( "This event offers unlimited tickets", "eventin" );
+                    echo esc_html__( "This event offers unlimited tickets", "wp-event-solution" );
                 }else {
-                    echo esc_html($etn_left_tickets) . esc_html__(' seats remaining', "eventin");
+                    echo esc_html($etn_left_tickets) . esc_html__(' seats remaining', "wp-event-solution");
                 }
                 ?>
             </div>
@@ -17,7 +17,7 @@
         if( !isset($event_options["etn_hide_attendee_count_from_details"]) ){
             ?>
             <div class="etn-form-ticket-text">
-                <?php echo esc_html( $total_sold_ticket ) . esc_html__(" Attendees so far.", "eventin"); ?>
+                <?php echo esc_html( $total_sold_ticket ) . esc_html__(" Attendees so far.", "wp-event-solution"); ?>
             </div>
             <?php
         }
@@ -54,7 +54,7 @@
     <div class="etn-row etn-item-row">
         <div class="etn-qty-field etn-col-lg-6">
             <label for="etn_product_qty">
-                <?php echo esc_html__('Quantity', "eventin"); ?>
+                <?php echo esc_html__('Quantity', "wp-event-solution"); ?>
             </label>
             <input id="etn_product_qty" class="attr-form-control etn-event-form-qty etn_product_qty" name="quantity" type="number" value="<?php echo esc_attr( $etn_min_ticket ); ?>"
              min="<?php echo esc_attr( $etn_min_ticket ); ?>" max="<?php echo esc_attr( $etn_max_ticket ); ?>" data-etn_min_ticket='<?php echo esc_attr( $etn_min_ticket ); ?>'
@@ -64,7 +64,7 @@
         </div>
         <div class="etn-price-field etn-col-lg-6">
             <label for="etn_product_price">
-                <?php echo isset($event_options["etn_price_label"]) && ( "" != $event_options["etn_price_label"]) ? esc_html($event_options["etn_price_label"]) : esc_html__('Price', "eventin"); ?>
+                <?php echo isset($event_options["etn_price_label"]) && ( "" != $event_options["etn_price_label"]) ? esc_html($event_options["etn_price_label"]) : esc_html__('Price', "wp-event-solution"); ?>
             </label>
             <input id="etn_product_price" class="attr-form-control etn-event-form-price etn_product_price" readonly name="price" type="number" value="<?php echo esc_attr($etn_ticket_price); ?>" min="1" />
         </div>
@@ -73,7 +73,7 @@
     <?php do_action( 'etn_before_add_to_cart_total_price', $single_event_id); ?>
 
     <div class="etn-total-price">
-        <?php echo esc_html__('Total price', "eventin"); ?>
+        <?php echo esc_html__('Total price', "wp-event-solution"); ?>
         <?php 
             if(function_exists("get_woocommerce_currency_symbol")){
                 echo esc_html(get_woocommerce_currency_symbol()); 
@@ -91,17 +91,17 @@
 
     if ($show_form_button === false) {
         ?>
-        <small><?php echo esc_html__('Event already expired!', "eventin"); ?></small>
+        <small><?php echo esc_html__('Event already expired!', "wp-event-solution"); ?></small>
         <?php
     } else {
         if (!isset($event_options["etn_purchase_login_required"]) || (isset($event_options["etn_purchase_login_required"]) && is_user_logged_in())) {
             ?>
-            <input name="submit" class="etn-btn etn-primary etn-add-to-cart-block" type="submit" value="<?php $cart_button_text = apply_filters( 'etn_event_cart_button_text', esc_html__("Add to cart", "eventin") ); echo esc_html( $cart_button_text ); ?>" />
+            <input name="submit" class="etn-btn etn-primary etn-add-to-cart-block" type="submit" value="<?php $cart_button_text = apply_filters( 'etn_event_cart_button_text', esc_html__("Add to cart", "wp-event-solution") ); echo esc_html( $cart_button_text ); ?>" />
             <?php
         } else {
             ?>
             <small>
-            <?php echo esc_html__('Please', 'eventin'); ?> <a href="<?php echo esc_url( wp_login_url( get_permalink( ) ) ); ?>"><?php echo esc_html__( "Login", "eventin" ); ?></a> <?php echo esc_html__(' to buy ticket!', "eventin"); ?>
+            <?php echo esc_html__('Please', 'wp-event-solution'); ?> <a href="<?php echo esc_url( wp_login_url( get_permalink( ) ) ); ?>"><?php echo esc_html__( "Login", "wp-event-solution" ); ?></a> <?php echo esc_html__(' to buy ticket!', "wp-event-solution"); ?>
             </small>
             <?php
         }

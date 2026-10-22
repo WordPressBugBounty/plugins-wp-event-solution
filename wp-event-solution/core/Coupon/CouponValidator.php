@@ -57,35 +57,35 @@ class CouponValidator {
         // so a code could still be POSTed — refuse it here rather than hand out an
         // impossible discount. Woo merely being installed/active is not enough.
         if ( CouponModel::woo_owns_checkout() ) {
-            return $this->fail( 'invalid', __( 'Coupons are not available.', 'eventin' ) );
+            return $this->fail( 'invalid', __( 'Coupons are not available.', 'wp-event-solution' ) );
         }
 
         $code   = strtoupper( trim( (string) ( isset( $p['code'] ) ? $p['code'] : '' ) ) );
         $coupon = $this->coupons->find_by_code( $code );
 
         if ( ! $coupon ) {
-            return $this->fail( 'invalid', __( 'This coupon code is invalid.', 'eventin' ) );
+            return $this->fail( 'invalid', __( 'This coupon code is invalid.', 'wp-event-solution' ) );
         }
 
         // Lets an integration that mints its own codes refuse one to anyone but its holder.
         if ( ! apply_filters( 'eventin_coupon_is_usable', true, $coupon, $p ) ) {
-            return $this->fail( 'invalid', __( 'This coupon code is invalid.', 'eventin' ) );
+            return $this->fail( 'invalid', __( 'This coupon code is invalid.', 'wp-event-solution' ) );
         }
 
         if ( 'expired' === $coupon['status'] ) {
-            return $this->fail( 'expired', __( 'This coupon has expired.', 'eventin' ) );
+            return $this->fail( 'expired', __( 'This coupon has expired.', 'wp-event-solution' ) );
         }
 
         if ( 'scheduled' === $coupon['status'] ) {
-            return $this->fail( 'not_started', __( 'This coupon is not active yet.', 'eventin' ) );
+            return $this->fail( 'not_started', __( 'This coupon is not active yet.', 'wp-event-solution' ) );
         }
 
         if ( 'inactive' === $coupon['status'] ) {
-            return $this->fail( 'invalid', __( 'This coupon is not available.', 'eventin' ) );
+            return $this->fail( 'invalid', __( 'This coupon is not available.', 'wp-event-solution' ) );
         }
 
         if ( null !== $coupon['usage_limit'] && $coupon['usage_count'] >= $coupon['usage_limit'] ) {
-            return $this->fail( 'usage_exhausted', __( 'This coupon has reached its usage limit.', 'eventin' ) );
+            return $this->fail( 'usage_exhausted', __( 'This coupon has reached its usage limit.', 'wp-event-solution' ) );
         }
 
         // per_user_limit — enforceable server-side (the mock could not).
@@ -93,13 +93,13 @@ class CouponValidator {
         if ( null !== $coupon['per_user_limit'] && $buyer_email ) {
             $used = $this->redemptions->count_for_user( $coupon['id'], $buyer_email );
             if ( $used >= $coupon['per_user_limit'] ) {
-                return $this->fail( 'per_user_exhausted', __( 'You have already used this coupon.', 'eventin' ) );
+                return $this->fail( 'per_user_exhausted', __( 'You have already used this coupon.', 'wp-event-solution' ) );
             }
         }
 
         $subtotal = isset( $p['subtotal'] ) ? floatval( $p['subtotal'] ) : 0;
         if ( null !== $coupon['min_purchase'] && $subtotal < $coupon['min_purchase'] ) {
-            return $this->fail( 'min_purchase', __( 'Your order does not meet the minimum purchase for this coupon.', 'eventin' ) );
+            return $this->fail( 'min_purchase', __( 'Your order does not meet the minimum purchase for this coupon.', 'wp-event-solution' ) );
         }
 
         $cart = isset( $p['cart'] ) && is_array( $p['cart'] ) ? $p['cart'] : [];
@@ -108,18 +108,18 @@ class CouponValidator {
             $qty += intval( isset( $line['qty'] ) ? $line['qty'] : 0 );
         }
         if ( null !== $coupon['min_qty'] && $qty < $coupon['min_qty'] ) {
-            return $this->fail( 'min_qty', __( 'Your order does not meet the minimum ticket quantity for this coupon.', 'eventin' ) );
+            return $this->fail( 'min_qty', __( 'Your order does not meet the minimum ticket quantity for this coupon.', 'wp-event-solution' ) );
         }
 
         $event_id = intval( isset( $p['event_id'] ) ? $p['event_id'] : 0 );
         $excluded = array_map( 'intval', $coupon['excluded_events'] );
         if ( in_array( $event_id, $excluded, true ) ) {
-            return $this->fail( 'event_excluded', __( 'This coupon cannot be used for this event.', 'eventin' ) );
+            return $this->fail( 'event_excluded', __( 'This coupon cannot be used for this event.', 'wp-event-solution' ) );
         }
 
         $included = array_map( 'intval', $coupon['restricted_events'] );
         if ( $included && ! in_array( $event_id, $included, true ) ) {
-            return $this->fail( 'event_not_eligible', __( 'This coupon does not apply to this event.', 'eventin' ) );
+            return $this->fail( 'event_not_eligible', __( 'This coupon does not apply to this event.', 'wp-event-solution' ) );
         }
 
         if ( $coupon['restricted_tickets'] ) {
@@ -132,7 +132,7 @@ class CouponValidator {
                 }
             }
             if ( ! $ok ) {
-                return $this->fail( 'ticket_not_eligible', __( 'This coupon does not apply to the selected tickets.', 'eventin' ) );
+                return $this->fail( 'ticket_not_eligible', __( 'This coupon does not apply to the selected tickets.', 'wp-event-solution' ) );
             }
         }
 

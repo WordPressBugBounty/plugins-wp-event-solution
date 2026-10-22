@@ -15,7 +15,7 @@
                 false,
                 [
                     'class'         => 'event-banner-image',
-                    'alt'           => esc_attr__( 'Event banner', 'eventin' ),
+                    'alt'           => esc_attr__( 'Event banner', 'wp-event-solution' ),
                     'fetchpriority' => 'high',
                     'loading'       => 'eager',
                     'decoding'      => 'async',
@@ -31,14 +31,14 @@
             $banner_html = sprintf(
                 '<img class="event-banner-image" src="%s" alt="%s" fetchpriority="high" decoding="async">',
                 esc_url( $event_banner ),
-                esc_attr__( 'Event banner', 'eventin' )
+                esc_attr__( 'Event banner', 'wp-event-solution' )
             );
         }
 
         echo $banner_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built from wp_get_attachment_image() or an <img> with esc_url()/esc_attr__() attributes above.
         ?>
         <?php else: ?>
-        <p><?php esc_html_e('No event banner image found.', 'eventin'); ?></p>
+        <p><?php esc_html_e('No event banner image found.', 'wp-event-solution'); ?></p>
         <?php endif; ?>
     </div>
 </div>

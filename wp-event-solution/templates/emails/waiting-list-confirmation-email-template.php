@@ -10,18 +10,18 @@
  */
 defined( 'ABSPATH' ) || exit;
 
-$greeting_name = ! empty( $recipient_name ) ? $recipient_name : __( 'there', 'eventin' );
+$greeting_name = ! empty( $recipient_name ) ? $recipient_name : __( 'there', 'wp-event-solution' );
 ?>
 
 <h2 style="font-size:22px;font-weight:600;color:#020617;margin:0 0 12px;">
-    <?php esc_html_e( 'You\'re on the waiting list!', 'eventin' ); ?>
+    <?php esc_html_e( 'You\'re on the waiting list!', 'wp-event-solution' ); ?>
 </h2>
 
 <p style="font-size:14px;line-height:22px;color:#556880;margin:0 0 24px;">
     <?php
     printf(
         /* translators: 1: recipient name  2: event title */
-        esc_html__( 'Hi %1$s, you have been successfully added to the waiting list for %2$s. We\'ll email you as soon as a spot opens up so you can complete your registration.', 'eventin' ),
+        esc_html__( 'Hi %1$s, you have been successfully added to the waiting list for %2$s. We\'ll email you as soon as a spot opens up so you can complete your registration.', 'wp-event-solution' ),
         esc_html( $greeting_name ),
         esc_html( $event->get_title() )
     );

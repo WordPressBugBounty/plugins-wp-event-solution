@@ -30,17 +30,17 @@ class Tags extends \Etn\Base\Taxonomy {
 
     function taxonomy() {
         $labels = [
-            'name'              => esc_html__( 'Tags', 'eventin' ),
-            'singular_name'     => esc_html__( 'Tags', 'eventin' ),
-            'search_items'      => esc_html__( 'Search Tags', 'eventin' ),
-            'all_items'         => esc_html__( 'All Tags', 'eventin' ),
-            'parent_item'       => esc_html__( 'Parent Tags', 'eventin' ),
-            'parent_item_colon' => esc_html__( 'Parent Tags:', 'eventin' ),
-            'edit_item'         => esc_html__( 'Edit Tags', 'eventin' ),
-            'update_item'       => esc_html__( 'Update Tags', 'eventin' ),
-            'add_new_item'      => esc_html__( 'Add New Tags', 'eventin' ),
-            'new_item_name'     => esc_html__( 'New Tags Name', 'eventin' ),
-            'menu_name'         => esc_html__( 'Tags', 'eventin' ),
+            'name'              => esc_html__( 'Tags', 'wp-event-solution' ),
+            'singular_name'     => esc_html__( 'Tags', 'wp-event-solution' ),
+            'search_items'      => esc_html__( 'Search Tags', 'wp-event-solution' ),
+            'all_items'         => esc_html__( 'All Tags', 'wp-event-solution' ),
+            'parent_item'       => esc_html__( 'Parent Tags', 'wp-event-solution' ),
+            'parent_item_colon' => esc_html__( 'Parent Tags:', 'wp-event-solution' ),
+            'edit_item'         => esc_html__( 'Edit Tags', 'wp-event-solution' ),
+            'update_item'       => esc_html__( 'Update Tags', 'wp-event-solution' ),
+            'add_new_item'      => esc_html__( 'Add New Tags', 'wp-event-solution' ),
+            'new_item_name'     => esc_html__( 'New Tags Name', 'wp-event-solution' ),
+            'menu_name'         => esc_html__( 'Tags', 'wp-event-solution' ),
         ];
 
         $args = [

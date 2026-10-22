@@ -22,14 +22,14 @@ if ( is_object( $zoom_meeting_data ) && isset( $zoom_meeting_data->id ) ){
 		<div class="meeting-row meeting-header">
 			<div class="meeting-info">
 				<h4 class="meeting-title">
-					<?php echo esc_html( $zoom_types[ $zoom_data->type ] ) . esc_html__( ' info', "eventin" ); ?>
+					<?php echo esc_html( $zoom_types[ $zoom_data->type ] ) . esc_html__( ' info', "wp-event-solution" ); ?>
 				</h4>
 			</div>
 		</div><!-- row end -->
 
 		<div class="meeting-row">
 			<div class="meeting-info">
-				<p><?php echo esc_html__( 'Type', "eventin" ) ?></p>
+				<p><?php echo esc_html__( 'Type', "wp-event-solution" ) ?></p>
 			</div>
 			<div class="meeting-info info-right">
 				<p><?php echo esc_html( $type[ absint( $zoom_data->type ) ]) ?></p>
@@ -38,7 +38,7 @@ if ( is_object( $zoom_meeting_data ) && isset( $zoom_meeting_data->id ) ){
 
 		<div class="meeting-row">
 			<div class="meeting-info">
-				<p><?php echo esc_html__( 'Meeting ID', 'eventin' ); ?></p>
+				<p><?php echo esc_html__( 'Meeting ID', 'wp-event-solution' ); ?></p>
 			</div>
 			<div class="meeting-info info-right">
 				<p><?php echo esc_html( $zoom_data->id ); ?></p>
@@ -47,7 +47,7 @@ if ( is_object( $zoom_meeting_data ) && isset( $zoom_meeting_data->id ) ){
 
 		<div class="meeting-row">
 			<div class="meeting-info">
-				<p><?php echo esc_html__( 'Topic', 'eventin' ); ?></p>
+				<p><?php echo esc_html__( 'Topic', 'wp-event-solution' ); ?></p>
 			</div>
 			<div class="meeting-info info-right">
 				<p><?php echo esc_html( $zoom_data->topic ); ?></p>
@@ -56,7 +56,7 @@ if ( is_object( $zoom_meeting_data ) && isset( $zoom_meeting_data->id ) ){
 
 		<div class="meeting-row">
 			<div class="meeting-info">
-				<p><?php echo esc_html__( 'Start Time', 'eventin' ); ?></p>
+				<p><?php echo esc_html__( 'Start Time', 'wp-event-solution' ); ?></p>
 			</div>
 			<div class="meeting-info info-right">
 				<p><?php echo esc_html( $converted_start_time ); ?></p>
@@ -65,16 +65,16 @@ if ( is_object( $zoom_meeting_data ) && isset( $zoom_meeting_data->id ) ){
 
 		<div class="meeting-row">
 			<div class="meeting-info">
-				<p><?php echo esc_html__( 'Duration', 'eventin' ); ?></p>
+				<p><?php echo esc_html__( 'Duration', 'wp-event-solution' ); ?></p>
 			</div>
 			<div class="meeting-info info-right">
-				<p><?php echo esc_html( $zoom_data->duration ) . esc_html__( " minutes", "eventin" ); ; ?> </p>
+				<p><?php echo esc_html( $zoom_data->duration ) . esc_html__( " minutes", "wp-event-solution" ); ; ?> </p>
 			</div>
 		</div><!-- meeting row end -->
 
 		<div class="meeting-row">
 			<div class="meeting-info">
-				<p><?php echo esc_html__( 'Time Zone', 'eventin' ); ?></p>
+				<p><?php echo esc_html__( 'Time Zone', 'wp-event-solution' ); ?></p>
 			</div>
 			<div class="meeting-info info-right">
 				<p><?php echo esc_html( $zoom_data->timezone ); ?></p>
@@ -83,19 +83,19 @@ if ( is_object( $zoom_meeting_data ) && isset( $zoom_meeting_data->id ) ){
 
 		<div class="meeting-row">
 			<div class="meeting-info">
-				<p><?php echo esc_html__( 'Start URL ( Host can start meeting using this url )', 'eventin' ); ?></p>
+				<p><?php echo esc_html__( 'Start URL ( Host can start meeting using this url )', 'wp-event-solution' ); ?></p>
 			</div>
 			<div class="meeting-info info-right">
-				<a class="etn-zoom-btn" href="<?php echo esc_url( $zoom_data->start_url );?>"><?php echo esc_html__( 'Start Url', 'eventin' ); ?></a>
+				<a class="etn-zoom-btn" href="<?php echo esc_url( $zoom_data->start_url );?>"><?php echo esc_html__( 'Start Url', 'wp-event-solution' ); ?></a>
 			</div>
 		</div><!-- meeting row end -->
 
 		<div class="meeting-row">
 			<div class="meeting-info">
-				<p><?php echo esc_html__( 'Join URL ( Users can join meeting using this url )', 'eventin' ); ?></p>
+				<p><?php echo esc_html__( 'Join URL ( Users can join meeting using this url )', 'wp-event-solution' ); ?></p>
 			</div>
 			<div class="meeting-info info-right">
-				<a target="_blank" class="etn-zoom-btn" href="<?php echo esc_url( $zoom_data->join_url );?>"  rel="noopener"><?php echo esc_html__( 'Join Url', 'eventin' ); ?></a>
+				<a target="_blank" class="etn-zoom-btn" href="<?php echo esc_url( $zoom_data->join_url );?>"  rel="noopener"><?php echo esc_html__( 'Join Url', 'wp-event-solution' ); ?></a>
 			</div>
 		</div><!-- meeting row end -->
 	</div>
@@ -103,7 +103,7 @@ if ( is_object( $zoom_meeting_data ) && isset( $zoom_meeting_data->id ) ){
     <div class="meeting-wrapper">
         <div class="meeting-row">
             <div class="meeting-info">
-                <p><?php echo esc_html__( 'Something is wrong.', 'eventin' ); ?></p>
+                <p><?php echo esc_html__( 'Something is wrong.', 'wp-event-solution' ); ?></p>
             </div>
         </div>
     </div>

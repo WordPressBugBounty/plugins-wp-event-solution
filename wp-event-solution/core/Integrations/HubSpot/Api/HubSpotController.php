@@ -175,7 +175,7 @@ class HubSpotController extends WP_REST_Controller {
         if ( '' === $token ) {
             return new WP_Error(
                 'eventin_hubspot_missing_token',
-                __( 'Enter your HubSpot Service Key.', 'eventin' ),
+                __( 'Enter your HubSpot Service Key.', 'wp-event-solution' ),
                 [ 'status' => 400 ]
             );
         }
@@ -323,7 +323,7 @@ class HubSpotController extends WP_REST_Controller {
     private function not_connected() {
         return new WP_Error(
             'eventin_hubspot_not_connected',
-            __( 'Connect HubSpot before running this action.', 'eventin' ),
+            __( 'Connect HubSpot before running this action.', 'wp-event-solution' ),
             [ 'status' => 400 ]
         );
     }
@@ -345,13 +345,13 @@ class HubSpotController extends WP_REST_Controller {
         // when HubSpot was down, so the modal showed an outage and a bad token as the
         // same red toast. Keep the categories distinguishable.
         if ( in_array( $status, [ 401, 403 ], true ) ) {
-            $message = __( 'HubSpot rejected the key. Check that it is valid and has the required scopes.', 'eventin' );
+            $message = __( 'HubSpot rejected the key. Check that it is valid and has the required scopes.', 'wp-event-solution' );
             $out     = 400;
         } elseif ( 429 === $status ) {
-            $message = __( 'HubSpot is rate limiting this account. Try again in a moment.', 'eventin' );
+            $message = __( 'HubSpot is rate limiting this account. Try again in a moment.', 'wp-event-solution' );
             $out     = 429;
         } elseif ( $status >= 500 ) {
-            $message = __( 'HubSpot is not responding right now. Try again in a few minutes.', 'eventin' );
+            $message = __( 'HubSpot is not responding right now. Try again in a few minutes.', 'wp-event-solution' );
             $out     = 502;
         } else {
             $message = $error->get_error_message();

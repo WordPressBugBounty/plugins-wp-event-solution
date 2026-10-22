@@ -35,7 +35,7 @@ if ( class_exists( 'Wpeventin_Pro' ) ) {
 $template_id = get_the_ID();
 
 if ( ! $template_id ) {
-    printf( '<p>%s</p>', esc_html__( 'No template found.', 'eventin' ) );
+    printf( '<p>%s</p>', esc_html__( 'No template found.', 'wp-event-solution' ) );
     return;
 }
 
@@ -43,7 +43,7 @@ $template = new TemplateModel( $template_id );
 $post     = get_post( $template_id );
 
 if ( ! $post || 'etn-template' !== $post->post_type ) {
-    printf( '<p>%s</p>', esc_html__( 'Invalid template.', 'eventin' ) );
+    printf( '<p>%s</p>', esc_html__( 'Invalid template.', 'wp-event-solution' ) );
     return;
 }
 

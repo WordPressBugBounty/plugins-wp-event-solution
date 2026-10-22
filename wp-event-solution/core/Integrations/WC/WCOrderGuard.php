@@ -112,7 +112,7 @@ class WCOrderGuard {
             && ! $wc_order->get_meta( '_etn_completion_blocked_note' ) ) {
             $wc_order->add_order_note( sprintf(
                 /* translators: %d: Eventin booking id */
-                __( 'Eventin booking #%d was not completed: this order does not hold its ticket at the full price.', 'eventin' ),
+                __( 'Eventin booking #%d was not completed: this order does not hold its ticket at the full price.', 'wp-event-solution' ),
                 $eventin_order_id
             ) );
             $wc_order->update_meta_data( '_etn_completion_blocked_note', 1 );

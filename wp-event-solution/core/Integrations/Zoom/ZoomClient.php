@@ -36,7 +36,7 @@ class ZoomClient {
      */
     public function __construct( $token = '' ) {
         if ( ! $token ) {
-            throw new \Exception( esc_html__( 'You must provide access token', 'eventin' ) );
+            throw new \Exception( esc_html__( 'You must provide access token', 'wp-event-solution' ) );
         }
 
         $this->token = $token;

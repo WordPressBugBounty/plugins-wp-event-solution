@@ -48,6 +48,6 @@
         <?php endforeach; ?>
     </div>
     <?php else: ?>
-    <p><?php esc_html_e('No speakers found', 'eventin'); ?></p>
+    <p><?php esc_html_e('No speakers found', 'wp-event-solution'); ?></p>
     <?php endif; ?>
 </div>

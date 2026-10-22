@@ -65,7 +65,7 @@
                                 <a href="<?php echo esc_url(get_the_permalink($event_item->id)); ?>"
                                     class="etn-btn etn-btn-primary"
                                     title="<?php echo esc_attr($event_item->get_title()); ?>">
-                                    <?php esc_html_e('Attend', 'eventin'); ?>
+                                    <?php esc_html_e('Attend', 'wp-event-solution'); ?>
                                 </a>
                             </div>
                         </div>
@@ -75,7 +75,7 @@
             <?php endforeach; ?>
         </div>
         <?php else: ?>
-        <p><?php esc_html_e('No events found', 'eventin'); ?></p>
+        <p><?php esc_html_e('No events found', 'wp-event-solution'); ?></p>
         <?php endif; ?>
     </div>
 </div>

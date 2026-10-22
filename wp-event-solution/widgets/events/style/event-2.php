@@ -65,7 +65,7 @@ $data  = Helper::post_data_query('etn', $posts_to_show, $order, $event_cat, 'etn
 												href="<?php echo esc_url(get_the_permalink($value->ID)); ?>"
 												aria-label="<?php echo esc_attr(get_the_title()); ?>"
 											>
-												<img class="etn-event-placeholder" src="<?php echo esc_url(\Wpeventin::assets_url() . 'images/placeholder.jpg'); ?>" alt="<?php echo esc_attr__('Event placeholder image', 'eventin'); ?>">
+												<img class="etn-event-placeholder" src="<?php echo esc_url(\Wpeventin::assets_url() . 'images/placeholder.jpg'); ?>" alt="<?php echo esc_attr__('Event placeholder image', 'wp-event-solution'); ?>">
 											</a>
 										<?php endif; ?>
 
@@ -128,11 +128,11 @@ $data  = Helper::post_data_query('etn', $posts_to_show, $order, $event_cat, 'etn
 																$show_form_button = apply_filters("etn_form_submit_visibility", true, $value->ID);
 																if ($show_form_button === false) {
 																		?>
-																		<a href="#" class="etn-btn etn-btn-border"><?php echo esc_html__('Expired!', "eventin"); ?> </a>
+																		<a href="#" class="etn-btn etn-btn-border"><?php echo esc_html__('Expired!', "wp-event-solution"); ?> </a>
 																		<?php
 																} else {
 																		?>
-																		<a href="<?php echo esc_url(get_the_permalink($value->ID)); ?>" class="etn-btn etn-btn-border" title="<?php echo esc_attr(get_the_title($value->ID)); ?>"><?php echo esc_html__('Attend', 'eventin') ?> <i class="etn-icon etn-arrow-right"></i></a>
+																		<a href="<?php echo esc_url(get_the_permalink($value->ID)); ?>" class="etn-btn etn-btn-border" title="<?php echo esc_attr(get_the_title($value->ID)); ?>"><?php echo esc_html__('Attend', 'wp-event-solution') ?> <i class="etn-icon etn-arrow-right"></i></a>
 																		<?php
 																}
 																?>
@@ -144,9 +144,9 @@ $data  = Helper::post_data_query('etn', $posts_to_show, $order, $event_cat, 'etn
 							            ?>
                                         <div class="etn-mt-1 etn-remaining-tickets">
                                             <?php if ( $remaining_tickets === -1 ) : ?>
-                                                <small class="etn-ticket-count-lot"><?php echo esc_html__( 'Unlimited tickets remaining', 'eventin' ); ?></small>
+                                                <small class="etn-ticket-count-lot"><?php echo esc_html__( 'Unlimited tickets remaining', 'wp-event-solution' ); ?></small>
                                             <?php else : ?>
-                                                <small class="<?php echo $remaining_tickets > 5 ? 'etn-ticket-count-lot' : 'etn-ticket-count-few' ;?>"><?php echo esc_html( etn_humanize_number( $remaining_tickets ) ); ?> <?php echo $remaining_tickets > 1 ? esc_html__( 'tickets', 'eventin' ) : esc_html__( 'ticket', 'eventin' ); ?> <?php esc_html_e( 'remaining', 'eventin' ); ?></small>
+                                                <small class="<?php echo $remaining_tickets > 5 ? 'etn-ticket-count-lot' : 'etn-ticket-count-few' ;?>"><?php echo esc_html( etn_humanize_number( $remaining_tickets ) ); ?> <?php echo $remaining_tickets > 1 ? esc_html__( 'tickets', 'wp-event-solution' ) : esc_html__( 'ticket', 'wp-event-solution' ); ?> <?php esc_html_e( 'remaining', 'wp-event-solution' ); ?></small>
                                             <?php endif; ?>
                                         </div>
                                         <?php endif; ?>
@@ -160,7 +160,7 @@ $data  = Helper::post_data_query('etn', $posts_to_show, $order, $event_cat, 'etn
 						}
 		}else{
 				?>
-				<p class="etn-not-found-post"><?php echo esc_html__('No Post Found', 'eventin'); ?></p>
+				<p class="etn-not-found-post"><?php echo esc_html__('No Post Found', 'wp-event-solution'); ?></p>
 				<?php
 		} ?>
 </div>
@@ -228,8 +228,8 @@ if ($enable_pagination === 'yes' && !empty($data)) {
         $args = [
             'paged'         => $current_page,
             'total_pages'   => $total_pages,
-            'prev_text'     => esc_html__('Previous', 'eventin'),
-            'next_text'     => esc_html__('Next', 'eventin'),
+            'prev_text'     => esc_html__('Previous', 'wp-event-solution'),
+            'next_text'     => esc_html__('Next', 'wp-event-solution'),
             'base_class'    => 'etn',
             'current_class' => 'etn-pagination-current',
             'param'         => $pagination_param // Use custom parameter

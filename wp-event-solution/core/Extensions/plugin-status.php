@@ -52,15 +52,15 @@ class Plugin_Status {
 
 		if ( $this->check_installed_plugin( $name ) ) {
 			if ( $this->check_activated_plugin( $name ) ) {
-				$data['title']  = __( 'Activated', 'eventin' );
+				$data['title']  = __( 'Activated', 'wp-event-solution' );
 				$data['status'] = 'activated';
 			} else {
-				$data['title']          = __( 'Activate Now', 'eventin' );
+				$data['title']          = __( 'Activate Now', 'wp-event-solution' );
 				$data['status']         = 'installed';
 				$data['activation_url'] = $this->activation_url( $name );
 			}
 		} else {
-			$data['title']            = __( 'Install Now', 'eventin' );
+			$data['title']            = __( 'Install Now', 'wp-event-solution' );
 			$data['status']           = 'not_installed';
 			$data['installation_url'] = $this->installation_url( $name );
 			$data['activation_url']   = $this->activation_url( $name );

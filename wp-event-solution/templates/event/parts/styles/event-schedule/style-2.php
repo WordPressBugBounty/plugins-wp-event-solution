@@ -22,7 +22,7 @@
 <div class="schedule-tab-wrapper etn-tab-wrapper schedule-style-1
 <?php echo esc_attr($container_class); ?>">
     <div class="eventin-block-container schedule-style-two">
-        <h3 class="etn-tags-title"><?php echo esc_html__('Event Schedule', 'eventin'); ?></h3>
+        <h3 class="etn-tags-title"><?php echo esc_html__('Event Schedule', 'wp-event-solution'); ?></h3>
         <div class="schedule-block-wrapper">
             <ul class='etn-nav'>
                 <?php
@@ -96,7 +96,7 @@
 				                                        <div class='etn-schedule-content etn-col-sm-9'>
 				                                        <div class='etn-schedule-item-header'>
 				                                            <h4 class='etn-title' style='margin: 0; flex: 1;'><?php echo esc_html($etn_schedule_topic); ?></h4>
-				                                            <button class='etn-schedule-toggle' type='button' aria-expanded='<?php echo esc_attr($aria_expanded); ?>' aria-label='<?php echo esc_attr__('Toggle schedule details', 'eventin'); ?>'>
+				                                            <button class='etn-schedule-toggle' type='button' aria-expanded='<?php echo esc_attr($aria_expanded); ?>' aria-label='<?php echo esc_attr__('Toggle schedule details', 'wp-event-solution'); ?>'>
 				                                                <svg width='20' height='20' viewBox='0 0 20 20' fill='none' xmlns='http://www.w3.org/2000/svg'>
 				                                                    <path d='M5 7.5L10 12.5L15 7.5' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/>
 				                                                </svg>

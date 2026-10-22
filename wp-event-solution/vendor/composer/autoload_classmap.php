@@ -213,6 +213,8 @@ return array(
     'Eventin\\Extensions\\ImportAutomation' => $baseDir . '/core/Extensions/ImportAutomation.php',
     'Eventin\\Extensions\\PluginManager' => $baseDir . '/core/Extensions/PluginManager.php',
     'Eventin\\ExtraFields\\LabelResolver' => $baseDir . '/core/ExtraFields/LabelResolver.php',
+    'Eventin\\I18n\\LegacyTextDomain' => $baseDir . '/core/I18n/LegacyTextDomain.php',
+    'Eventin\\I18n\\WpmlTextDomainMigration' => $baseDir . '/core/I18n/WpmlTextDomainMigration.php',
     'Eventin\\Importer\\CSVReader' => $baseDir . '/base/Importer/CSVReader.php',
     'Eventin\\Importer\\JSONReader' => $baseDir . '/base/Importer/JSONReader.php',
     'Eventin\\Importer\\PostImporter' => $baseDir . '/base/Importer/PostImporter.php',

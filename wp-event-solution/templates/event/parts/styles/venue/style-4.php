@@ -3,7 +3,7 @@
     <div class="eventin-block-container">
         <div class="etn-venue-info-wrapper style-4">
 
-            <h3 class="etn-venue-info-title"><?php echo esc_html__('Venue Info', 'eventin'); ?></h3>
+            <h3 class="etn-venue-info-title"><?php echo esc_html__('Venue Info', 'wp-event-solution'); ?></h3>
 
             <?php if (! empty($venue_latitude) && ! empty($venue_longitude)):
                     $map_url = 'https://www.google.com/maps?q=' . esc_attr($venue_latitude) . ',' . esc_attr($venue_longitude) . '&output=embed';
@@ -92,7 +92,7 @@
                 <div class="etn-venue-get-direction-container">
                     <?php if (! empty($venue_latitude) && ! empty($venue_longitude)): ?>
                         <a href="https://www.google.com/maps?q=<?php echo esc_attr($venue_latitude); ?>,<?php echo esc_attr($venue_longitude); ?>" target="_blank" class="etn-venue-get-direction">
-                            <?php echo esc_html__('Get Direction', 'eventin'); ?>
+                            <?php echo esc_html__('Get Direction', 'wp-event-solution'); ?>
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="13" viewBox="0 0 16 13" fill="none">
                                 <path d="M5.24537e-07 6.22791L15 6.22791" stroke="#5D5DFF" stroke-width="2"/>
                                 <path d="M9.96338 0.309936C10.4242 1.72373 12.0371 4.90304 14.8021 6.30994" stroke="#5D5DFF" stroke-width="2"/>

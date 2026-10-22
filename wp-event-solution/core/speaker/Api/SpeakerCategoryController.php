@@ -65,7 +65,7 @@ class SpeakerCategoryController extends WP_REST_Controller {
             array(
                 'args' => array(
                     'id' => array(
-                        'description' => __( 'Unique identifier for the post.', 'eventin' ),
+                        'description' => __( 'Unique identifier for the post.', 'wp-event-solution' ),
                         'type'        => 'integer',
                     ),
                 ),
@@ -302,7 +302,7 @@ class SpeakerCategoryController extends WP_REST_Controller {
         if ( ! $retval ) {
             return new WP_Error(
                 'rest_cannot_delete',
-                __( 'The term cannot be deleted.', 'eventin' ),
+                __( 'The term cannot be deleted.', 'wp-event-solution' ),
                 array( 'status' => 500 )
             );
         }
@@ -336,7 +336,7 @@ class SpeakerCategoryController extends WP_REST_Controller {
             if ( ! $retval ) {
                 return new WP_Error(
                     'rest_cannot_delete',
-                    __( 'The term cannot be deleted.', 'eventin' ),
+                    __( 'The term cannot be deleted.', 'wp-event-solution' ),
                     array( 'status' => 500 )
                 );
             }
@@ -347,13 +347,13 @@ class SpeakerCategoryController extends WP_REST_Controller {
         if ( $count == 0 ) {
             return new WP_Error(
                 'rest_cannot_delete',
-                __( 'Terms cannot be deleted.', 'eventin' ),
+                __( 'Terms cannot be deleted.', 'wp-event-solution' ),
                 array( 'status' => 500 )
             );
         }
 
         // translators: %1$d is the number of terms deleted, %2$d is the total number of terms selected.
-        $message = sprintf( __( '%1$d terms are deleted of %2$d', 'eventin' ), $count, count( $ids ) );
+        $message = sprintf( __( '%1$d terms are deleted of %2$d', 'wp-event-solution' ), $count, count( $ids ) );
 
         return rest_ensure_response( $message );
     }
@@ -382,7 +382,7 @@ class SpeakerCategoryController extends WP_REST_Controller {
     protected function get_category( $id ) {
         $error = new WP_Error(
             'rest_category_invalid',
-            __( 'Category does not exist.', 'eventin' ),
+            __( 'Category does not exist.', 'wp-event-solution' ),
             array( 'status' => 404 )
         );
 

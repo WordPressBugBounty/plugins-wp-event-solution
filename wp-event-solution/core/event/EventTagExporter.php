@@ -108,12 +108,12 @@ class EventTagExporter implements PostExporterInterface {
      */
     private function get_columns() {
         return [
-            'id'          => esc_html__( 'Id', 'eventin' ),
-            'name'        => esc_html__( 'Name', 'eventin' ),
-            'slug'        => esc_html__( 'Slug', 'eventin' ),
-            'description' => esc_html__( 'Description', 'eventin' ),
-            'parent'      => esc_html__( 'Parent', 'eventin' ),
-            'count'       => esc_html__( 'Count', 'eventin' ),
+            'id'          => esc_html__( 'Id', 'wp-event-solution' ),
+            'name'        => esc_html__( 'Name', 'wp-event-solution' ),
+            'slug'        => esc_html__( 'Slug', 'wp-event-solution' ),
+            'description' => esc_html__( 'Description', 'wp-event-solution' ),
+            'parent'      => esc_html__( 'Parent', 'wp-event-solution' ),
+            'count'       => esc_html__( 'Count', 'wp-event-solution' ),
         ];
     }
 

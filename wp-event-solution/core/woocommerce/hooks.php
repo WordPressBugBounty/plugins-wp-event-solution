@@ -260,7 +260,7 @@ class Hooks {
         if ( is_checkout() ) {
             
             if (!WC()->cart) {
-                wc_add_notice(__('Unable to validate cart items. Please try again.', 'eventin'), 'error');
+                wc_add_notice(__('Unable to validate cart items. Please try again.', 'wp-event-solution'), 'error');
                 return;
             }
             
@@ -292,7 +292,7 @@ class Hooks {
                                     if ( isset( $ticket_variation['etn_enable_ticket'] ) && !$ticket_variation['etn_enable_ticket']) {
                                         $error_message = sprintf(
                                             // translators: %s is the ticket product name.
-                                            __('The selected ticket variant for "%s" is no longer available. You have been redirected to the event page.', 'eventin'),
+                                            __('The selected ticket variant for "%s" is no longer available. You have been redirected to the event page.', 'wp-event-solution'),
                                             $product->get_name()
                                         );
                                         wc_add_notice($error_message, 'error');
@@ -333,14 +333,14 @@ class Hooks {
         $attendees = $event_order->get_attendees();
         ?>
             <?php if ( $attendees ): ?>
-            <h2 class="woocommerce-column__title"><?php esc_html_e( 'Eventin Ticket Details', 'eventin' ); ?></h2>
+            <h2 class="woocommerce-column__title"><?php esc_html_e( 'Eventin Ticket Details', 'wp-event-solution' ); ?></h2>
             <table class="woocommerce-table woocommerce-table--order-details shop_table order_details">
                 <thead>
                     <tr>
-                        <th class="woocommerce-table__product-name attendee-name"><?php esc_html_e( 'Attendee Name', 'eventin' ); ?></th>
-                        <th class="woocommerce-table__product-table attendee-ticket-name"><?php esc_html_e( 'Ticket Name', 'eventin' ); ?></th>
-                        <th class="woocommerce-table__product-table attendee-event"><?php esc_html_e( 'Event', 'eventin' ); ?></th>
-                        <th class="woocommerce-table__product-table attendee-action"><?php esc_html_e( 'Action', 'eventin' ); ?></th>
+                        <th class="woocommerce-table__product-name attendee-name"><?php esc_html_e( 'Attendee Name', 'wp-event-solution' ); ?></th>
+                        <th class="woocommerce-table__product-table attendee-ticket-name"><?php esc_html_e( 'Ticket Name', 'wp-event-solution' ); ?></th>
+                        <th class="woocommerce-table__product-table attendee-event"><?php esc_html_e( 'Event', 'wp-event-solution' ); ?></th>
+                        <th class="woocommerce-table__product-table attendee-action"><?php esc_html_e( 'Action', 'wp-event-solution' ); ?></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -385,7 +385,7 @@ class Hooks {
                                 );
                             ?>
                             <div class="">
-                                <a class="" target="_blank" href="<?php echo esc_url($url); ?>" rel="noopener"><?php esc_html_e( 'Download Ticket', 'eventin' ); ?></a>
+                                <a class="" target="_blank" href="<?php echo esc_url($url); ?>" rel="noopener"><?php esc_html_e( 'Download Ticket', 'wp-event-solution' ); ?></a>
                             </div>
                         </td>
                     </tr>
@@ -1319,7 +1319,7 @@ class Hooks {
         }
         ?>
         <div class="etn-thankyou-page-order-details">
-            <?php echo esc_html__( "Order ID: ", "eventin" ) . esc_html( $order_id ); ?> | <?php echo esc_html__("Order Status: ", "eventin") . esc_html( wc_get_order_status_name( $order->get_status() )); ?> | <?php echo esc_html__( "Order is Payment Status: ", "eventin" ) . esc_html( $paid ); ?>
+            <?php echo esc_html__( "Order ID: ", "wp-event-solution" ) . esc_html( $order_id ); ?> | <?php echo esc_html__("Order Status: ", "wp-event-solution") . esc_html( wc_get_order_status_name( $order->get_status() )); ?> | <?php echo esc_html__( "Order is Payment Status: ", "wp-event-solution" ) . esc_html( $paid ); ?>
         </div>
         <?php
 
@@ -1351,7 +1351,7 @@ class Hooks {
                 if( $is_zoom_event ){
                     ?>
                     <div class="etn-thankyou-page-order-details">
-                        <?php echo esc_html__('NB. This order includes Events which will be hosted on Zoom. After successful payment, Zoom details will be sent through email', 'eventin');?>
+                        <?php echo esc_html__('NB. This order includes Events which will be hosted on Zoom. After successful payment, Zoom details will be sent through email', 'wp-event-solution');?>
                     </div>
                     <?php
                     break;
@@ -2112,25 +2112,25 @@ class Hooks {
                         $quoted_event_name  = ' "' . $event_name . '"';
 
                         if ( isset( $error_info['min_allowed'] ) ) {
-                            $error_messages[] = esc_html__( 'Sorry, for', 'eventin' ) . $quoted_ticket_name . esc_html__( 'ticket of event', 'eventin' ) . $quoted_event_name . ', ' .
-                                esc_html__( 'minimum purchasable quantity is ', 'eventin' ) . $error_info['min_allowed'] .
-                                esc_html__( '. You attempted to add ', 'eventin' ) . $error_info['item_picked_qty'] . esc_html__( ' ticket to the cart', 'eventin' );
+                            $error_messages[] = esc_html__( 'Sorry, for', 'wp-event-solution' ) . $quoted_ticket_name . esc_html__( 'ticket of event', 'wp-event-solution' ) . $quoted_event_name . ', ' .
+                                esc_html__( 'minimum purchasable quantity is ', 'wp-event-solution' ) . $error_info['min_allowed'] .
+                                esc_html__( '. You attempted to add ', 'wp-event-solution' ) . $error_info['item_picked_qty'] . esc_html__( ' ticket to the cart', 'wp-event-solution' );
                         }
                         if ( isset( $error_info['max_allowed'] ) ) {
-                            $error_messages[] = esc_html__( 'Sorry, for', 'eventin' ) . $quoted_ticket_name . esc_html__( 'ticket of event', 'eventin' ) . $quoted_event_name . ', ' .
-                                esc_html__( 'maximum purchasable quantity is ', 'eventin' ) . $error_info['max_allowed'] .
-                                esc_html__( '. You attempted to add ', 'eventin' ) . $error_info['item_picked_qty'] . esc_html__( ' ticket to the cart', 'eventin' );
+                            $error_messages[] = esc_html__( 'Sorry, for', 'wp-event-solution' ) . $quoted_ticket_name . esc_html__( 'ticket of event', 'wp-event-solution' ) . $quoted_event_name . ', ' .
+                                esc_html__( 'maximum purchasable quantity is ', 'wp-event-solution' ) . $error_info['max_allowed'] .
+                                esc_html__( '. You attempted to add ', 'wp-event-solution' ) . $error_info['item_picked_qty'] . esc_html__( ' ticket to the cart', 'wp-event-solution' );
                         }
                         if ( isset( $error_info['remaining_allowed'] ) ) {
-                            $error_messages[] = esc_html__( 'Sorry, for', 'eventin' ) . $quoted_ticket_name . esc_html__( 'ticket of event', 'eventin' ) . $quoted_event_name . ', ' .
-                                esc_html__( 'available quantity is ', 'eventin' ) . $error_info['remaining_allowed'] .
-                                esc_html__( '. You attempted to add ', 'eventin' ) . $error_info['item_picked_qty'] . esc_html__( ' ticket to the cart', 'eventin' );
+                            $error_messages[] = esc_html__( 'Sorry, for', 'wp-event-solution' ) . $quoted_ticket_name . esc_html__( 'ticket of event', 'wp-event-solution' ) . $quoted_event_name . ', ' .
+                                esc_html__( 'available quantity is ', 'wp-event-solution' ) . $error_info['remaining_allowed'] .
+                                esc_html__( '. You attempted to add ', 'wp-event-solution' ) . $error_info['item_picked_qty'] . esc_html__( ' ticket to the cart', 'wp-event-solution' );
                         }
 
                         if ( isset( $error_info['total_picked_qty'] ) ) {
-                            $error_messages[] = esc_html__( 'Sorry, for', 'eventin' ) . $quoted_ticket_name . esc_html__( 'ticket of event', 'eventin' ) . $quoted_event_name . ', ' .
-                                esc_html__( 'available quantity is ', 'eventin' ) . $error_info['total_remaining_allowed'] .
-                                esc_html__( '. You attempted to add ', 'eventin' ) . $error_info['total_picked_qty'] . esc_html__( ' ticket(s) through adding multiple times to the cart', 'eventin' ) ;
+                            $error_messages[] = esc_html__( 'Sorry, for', 'wp-event-solution' ) . $quoted_ticket_name . esc_html__( 'ticket of event', 'wp-event-solution' ) . $quoted_event_name . ', ' .
+                                esc_html__( 'available quantity is ', 'wp-event-solution' ) . $error_info['total_remaining_allowed'] .
+                                esc_html__( '. You attempted to add ', 'wp-event-solution' ) . $error_info['total_picked_qty'] . esc_html__( ' ticket(s) through adding multiple times to the cart', 'wp-event-solution' ) ;
                         }
                     }
                 }
@@ -2152,7 +2152,7 @@ class Hooks {
                     $attempted_cart_qty = $already_qty + $qty;
                     if ( $attempted_cart_qty > $remaining_ticket ) {
                         // $error_msg          = 'cart add time';
-                        $error_msg          = esc_html__( 'You cannot add that amount to the cart — maximum purchasable quantity is ', 'eventin' ) . $remaining_ticket . esc_html__( '. You already have ', 'eventin' ) . $already_qty . esc_html__( ' in your cart.', 'eventin' );
+                        $error_msg          = esc_html__( 'You cannot add that amount to the cart — maximum purchasable quantity is ', 'wp-event-solution' ) . $remaining_ticket . esc_html__( '. You already have ', 'wp-event-solution' ) . $already_qty . esc_html__( ' in your cart.', 'wp-event-solution' );
                         $error_messages[]   = $error_msg;
                     }
                 }
@@ -2216,7 +2216,7 @@ class Hooks {
                     if ( $deadline_expired ) {
                         $event_name       = get_the_title( $event_id );
                         // translators: %s is the event name.
-                        $error_messages[] = sprintf( esc_html__( 'Event: "%s" has been expired', 'eventin' ), $event_name );
+                        $error_messages[] = sprintf( esc_html__( 'Event: "%s" has been expired', 'wp-event-solution' ), $event_name );
                     }
 
                     // end event expired 
@@ -2295,25 +2295,25 @@ class Hooks {
                         $quoted_event_name  = ' "' . $event_name . '"';
 
                         if ( isset( $error_info['min_allowed'] ) ) {
-                            $error_messages[] = esc_html__( 'Sorry, for', 'eventin' ) . $quoted_ticket_name . esc_html__( 'ticket of event', 'eventin' ) . $quoted_event_name . ', ' .
-                                esc_html__( 'minimum purchasable quantity is ', 'eventin' ) . $error_info['min_allowed'] .
-                                esc_html__( '. You attempted to add ', 'eventin' ) . $error_info['item_picked_qty'] . esc_html__( ' ticket to the cart', 'eventin' );
+                            $error_messages[] = esc_html__( 'Sorry, for', 'wp-event-solution' ) . $quoted_ticket_name . esc_html__( 'ticket of event', 'wp-event-solution' ) . $quoted_event_name . ', ' .
+                                esc_html__( 'minimum purchasable quantity is ', 'wp-event-solution' ) . $error_info['min_allowed'] .
+                                esc_html__( '. You attempted to add ', 'wp-event-solution' ) . $error_info['item_picked_qty'] . esc_html__( ' ticket to the cart', 'wp-event-solution' );
                         }
                         if ( isset( $error_info['max_allowed'] ) ) {
-                            $error_messages[] = esc_html__( 'Sorry, for', 'eventin' ) . $quoted_ticket_name . esc_html__( 'ticket of event', 'eventin' ) . $quoted_event_name . ', ' .
-                                esc_html__( 'maximum purchasable quantity is ', 'eventin' ) . $error_info['max_allowed'] .
-                                esc_html__( '. You attempted to add ', 'eventin' ) . $error_info['item_picked_qty'] . esc_html__( ' ticket to the cart', 'eventin' );
+                            $error_messages[] = esc_html__( 'Sorry, for', 'wp-event-solution' ) . $quoted_ticket_name . esc_html__( 'ticket of event', 'wp-event-solution' ) . $quoted_event_name . ', ' .
+                                esc_html__( 'maximum purchasable quantity is ', 'wp-event-solution' ) . $error_info['max_allowed'] .
+                                esc_html__( '. You attempted to add ', 'wp-event-solution' ) . $error_info['item_picked_qty'] . esc_html__( ' ticket to the cart', 'wp-event-solution' );
                         }
                         if ( isset( $error_info['remaining_allowed'] ) ) {
-                            $error_messages[] = esc_html__( 'Sorry, for', 'eventin' ) . $quoted_ticket_name . esc_html__( 'ticket of event', 'eventin' ) . $quoted_event_name . ', ' .
-                                esc_html__( 'available quantity is ', 'eventin' ) . $error_info['remaining_allowed'] .
-                                esc_html__( '. You attempted to add ', 'eventin' ) . $error_info['item_picked_qty'] . esc_html__( ' ticket to the cart', 'eventin' );
+                            $error_messages[] = esc_html__( 'Sorry, for', 'wp-event-solution' ) . $quoted_ticket_name . esc_html__( 'ticket of event', 'wp-event-solution' ) . $quoted_event_name . ', ' .
+                                esc_html__( 'available quantity is ', 'wp-event-solution' ) . $error_info['remaining_allowed'] .
+                                esc_html__( '. You attempted to add ', 'wp-event-solution' ) . $error_info['item_picked_qty'] . esc_html__( ' ticket to the cart', 'wp-event-solution' );
                         }
 
                         if ( isset( $error_info['total_picked_qty'] ) ) {
-                            $error_messages[] = esc_html__( 'Sorry, for', 'eventin' ) . $quoted_ticket_name . esc_html__( 'ticket of event', 'eventin' ) . $quoted_event_name . ', ' .
-                                esc_html__( 'available quantity is ', 'eventin' ) . $error_info['total_remaining_allowed'] .
-                                esc_html__( '. You attempted to add ', 'eventin' ) . $error_info['total_picked_qty'] . esc_html__( ' ticket(s) through adding multiple times to the cart', 'eventin' ) ;
+                            $error_messages[] = esc_html__( 'Sorry, for', 'wp-event-solution' ) . $quoted_ticket_name . esc_html__( 'ticket of event', 'wp-event-solution' ) . $quoted_event_name . ', ' .
+                                esc_html__( 'available quantity is ', 'wp-event-solution' ) . $error_info['total_remaining_allowed'] .
+                                esc_html__( '. You attempted to add ', 'wp-event-solution' ) . $error_info['total_picked_qty'] . esc_html__( ' ticket(s) through adding multiple times to the cart', 'wp-event-solution' ) ;
                         }
                     }
                 }
@@ -2364,7 +2364,7 @@ class Hooks {
     private function global_stock_error_message( $event_name, $remaining, $picked ) {
         return sprintf(
             /* translators: 1: event name, 2: tickets left for the event, 3: tickets in the cart. */
-            esc_html__( 'Sorry, event "%1$s" has only %2$d ticket(s) left. You attempted to add %3$d ticket(s) to the cart.', 'eventin' ),
+            esc_html__( 'Sorry, event "%1$s" has only %2$d ticket(s) left. You attempted to add %3$d ticket(s) to the cart.', 'wp-event-solution' ),
             esc_html( $event_name ),
             $remaining,
             $picked
@@ -2384,7 +2384,7 @@ class Hooks {
             $remaining_ticket = $cart_stock_status['remaining_ticket'];
 
             // $error_msg          = 'before cart';
-            $error_msg          = esc_html__( 'Sorry, we do not have enough "' , 'eventin' ) . $product_name . esc_html__( '" in stock to fulfill your order (', 'eventin' ) . $remaining_ticket . esc_html__( ' available). We apologise for any inconvenience caused.', 'eventin' );
+            $error_msg          = esc_html__( 'Sorry, we do not have enough "' , 'wp-event-solution' ) . $product_name . esc_html__( '" in stock to fulfill your order (', 'wp-event-solution' ) . $remaining_ticket . esc_html__( ' available). We apologise for any inconvenience caused.', 'wp-event-solution' );
             $error_messages[]   = $error_msg;
         }
 
@@ -2406,7 +2406,7 @@ class Hooks {
         $proceed_to_go_next = $cart_stock_status['proceed_to_go_next'];
         if( !$proceed_to_go_next ) {
             // $error_msg          = 'before checkout';
-            $error_msg          = esc_html__( 'There are some issues with the items in your cart. Please go back to the cart page and resolve these issues before checking out.', 'eventin' );
+            $error_msg          = esc_html__( 'There are some issues with the items in your cart. Please go back to the cart page and resolve these issues before checking out.', 'wp-event-solution' );
             $error_messages[]   = $error_msg;
         }
 
@@ -2418,7 +2418,7 @@ class Hooks {
 
             $cart_url = wc_get_cart_url();
             ?>
-            <a class="button wc-backward" href="<?php echo esc_url( $cart_url ); ?>"><?php echo esc_html__( 'Return to cart', 'eventin' ); ?></a>
+            <a class="button wc-backward" href="<?php echo esc_url( $cart_url ); ?>"><?php echo esc_html__( 'Return to cart', 'wp-event-solution' ); ?></a>
 
             <?php
             die();
@@ -2435,7 +2435,7 @@ class Hooks {
         $proceed_to_go_next = $cart_stock_status['proceed_to_go_next'];
         if( !$proceed_to_go_next ) {
             // $error_msg          = 'before place order';
-            $error_msg          = esc_html__( 'There are some issues with the items in your cart. Please go back to the cart page and resolve these issues before checking out.', 'eventin' );
+            $error_msg          = esc_html__( 'There are some issues with the items in your cart. Please go back to the cart page and resolve these issues before checking out.', 'wp-event-solution' );
             $error_messages[]   = $error_msg;
         }
 
@@ -2725,7 +2725,7 @@ class Hooks {
         if ( \Automattic\WooCommerce\Utilities\OrderUtil::custom_orders_table_usage_is_enabled() ) {
             add_meta_box(
                 'etn-shop-attendee-list',
-                esc_html__('Eventin Attendee List', 'eventin'),
+                esc_html__('Eventin Attendee List', 'wp-event-solution'),
                 [ $this, 'etn_order_page_metabox_callback'],
                 wc_get_page_screen_id( 'shop-order' ),
                 'normal',
@@ -2736,7 +2736,7 @@ class Hooks {
            
             add_meta_box(
                 'etn-shop-attendee-list',
-                esc_html__('Eventin Attendee List', 'eventin'),
+                esc_html__('Eventin Attendee List', 'wp-event-solution'),
                 [ $this, 'etn_order_page_metabox_callback'],
                 'shop_order',
                 'normal',
@@ -2781,10 +2781,10 @@ class Hooks {
         if ( $eventin_order_id && $attendees ) {
             $table_content = "<div class='etn-table-view'>
                 <div class='etn-table-row etn-table-header'>
-                    <div class='etn-column'>" . esc_html__('Attendee ID', 'eventin') . "</span></mark></div>
-                    <div class='etn-column'>" . esc_html__('Ticket ID', 'eventin') . "</div>
-                    <div class='etn-column'>" . esc_html__('Attendee Name', 'eventin') . "</div>
-                    <div class='etn-column'>" . esc_html__('Event', 'eventin') . "</div>
+                    <div class='etn-column'>" . esc_html__('Attendee ID', 'wp-event-solution') . "</span></mark></div>
+                    <div class='etn-column'>" . esc_html__('Ticket ID', 'wp-event-solution') . "</div>
+                    <div class='etn-column'>" . esc_html__('Attendee Name', 'wp-event-solution') . "</div>
+                    <div class='etn-column'>" . esc_html__('Event', 'wp-event-solution') . "</div>
                 </div>";
                 
             foreach( $attendees as $attendee ) {
@@ -2815,7 +2815,7 @@ class Hooks {
 
                 if($status == 'trash'){
                     $table_content .= "<div class='etn-table-row'>
-                        <div class='etn-column'>" . esc_html( $attendee->ID ) . " <mark class='order-status status-failed tips'><span>". esc_html__('Trashed', 'eventin') . "</span></mark></div>
+                        <div class='etn-column'>" . esc_html( $attendee->ID ) . " <mark class='order-status status-failed tips'><span>". esc_html__('Trashed', 'wp-event-solution') . "</span></mark></div>
                         <div class='etn-column'>" . esc_html( $attendee->etn_unique_ticket_id ) . "</div>
                         <div class='etn-column'><a href='" . esc_attr( admin_url("admin.php?page=eventin#/attendees/edit/{$attendee->ID}") ) . "' target='_blank' rel='noopener'>" . esc_html( get_post_meta( $attendee->ID, 'etn_name', true ) ) . "</a></div>
                         <div class='etn-column'>" . $event_display . "</div>
@@ -2835,7 +2835,7 @@ class Hooks {
 
             echo wp_kses_post( $table_content );
         } else {
-            echo esc_html__('No Attendee Found', 'eventin');
+            echo esc_html__('No Attendee Found', 'wp-event-solution');
         }
         
     }
@@ -2916,7 +2916,7 @@ class Hooks {
         ?>
         <div class="options_group">
             <p class="form-field">
-                <label for="etn_event_ids"><?php echo esc_html__( 'Select Eventin Events', 'eventin' ); ?></label>
+                <label for="etn_event_ids"><?php echo esc_html__( 'Select Eventin Events', 'wp-event-solution' ); ?></label>
                 <select multiple="multiple" name="etn_event_ids[]" class="etn_coupon_event_select2" style="width: 50%;">
                     <?php
                     if ( !empty( $options ) ) {
@@ -3020,7 +3020,7 @@ class Hooks {
 
         if( $coupon_remaining_usage_limit < $etn_coupon_quantity ){
             $woocommerce->cart->remove_coupon( $coupon_code );
-            wc_add_notice ( esc_html__('Coupon usage limit has been reached.', 'eventin'), 'error');
+            wc_add_notice ( esc_html__('Coupon usage limit has been reached.', 'wp-event-solution'), 'error');
             return;
         }else{
             $coupon->set_usage_count();
@@ -3067,7 +3067,7 @@ class Hooks {
                         wc_add_notice(
                             sprintf(
                                 // translators: %1$s is the coupon code, %2$s is the product/event name.
-                                __("'<strong>%1\$s</strong>' Coupon usage limit has been reached for '<strong>%2\$s</strong>'. ", 'eventin'),
+                                __("'<strong>%1\$s</strong>' Coupon usage limit has been reached for '<strong>%2\$s</strong>'. ", 'wp-event-solution'),
                                 $coupon->get_code(),
                                 $_product->get_name()
                             ),
@@ -3200,7 +3200,7 @@ class Hooks {
             wc_clear_notices();
 
             // translators: %s is the event title.
-            $message = sprintf( esc_html__( 'Event: "%s" has been removed.', 'eventin' ), get_the_title($product_id) );
+            $message = sprintf( esc_html__( 'Event: "%s" has been removed.', 'wp-event-solution' ), get_the_title($product_id) );
             wc_add_notice($message, 'success');
         }
 

@@ -92,7 +92,7 @@ class EventController extends WP_REST_Controller {
             array(
                 'args'   => array(
                     'id' => array(
-                        'description' => __( 'Unique identifier for the post.', 'eventin' ),
+                        'description' => __( 'Unique identifier for the post.', 'wp-event-solution' ),
                         'type'        => 'integer',
                     ),
                 ),
@@ -116,7 +116,7 @@ class EventController extends WP_REST_Controller {
                         'force' => array(
                             'type'        => 'boolean',
                             'default'     => false,
-                            'description' => __( 'Whether to bypass Trash and force deletion.', 'eventin' ),
+                            'description' => __( 'Whether to bypass Trash and force deletion.', 'wp-event-solution' ),
                         ),
                     ),
                 ),
@@ -131,7 +131,7 @@ class EventController extends WP_REST_Controller {
             array(
                 'args' => array(
                     'id' => array(
-                        'description' => __( 'Unique identifier for the post.', 'eventin' ),
+                        'description' => __( 'Unique identifier for the post.', 'wp-event-solution' ),
                         'type'        => 'integer',
                     ),
                 ),
@@ -153,7 +153,7 @@ class EventController extends WP_REST_Controller {
             array(
                 'args' => array(
                     'id' => array(
-                        'description' => __( 'Unique identifier for the post.', 'eventin' ),
+                        'description' => __( 'Unique identifier for the post.', 'wp-event-solution' ),
                         'type'        => 'integer',
                     ),
                 ),
@@ -174,7 +174,7 @@ class EventController extends WP_REST_Controller {
             array(
                 'args' => array(
                     'id' => array(
-                        'description' => __( 'Unique identifier for the post.', 'eventin' ),
+                        'description' => __( 'Unique identifier for the post.', 'wp-event-solution' ),
                         'type'        => 'integer',
                     ),
                 ),
@@ -192,7 +192,7 @@ class EventController extends WP_REST_Controller {
             array(
                 'args' => array(
                     'id' => array(
-                        'description' => __( 'Unique identifier for the post.', 'eventin' ),
+                        'description' => __( 'Unique identifier for the post.', 'wp-event-solution' ),
                         'type'        => 'integer',
                     ),
                 ),
@@ -211,7 +211,7 @@ class EventController extends WP_REST_Controller {
             array(
                 'args' => array(
                     'id' => array(
-                        'description' => __( 'Unique identifier for the post.', 'eventin' ),
+                        'description' => __( 'Unique identifier for the post.', 'wp-event-solution' ),
                         'type'        => 'integer',
                     ),
                 ),
@@ -230,7 +230,7 @@ class EventController extends WP_REST_Controller {
             array(
                 'args' => array(
                     'id' => array(
-                        'description' => __( 'Unique identifier for the post.', 'eventin' ),
+                        'description' => __( 'Unique identifier for the post.', 'wp-event-solution' ),
                         'type'        => 'integer',
                     ),
                 ),
@@ -251,7 +251,7 @@ class EventController extends WP_REST_Controller {
             array(
                 'args' => array(
                     'id' => array(
-                        'description' => __( 'Unique identifier for the post.', 'eventin' ),
+                        'description' => __( 'Unique identifier for the post.', 'wp-event-solution' ),
                         'type'        => 'integer',
                     ),
                 ),
@@ -285,7 +285,7 @@ class EventController extends WP_REST_Controller {
                 },
                 'args'                => [
                     'id' => [
-                        'description' => __('Unique identifier for the event.', 'eventin'),
+                        'description' => __('Unique identifier for the event.', 'wp-event-solution'),
                         'type'        => 'integer',
                         'required'    => true,
                     ],
@@ -825,7 +825,7 @@ class EventController extends WP_REST_Controller {
         $post = get_post( $id );
 
         if ( ! $post || 'etn' !== $post->post_type ) {
-            return new WP_Error( 'rest_event_invalid', __( 'Invalid event id.', 'eventin' ), [ 'status' => 404 ] );
+            return new WP_Error( 'rest_event_invalid', __( 'Invalid event id.', 'wp-event-solution' ), [ 'status' => 404 ] );
         }
 
         // `etn_manage_event` is held by Contributor and Author on a stock
@@ -833,7 +833,7 @@ class EventController extends WP_REST_Controller {
         // read an administrator's draft. Unpublished events belong to their
         // author and to whoever may edit other people's posts.
         if ( ! Ownership::can_read_post( $id, 'etn' ) ) {
-            return new WP_Error( 'rest_forbidden', __( 'You do not have permission to view this event.', 'eventin' ), [ 'status' => 403 ] );
+            return new WP_Error( 'rest_forbidden', __( 'You do not have permission to view this event.', 'wp-event-solution' ), [ 'status' => 403 ] );
         }
 
         $item = $this->prepare_item_for_response( $post, $request );
@@ -958,7 +958,7 @@ class EventController extends WP_REST_Controller {
             if ( ! $owner_id ) {
                 return new WP_Error(
                     'rest_forbidden',
-                    __( 'You do not have permission to create an event for this store.', 'eventin' ),
+                    __( 'You do not have permission to create an event for this store.', 'wp-event-solution' ),
                     [ 'status' => 403 ]
                 );
             }
@@ -979,12 +979,12 @@ class EventController extends WP_REST_Controller {
                 $meeting_platform = MeetingPlatform::get_platform( $platform_name );
             } catch ( \Exception $e ) {
                 // Missing or unknown platform: a bad request, not a server error.
-                return new WP_Error( 'invalid_meeting_platform', __( 'Online events need a valid meeting platform.', 'eventin' ), ['status' => 400] );
+                return new WP_Error( 'invalid_meeting_platform', __( 'Online events need a valid meeting platform.', 'wp-event-solution' ), ['status' => 400] );
             }
 
             if ( ! $meeting_platform->is_connected() ) {
                 // translators: %s is the platform name (e.g. Zoom, Google Meet).
-                return new WP_Error( 'not_connected', sprintf( __( '%s is not connected', 'eventin' ), $platform_name ), ['status' => 400] );
+                return new WP_Error( 'not_connected', sprintf( __( '%s is not connected', 'wp-event-solution' ), $platform_name ), ['status' => 400] );
             }
         }
 
@@ -995,7 +995,7 @@ class EventController extends WP_REST_Controller {
         if ( ! $created ) {
             return new WP_Error(
                 'event_create_error',
-                __( 'Event can not be created.', 'eventin' ),
+                __( 'Event can not be created.', 'wp-event-solution' ),
                 array( 'status' => 500 )
             );
         }
@@ -1153,6 +1153,7 @@ class EventController extends WP_REST_Controller {
 
         $previous_event_start_date = $event->etn_start_date;
         $previous_event_start_time = $event->etn_start_time;
+        $previous_event_timezone   = $event->event_timezone;
 
         $was_recurring = get_post_meta( $id, 'recurring_enabled', true );
 
@@ -1196,7 +1197,7 @@ class EventController extends WP_REST_Controller {
         if ( ! $updated ) {
             return new WP_Error(
                 'event_update_error',
-                __( 'Event can not be updated.', 'eventin' ),
+                __( 'Event can not be updated.', 'wp-event-solution' ),
                 array( 'status' => 500 )
             );
         }
@@ -1261,6 +1262,7 @@ class EventController extends WP_REST_Controller {
         do_action( 'eventin_reset_reminder_email', $event, [
             'previous_event_start_date' => $previous_event_start_date,
             'previous_event_start_time' => $previous_event_start_time,
+            'previous_event_timezone'   => $previous_event_timezone,
         ] );
         
         delete_transient( $this->event_cache_key );
@@ -1318,7 +1320,7 @@ class EventController extends WP_REST_Controller {
         if ( ! $post || 'etn' !== $post->post_type ) {
             return new WP_Error(
                 'rest_event_invalid',
-                __( 'Invalid event id.', 'eventin' ),
+                __( 'Invalid event id.', 'wp-event-solution' ),
                 array( 'status' => 404 )
             );
         }
@@ -1341,7 +1343,7 @@ class EventController extends WP_REST_Controller {
         if ( ! $result ) {
             return new WP_Error(
                 'rest_cannot_delete',
-                __( 'The event cannot be deleted.', 'eventin' ),
+                __( 'The event cannot be deleted.', 'wp-event-solution' ),
                 array( 'status' => 500 )
             );
         }
@@ -1365,7 +1367,7 @@ class EventController extends WP_REST_Controller {
         if ( ! $ids ) {
             return new WP_Error(
                 'rest_cannot_delete',
-                __( 'Event ids can not be empty.', 'eventin' ),
+                __( 'Event ids can not be empty.', 'wp-event-solution' ),
                 array( 'status' => 400 )
             );
         }
@@ -1382,13 +1384,13 @@ class EventController extends WP_REST_Controller {
         if ( $count == 0 ) {
             return new WP_Error(
                 'rest_cannot_delete',
-                __( 'Event cannot be deleted.', 'eventin' ),
+                __( 'Event cannot be deleted.', 'wp-event-solution' ),
                 array( 'status' => 500 )
             );
         }
 
         // translators: %1$d is the number of events deleted, %2$d is the total number of events selected.
-        $message = sprintf( __( '%1$d events are deleted of %2$d', 'eventin' ), $count, count( $ids ) );
+        $message = sprintf( __( '%1$d events are deleted of %2$d', 'wp-event-solution' ), $count, count( $ids ) );
 
         delete_transient( $this->event_cache_key );
 
@@ -1412,7 +1414,7 @@ class EventController extends WP_REST_Controller {
         // Add Copy Text to the title.
         $original_post = get_post( $event_id );
         $event_title = $original_post->post_title;
-        $clone_title = $event_title . ' - ' . __( 'Copy', 'eventin' );
+        $clone_title = $event_title . ' - ' . __( 'Copy', 'wp-event-solution' );
 
         // Update the title of the cloned event.
         $clone_event->update( [
@@ -1496,7 +1498,7 @@ class EventController extends WP_REST_Controller {
         if ( ! $event || $event->post_type !== 'etn' ) {
             return new WP_Error(
                 'invalid_event',
-                __( 'Invalid event ID.', 'eventin' ),
+                __( 'Invalid event ID.', 'wp-event-solution' ),
                 ['status' => 404]
             );
         }
@@ -1504,7 +1506,7 @@ class EventController extends WP_REST_Controller {
         if ( $event->post_status !== 'publish' ) {
             return new WP_Error(
                 'invalid_event',
-                __( 'Only published event can be set as homepage.', 'eventin' ),
+                __( 'Only published event can be set as homepage.', 'wp-event-solution' ),
                 ['status' => 404]
             );
         }
@@ -1519,18 +1521,18 @@ class EventController extends WP_REST_Controller {
         if($page_on_front == $event_id){
             $updated = update_option( 'page_on_front', 0 );
             // translators: %s is the event title.
-            $message = sprintf(__('Event "%s" has been unset from the homepage.', 'eventin'), get_the_title( $event_id ) );
+            $message = sprintf(__('Event "%s" has been unset from the homepage.', 'wp-event-solution'), get_the_title( $event_id ) );
         }
         else{
             $updated = update_option( 'page_on_front', $event_id );
             // translators: %s is the event title.
-            $message = sprintf(__('Event "%s" has been set as the homepage.', 'eventin'), get_the_title( $event_id ) );
+            $message = sprintf(__('Event "%s" has been set as the homepage.', 'wp-event-solution'), get_the_title( $event_id ) );
         }
         
         if ( $updated === false ) {
             return new WP_Error(
                 'update_failed',
-                __('Failed to update homepage settings.', 'eventin'),
+                __('Failed to update homepage settings.', 'wp-event-solution'),
                 ['status' => 500]
             );
         }
@@ -2285,7 +2287,7 @@ class EventController extends WP_REST_Controller {
 
             if ( ! $meeting_platform->is_connected() ) {
                 // translators: %s is the platform name (e.g. Zoom, Google Meet).
-                return new WP_Error( 'not_connected', sprintf( __( '%s is not connected', 'eventin' ), $platform_name ), ['status' => 400] );
+                return new WP_Error( 'not_connected', sprintf( __( '%s is not connected', 'wp-event-solution' ), $platform_name ), ['status' => 400] );
             }
 
             $args = [
@@ -2294,7 +2296,7 @@ class EventController extends WP_REST_Controller {
                 'start_time' => $prepared_event['etn_start_time'],
                 'end_date'   => $prepared_event['etn_end_date'],
                 'end_time'   => $prepared_event['etn_end_time'],
-                'custom_url' => $prepared_event['custom_url'],
+                'custom_url' => $prepared_event['custom_url'] ?? '',
                 'timezone'   => $prepared_event['event_timezone']
             ];
 
@@ -2935,12 +2937,12 @@ class EventController extends WP_REST_Controller {
             $total_sold      = array_sum( array_map( 'intval', $sold_tickets ) );
 
             if ( $global_capacity > 0 && $total_sold > $global_capacity ) {
-                return new WP_Error( 'etn_ticket_sold_out', __( 'Global ticket capacity must be greater or equal to the total sold tickets', 'eventin' ) );
+                return new WP_Error( 'etn_ticket_sold_out', __( 'Global ticket capacity must be greater or equal to the total sold tickets', 'wp-event-solution' ) );
             }
         } elseif ( $has_ticket_variations ) {
             foreach ( $event_data['etn_ticket_variations'] as $ticket ) {
                 if ( $ticket['etn_avaiilable_tickets'] > 0 && $ticket['etn_sold_tickets'] > $ticket['etn_avaiilable_tickets'] ) {
-                    return new WP_Error( 'etn_ticket_sold_out', __( 'Available ticket must be greater or equal to the sold ticket', 'eventin' ) );
+                    return new WP_Error( 'etn_ticket_sold_out', __( 'Available ticket must be greater or equal to the sold ticket', 'wp-event-solution' ) );
                 }
             }
         }
@@ -3092,7 +3094,7 @@ class EventController extends WP_REST_Controller {
         $ids    = ! empty( $request['ids'] ) ? $request['ids'] : '';
 
         if ( ! $format ) {
-            return new WP_Error( 'format_error', __( 'Invalid data format', 'eventin' ) );
+            return new WP_Error( 'format_error', __( 'Invalid data format', 'wp-event-solution' ) );
         }
 
         // Export is a bulk READ of everything an event holds — including draft
@@ -3105,7 +3107,7 @@ class EventController extends WP_REST_Controller {
             if ( ! Ownership::can_manage_posts( $ids, 'etn' ) ) {
                 return new WP_Error(
                     'rest_forbidden',
-                    __( 'Sorry, you are not allowed to export these events.', 'eventin' ),
+                    __( 'Sorry, you are not allowed to export these events.', 'wp-event-solution' ),
                     [ 'status' => 403 ]
                 );
             }
@@ -3144,7 +3146,7 @@ class EventController extends WP_REST_Controller {
         $file = ! empty( $data['event_import'] ) ? $data['event_import'] : '';
 
         if ( ! $file ) {
-            return new WP_Error( 'empty_file', __( 'You must provide a valid file.', 'eventin' ), ['status' => 409] );
+            return new WP_Error( 'empty_file', __( 'You must provide a valid file.', 'wp-event-solution' ), ['status' => 409] );
         }
 
         $importer = new EventImporter();
@@ -3155,7 +3157,7 @@ class EventController extends WP_REST_Controller {
         }
 
         $response = [
-            'message' => __( 'Successfully imported event', 'eventin' ),
+            'message' => __( 'Successfully imported event', 'wp-event-solution' ),
         ];
 
         // Speakers and organizers are WordPress users, and creating one is `create_users`.
@@ -3168,7 +3170,7 @@ class EventController extends WP_REST_Controller {
             $response['skipped_users'] = $skipped_users;
             $response['warning']       = sprintf(
                 /* translators: %s: comma separated list of email addresses. */
-                __( 'These speakers or organizers were not added, because you are not allowed to create user accounts: %s. Ask an administrator to add them first, then import again.', 'eventin' ),
+                __( 'These speakers or organizers were not added, because you are not allowed to create user accounts: %s. Ask an administrator to add them first, then import again.', 'wp-event-solution' ),
                 implode( ', ', $skipped_users )
             );
         }
@@ -3246,11 +3248,11 @@ class EventController extends WP_REST_Controller {
         $user = get_userdata( $author_id );
 
         if ( ! $post || 'etn' !== $post->post_type ) {
-            return new WP_Error('invalid_event', __( 'Invalid event id', 'eventin' ), ['status' => 422]);
+            return new WP_Error('invalid_event', __( 'Invalid event id', 'wp-event-solution' ), ['status' => 422]);
         }
 
         if ( ! $user ) {
-            return new WP_Error('invalid_author', __( 'Invalid author id', 'eventin' ), ['status' => 422]);
+            return new WP_Error('invalid_author', __( 'Invalid author id', 'wp-event-solution' ), ['status' => 422]);
         }
 
         // Defence in depth: the route is already administrator-only, but keep
@@ -3259,7 +3261,7 @@ class EventController extends WP_REST_Controller {
         if ( ! current_user_can( 'manage_options' ) ) {
             return new WP_Error(
                 'rest_forbidden',
-                __( 'Sorry, you are not allowed to reassign the author of this event.', 'eventin' ),
+                __( 'Sorry, you are not allowed to reassign the author of this event.', 'wp-event-solution' ),
                 ['status' => 403]
             );
         }
@@ -3274,7 +3276,7 @@ class EventController extends WP_REST_Controller {
         }
 
         $response = [
-            'message'   => __( 'Successfully author updated', 'eventin' ),
+            'message'   => __( 'Successfully author updated', 'wp-event-solution' ),
         ];
 
         return rest_ensure_response( $response );
@@ -3333,7 +3335,7 @@ class EventController extends WP_REST_Controller {
         $status = !empty($input_data['status']) ? sanitize_text_field($input_data['status']) : '';
 
         if (!in_array($status, ['publish', 'draft'])) {
-            return new WP_Error('invalid_status', __( 'Status must be Publish OR Draft', 'eventin' ), array('status' => 400));
+            return new WP_Error('invalid_status', __( 'Status must be Publish OR Draft', 'wp-event-solution' ), array('status' => 400));
         }
 
         // Validate the WHOLE batch before writing anything. Checking inside the
@@ -3345,7 +3347,7 @@ class EventController extends WP_REST_Controller {
             if (!$event || $event->post_type !== 'etn') {
                 return new WP_Error(
                     'invalid_event',
-                    __('Invalid event ID.', 'eventin'),
+                    __('Invalid event ID.', 'wp-event-solution'),
                     ['status' => 404]
                 );
             }
@@ -3355,7 +3357,7 @@ class EventController extends WP_REST_Controller {
             if ( ! Ownership::can_manage_post( $event_id, 'etn' ) ) {
                 return new WP_Error(
                     'rest_forbidden',
-                    __( 'Sorry, you are not allowed to update this event.', 'eventin' ),
+                    __( 'Sorry, you are not allowed to update this event.', 'wp-event-solution' ),
                     ['status' => 403]
                 );
             }
@@ -3370,7 +3372,7 @@ class EventController extends WP_REST_Controller {
             if (is_wp_error($result)) {
                 return new WP_Error(
                     'update_failed',
-                    __('Failed to update event status.', 'eventin'),
+                    __('Failed to update event status.', 'wp-event-solution'),
                     ['status' => 500]
                 );
             }
@@ -3378,7 +3380,7 @@ class EventController extends WP_REST_Controller {
 
         return rest_ensure_response([
             'success' => true,
-            'message' => __('Event status updated successfully.', 'eventin'),
+            'message' => __('Event status updated successfully.', 'wp-event-solution'),
         ]);
     }
 

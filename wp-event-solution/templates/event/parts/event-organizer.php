@@ -1,7 +1,7 @@
 <?php defined( 'ABSPATH' ) || exit; ?>
 <div class="etn-event-organizers etn-organizer-style-1 <?php echo esc_attr( $container_class ); ?>">
     <div class="eventin-block-container">
-        <h4 class="etn-title"><?php esc_html_e( 'Organizers', 'eventin' ); ?></h4>
+        <h4 class="etn-title"><?php esc_html_e( 'Organizers', 'wp-event-solution' ); ?></h4>
         <?php if ( $event_organizers ): ?>
         <div class="etn-organizer-wrap">
             <?php foreach( $event_organizers as $organizer ): ?>
@@ -38,7 +38,7 @@
             <?php endforeach; ?>
         </div>
         <?php else: ?>
-        <p><?php esc_html_e( 'No organizer found', 'eventin' ); ?></p>
+        <p><?php esc_html_e( 'No organizer found', 'wp-event-solution' ); ?></p>
         <?php endif; ?>
     </div>
 </div>

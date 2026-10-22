@@ -49,7 +49,7 @@ class WaitingListPaymentEmail extends Mailable {
     public function subject(): string {
         return sprintf(
             /* translators: %s: event title */
-            __( 'Your spot is ready — complete your payment for %s', 'eventin' ),
+            __( 'Your spot is ready — complete your payment for %s', 'wp-event-solution' ),
             $this->event->get_title()
         );
     }

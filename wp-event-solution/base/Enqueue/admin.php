@@ -93,28 +93,8 @@ class Admin {
     }
 
     public function i18n_loader() {
-        $data = [
-            'baseUrl'     => false,
-            'locale'      => determine_locale(),
-            'domainMap'   => [],
-            'domainPaths' => [],
-        ];
-        
-        $lang_dir    = WP_LANG_DIR;
-        $content_dir = WP_CONTENT_DIR;
-        $abspath     = ABSPATH;
-        
-        if ( strpos( $lang_dir, $content_dir ) === 0 ) {
-            $data['baseUrl'] = content_url( substr( trailingslashit( $lang_dir ), strlen( trailingslashit( $content_dir ) ) ) );
-        } elseif ( strpos( $lang_dir, $abspath ) === 0 ) {
-            $data['baseUrl'] = site_url( substr( trailingslashit( $lang_dir ), strlen( untrailingslashit( $abspath ) ) ) );
-        }
-        
+        // The loader state is added when the script is registered (Register).
         wp_enqueue_script('eventin-i18n');
-        
-        $data['domainMap']   = (object) $data['domainMap']; // Ensure it becomes a json object.
-        $data['domainPaths'] = (object) $data['domainPaths']; // Ensure it becomes a json object.
-        wp_add_inline_script( 'eventin-i18n', 'if (typeof wp.eventinI18nLoader === "undefined") { wp.eventinI18nLoader = {}; } wp.eventinI18nLoader.state = ' . wp_json_encode( $data, JSON_UNESCAPED_SLASHES ) . ';' );
     }
 
     /**
@@ -162,7 +142,7 @@ class Admin {
          * @method wp_set_script_translations
          * It helps to load the translation file for the script
          */ 
-        wp_set_script_translations( 'etn-dashboard', 'eventin' );
+        wp_set_script_translations( 'etn-dashboard', 'wp-event-solution' );
 
         wp_localize_script('etn-dashboard' , 'eventinData', array(
         'publicPath' => plugins_url('../../build/', __FILE__),
@@ -181,7 +161,7 @@ class Admin {
         
         wp_enqueue_script( 'wp-color-picker' );
         wp_enqueue_script( 'media-upload' );
-        wp_set_script_translations( 'etn-app-index', 'eventin' );
+        wp_set_script_translations( 'etn-app-index', 'wp-event-solution' );
         wp_enqueue_script( 'etn-app-index' );
         
         // Enqueue the WordPress editor scripts
@@ -204,7 +184,7 @@ class Admin {
         
         wp_enqueue_style( 'etn-onboard-index' );
         wp_enqueue_script( 'etn-onboard-index' );
-        wp_set_script_translations( 'etn-onboard-index', 'eventin' );
+        wp_set_script_translations( 'etn-onboard-index', 'wp-event-solution' );
         $localize_data = etn_get_locale_data();
         wp_localize_script( 'etn-onboard-index', 'localized_data_obj', $localize_data );
         wp_enqueue_style( 'etn-icon' );

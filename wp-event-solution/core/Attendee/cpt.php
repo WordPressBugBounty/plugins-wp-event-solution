@@ -43,33 +43,33 @@ class Cpt extends \Etn\Base\Cpt {
         $options = $this->user_modifiable_option();
 
         $labels = [
-            'name'                  => esc_html_x( 'Attendees', 'Post Type General Name', 'eventin' ),
+            'name'                  => esc_html_x( 'Attendees', 'Post Type General Name', 'wp-event-solution' ),
             'singular_name'         => $options['etn_attendee_singular_name'],
-            'menu_name'             => esc_html__( 'Attendee', 'eventin' ),
-            'name_admin_bar'        => esc_html__( 'Attendee', 'eventin' ),
+            'menu_name'             => esc_html__( 'Attendee', 'wp-event-solution' ),
+            'name_admin_bar'        => esc_html__( 'Attendee', 'wp-event-solution' ),
             'archives'              => $options['etn_attendee_archive'],
-            'attributes'            => esc_html__( 'Attendee Attributes', 'eventin' ),
-            'parent_item_colon'     => esc_html__( 'Parent Item:', 'eventin' ),
+            'attributes'            => esc_html__( 'Attendee Attributes', 'wp-event-solution' ),
+            'parent_item_colon'     => esc_html__( 'Parent Item:', 'wp-event-solution' ),
             'all_items'             => $options['etn_attendee_all'],
-            'add_new_item'          => esc_html__( 'Add New Attendee', 'eventin' ),
-            'add_new'               => esc_html__( 'Add New', 'eventin' ),
-            'new_item'              => esc_html__( 'New Attendee', 'eventin' ),
-            'edit_item'             => esc_html__( 'Edit Attendee', 'eventin' ),
-            'update_item'           => esc_html__( 'Update Attendee', 'eventin' ),
-            'view_item'             => esc_html__( 'View Attendee', 'eventin' ),
-            'view_items'            => esc_html__( 'View Attendee', 'eventin' ),
-            'search_items'          => esc_html__( 'Search Attendee', 'eventin' ),
-            'not_found'             => esc_html__( 'Not found', 'eventin' ),
-            'not_found_in_trash'    => esc_html__( 'Not found in Trash', 'eventin' ),
-            'featured_image'        => esc_html__( 'Featured Image', 'eventin' ),
-            'set_featured_image'    => esc_html__( 'Set featured image', 'eventin' ),
-            'remove_featured_image' => esc_html__( 'Remove featured image', 'eventin' ),
-            'use_featured_image'    => esc_html__( 'Use as featured image', 'eventin' ),
-            'insert_into_item'      => esc_html__( 'Insert into Attendee', 'eventin' ),
-            'uploaded_to_this_item' => esc_html__( 'Uploaded to this Attendee', 'eventin' ),
-            'items_list'            => esc_html__( 'Attendee list', 'eventin' ),
-            'items_list_navigation' => esc_html__( 'Attendee list navigation', 'eventin' ),
-            'filter_items_list'     => esc_html__( 'Filter froms list', 'eventin' ),
+            'add_new_item'          => esc_html__( 'Add New Attendee', 'wp-event-solution' ),
+            'add_new'               => esc_html__( 'Add New', 'wp-event-solution' ),
+            'new_item'              => esc_html__( 'New Attendee', 'wp-event-solution' ),
+            'edit_item'             => esc_html__( 'Edit Attendee', 'wp-event-solution' ),
+            'update_item'           => esc_html__( 'Update Attendee', 'wp-event-solution' ),
+            'view_item'             => esc_html__( 'View Attendee', 'wp-event-solution' ),
+            'view_items'            => esc_html__( 'View Attendee', 'wp-event-solution' ),
+            'search_items'          => esc_html__( 'Search Attendee', 'wp-event-solution' ),
+            'not_found'             => esc_html__( 'Not found', 'wp-event-solution' ),
+            'not_found_in_trash'    => esc_html__( 'Not found in Trash', 'wp-event-solution' ),
+            'featured_image'        => esc_html__( 'Featured Image', 'wp-event-solution' ),
+            'set_featured_image'    => esc_html__( 'Set featured image', 'wp-event-solution' ),
+            'remove_featured_image' => esc_html__( 'Remove featured image', 'wp-event-solution' ),
+            'use_featured_image'    => esc_html__( 'Use as featured image', 'wp-event-solution' ),
+            'insert_into_item'      => esc_html__( 'Insert into Attendee', 'wp-event-solution' ),
+            'uploaded_to_this_item' => esc_html__( 'Uploaded to this Attendee', 'wp-event-solution' ),
+            'items_list'            => esc_html__( 'Attendee list', 'wp-event-solution' ),
+            'items_list_navigation' => esc_html__( 'Attendee list navigation', 'wp-event-solution' ),
+            'filter_items_list'     => esc_html__( 'Filter froms list', 'wp-event-solution' ),
         ];
 
         $rewrite = [
@@ -80,8 +80,8 @@ class Cpt extends \Etn\Base\Cpt {
         ];
 
         $args = [
-            'label'               => esc_html__( 'Attendee', 'eventin' ),
-            'description'         => esc_html__( 'Attendee', 'eventin' ),
+            'label'               => esc_html__( 'Attendee', 'wp-event-solution' ),
+            'description'         => esc_html__( 'Attendee', 'wp-event-solution' ),
             'labels'              => $labels,
             'supports'            => false,
             'hierarchical'        => true,
@@ -141,9 +141,9 @@ class Cpt extends \Etn\Base\Cpt {
         $attendee_slug              = Helper::get_option("attendee_slug");
 
         $options = [
-            'etn_attendee_singular_name'       => esc_html__( 'Attendee', 'eventin' ),
-            'etn_attendee_archive'             => esc_html__( 'Attendee Archive', 'eventin' ),
-            'etn_attendee_all'                 => esc_html__( 'Attendees', 'eventin' ),
+            'etn_attendee_singular_name'       => esc_html__( 'Attendee', 'wp-event-solution' ),
+            'etn_attendee_archive'             => esc_html__( 'Attendee Archive', 'wp-event-solution' ),
+            'etn_attendee_all'                 => esc_html__( 'Attendees', 'wp-event-solution' ),
             'attendee_slug'                    => 'etn-attendee',
             'etn_attendee_exclude_from_search' => true,
         ];

@@ -112,19 +112,19 @@ class ExtensionController extends WP_REST_Controller {
         $statuses = ['off', 'on', 'install', 'activate', 'deactivate'];
 
         if ( ! $name ) {
-            return new WP_Error( 'extension_name_error', __( 'Please enter extension name', 'eventin' ), ['status' => 422] );
+            return new WP_Error( 'extension_name_error', __( 'Please enter extension name', 'wp-event-solution' ), ['status' => 422] );
         }
 
         if (  ! $status ) {
-            return new WP_Error( 'extension_status_error', __( 'Please enter status', 'eventin' ), ['status' => 422] );
+            return new WP_Error( 'extension_status_error', __( 'Please enter status', 'wp-event-solution' ), ['status' => 422] );
         }
 
         if ( ! in_array( $status, $statuses ) ) {
-            return new WP_Error( 'extension_status_error', __( 'Please enter status on/off', 'eventin' ), ['status' => 422] );
+            return new WP_Error( 'extension_status_error', __( 'Please enter status on/off', 'wp-event-solution' ), ['status' => 422] );
         }
 
         if ( ! Extension::find( $name ) ) {
-            return new WP_Error( 'invalid_extension', __( 'Invalid extension.', 'eventin' ), ['status' => 422] );
+            return new WP_Error( 'invalid_extension', __( 'Invalid extension.', 'wp-event-solution' ), ['status' => 422] );
         }
 
         // Gated on explicit user consent: the onboarding step and the Ask AI setup
@@ -143,7 +143,7 @@ class ExtensionController extends WP_REST_Controller {
         if ( $aisentic_connect && ! current_user_can( 'install_plugins' ) ) {
             return new WP_Error(
                 'aisentic_setup_forbidden',
-                __( 'You are not allowed to install plugins on this site.', 'eventin' ),
+                __( 'You are not allowed to install plugins on this site.', 'wp-event-solution' ),
                 ['status' => 403]
             );
         }
@@ -334,11 +334,11 @@ class ExtensionController extends WP_REST_Controller {
 
         if ( ! $update ) {
             // translators: %s is the extension status action (e.g. activated, deactivated).
-            return new WP_Error( 'update_error', sprintf( __( "Extension couldn't %s", 'eventin' ), $status ), ['status' => 422] );
+            return new WP_Error( 'update_error', sprintf( __( "Extension couldn't %s", 'wp-event-solution' ), $status ), ['status' => 422] );
         }
 
         $response = [
-            'message' => __( 'Successfully updated', 'eventin' ),
+            'message' => __( 'Successfully updated', 'wp-event-solution' ),
         ];
 
         /*

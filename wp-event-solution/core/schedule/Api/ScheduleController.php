@@ -63,7 +63,7 @@ class ScheduleController extends WP_REST_Controller {
             array(
                 'args' => array(
                     'id' => array(
-                        'description' => __( 'Unique identifier for the post.', 'eventin' ),
+                        'description' => __( 'Unique identifier for the post.', 'wp-event-solution' ),
                         'type'        => 'integer',
                     ),
                 ),
@@ -94,7 +94,7 @@ class ScheduleController extends WP_REST_Controller {
             array(
                 'args' => array(
                     'id' => array(
-                        'description' => __( 'Unique identifier for the post.', 'eventin' ),
+                        'description' => __( 'Unique identifier for the post.', 'wp-event-solution' ),
                         'type'        => 'integer',
                     ),
                 ),
@@ -287,7 +287,7 @@ class ScheduleController extends WP_REST_Controller {
 		
 		
         if ( ! $created ) {
-            return new WP_Error( 'schedule_create_error', __( 'Can not create schedule', 'eventin' ), ['status' => 409] );
+            return new WP_Error( 'schedule_create_error', __( 'Can not create schedule', 'wp-event-solution' ), ['status' => 409] );
         }
 
         $item     = $this->prepare_item_for_response( $schedule, $request );
@@ -330,7 +330,7 @@ class ScheduleController extends WP_REST_Controller {
         $updated  = $schedule->update( $data );
 
         if ( ! $updated ) {
-            return new WP_Error( 'schedule_update_error', __( 'Can not update schedule', 'eventin' ), ['status' => 409] );
+            return new WP_Error( 'schedule_update_error', __( 'Can not update schedule', 'wp-event-solution' ), ['status' => 409] );
         }
 
         $item     = $this->prepare_item_for_response( $schedule, $request );
@@ -383,7 +383,7 @@ class ScheduleController extends WP_REST_Controller {
         if ( ! $id ) {
             return new WP_Error(
                 'rest_schedule_invalid',
-                __( 'Invalid schedule id.', 'eventin' ),
+                __( 'Invalid schedule id.', 'wp-event-solution' ),
                 array( 'status' => 404 )
             );
         }
@@ -406,7 +406,7 @@ class ScheduleController extends WP_REST_Controller {
         if ( ! $deleted ) {
             return new WP_Error(
                 'rest_cannot_delete',
-                __( 'The schedule cannot be deleted.', 'eventin' ),
+                __( 'The schedule cannot be deleted.', 'wp-event-solution' ),
                 array( 'status' => 500 )
             );
         }
@@ -428,7 +428,7 @@ class ScheduleController extends WP_REST_Controller {
         if ( ! $ids ) {
             return new WP_Error(
                 'rest_cannot_delete',
-                __( 'Schedule ids can not be empty.', 'eventin' ),
+                __( 'Schedule ids can not be empty.', 'wp-event-solution' ),
                 array( 'status' => 400 )
             );
         }
@@ -445,13 +445,13 @@ class ScheduleController extends WP_REST_Controller {
         if ( $count == 0 ) {
             return new WP_Error(
                 'rest_cannot_delete',
-                __( 'Schedule cannot be deleted.', 'eventin' ),
+                __( 'Schedule cannot be deleted.', 'wp-event-solution' ),
                 array( 'status' => 500 )
             );
         }
 
         // translators: %1$d is the number of schedules deleted, %2$d is the total number of schedules selected.
-        $message = sprintf( __( '%1$d Schedule are deleted of %2$d', 'eventin' ), $count, count( $ids ) );
+        $message = sprintf( __( '%1$d Schedule are deleted of %2$d', 'wp-event-solution' ), $count, count( $ids ) );
 
         return rest_ensure_response( $message );
     }
@@ -467,7 +467,7 @@ class ScheduleController extends WP_REST_Controller {
         $schedule_id = intval( $request['id'] );
 
         if ( 'etn-schedule' !== get_post_type( $schedule_id ) ) {
-            return new WP_Error( 'schedule_type_error', __( 'Invalid schedule id', 'eventin' ) );
+            return new WP_Error( 'schedule_type_error', __( 'Invalid schedule id', 'wp-event-solution' ) );
         }
 
         $schedule = new Schedule_Model( $schedule_id );
@@ -477,7 +477,7 @@ class ScheduleController extends WP_REST_Controller {
         $schedule_title = get_post_meta( $schedule_id, 'etn_schedule_title', true );
 
         // Add Copy Text to the title
-        $clone_title    = $schedule_title . ' - ' . __( 'Copy', 'eventin' );
+        $clone_title    = $schedule_title . ' - ' . __( 'Copy', 'wp-event-solution' );
         update_post_meta( $clone_schedule->id, 'etn_schedule_title', $clone_title );
 
         $response = $this->prepare_item_for_response( $clone_schedule, $request );
@@ -660,7 +660,7 @@ class ScheduleController extends WP_REST_Controller {
         $ids    = ! empty( $request['ids'] ) ? $request['ids'] : '';
 
         if ( ! $format ) {
-            return new WP_Error( 'format_error', __( 'Invalid data format', 'eventin' ) );
+            return new WP_Error( 'format_error', __( 'Invalid data format', 'wp-event-solution' ) );
         }
 
         // The no-ids branch is already author-scoped by Post_Model::get_ids();
@@ -670,7 +670,7 @@ class ScheduleController extends WP_REST_Controller {
             if ( ! Ownership::can_manage_posts( $ids, 'etn-schedule' ) ) {
                 return new WP_Error(
                     'rest_forbidden',
-                    __( 'Sorry, you are not allowed to export these schedules.', 'eventin' ),
+                    __( 'Sorry, you are not allowed to export these schedules.', 'wp-event-solution' ),
                     [ 'status' => 403 ]
                 );
             }
@@ -706,7 +706,7 @@ class ScheduleController extends WP_REST_Controller {
         $file = ! empty( $data['schedule_import'] ) ? $data['schedule_import'] : '';
 
         if ( ! $file ) {
-            return new WP_Error( 'empty_file', __( 'You must provide a valid file.', 'eventin' ), ['status' => 409] );
+            return new WP_Error( 'empty_file', __( 'You must provide a valid file.', 'wp-event-solution' ), ['status' => 409] );
         }
 
         $importer = new ScheduleImporter();
@@ -717,7 +717,7 @@ class ScheduleController extends WP_REST_Controller {
         }
 
         $response = [
-            'message' => __( 'Successfully imported schedule', 'eventin' ),
+            'message' => __( 'Successfully imported schedule', 'wp-event-solution' ),
         ];
 
         return rest_ensure_response( $response );

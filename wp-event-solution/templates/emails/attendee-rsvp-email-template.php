@@ -5,7 +5,7 @@
         <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
             <tr>
                 <td class="logo" style="text-align: left;">
-                    <h1><a href="#"><?php echo esc_html_e( 'RSVP Confirmation', 'eventin' ); ?></a></h1>
+                    <h1><a href="#"><?php echo esc_html_e( 'RSVP Confirmation', 'wp-event-solution' ); ?></a></h1>
                 </td>
             </tr>
         </table>

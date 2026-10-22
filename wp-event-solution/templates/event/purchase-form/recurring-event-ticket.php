@@ -42,8 +42,8 @@ defined( 'ABSPATH' ) || exit;
                     if (isset($is_zoom_event) && ("on" == $is_zoom_event || "yes" == $is_zoom_event)) {
                     ?>
 					<div class="etn-zoom-event-notice">
-						<img src="<?php echo esc_url(\Wpeventin::assets_url() . "images/zoom.svg"); ?>" alt="<?php echo esc_attr__('Zoom', 'eventin') ?>">
-								<?php echo esc_html__("Zoom Event", "eventin"); ?>
+						<img src="<?php echo esc_url(\Wpeventin::assets_url() . "images/zoom.svg"); ?>" alt="<?php echo esc_attr__('Zoom', 'wp-event-solution') ?>">
+								<?php echo esc_html__("Zoom Event", "wp-event-solution"); ?>
 					</div>
 					<?php
                         }
@@ -113,22 +113,22 @@ defined( 'ABSPATH' ) || exit;
 							<div class="etn-item-row">
 								<div class="etn-price-field">
 									<label for="etn_product_price">
-										<?php echo isset($event_options["etn_price_label"]) && ("" != $event_options["etn_price_label"]) ? esc_html($event_options["etn_price_label"]) : esc_html__('Price', "eventin"); ?>
+										<?php echo isset($event_options["etn_price_label"]) && ("" != $event_options["etn_price_label"]) ? esc_html($event_options["etn_price_label"]) : esc_html__('Price', "wp-event-solution"); ?>
 									</label>
 									<input id="etn_product_price" class="attr-form-control etn-event-form-price etn_product_price" readonly name="price" type="text" value="<?php echo esc_attr($etn_ticket_price); ?>" min="1" />
 								</div>
 								<div class="etn-qty-field">
 									<label for="etn_product_qty">
-										<?php echo esc_html__('Quantity', "eventin"); ?>
+										<?php echo esc_html__('Quantity', "wp-event-solution"); ?>
 									</label>
 									<div class="etn-quantity">
-										<input id="etn_product_qty" class="attr-form-control etn-event-form-qty etn_product_qty" name="quantity" type="number"  value="<?php echo esc_attr($etn_min_ticket); ?>" min="<?php echo esc_attr($etn_min_ticket); ?>" max="<?php echo esc_attr($etn_max_ticket); ?>" data-etn_min_ticket='<?php echo esc_attr($etn_min_ticket); ?>' data-etn_max_ticket='<?php echo esc_attr($etn_max_ticket); ?>' data-left_ticket="<?php echo esc_html($etn_left_tickets); ?>" data-invalid_qty_text="<?php echo esc_html__("Invalid Qty", "eventin"); ?>" />
+										<input id="etn_product_qty" class="attr-form-control etn-event-form-qty etn_product_qty" name="quantity" type="number"  value="<?php echo esc_attr($etn_min_ticket); ?>" min="<?php echo esc_attr($etn_min_ticket); ?>" max="<?php echo esc_attr($etn_max_ticket); ?>" data-etn_min_ticket='<?php echo esc_attr($etn_min_ticket); ?>' data-etn_max_ticket='<?php echo esc_attr($etn_max_ticket); ?>' data-left_ticket="<?php echo esc_html($etn_left_tickets); ?>" data-invalid_qty_text="<?php echo esc_html__("Invalid Qty", "wp-event-solution"); ?>" />
 									</div>
 								</div>
 
 								<div class="etn-total-price">
 									<label>
-										<?php echo esc_html__('Total price', "eventin"); ?>
+										<?php echo esc_html__('Total price', "wp-event-solution"); ?>
 									</label>
 									<div class="etn-t-price">
 										<?php
@@ -149,18 +149,18 @@ defined( 'ABSPATH' ) || exit;
 
                                             if ($show_form_button === false) {
                                             ?>
-										<small><?php echo esc_html__('Event already expired!', "eventin"); ?></small>
+										<small><?php echo esc_html__('Event already expired!', "wp-event-solution"); ?></small>
 										<?php
                                             } else {
                                                     if (! isset($event_options["etn_purchase_login_required"]) || (isset($event_options["etn_purchase_login_required"]) && is_user_logged_in())) {
                                                     ?>
-											<input name="submit" class="etn-btn etn-primary etn-add-to-cart-block" type="submit" value="<?php $cart_button_text = apply_filters('etn_event_cart_button_text', esc_html__("Add to cart", "eventin"));
+											<input name="submit" class="etn-btn etn-primary etn-add-to-cart-block" type="submit" value="<?php $cart_button_text = apply_filters('etn_event_cart_button_text', esc_html__("Add to cart", "wp-event-solution"));
             echo esc_html($cart_button_text); ?>" />
 											<?php
                                                 } else {
                                                         ?>
 											<small>
-												<?php echo esc_html__('Please', 'eventin'); ?> <a href="<?php echo esc_url(wp_login_url(get_permalink())); ?>"><?php echo esc_html__("Login", "eventin"); ?></a><?php echo esc_html__(' to buy ticket!', "eventin"); ?>
+												<?php echo esc_html__('Please', 'wp-event-solution'); ?> <a href="<?php echo esc_url(wp_login_url(get_permalink())); ?>"><?php echo esc_html__("Login", "wp-event-solution"); ?></a><?php echo esc_html__(' to buy ticket!', "wp-event-solution"); ?>
 											</small>
 											<?php
                                                 }
@@ -178,9 +178,9 @@ defined( 'ABSPATH' ) || exit;
 								<div class="etn-form-ticket-text">
 									<?php
                                         if ($etn_ticket_unlimited) {
-                                                    echo esc_html__("This event offers unlimited tickets", "eventin");
+                                                    echo esc_html__("This event offers unlimited tickets", "wp-event-solution");
                                                 } else {
-                                                    echo esc_html($etn_left_tickets) . esc_html__(' seats remaining', "eventin");
+                                                    echo esc_html($etn_left_tickets) . esc_html__(' seats remaining', "wp-event-solution");
                                                 }
                                             ?>
 								</div>
@@ -189,7 +189,7 @@ defined( 'ABSPATH' ) || exit;
                                         if (! isset($event_options["etn_hide_attendee_count_from_details"])) {
                                         ?>
 								<div class="etn-form-ticket-text">
-									<?php echo esc_html($total_sold_ticket) . esc_html__(" attendees so far.", "eventin"); ?>
+									<?php echo esc_html($total_sold_ticket) . esc_html__(" attendees so far.", "wp-event-solution"); ?>
 								</div>
 								<?php
                                     }
@@ -198,7 +198,7 @@ defined( 'ABSPATH' ) || exit;
 						<?php
                             } else {
                             ?>
-						<h6><?php echo esc_html__('No Tickets Available!!', "eventin"); ?></h6>
+						<h6><?php echo esc_html__('No Tickets Available!!', "wp-event-solution"); ?></h6>
 						<?php
                             }
                         ?>

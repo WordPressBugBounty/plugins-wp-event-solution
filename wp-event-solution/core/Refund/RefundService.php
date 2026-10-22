@@ -31,16 +31,16 @@ class RefundService {
         $order    = new OrderModel( $order_id );
 
         if ( ! $order->id || 'etn-order' !== get_post_type( $order_id ) ) {
-            return new WP_Error( 'eventin_refund_order_not_found', __( 'Order not found.', 'eventin' ), [ 'status' => 404 ] );
+            return new WP_Error( 'eventin_refund_order_not_found', __( 'Order not found.', 'wp-event-solution' ), [ 'status' => 404 ] );
         }
 
         $current_status = $order->status;
         if ( in_array( $current_status, [ 'failed', 'pending', 'waiting', 'refunded' ], true ) ) {
-            return new WP_Error( 'eventin_refund_invalid_state', __( 'This order cannot be refunded.', 'eventin' ), [ 'status' => 422 ] );
+            return new WP_Error( 'eventin_refund_invalid_state', __( 'This order cannot be refunded.', 'wp-event-solution' ), [ 'status' => 422 ] );
         }
 
         if ( ! in_array( $type, [ 'ticket', 'amount' ], true ) ) {
-            return new WP_Error( 'eventin_refund_invalid_type', __( 'Invalid refund type.', 'eventin' ), [ 'status' => 400 ] );
+            return new WP_Error( 'eventin_refund_invalid_type', __( 'Invalid refund type.', 'wp-event-solution' ), [ 'status' => 400 ] );
         }
 
         $attendees            = $this->load_order_attendees( $order_id );
@@ -60,15 +60,15 @@ class RefundService {
             $attendee_ids = array_values( array_unique( array_map( 'intval', isset( $payload['attendee_ids'] ) ? (array) $payload['attendee_ids'] : [] ) ) );
 
             if ( empty( $attendee_ids ) ) {
-                return new WP_Error( 'eventin_refund_no_attendees', __( 'Select at least one attendee.', 'eventin' ), [ 'status' => 400 ] );
+                return new WP_Error( 'eventin_refund_no_attendees', __( 'Select at least one attendee.', 'wp-event-solution' ), [ 'status' => 400 ] );
             }
             $unknown = array_diff( $attendee_ids, array_keys( $attendees ) );
             if ( $unknown ) {
-                return new WP_Error( 'eventin_refund_invalid_attendee', __( 'One or more attendees do not belong to this order.', 'eventin' ), [ 'status' => 400, 'invalid_ids' => array_values( $unknown ) ] );
+                return new WP_Error( 'eventin_refund_invalid_attendee', __( 'One or more attendees do not belong to this order.', 'wp-event-solution' ), [ 'status' => 400, 'invalid_ids' => array_values( $unknown ) ] );
             }
             $already = array_intersect( $attendee_ids, $already_refunded_ids );
             if ( $already ) {
-                return new WP_Error( 'eventin_refund_already_refunded', __( 'One or more attendees are already refunded.', 'eventin' ), [ 'status' => 409, 'already_refunded' => array_values( $already ) ] );
+                return new WP_Error( 'eventin_refund_already_refunded', __( 'One or more attendees are already refunded.', 'wp-event-solution' ), [ 'status' => 409, 'already_refunded' => array_values( $already ) ] );
             }
 
             // Sum the shares load_order_attendees() already allocated. Recomputing
@@ -85,7 +85,7 @@ class RefundService {
                     'eventin_refund_exceeds_cap',
                     sprintf(
                         /* translators: %s is the remaining refundable amount formatted to 2 decimals */
-                        __( 'Refund exceeds remaining refundable balance (%s). Deselect some tickets or process a smaller refund.', 'eventin' ),
+                        __( 'Refund exceeds remaining refundable balance (%s). Deselect some tickets or process a smaller refund.', 'wp-event-solution' ),
                         number_format( $remaining_cap, 2 )
                     ),
                     [ 'status' => 422, 'remaining_cap' => $remaining_cap ]
@@ -95,18 +95,18 @@ class RefundService {
             $attendee_ids_for_row = $attendee_ids;
         } else {
             if ( ! empty( $payload['attendee_ids'] ) ) {
-                return new WP_Error( 'eventin_refund_amount_with_attendees', __( 'Amount-type refunds must not include attendee IDs.', 'eventin' ), [ 'status' => 400 ] );
+                return new WP_Error( 'eventin_refund_amount_with_attendees', __( 'Amount-type refunds must not include attendee IDs.', 'wp-event-solution' ), [ 'status' => 400 ] );
             }
             $amount = isset( $payload['amount'] ) ? round( (float) $payload['amount'], 2 ) : 0.0;
             if ( $amount <= 0 ) {
-                return new WP_Error( 'eventin_refund_invalid_amount', __( 'Amount must be greater than zero.', 'eventin' ), [ 'status' => 400 ] );
+                return new WP_Error( 'eventin_refund_invalid_amount', __( 'Amount must be greater than zero.', 'wp-event-solution' ), [ 'status' => 400 ] );
             }
             if ( $amount > $remaining_cap + 0.001 ) {
                 return new WP_Error(
                     'eventin_refund_exceeds_cap',
                     sprintf(
                         /* translators: %s is the remaining refundable amount formatted to 2 decimals */
-                        __( 'Amount exceeds remaining refundable balance (%s).', 'eventin' ),
+                        __( 'Amount exceeds remaining refundable balance (%s).', 'wp-event-solution' ),
                         number_format( $remaining_cap, 2 )
                     ),
                     [ 'status' => 422, 'remaining_cap' => $remaining_cap ]
@@ -160,7 +160,7 @@ class RefundService {
                 error_log( sprintf( '[eventin] refund: payment refund %s done but Eventin order %d was locked; record it again in Eventin', $gateway_refund_id, $order_id ) );
             }
 
-            return new WP_Error( 'eventin_refund_locked', __( 'Another refund is being processed on this order. Try again in a few seconds.', 'eventin' ), [ 'status' => 409 ] );
+            return new WP_Error( 'eventin_refund_locked', __( 'Another refund is being processed on this order. Try again in a few seconds.', 'wp-event-solution' ), [ 'status' => 409 ] );
         }
 
         if ( 'ticket' === $type ) {

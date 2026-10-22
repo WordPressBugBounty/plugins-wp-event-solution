@@ -43,7 +43,7 @@ class WaitingListConfirmationEmail extends Mailable {
     public function subject(): string {
         return sprintf(
             /* translators: %s: event title */
-            __( 'You\'re on the waiting list for %s', 'eventin' ),
+            __( 'You\'re on the waiting list for %s', 'wp-event-solution' ),
             $this->event->get_title()
         );
     }

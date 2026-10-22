@@ -10,12 +10,12 @@ defined('ABSPATH') || exit;
  * Plugin Name:       Eventin
  * Plugin URI:        https://themewinter.com/eventin/
  * Description:       Simple and Easy to use Event Management Solution
- * Version:           4.1.27
+ * Version:           4.1.28
  * Author:            Themewinter
  * Author URI:        https://themewinter.com/
  * License:           GPL-2.0+
  * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
- * Text Domain:       eventin
+ * Text Domain:       wp-event-solution
  * Domain Path:       /languages
  * Requires at least: 6.2
  * Requires PHP:      7.4
@@ -44,7 +44,7 @@ class Wpeventin
 	 * @var string The plugin version.
 	 */
 	public static function version() {
-		return "4.1.27";
+		return "4.1.28";
 	}
     /**
      * Initializes the Wpeventin() class
@@ -68,6 +68,9 @@ class Wpeventin
     {
 
         $this->define_constants();
+
+        // Keep translations made for the old "eventin" text domain.
+        \Eventin\I18n\LegacyTextDomain::init();
 
         $this->activate();
         $this->deactivate();
@@ -428,7 +431,7 @@ class Wpeventin
                     'Eventin', // Plugin name
                     'eventin', // Plugin Slug
                     __FILE__,
-                    'eventin',       // Text Domain Name
+                    'wp-event-solution', // Text Domain Name
                     'etn-dashboard', // plugins-admin-script-handler
                     'https://themewinter.com/?fluentcrm=1&route=contact&hash=50d358fa-e039-4459-a3d0-ef73b3c7d451'
                 );
@@ -449,7 +452,7 @@ class Wpeventin
                     'Eventin', // Plugin name
                     'eventin', // Plugin Slug
                     __FILE__,
-                    'eventin', // Text Domain Name
+                    'wp-event-solution', // Text Domain Name
                     'etn-dashboard'
                 );
             }
@@ -463,7 +466,7 @@ class Wpeventin
                 'plugin_name'          => 'Eventin',
                 'plugin_slug'          => 'eventin',
                 'general_prefix'       => 'eve',
-                'text_domain'          => 'eventin',
+                'text_domain'          => 'wp-event-solution',
                 'admin_script_handler' => 'etn-dashboard',
                 'sub_menu_filter_hook' => 'eventin_menu',
                 'sub_menu_details'     => [

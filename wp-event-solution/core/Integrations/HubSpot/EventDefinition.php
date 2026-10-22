@@ -117,38 +117,38 @@ class EventDefinition {
         $response = $this->client->post(
             HubSpotClient::event_path( 'event-definitions' ),
             [
-                'label'               => __( 'Eventin ticket purchased', 'eventin' ),
+                'label'               => __( 'Eventin ticket purchased', 'wp-event-solution' ),
                 'name'                => self::EVENT_NAME,
-                'description'         => __( 'Fired when a ticket order completes in Eventin.', 'eventin' ),
+                'description'         => __( 'Fired when a ticket order completes in Eventin.', 'wp-event-solution' ),
                 'primaryObject'       => 'CONTACT',
                 'propertyDefinitions' => [
                     [
-                        'label' => __( 'Event name', 'eventin' ),
+                        'label' => __( 'Event name', 'wp-event-solution' ),
                         'name'  => 'event_name',
                         'type'  => 'string',
                     ],
                     [
-                        'label' => __( 'Event ID', 'eventin' ),
+                        'label' => __( 'Event ID', 'wp-event-solution' ),
                         'name'  => 'event_id',
                         'type'  => 'number',
                     ],
                     [
-                        'label' => __( 'Order ID', 'eventin' ),
+                        'label' => __( 'Order ID', 'wp-event-solution' ),
                         'name'  => 'order_id',
                         'type'  => 'number',
                     ],
                     [
-                        'label' => __( 'Ticket type', 'eventin' ),
+                        'label' => __( 'Ticket type', 'wp-event-solution' ),
                         'name'  => 'ticket_type',
                         'type'  => 'string',
                     ],
                     [
-                        'label' => __( 'Order total', 'eventin' ),
+                        'label' => __( 'Order total', 'wp-event-solution' ),
                         'name'  => 'order_total',
                         'type'  => 'number',
                     ],
                     [
-                        'label' => __( 'Contact type', 'eventin' ),
+                        'label' => __( 'Contact type', 'wp-event-solution' ),
                         'name'  => 'contact_type',
                         'type'  => 'string',
                     ],
@@ -167,7 +167,7 @@ class EventDefinition {
         if ( ! $name ) {
             return new WP_Error(
                 'eventin_hubspot_event_definition',
-                __( 'HubSpot did not return a custom event name.', 'eventin' ),
+                __( 'HubSpot did not return a custom event name.', 'wp-event-solution' ),
                 [ 'status' => 502 ]
             );
         }
@@ -190,7 +190,7 @@ class EventDefinition {
         if ( ! $event_name || ! $email ) {
             return new WP_Error(
                 'eventin_hubspot_event_not_provisioned',
-                __( 'The Eventin custom event has not been created in HubSpot yet.', 'eventin' ),
+                __( 'The Eventin custom event has not been created in HubSpot yet.', 'wp-event-solution' ),
                 [ 'status' => 400 ]
             );
         }

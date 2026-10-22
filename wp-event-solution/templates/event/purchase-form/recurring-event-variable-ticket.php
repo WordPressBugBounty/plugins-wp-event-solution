@@ -53,7 +53,7 @@ $event_end_date_time = strtotime( $event_end_date . ' ' . $event_end_time );
 
                             <?php if ( ! $same_day_event ) : ?>
                             <p class="etn-date-to">
-                                <?php echo esc_html__( 'To', 'eventin' ) ?>
+                                <?php echo esc_html__( 'To', 'wp-event-solution' ) ?>
                             </p>
 
                             <p class="etn-date-text">
@@ -67,8 +67,8 @@ $event_end_date_time = strtotime( $event_end_date . ' ' . $event_end_time );
 							?>
                         <div class="etn-zoom-event-notice">
                             <img src="<?php echo esc_url( \Wpeventin::assets_url() . "images/zoom.svg" ); ?>"
-                                alt="<?php echo esc_attr__( 'Zoom', 'eventin' ) ?>">
-                            <?php echo esc_html__( "Zoom Event", "eventin" ); ?>
+                                alt="<?php echo esc_attr__( 'Zoom', 'wp-event-solution' ) ?>">
+                            <?php echo esc_html__( "Zoom Event", "wp-event-solution" ); ?>
                         </div>
                         <?php
 						}
@@ -136,17 +136,17 @@ $event_end_date_time = strtotime( $event_end_date . ' ' . $event_end_time );
 								$show_form_button = apply_filters( "etn_form_submit_visibility", true, $single_event_id );
 								if ( $event_left_ticket <= 0 && $event_left_ticket != -1 ) {
 									?>
-                            <h4><?php echo esc_html__( 'All Tickets Sold!!', "eventin" ); ?></h4>
+                            <h4><?php echo esc_html__( 'All Tickets Sold!!', "wp-event-solution" ); ?></h4>
                             <?php
 								} else if ( time() > $event_end_date_time ) {
 									?>
                             <h4 class="registration-expired-message">
-                                <?php echo esc_html__( 'Registration Deadline Expired!!', "eventin" ); ?></h4>
+                                <?php echo esc_html__( 'Registration Deadline Expired!!', "wp-event-solution" ); ?></h4>
                             <?php
 								} else if ( $show_form_button === false ) {
 									?>
                             <h4 class="registration-expired-message">
-                                <?php echo esc_html__( 'Registration Deadline Expired!!', "eventin" ); ?></h4>
+                                <?php echo esc_html__( 'Registration Deadline Expired!!', "wp-event-solution" ); ?></h4>
                             <div class="etn-event-form-parent"></div>
                             <?php
 								} else { 

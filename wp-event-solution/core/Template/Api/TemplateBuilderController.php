@@ -135,14 +135,14 @@ class TemplateBuilderController extends WP_REST_Controller {
         $builder_id = isset($parameters['builder_id']) ? sanitize_text_field($parameters['builder_id']) : '';
 
         if ( empty( $builder_id ) ) {
-            return new WP_Error( 'missing_parameter', __('Builder ID is required', 'eventin'), [ 'status' => 400 ] );
+            return new WP_Error( 'missing_parameter', __('Builder ID is required', 'wp-event-solution'), [ 'status' => 400 ] );
         }
 
         if ( 'elementor' === $builder_id ) {
             if ( $this->is_plugin_active( 'elementor/elementor.php' ) ) {
                 return new WP_Error( 
                     'template_builder_already_active',
-                    __( 'This template builder is already installed and active', 'eventin' ),
+                    __( 'This template builder is already installed and active', 'wp-event-solution' ),
                     [ 'statuts' => 409 ]
                 );
             }
@@ -150,7 +150,7 @@ class TemplateBuilderController extends WP_REST_Controller {
             if ( ! current_user_can( 'install_plugins' ) || ! current_user_can( 'activate_plugins' ) ) {
                 return new WP_Error(
                     'insufficient_permissions',
-                    __( 'You do not have sufficient permissions to install or activate plugins.', 'eventin' ),
+                    __( 'You do not have sufficient permissions to install or activate plugins.', 'wp-event-solution' ),
                     [ 'status' => 403 ]
                 );
             }
@@ -227,7 +227,7 @@ class TemplateBuilderController extends WP_REST_Controller {
                     'activation_failed',
                     sprintf(
                         // translators: %1$s is the plugin slug, %2$s is the error message.
-                        __( 'Failed to activate %1$s: %2$s', 'eventin' ),
+                        __( 'Failed to activate %1$s: %2$s', 'wp-event-solution' ),
                         $plugin_slug,
                         $activate->get_error_message()
                     ),
@@ -254,7 +254,7 @@ class TemplateBuilderController extends WP_REST_Controller {
                 'plugin_info_failed',
                 sprintf(
                     // translators: %1$s is the plugin slug, %2$s is the error message.
-                    __( 'Could not get plugin information for %1$s: %2$s', 'eventin' ),
+                    __( 'Could not get plugin information for %1$s: %2$s', 'wp-event-solution' ),
                     $plugin_slug,
                     $api->get_error_message()
                 ),
@@ -270,7 +270,7 @@ class TemplateBuilderController extends WP_REST_Controller {
                 'installation_failed',
                 sprintf(
                     // translators: %1$s is the plugin slug, %2$s is the error message.
-                    __( 'Failed to install %1$s: %2$s', 'eventin' ),
+                    __( 'Failed to install %1$s: %2$s', 'wp-event-solution' ),
                     $plugin_slug,
                     $install->get_error_message()
                 ),
@@ -284,7 +284,7 @@ class TemplateBuilderController extends WP_REST_Controller {
                 'activation_failed',
                 sprintf(
                     // translators: %1$s is the plugin slug, %2$s is the error message.
-                    __( 'Failed to activate %1$s: %2$s', 'eventin' ),
+                    __( 'Failed to activate %1$s: %2$s', 'wp-event-solution' ),
                     $plugin_slug,
                     $activate->get_error_message()
                 ),

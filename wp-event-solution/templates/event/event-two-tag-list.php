@@ -11,7 +11,7 @@ defined( 'ABSPATH' ) || exit;
         ?>
             <h3 class="etn-tags-title">
             <?php
-            $tag_title = apply_filters( 'etn_event_tag_list_title', esc_html__('Tags', "eventin") );
+            $tag_title = apply_filters( 'etn_event_tag_list_title', esc_html__('Tags', "wp-event-solution") );
             echo esc_html( $tag_title );
             ?></h3>
             <?php

@@ -170,7 +170,7 @@ class CouponModel {
         $code = $row['code'];
 
         if ( $this->find_by_code( $code ) ) {
-            return new WP_Error( 'duplicate', __( 'Coupon code already exists.', 'eventin' ), [ 'status' => 409 ] );
+            return new WP_Error( 'duplicate', __( 'Coupon code already exists.', 'wp-event-solution' ), [ 'status' => 409 ] );
         }
 
         $row['usage_count'] = 0;
@@ -179,7 +179,7 @@ class CouponModel {
         $inserted = $wpdb->insert( $this->table, $row ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- $wpdb->insert escapes values; table from $wpdb->prefix.
 
         if ( ! $inserted ) {
-            return new WP_Error( 'coupon_create_error', __( 'Could not create coupon.', 'eventin' ), [ 'status' => 500 ] );
+            return new WP_Error( 'coupon_create_error', __( 'Could not create coupon.', 'wp-event-solution' ), [ 'status' => 500 ] );
         }
 
         return $this->find( $wpdb->insert_id );
@@ -199,7 +199,7 @@ class CouponModel {
         $existing = $this->find( $id );
 
         if ( ! $existing ) {
-            return new WP_Error( 'not_found', __( 'Coupon not found.', 'eventin' ), [ 'status' => 404 ] );
+            return new WP_Error( 'not_found', __( 'Coupon not found.', 'wp-event-solution' ), [ 'status' => 404 ] );
         }
 
         $row  = $this->to_row( $data );
@@ -207,7 +207,7 @@ class CouponModel {
 
         $by_code = $this->find_by_code( $code );
         if ( $by_code && intval( $by_code['id'] ) !== $id ) {
-            return new WP_Error( 'duplicate', __( 'Coupon code already exists.', 'eventin' ), [ 'status' => 409 ] );
+            return new WP_Error( 'duplicate', __( 'Coupon code already exists.', 'wp-event-solution' ), [ 'status' => 409 ] );
         }
 
         // usage_count and created_at are server-owned — never overwrite on update.

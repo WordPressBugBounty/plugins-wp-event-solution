@@ -8,7 +8,7 @@
     color: #020617;
     "
 >
-    <?php echo esc_html_e( 'Your Event booking is complete.', 'eventin' ); ?>
+    <?php echo esc_html_e( 'Your Event booking is complete.', 'wp-event-solution' ); ?>
 </h1>
 
 <p
@@ -37,12 +37,12 @@
             margin-top: 0;
         "
         >
-	        <?php echo esc_html__( 'Download Ticket', 'eventin' ); ?>
+	        <?php echo esc_html__( 'Download Ticket', 'wp-event-solution' ); ?>
         </h2>
         <!-- Single Ticket Information -->
         <div>
-            <p style="margin: 8px 0px"><?php echo esc_html__( 'Ticket name: ', 'eventin' ) . esc_html( $attendee->ticket_name ); ?></p>
-            <p style="margin: 8px 0px"><?php echo esc_html__( 'Attendee: ', 'eventin' ) . esc_html( $attendee->etn_name ); ?></p>
+            <p style="margin: 8px 0px"><?php echo esc_html__( 'Ticket name: ', 'wp-event-solution' ) . esc_html( $attendee->ticket_name ); ?></p>
+            <p style="margin: 8px 0px"><?php echo esc_html__( 'Attendee: ', 'wp-event-solution' ) . esc_html( $attendee->etn_name ); ?></p>
             <div
                 style="
                 display: flex;
@@ -85,7 +85,7 @@
                     />
                     </svg>
                 </span>
-	                <?php echo esc_html__( 'Download Ticket', 'eventin' ); ?>
+	                <?php echo esc_html__( 'Download Ticket', 'wp-event-solution' ); ?>
                 </a>
                 <a
                 href="<?php echo esc_url( site_url("etn-attendee?etn_action=edit_information&attendee_id={$attendee->id}&etn_info_edit_token={$attendee->etn_info_edit_token}") ); ?>"
@@ -97,7 +97,7 @@
                     padding-left: 8px;
                 "
                 >
-	                <?php echo esc_html__( 'Edit Information', 'eventin' ); ?>
+	                <?php echo esc_html__( 'Edit Information', 'wp-event-solution' ); ?>
                 </a>
             </div>
         </div>

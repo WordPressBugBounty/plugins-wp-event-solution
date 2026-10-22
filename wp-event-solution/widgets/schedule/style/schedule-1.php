@@ -128,6 +128,6 @@ $i = -1;
 </div>
 <!-- schedule tab end -->
 <?php }else{ ?>
-        <p class="etn-not-found-post"><?php echo esc_html__('No Post Found', 'eventin'); ?></p>
+        <p class="etn-not-found-post"><?php echo esc_html__('No Post Found', 'wp-event-solution'); ?></p>
     <?php
     }

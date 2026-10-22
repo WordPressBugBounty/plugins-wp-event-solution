@@ -18,7 +18,7 @@ if ( !empty($post_arr["etn_attendee_id"]) && !empty($post_arr["etn_name"]) ){
 
     // Verify nonce before any state-changing operations.
     if ( empty( $post_arr['attendee_personal_data'] ) || ! wp_verify_nonce( $post_arr['attendee_personal_data'], 'attendee_details_nonce' ) ) {
-        wp_die( esc_html__( 'Security check failed.', 'eventin' ), 403 );
+        wp_die( esc_html__( 'Security check failed.', 'wp-event-solution' ), 403 );
     }
 
     $attendee_id         = is_numeric( $post_arr["etn_attendee_id"] ) ? $post_arr["etn_attendee_id"] : 0;
@@ -108,10 +108,10 @@ if ( !empty($post_arr["etn_attendee_id"]) && !empty($post_arr["etn_name"]) ){
                 <div class="etn-container">
                     <div class="section-inner">
                         <h3 class="entry-title">
-                            <?php echo esc_html__("Attendee details updated", "eventin");?>
+                            <?php echo esc_html__("Attendee details updated", "wp-event-solution");?>
                         </h3>
                         <div class="intro-text">
-                            <a href="<?php echo esc_url( home_url() );?>"><?php echo esc_html__("Return to homepage", "eventin"); ?></a>
+                            <a href="<?php echo esc_url( home_url() );?>"><?php echo esc_html__("Return to homepage", "wp-event-solution"); ?></a>
                         </div>
                     </div>
                 </div>
@@ -127,10 +127,10 @@ if ( !empty($post_arr["etn_attendee_id"]) && !empty($post_arr["etn_name"]) ){
                     <div class="etn-container">
                         <div class="section-inner">
                             <h3 class="entry-title">
-                                <?php echo esc_html__("Invalid data. Make sure no required data is missing.", "eventin");?>
+                                <?php echo esc_html__("Invalid data. Make sure no required data is missing.", "wp-event-solution");?>
                             </h3>
                             <div class="intro-text">
-                                <a href="<?php echo esc_url( home_url() );?>"><?php echo esc_html__("Return to homepage", "eventin"); ?></a>
+                                <a href="<?php echo esc_url( home_url() );?>"><?php echo esc_html__("Return to homepage", "wp-event-solution"); ?></a>
                             </div>
                         </div>
                     </div>

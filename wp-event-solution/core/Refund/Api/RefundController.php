@@ -63,11 +63,11 @@ class RefundController extends WP_REST_Controller {
      */
     public function get_items_permissions_check( $request ) {
         if ( ! current_user_can( 'etn_manage_order' ) ) {
-            return new WP_Error( 'rest_forbidden', __( 'You do not have permission to manage orders.', 'eventin' ), [ 'status' => 403 ] );
+            return new WP_Error( 'rest_forbidden', __( 'You do not have permission to manage orders.', 'wp-event-solution' ), [ 'status' => 403 ] );
         }
 
         if ( ! Ownership::can_manage_order( Ownership::route_subject_id( $request ) ) ) {
-            return new WP_Error( 'rest_forbidden', __( 'Sorry, you are not allowed to manage refunds for this order.', 'eventin' ), [ 'status' => 403 ] );
+            return new WP_Error( 'rest_forbidden', __( 'Sorry, you are not allowed to manage refunds for this order.', 'wp-event-solution' ), [ 'status' => 403 ] );
         }
 
         return true;
@@ -146,7 +146,7 @@ class RefundController extends WP_REST_Controller {
         if ( in_array( (string) $order->payment_method, $external_gateways, true ) ) {
             return new WP_Error(
                 'eventin_refund_external_gateway',
-                __( 'Refund this booking from the payment platform\'s own dashboard (SureCart or FluentCart). Eventin updates the booking automatically.', 'eventin' ),
+                __( 'Refund this booking from the payment platform\'s own dashboard (SureCart or FluentCart). Eventin updates the booking automatically.', 'wp-event-solution' ),
                 [ 'status' => 422 ]
             );
         }

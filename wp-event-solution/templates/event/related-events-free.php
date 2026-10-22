@@ -88,7 +88,7 @@ if ( is_array( $data ) && ! empty( $data ) ) {
                                 <div class="etn-atend-btn">
                                     <a href="<?php echo esc_url( get_the_permalink( $value->ID ) ); ?>"
                                        class="etn-btn etn-btn-border"
-                                       title="<?php echo esc_attr( get_the_title( $value->ID ) ); ?>"><?php echo esc_html__( 'attend', "eventin" ) ?>
+                                       title="<?php echo esc_attr( get_the_title( $value->ID ) ); ?>"><?php echo esc_html__( 'attend', "wp-event-solution" ) ?>
                                         <i class="etn-icon etn-arrow-right"></i></a>
                                 </div>
                             </div>
