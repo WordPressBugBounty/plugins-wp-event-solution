@@ -2,14 +2,14 @@
 # This file is distributed under the GPL-2.0+.
 msgid ""
 msgstr ""
-"Project-Id-Version: Eventin 4.1.28\n"
+"Project-Id-Version: Eventin 4.1.29\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/eventin\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-22T11:02:27+00:00\n"
+"POT-Creation-Date: 2026-10-28T06:44:33+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: wp-event-solution\n"
@@ -522,7 +522,7 @@ msgstr ""
 #: build/chunks/js/3168.ee5f0da7.js:149
 #: build/chunks/js/3546.f19197c4.js:607
 #: build/chunks/js/5269.c4befbaa.js:255
-#: build/chunks/js/5525.b4cd1ccb.js:44
+#: build/chunks/js/5525.0eff5062.js:44
 #: build/chunks/js/7386.119f48ca.js:607
 #: build/chunks/js/8306.a84e4e17.js:413
 #: build/chunks/js/8306.a84e4e17.js:475
@@ -564,8 +564,8 @@ msgstr ""
 #: build/chunks/js/5092.e10ea5ec.js:1
 #: build/chunks/js/5269.c4befbaa.js:255
 #: build/chunks/js/5269.c4befbaa.js:481
-#: build/chunks/js/5525.b4cd1ccb.js:44
-#: build/chunks/js/5525.b4cd1ccb.js:510
+#: build/chunks/js/5525.0eff5062.js:44
+#: build/chunks/js/5525.0eff5062.js:510
 #: build/chunks/js/8306.a84e4e17.js:413
 #: build/chunks/js/8306.a84e4e17.js:475
 #: build/chunks/js/9172.10d46d55.js:193
@@ -604,8 +604,8 @@ msgstr ""
 #: build/chunks/js/4458.062988e8.js:58
 #: build/chunks/js/5269.c4befbaa.js:255
 #: build/chunks/js/5269.c4befbaa.js:481
-#: build/chunks/js/5525.b4cd1ccb.js:44
-#: build/chunks/js/5525.b4cd1ccb.js:510
+#: build/chunks/js/5525.0eff5062.js:44
+#: build/chunks/js/5525.0eff5062.js:510
 #: build/chunks/js/8306.a84e4e17.js:413
 #: build/chunks/js/9172.10d46d55.js:193
 #: build/js/dashboard.js:477
@@ -763,7 +763,7 @@ msgstr ""
 #: core/Attendee/cpt.php:144
 #: core/Integrations/HubSpot/PropertySchema.php:115
 #: build/chunks/js/2532.2e2a9baf.js:661
-#: build/chunks/js/5525.b4cd1ccb.js:510
+#: build/chunks/js/5525.0eff5062.js:510
 #: build/js/module-purchase.js:207
 #: src/module-purchase/order-create-form/attendee-form-field.jsx:97
 #: src/module-purchase/order-create-form/attendee-form-field.jsx:119
@@ -2942,23 +2942,35 @@ msgstr ""
 msgid "NB: Need to activate LearnDash plugin"
 msgstr ""
 
-#: core/Extensions/Extension.php:1405
+#: core/Extensions/Extension.php:1386
+msgid "AI Matchmaker"
+msgstr ""
+
+#: core/Extensions/Extension.php:1387
+msgid "Manage AI Matchmaker settings for Eventin Pro."
+msgstr ""
+
+#: core/Extensions/Extension.php:1389
+msgid "Requires Eventin Pro."
+msgstr ""
+
+#: core/Extensions/Extension.php:1404
 msgid "Aisentic Addon for Eventin"
 msgstr ""
 
-#: core/Extensions/Extension.php:1406
+#: core/Extensions/Extension.php:1405
 msgid "AI-powered assistant for Eventin to help manage events more efficiently."
 msgstr ""
 
-#: core/Extensions/Extension.php:1421
+#: core/Extensions/Extension.php:1420
 msgid "WCFM Multivendor"
 msgstr ""
 
-#: core/Extensions/Extension.php:1422
+#: core/Extensions/Extension.php:1421
 msgid "Sell events through a WCFM Marketplace — vendors create and manage their own events, speakers, schedules and bookings from the WCFM vendor dashboard."
 msgstr ""
 
-#: core/Extensions/Extension.php:1427
+#: core/Extensions/Extension.php:1426
 msgid "NB: Requires WC Frontend Manager and WC Multivendor Marketplace"
 msgstr ""
 
@@ -3148,7 +3160,7 @@ msgstr ""
 msgid "Go to Canvas"
 msgstr ""
 
-#: core/modules/seat-plan/frontend/views/seatplan-form.php:60
+#: core/modules/seat-plan/frontend/views/seatplan-form.php:63
 msgid "Event Period Has Ended"
 msgstr ""
 
@@ -3332,7 +3344,7 @@ msgstr ""
 
 #: core/Order/OrderExporter.php:148
 #: build/chunks/js/1658.9703c31a.js:535
-#: build/chunks/js/5525.b4cd1ccb.js:510
+#: build/chunks/js/5525.0eff5062.js:510
 #: src/pages/bookings-create/form/payment-fields.jsx:30
 #: src/pages/settings/nav-list.jsx:84
 #: src/pages/settings/nav-list.jsx:85
@@ -4440,7 +4452,7 @@ msgstr ""
 #: build/chunks/js/3168.ee5f0da7.js:141
 #: build/chunks/js/4458.062988e8.js:58
 #: build/chunks/js/5269.c4befbaa.js:481
-#: build/chunks/js/5525.b4cd1ccb.js:603
+#: build/chunks/js/5525.0eff5062.js:603
 #: build/js/gutenberg-blocks.js:1
 #: build/js/packages.js:2916
 #: src/blocks/attendee-extra-fields/settings/content-panel-body.jsx:159
@@ -5434,7 +5446,7 @@ msgid "Your Event booking is complete."
 msgstr ""
 
 #: templates/emails/admin-order-email-template.php:160
-#: build/chunks/js/5525.b4cd1ccb.js:44
+#: build/chunks/js/5525.0eff5062.js:44
 #: build/js/gutenberg-blocks.js:1
 #: build/js/module-purchase.js:400
 #: build/js/module-purchase.js:432
@@ -5486,7 +5498,7 @@ msgstr ""
 
 #: templates/emails/admin-order-email-template.php:309
 #: build/chunks/js/1658.9703c31a.js:543
-#: build/chunks/js/5525.b4cd1ccb.js:510
+#: build/chunks/js/5525.0eff5062.js:510
 #: src/pages/bookings-create/form/payment-fields.jsx:47
 #: src/pages/settings/payments/local-payment.jsx:47
 msgid "Local Payment"
@@ -5623,7 +5635,7 @@ msgstr ""
 #: build/chunks/js/3546.f19197c4.js:1
 #: build/chunks/js/5269.c4befbaa.js:1
 #: build/chunks/js/5494.d852d10a.js:1
-#: build/chunks/js/5525.b4cd1ccb.js:510
+#: build/chunks/js/5525.0eff5062.js:510
 #: build/chunks/js/5761.f9426911.js:1
 #: build/chunks/js/7386.119f48ca.js:1
 #: build/chunks/js/8306.a84e4e17.js:1
@@ -6024,7 +6036,7 @@ msgstr ""
 
 #: templates/event/purchase-form/recurring-event-ticket.php:122
 #: templates/event/purchase-form/template/form-template.php:57
-#: build/chunks/js/5525.b4cd1ccb.js:44
+#: build/chunks/js/5525.0eff5062.js:44
 #: build/js/gutenberg-blocks.js:1
 #: build/js/gutenberg-blocks.js:2
 #: build/js/module-purchase.js:432
@@ -6306,7 +6318,7 @@ msgid "A spot is waiting for you. Review your order and proceed to pay."
 msgstr ""
 
 #: templates/order-preview-template.php:195
-#: build/chunks/js/5525.b4cd1ccb.js:510
+#: build/chunks/js/5525.0eff5062.js:510
 #: build/js/gutenberg-blocks.js:2
 #: build/js/module-purchase.js:207
 #: build/js/module-purchase.js:400
@@ -12071,7 +12083,7 @@ msgstr ""
 #: build/chunks/js/1658.9703c31a.js:311
 #: build/chunks/js/4458.062988e8.js:58
 #: build/chunks/js/5269.c4befbaa.js:481
-#: build/chunks/js/5525.b4cd1ccb.js:44
+#: build/chunks/js/5525.0eff5062.js:44
 #: build/js/module-purchase.js:207
 #: build/js/packages.js:2916
 #: src/module-purchase/order-create-form/form-field-list.jsx:101
@@ -12235,7 +12247,7 @@ msgid "Enable to send email to attendees"
 msgstr ""
 
 #: build/chunks/js/1658.9703c31a.js:311
-#: build/chunks/js/5525.b4cd1ccb.js:44
+#: build/chunks/js/5525.0eff5062.js:44
 #: build/js/module-purchase.js:207
 #: src/module-purchase/order-create-form/form-field-list.jsx:58
 #: src/pages/settings/email/rsvp-reminder-email.jsx:289
@@ -14253,7 +14265,7 @@ msgid "Attendees List"
 msgstr ""
 
 #: build/chunks/js/2532.2e2a9baf.js:1
-#: build/chunks/js/5525.b4cd1ccb.js:510
+#: build/chunks/js/5525.0eff5062.js:510
 #: build/chunks/js/9172.10d46d55.js:193
 #: build/js/module-purchase.js:207
 #: build/js/packages.js:1041
@@ -15883,7 +15895,7 @@ msgstr ""
 
 #: build/chunks/js/4458.062988e8.js:1
 #: build/chunks/js/5269.c4befbaa.js:153
-#: build/chunks/js/5525.b4cd1ccb.js:1
+#: build/chunks/js/5525.0eff5062.js:1
 #: build/js/module-purchase.js:44
 #: build/js/packages.js:644
 #: src/components/extra-fields/extra-form-fields.jsx:68
@@ -15892,7 +15904,7 @@ msgstr ""
 
 #: build/chunks/js/4458.062988e8.js:1
 #: build/chunks/js/5269.c4befbaa.js:153
-#: build/chunks/js/5525.b4cd1ccb.js:1
+#: build/chunks/js/5525.0eff5062.js:1
 #: build/js/module-purchase.js:44
 #: build/js/packages.js:644
 #: src/components/extra-fields/extra-form-fields.jsx:76
@@ -15901,7 +15913,7 @@ msgstr ""
 
 #: build/chunks/js/4458.062988e8.js:1
 #: build/chunks/js/5269.c4befbaa.js:153
-#: build/chunks/js/5525.b4cd1ccb.js:1
+#: build/chunks/js/5525.0eff5062.js:1
 #: build/js/module-purchase.js:44
 #: build/js/packages.js:644
 #: src/components/extra-fields/extra-form-fields.jsx:77
@@ -15910,7 +15922,7 @@ msgstr ""
 
 #: build/chunks/js/4458.062988e8.js:1
 #: build/chunks/js/5269.c4befbaa.js:153
-#: build/chunks/js/5525.b4cd1ccb.js:1
+#: build/chunks/js/5525.0eff5062.js:1
 #: build/js/module-purchase.js:44
 #: build/js/packages.js:644
 #: src/components/extra-fields/extra-form-fields.jsx:85
@@ -15919,7 +15931,7 @@ msgstr ""
 
 #: build/chunks/js/4458.062988e8.js:30
 #: build/chunks/js/5269.c4befbaa.js:182
-#: build/chunks/js/5525.b4cd1ccb.js:30
+#: build/chunks/js/5525.0eff5062.js:30
 #: build/js/module-purchase.js:73
 #: build/js/packages.js:673
 #: src/components/extra-fields/extra-form-fields.jsx:217
@@ -15928,7 +15940,7 @@ msgstr ""
 
 #: build/chunks/js/4458.062988e8.js:30
 #: build/chunks/js/5269.c4befbaa.js:182
-#: build/chunks/js/5525.b4cd1ccb.js:30
+#: build/chunks/js/5525.0eff5062.js:30
 #: build/js/module-purchase.js:73
 #: build/js/packages.js:673
 #: src/components/extra-fields/extra-form-fields.jsx:231
@@ -15937,7 +15949,7 @@ msgstr ""
 
 #: build/chunks/js/4458.062988e8.js:30
 #: build/chunks/js/5269.c4befbaa.js:182
-#: build/chunks/js/5525.b4cd1ccb.js:30
+#: build/chunks/js/5525.0eff5062.js:30
 #: build/js/dashboard.js:3426
 #: build/js/index-onboard.js:2587
 #: build/js/module-purchase.js:73
@@ -15950,7 +15962,7 @@ msgstr ""
 
 #: build/chunks/js/4458.062988e8.js:35
 #: build/chunks/js/5269.c4befbaa.js:187
-#: build/chunks/js/5525.b4cd1ccb.js:35
+#: build/chunks/js/5525.0eff5062.js:35
 #: build/js/dashboard.js:3426
 #: build/js/index-onboard.js:2587
 #: build/js/module-purchase.js:78
@@ -15970,7 +15982,7 @@ msgstr ""
 
 #: build/chunks/js/4458.062988e8.js:58
 #: build/chunks/js/5269.c4befbaa.js:481
-#: build/chunks/js/5525.b4cd1ccb.js:44
+#: build/chunks/js/5525.0eff5062.js:44
 #: build/js/module-purchase.js:207
 #: build/js/packages.js:2916
 #: src/module-purchase/order-create-form/form-field-list.jsx:53
@@ -15980,7 +15992,7 @@ msgstr ""
 
 #: build/chunks/js/4458.062988e8.js:58
 #: build/chunks/js/5269.c4befbaa.js:481
-#: build/chunks/js/5525.b4cd1ccb.js:44
+#: build/chunks/js/5525.0eff5062.js:44
 #: build/js/dashboard.js:3819
 #: build/js/index-onboard.js:2980
 #: build/js/module-purchase.js:207
@@ -16023,8 +16035,8 @@ msgstr ""
 
 #: build/chunks/js/4458.062988e8.js:58
 #: build/chunks/js/5269.c4befbaa.js:481
-#: build/chunks/js/5525.b4cd1ccb.js:44
-#: build/chunks/js/5525.b4cd1ccb.js:510
+#: build/chunks/js/5525.0eff5062.js:44
+#: build/chunks/js/5525.0eff5062.js:510
 #: build/js/module-purchase.js:207
 #: build/js/packages.js:2916
 #: src/module-purchase/order-create-form/billing-form-field.jsx:205
@@ -16036,7 +16048,7 @@ msgstr ""
 
 #: build/chunks/js/4458.062988e8.js:58
 #: build/chunks/js/5269.c4befbaa.js:481
-#: build/chunks/js/5525.b4cd1ccb.js:44
+#: build/chunks/js/5525.0eff5062.js:44
 #: build/js/module-purchase.js:207
 #: build/js/packages.js:2916
 #: src/module-purchase/order-create-form/form-field-list.jsx:121
@@ -16046,8 +16058,8 @@ msgstr ""
 
 #: build/chunks/js/4458.062988e8.js:58
 #: build/chunks/js/5269.c4befbaa.js:481
-#: build/chunks/js/5525.b4cd1ccb.js:44
-#: build/chunks/js/5525.b4cd1ccb.js:510
+#: build/chunks/js/5525.0eff5062.js:44
+#: build/chunks/js/5525.0eff5062.js:510
 #: build/js/module-purchase.js:207
 #: build/js/packages.js:2916
 #: src/module-purchase/order-create-form/billing-form-field.jsx:228
@@ -16342,7 +16354,7 @@ msgstr ""
 
 #: build/chunks/js/4809.ff204cb4.js:116
 #: build/chunks/js/5190.24f7739b.js:125
-#: build/chunks/js/5525.b4cd1ccb.js:510
+#: build/chunks/js/5525.0eff5062.js:510
 #: build/js/index-onboard.js:4008
 #: build/js/module-purchase.js:207
 #: build/js/packages.js:4805
@@ -17443,7 +17455,7 @@ msgid "Failed to delete the attendee!"
 msgstr ""
 
 #: build/chunks/js/5269.c4befbaa.js:255
-#: build/chunks/js/5525.b4cd1ccb.js:510
+#: build/chunks/js/5525.0eff5062.js:510
 #: build/js/module-purchase.js:207
 #: build/js/module-purchase.js:217
 #: build/js/packages.js:2690
@@ -17979,44 +17991,44 @@ msgstr ""
 msgid "Search by schedule name"
 msgstr ""
 
-#: build/chunks/js/5525.b4cd1ccb.js:44
+#: build/chunks/js/5525.0eff5062.js:44
 #: build/js/module-purchase.js:207
 #: src/module-purchase/order-create-form/form-field-list.jsx:86
 msgid "Enter Full Name"
 msgstr ""
 
-#: build/chunks/js/5525.b4cd1ccb.js:44
+#: build/chunks/js/5525.0eff5062.js:44
 #: build/js/module-purchase.js:207
 #: src/module-purchase/order-create-form/form-field-list.jsx:91
 msgid "Name is Required!"
 msgstr ""
 
-#: build/chunks/js/5525.b4cd1ccb.js:44
+#: build/chunks/js/5525.0eff5062.js:44
 #: build/js/module-purchase.js:207
-#: src/module-purchase/order-create-form/option-fields.jsx:250
+#: src/module-purchase/order-create-form/option-fields.jsx:265
 msgid "This option is required"
 msgstr ""
 
-#: build/chunks/js/5525.b4cd1ccb.js:44
+#: build/chunks/js/5525.0eff5062.js:44
 #: build/js/module-purchase.js:207
-#: src/module-purchase/order-create-form/option-fields.jsx:261
+#: src/module-purchase/order-create-form/option-fields.jsx:276
 msgid "Please enter a valid email"
 msgstr ""
 
-#: build/chunks/js/5525.b4cd1ccb.js:44
+#: build/chunks/js/5525.0eff5062.js:44
 #: build/js/module-purchase.js:207
 #: src/module-purchase/order-create-form/option-fields.jsx:118
 msgid "Select an option"
 msgstr ""
 
-#: build/chunks/js/5525.b4cd1ccb.js:44
+#: build/chunks/js/5525.0eff5062.js:44
 #: build/js/gutenberg-blocks.js:1
 #: build/js/module-purchase.js:432
 #: src/module-purchase/ticket-selector/components/Ticket/TicketAlerts.jsx:40
 msgid "Payment methods are not enabled for this event!"
 msgstr ""
 
-#: build/chunks/js/5525.b4cd1ccb.js:44
+#: build/chunks/js/5525.0eff5062.js:44
 #: build/js/gutenberg-blocks.js:1
 #: build/js/gutenberg-blocks.js:2
 #: build/js/module-purchase.js:432
@@ -18028,35 +18040,35 @@ msgstr ""
 msgid "seats remaining"
 msgstr ""
 
-#: build/chunks/js/5525.b4cd1ccb.js:44
+#: build/chunks/js/5525.0eff5062.js:44
 #: build/js/gutenberg-blocks.js:1
 #: build/js/module-purchase.js:432
 #: src/module-purchase/ticket-selector/components/Ticket/TicketHeader.jsx:97
 msgid "Tickets sold out"
 msgstr ""
 
-#: build/chunks/js/5525.b4cd1ccb.js:44
+#: build/chunks/js/5525.0eff5062.js:44
 #: build/js/gutenberg-blocks.js:1
 #: build/js/module-purchase.js:432
 #: src/module-purchase/ticket-selector/components/Ticket/TicketHeader.jsx:115
 msgid "Sale ends on: "
 msgstr ""
 
-#: build/chunks/js/5525.b4cd1ccb.js:44
+#: build/chunks/js/5525.0eff5062.js:44
 #: build/js/gutenberg-blocks.js:1
 #: build/js/module-purchase.js:432
 #: src/module-purchase/ticket-selector/components/Ticket/TicketHeader.jsx:119
 msgid " at "
 msgstr ""
 
-#: build/chunks/js/5525.b4cd1ccb.js:44
+#: build/chunks/js/5525.0eff5062.js:44
 #: build/js/gutenberg-blocks.js:1
 #: build/js/module-purchase.js:432
 #: src/module-purchase/ticket-selector/components/Ticket/TicketInfoRow.jsx:22
 msgid "Ticket Price:"
 msgstr ""
 
-#: build/chunks/js/5525.b4cd1ccb.js:44
+#: build/chunks/js/5525.0eff5062.js:44
 #: build/js/gutenberg-blocks.js:1
 #: build/js/gutenberg-blocks.js:2
 #: build/js/module-purchase.js:432
@@ -18068,21 +18080,21 @@ msgstr ""
 msgid "Minimum Quantity Reached!"
 msgstr ""
 
-#: build/chunks/js/5525.b4cd1ccb.js:44
+#: build/chunks/js/5525.0eff5062.js:44
 #: build/js/gutenberg-blocks.js:1
 #: build/js/module-purchase.js:432
 #: src/module-purchase/ticket-selector/components/Ticket/TicketQuantityControl.jsx:79
 msgid "Decrease ticket quantity"
 msgstr ""
 
-#: build/chunks/js/5525.b4cd1ccb.js:44
+#: build/chunks/js/5525.0eff5062.js:44
 #: build/js/gutenberg-blocks.js:1
 #: build/js/module-purchase.js:432
 #: src/module-purchase/ticket-selector/components/Ticket/TicketQuantityControl.jsx:88
 msgid "Ticket quantity"
 msgstr ""
 
-#: build/chunks/js/5525.b4cd1ccb.js:44
+#: build/chunks/js/5525.0eff5062.js:44
 #: build/js/gutenberg-blocks.js:1
 #: build/js/gutenberg-blocks.js:2
 #: build/js/module-purchase.js:432
@@ -18094,14 +18106,14 @@ msgstr ""
 msgid "Maximum Quantity Reached!"
 msgstr ""
 
-#: build/chunks/js/5525.b4cd1ccb.js:44
+#: build/chunks/js/5525.0eff5062.js:44
 #: build/js/gutenberg-blocks.js:1
 #: build/js/module-purchase.js:432
 #: src/module-purchase/ticket-selector/components/Ticket/TicketQuantityControl.jsx:107
 msgid "Increase ticket quantity"
 msgstr ""
 
-#: build/chunks/js/5525.b4cd1ccb.js:44
+#: build/chunks/js/5525.0eff5062.js:44
 #: build/js/gutenberg-blocks.js:2
 #: build/js/module-purchase.js:433
 #: src/module-purchase/ticket-selector/hooks/useTicketAlert.js:39
@@ -18110,8 +18122,8 @@ msgstr ""
 msgid "All tickets have been sold out!"
 msgstr ""
 
-#: build/chunks/js/5525.b4cd1ccb.js:44
-#: build/chunks/js/5525.b4cd1ccb.js:510
+#: build/chunks/js/5525.0eff5062.js:44
+#: build/chunks/js/5525.0eff5062.js:510
 #: build/js/gutenberg-blocks.js:2
 #: build/js/gutenberg-blocks.js:468
 #: build/js/module-purchase.js:433
@@ -18122,173 +18134,173 @@ msgstr ""
 msgid "Tickets are no longer available"
 msgstr ""
 
-#: build/chunks/js/5525.b4cd1ccb.js:510
+#: build/chunks/js/5525.0eff5062.js:510
 #: build/js/gutenberg-blocks.js:468
 #: build/js/module-purchase.js:899
 #: src/module-purchase/ticket-selector/validations.js:47
 msgid "Minimum ticket quantity is "
 msgstr ""
 
-#: build/chunks/js/5525.b4cd1ccb.js:510
+#: build/chunks/js/5525.0eff5062.js:510
 #: build/js/gutenberg-blocks.js:468
 #: build/js/module-purchase.js:899
 #: src/module-purchase/ticket-selector/validations.js:56
 msgid "Maximum ticket quantity is "
 msgstr ""
 
-#: build/chunks/js/5525.b4cd1ccb.js:510
+#: build/chunks/js/5525.0eff5062.js:510
 #: build/js/module-purchase.js:207
 #: src/module-purchase/order-create-form/attendee-form-field.jsx:161
 #: src/pages/bookings-create/form/attendee-form-fields.jsx:140
 msgid "Enable Bulk Attendee"
 msgstr ""
 
-#: build/chunks/js/5525.b4cd1ccb.js:510
+#: build/chunks/js/5525.0eff5062.js:510
 #: build/js/module-purchase.js:207
 #: src/module-purchase/order-create-form/billing-form-field.jsx:154
 #: src/pages/bookings-create/form/billing-form-fields.jsx:42
 msgid "First Name"
 msgstr ""
 
-#: build/chunks/js/5525.b4cd1ccb.js:510
+#: build/chunks/js/5525.0eff5062.js:510
 #: build/js/module-purchase.js:207
 #: src/module-purchase/order-create-form/billing-form-field.jsx:156
 #: src/pages/bookings-create/form/billing-form-fields.jsx:44
 msgid "Enter First Name"
 msgstr ""
 
-#: build/chunks/js/5525.b4cd1ccb.js:510
+#: build/chunks/js/5525.0eff5062.js:510
 #: build/js/module-purchase.js:207
 #: src/module-purchase/order-create-form/billing-form-field.jsx:161
 #: src/pages/bookings-create/form/billing-form-fields.jsx:49
 msgid "First Name is Required!"
 msgstr ""
 
-#: build/chunks/js/5525.b4cd1ccb.js:510
+#: build/chunks/js/5525.0eff5062.js:510
 #: build/js/module-purchase.js:207
 #: src/module-purchase/order-create-form/billing-form-field.jsx:174
 #: src/pages/bookings-create/form/billing-form-fields.jsx:62
 msgid "Last Name"
 msgstr ""
 
-#: build/chunks/js/5525.b4cd1ccb.js:510
+#: build/chunks/js/5525.0eff5062.js:510
 #: build/js/module-purchase.js:207
 #: src/module-purchase/order-create-form/billing-form-field.jsx:176
 #: src/pages/bookings-create/form/billing-form-fields.jsx:64
 msgid "Enter Last Name"
 msgstr ""
 
-#: build/chunks/js/5525.b4cd1ccb.js:510
+#: build/chunks/js/5525.0eff5062.js:510
 #: build/js/module-purchase.js:207
 #: src/module-purchase/order-create-form/billing-form-field.jsx:181
 #: src/pages/bookings-create/form/billing-form-fields.jsx:69
 msgid "Last Name is Required!"
 msgstr ""
 
-#: build/chunks/js/5525.b4cd1ccb.js:510
+#: build/chunks/js/5525.0eff5062.js:510
 #: build/js/module-purchase.js:207
 #: src/module-purchase/order-create-form/billing-form-field.jsx:196
 #: src/pages/bookings-create/form/billing-form-fields.jsx:84
 msgid "Enter Email Address"
 msgstr ""
 
-#: build/chunks/js/5525.b4cd1ccb.js:510
+#: build/chunks/js/5525.0eff5062.js:510
 #: build/js/module-purchase.js:207
 #: src/module-purchase/order-create-form/billing-form-field.jsx:220
 #: src/pages/bookings-create/form/billing-form-fields.jsx:102
 msgid "Enter Phone Number"
 msgstr ""
 
-#: build/chunks/js/5525.b4cd1ccb.js:510
+#: build/chunks/js/5525.0eff5062.js:510
 #: src/pages/bookings-create/form/billing-form-fields.jsx:131
 msgid "Please enter a valid phone number!"
 msgstr ""
 
-#: build/chunks/js/5525.b4cd1ccb.js:510
+#: build/chunks/js/5525.0eff5062.js:510
 #: build/js/module-purchase.js:207
 #: src/module-purchase/order-create-form/billing-form-field.jsx:267
 #: src/pages/bookings-create/form/billing-form-fields.jsx:144
 msgid "Phone number must be between 8 and 15 digits!"
 msgstr ""
 
-#: build/chunks/js/5525.b4cd1ccb.js:510
+#: build/chunks/js/5525.0eff5062.js:510
 #: src/pages/bookings-create/form/booking-form-fields.jsx:42
 msgid "Attendee details are not collected"
 msgstr ""
 
-#: build/chunks/js/5525.b4cd1ccb.js:510
+#: build/chunks/js/5525.0eff5062.js:510
 #: src/pages/bookings-create/form/booking-form-fields.jsx:46
 msgid "Attendee registration is turned off, so this booking will be created without attendee records. Enable it in Settings → Event Settings → Attendees to collect attendee details."
 msgstr ""
 
-#: build/chunks/js/5525.b4cd1ccb.js:510
+#: build/chunks/js/5525.0eff5062.js:510
 #: src/pages/bookings-create/form/booking-form-fields.jsx:50
 msgid "Go to Attendee Settings"
 msgstr ""
 
-#: build/chunks/js/5525.b4cd1ccb.js:510
+#: build/chunks/js/5525.0eff5062.js:510
 #: src/pages/bookings-create/form/booking-form.jsx:203
 msgid "Step 1"
 msgstr ""
 
-#: build/chunks/js/5525.b4cd1ccb.js:510
+#: build/chunks/js/5525.0eff5062.js:510
 #: src/pages/bookings-create/form/booking-form.jsx:213
 msgid "Step 2"
 msgstr ""
 
-#: build/chunks/js/5525.b4cd1ccb.js:510
+#: build/chunks/js/5525.0eff5062.js:510
 #: src/pages/bookings-create/form/booking-form.jsx:241
 msgid "Create your new booking"
 msgstr ""
 
-#: build/chunks/js/5525.b4cd1ccb.js:510
+#: build/chunks/js/5525.0eff5062.js:510
 #: src/pages/bookings-create/form/booking-form.jsx:250
 msgid "Add booking details below to create a new booking quickly and easily."
 msgstr ""
 
-#: build/chunks/js/5525.b4cd1ccb.js:510
+#: build/chunks/js/5525.0eff5062.js:510
 #: src/pages/bookings-create/form/booking-form.jsx:180
 msgid "Successfully created the booking!"
 msgstr ""
 
-#: build/chunks/js/5525.b4cd1ccb.js:510
+#: build/chunks/js/5525.0eff5062.js:510
 #: src/pages/bookings-create/form/booking-form.jsx:298
 msgid "Save & Next"
 msgstr ""
 
-#: build/chunks/js/5525.b4cd1ccb.js:510
+#: build/chunks/js/5525.0eff5062.js:510
 #: src/pages/bookings-create/form/booking-form.jsx:317
 msgid "Book"
 msgstr ""
 
-#: build/chunks/js/5525.b4cd1ccb.js:510
+#: build/chunks/js/5525.0eff5062.js:510
 #: build/js/module-purchase.js:207
 #: src/module-purchase/order-create-form/order-summary.jsx:300
 #: src/pages/bookings-create/form/booking-summary.jsx:98
 msgid "Booking Summary"
 msgstr ""
 
-#: build/chunks/js/5525.b4cd1ccb.js:510
+#: build/chunks/js/5525.0eff5062.js:510
 #: src/pages/bookings-create/form/payment-fields.jsx:24
 msgid "Payment Information"
 msgstr ""
 
-#: build/chunks/js/5525.b4cd1ccb.js:510
+#: build/chunks/js/5525.0eff5062.js:510
 #: src/pages/bookings-create/form/payment-fields.jsx:35
 msgid "Please select payment method!"
 msgstr ""
 
-#: build/chunks/js/5525.b4cd1ccb.js:603
+#: build/chunks/js/5525.0eff5062.js:603
 #: src/pages/bookings-create/form/ticket-selection-form.jsx:223
 msgid "This is a recurring event."
 msgstr ""
 
-#: build/chunks/js/5525.b4cd1ccb.js:603
+#: build/chunks/js/5525.0eff5062.js:603
 #: src/pages/bookings-create/form/ticket-selection-form.jsx:227
 msgid "Tickets belong to each occurrence of a recurring event, not to the event itself, so this event cannot be booked here. Please select a single (non-recurring) event."
 msgstr ""
 
-#: build/chunks/js/5525.b4cd1ccb.js:603
+#: build/chunks/js/5525.0eff5062.js:603
 #: build/js/gutenberg-blocks.js:1
 #: build/js/gutenberg-blocks.js:2
 #: build/js/module-purchase.js:432
@@ -18301,7 +18313,7 @@ msgstr ""
 msgid "Total Capacity"
 msgstr ""
 
-#: build/chunks/js/5525.b4cd1ccb.js:603
+#: build/chunks/js/5525.0eff5062.js:603
 #: build/chunks/js/9172.10d46d55.js:244
 #: build/js/dashboard.js:4141
 #: build/js/gutenberg-blocks.js:1
@@ -18321,37 +18333,37 @@ msgstr ""
 msgid "Remaining:"
 msgstr ""
 
-#: build/chunks/js/5525.b4cd1ccb.js:603
+#: build/chunks/js/5525.0eff5062.js:603
 #: src/pages/bookings-create/form/ticket-selection-form.jsx:291
 msgid "No ticket variations added yet."
 msgstr ""
 
-#: build/chunks/js/5525.b4cd1ccb.js:603
+#: build/chunks/js/5525.0eff5062.js:603
 #: src/pages/bookings-create/form/ticket-selection-form.jsx:295
 msgid "This event doesn’t have any tickets. You need to add tickets to let people book."
 msgstr ""
 
-#: build/chunks/js/5525.b4cd1ccb.js:603
+#: build/chunks/js/5525.0eff5062.js:603
 #: src/pages/bookings-create/form/ticket-selection-form.jsx:299
 msgid "Create Tickets"
 msgstr ""
 
-#: build/chunks/js/5525.b4cd1ccb.js:603
+#: build/chunks/js/5525.0eff5062.js:603
 #: src/pages/bookings-create/form/ticket-selection-form.jsx:310
 msgid "Visual Seat Map is currently unavailable for admin bookings."
 msgstr ""
 
-#: build/chunks/js/5525.b4cd1ccb.js:603
+#: build/chunks/js/5525.0eff5062.js:603
 #: src/pages/bookings-create/form/ticket-selection-form.jsx:326
 msgid "Total Quantity: "
 msgstr ""
 
-#: build/chunks/js/5525.b4cd1ccb.js:603
+#: build/chunks/js/5525.0eff5062.js:603
 #: src/pages/bookings-create/form/ticket-selection-form.jsx:332
 msgid "Total Price: "
 msgstr ""
 
-#: build/chunks/js/5525.b4cd1ccb.js:608
+#: build/chunks/js/5525.0eff5062.js:608
 #: src/pages/bookings-create/index.jsx:56
 msgid "Event Bookings"
 msgstr ""

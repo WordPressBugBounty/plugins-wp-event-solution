@@ -23,8 +23,11 @@ class Seatplan_Form {
 	/**
 	 * Enqueue scripts.
 	 */
-	public function seat_plan_form() {
-		$event_id = get_the_ID();
+	public function seat_plan_form( $event_id = 0 ) {
+		// Use the event id the hook passes. A custom template renders its blocks
+		// with the template post as the global post, so get_the_ID() is the
+		// template there, not the event.
+		$event_id = $event_id ? absint( $event_id ) : get_the_ID();
 		$event = new Event_Model( $event_id );
 
 
@@ -66,8 +69,8 @@ class Seatplan_Form {
 		}
 
 		$errors = isset( $_GET['etn_errors'] ) ? sanitize_text_field( wp_unslash( $_GET['etn_errors'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only display param for seat plan error messages; no data modified.
-		remove_query_arg( 'etn_errors', get_the_permalink(get_the_ID()) );
-		$seats = get_post_meta( get_the_ID(),'seat_plan', true );
+		remove_query_arg( 'etn_errors', get_the_permalink($event_id) );
+		$seats = get_post_meta( $event_id,'seat_plan', true );
 
 
 		// Early return if $seats is empty
@@ -82,8 +85,8 @@ class Seatplan_Form {
 				<p style="text-align: center; color: red"><?php echo esc_html( $errors['seat_limit_error'] ); ?></p>
 			<?php endif; ?>
 			<div class="wrap-seat-plan-form timetics-shortcode-wrapper">
-				<div id="etn-seat-plan" data-id="<?php echo intval(get_the_ID()); ?>"></div>
-				<input name="event_name" type="hidden" value="<?php echo esc_html(get_the_title(get_the_ID())); ?>"/>
+				<div id="etn-seat-plan" data-id="<?php echo intval($event_id); ?>"></div>
+				<input name="event_name" type="hidden" value="<?php echo esc_html(get_the_title($event_id)); ?>"/>
 			</div>
 		</form>
 

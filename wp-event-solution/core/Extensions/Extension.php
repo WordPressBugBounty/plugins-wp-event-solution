@@ -422,7 +422,7 @@ class Extension {
                 }
             }
 
-            $one_click_install_addons = [ 'eventin-addon-for-tutor-lms', 'eventin-addon-for-learndash' ];
+            $one_click_install_addons = [ 'eventin-addon-for-tutor-lms', 'eventin-addon-for-learndash', 'ai-matchmaker-for-eventin' ];
             $is_one_click_addon       = in_array( $slug, $one_click_install_addons, true );
 
             if ( 'install' === $status || $is_one_click_addon ) {
@@ -1376,24 +1376,23 @@ class Extension {
             'badge_tags'    => [ 'Free', 'New' ],
         ];
 
-        // Hidden until the AI Match Maker plugin is ready.
-        // $extensions['ai-match-maker-for-eventin'] = [
-        //     'name'          => 'ai-match-maker-for-eventin',
-        //     'slug'          => 'ai-match-maker-for-eventin',
-        //     'type'          => 'addon',
-        //     'status'        => 'off',
-        //     'is_pro'        => true,
-        //     'deps'          => [ 'eventin-pro' ],
-        //     'title'         => __( 'AI match maker', 'wp-event-solution' ),
-        //     'description'   => __( 'Manage AI match maker settings for Eventin Pro.', 'wp-event-solution' ),
-        //     'icon'          => ExtensionIcon::get( 'ai-match-maker-for-eventin' ),
-        //     'notice'        => __( 'Requires Eventin Pro.', 'wp-event-solution' ),
-        //     'settings_link' => admin_url( 'admin.php?page=eventin#/settings/ai-match-maker' ),
-        //     'doc_link'      => '',
-        //     'badge_tags'    => [ 'Pro', 'New' ],
-        //     'upgrade'       => true,
-        //     'upgrade_link'  => 'https://themewinter.com/purchase-history',
-        // ];
+        $extensions['ai-matchmaker-for-eventin'] = [
+            'name'          => 'ai-matchmaker-for-eventin',
+            'slug'          => 'ai-matchmaker-for-eventin',
+            'type'          => 'addon',
+            'status'        => 'off',
+            'is_pro'        => true,
+            'deps'          => [ 'eventin-pro' ],
+            'title'         => __( 'AI Matchmaker', 'wp-event-solution' ),
+            'description'   => __( 'Manage AI Matchmaker settings for Eventin Pro.', 'wp-event-solution' ),
+            'icon'          => ExtensionIcon::get( 'ai-matchmaker-for-eventin' ),
+            'notice'        => __( 'Requires Eventin Pro.', 'wp-event-solution' ),
+            'settings_link' => admin_url( 'admin.php?page=eventin#/settings/ai-match-maker' ),
+            'doc_link'      => '',
+            'badge_tags'    => [ 'Pro', 'New' ],
+            'upgrade'       => true,
+            'upgrade_link'  => 'https://themewinter.com/purchase-history',
+        ];
 
         $extensions['aisentic'] = [
             'name'          => 'aisentic',

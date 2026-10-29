@@ -201,16 +201,20 @@ class MetaCloudProvider {
         ];
 
         if ( ! empty( $template['body_params'] ) && is_array( $template['body_params'] ) ) {
-            $parameters = array_values( array_filter( array_map(
-                function ( $value ) {
+            // Meta matches values to {{1}}, {{2}}… by position and rejects an
+            // empty one, so an empty value gets a placeholder instead of being
+            // dropped (dropping it would shift every later value).
+            $empty = (string) apply_filters( Helpers::get_hook_name( $this->identifier, 'ens_whatsapp_empty_param' ), '-' );
+            $parameters = array_map(
+                function ( $value ) use ( $empty ) {
                     $value = trim( (string) $value );
-                    return '' === $value ? null : [
+                    return [
                         'type' => 'text',
-                        'text' => $value,
+                        'text' => '' === $value ? $empty : $value,
                     ];
                 },
-                $template['body_params']
-            ) ) );
+                array_values( $template['body_params'] )
+            );
 
             if ( ! empty( $parameters ) ) {
                 $payload['template']['components'] = [

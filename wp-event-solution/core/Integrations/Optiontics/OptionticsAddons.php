@@ -34,6 +34,11 @@ class OptionticsAddons {
     const TEXT_TYPES = [ 'textfield', 'text', 'textarea', 'email', 'telephone', 'tel' ];
 
     /**
+     * Display-only types: shown on the form, never priced, never hold a value.
+     */
+    const LAYOUT_TYPES = [ 'heading' ];
+
+    /**
      * Optional test seam: fn(int $block_id): array<field>.
      *
      * @var callable|null
@@ -302,7 +307,25 @@ class OptionticsAddons {
                 continue;
             }
 
-            // Layout-only / unsupported types (heading, divider, date picker, upload…)
+            if ( in_array( $def->field_type, self::LAYOUT_TYPES, true ) ) {
+                if ( '' === $def->title ) {
+                    continue;
+                }
+
+                $tag = strtolower( (string) $def->get( 'tag', 'h1' ) );
+
+                $out[] = [
+                    'node_id'     => $def->node_id,
+                    'title'       => $def->title,
+                    'field_type'  => $def->field_type,
+                    'tag'         => in_array( $tag, [ 'h1', 'h2', 'h3', 'h4', 'h5', 'h6' ], true ) ? $tag : 'h3',
+                    'is_required' => false,
+                    'choices'     => [],
+                ];
+                continue;
+            }
+
+            // Other unsupported types (divider, date picker, upload…)
             // would otherwise render as an empty checkbox group.
             if ( ! $this->is_supported_type( $def->field_type ) ) {
                 continue;
@@ -384,11 +407,12 @@ class OptionticsAddons {
                 }
             }
 
-            if ( ! $field ) {
+            $type = (string) ( $field['field_type'] ?? '' );
+
+            // Headings carry no value; a posted one is tampered input.
+            if ( ! $field || in_array( $type, self::LAYOUT_TYPES, true ) ) {
                 continue;
             }
-
-            $type = (string) $field['field_type'];
 
             if ( in_array( $type, self::FLAT_TYPES, true ) ) {
                 $value  = $this->clean_number( $value, $field );

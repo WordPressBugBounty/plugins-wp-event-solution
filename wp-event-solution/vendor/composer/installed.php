@@ -3,7 +3,7 @@
         'name' => 'arraytics/eventin',
         'pretty_version' => 'dev-develop',
         'version' => 'dev-develop',
-        'reference' => '32abde961b5c0d28d903285683643be8e2c85a95',
+        'reference' => '7da83c30ec27ff198bab3ac4787cbcf8a028e884',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -13,7 +13,7 @@
         'arraytics/eventin' => array(
             'pretty_version' => 'dev-develop',
             'version' => 'dev-develop',
-            'reference' => '32abde961b5c0d28d903285683643be8e2c85a95',
+            'reference' => '7da83c30ec27ff198bab3ac4787cbcf8a028e884',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -22,7 +22,7 @@
         'themewinter/email-notification-sdk' => array(
             'pretty_version' => 'dev-emarat/update-flow-calculation-logic',
             'version' => 'dev-emarat/update-flow-calculation-logic',
-            'reference' => '064bdebc89d4004914b62650f3c4278b681a42c8',
+            'reference' => 'b20cc8a436204bc2486de4f396e44de82258d927',
             'type' => 'library',
             'install_path' => __DIR__ . '/../themewinter/email-notification-sdk',
             'aliases' => array(),

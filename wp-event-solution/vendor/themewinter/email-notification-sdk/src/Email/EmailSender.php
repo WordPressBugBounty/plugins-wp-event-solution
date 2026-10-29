@@ -21,12 +21,13 @@ class EmailSender {
      *
      * @since 1.0.0
      */
-    public function __construct( $action_name, $receiverType, $to,$from, $subject, $message, $action_data, $count) {
+    public function __construct( $action_name, $receiverType, $to,$from, $subject, $message, $action_data, $count, $node_data = [] ) {
         $this->to          = $to;
         $this->from        = $from;
         $this->subject     = $this->replace_placeholders( $subject, $action_data );
         $message_content   = $this->replace_placeholders( $message, $action_data );
-        $this->message     = apply_filters( 'notification_sdk_email_message', $message_content, $receiverType, $action_name, $action_data, $count );
+        // $node_data = the email step's saved settings, so a plugin can read its own options (e.g. a design choice).
+        $this->message     = apply_filters( 'notification_sdk_email_message', $message_content, $receiverType, $action_name, $action_data, $count, is_array( $node_data ) ? $node_data : [] );
         $this->action_data = $action_data;
     }
 

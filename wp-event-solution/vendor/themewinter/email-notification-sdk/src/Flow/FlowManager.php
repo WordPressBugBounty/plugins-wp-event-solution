@@ -863,7 +863,7 @@ class FlowManager {
             return;
         }
 
-        $email_sender = new EmailSender( $action_name, $receiverType, $email, $from, $subject, $body, $action_data, $count );
+        $email_sender = new EmailSender( $action_name, $receiverType, $email, $from, $subject, $body, $action_data, $count, $data );
         $email_sender->send();
     }
 
@@ -893,7 +893,9 @@ class FlowManager {
             return;
         }
 
-        $message_type = isset( $data['messageType'] ) && 'template' === $data['messageType'] ? 'template' : 'text';
+        // A plugin that turns text off still has flows saved as text before that, or with the type left at its default.
+        $text_allowed = Helpers::channel_enabled( $this->identifier, 'whatsapp_text' );
+        $message_type = ! $text_allowed || ( isset( $data['messageType'] ) && 'template' === $data['messageType'] ) ? 'template' : 'text';
 
         if ( 'template' === $message_type ) {
             $template_name = trim( (string) ( $data['templateName'] ?? '' ) );

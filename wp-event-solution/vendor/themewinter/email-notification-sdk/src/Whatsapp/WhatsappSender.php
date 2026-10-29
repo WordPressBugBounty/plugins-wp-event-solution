@@ -72,6 +72,26 @@ class WhatsappSender {
                 $this->template['body_params']
             );
         }
+
+        if ( $this->template ) {
+            /**
+             * Fill template variables per recipient.
+             *
+             * Scoped to the consumer plugin. `$count` is the recipient's position
+             * in a list receiver (for example the 2nd attendee), so the plugin can
+             * give each one their own values.
+             */
+            $params = apply_filters(
+                Helpers::get_hook_name( $this->identifier, 'notification_sdk_whatsapp_template_params' ),
+                isset( $this->template['body_params'] ) && is_array( $this->template['body_params'] ) ? $this->template['body_params'] : [],
+                $this->receiver_type,
+                $this->action_name,
+                $this->action_data,
+                $this->count
+            );
+
+            $this->template['body_params'] = is_array( $params ) ? array_values( $params ) : [];
+        }
     }
 
     /**

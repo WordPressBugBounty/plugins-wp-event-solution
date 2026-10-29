@@ -54,6 +54,12 @@ class Enqueue {
             'triggers'    => apply_filters( 'ens_'.$this->identifier.'_available_actions', [] ),
             // 'yes'/'no' string: wp_localize_script turns a bool false into "".
             'whatsapp_enabled' => Helpers::is_whatsapp_enabled( $this->identifier ) ? 'yes' : 'no',
+            // The builder hides the WhatsApp action when `whatsapp` is false,
+            // and the text form when `whatsapp_text` is false.
+            'channels'    => array_merge(
+                Helpers::get_channels( $this->identifier ),
+                [ 'whatsapp' => Helpers::is_whatsapp_enabled( $this->identifier ) ]
+            ),
         ] );
     }
 }
