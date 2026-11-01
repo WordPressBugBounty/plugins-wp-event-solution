@@ -10,6 +10,7 @@ use Eventin\Interfaces\HookableInterface;
 use Eventin\Mails\Mail;
 use Wpeventin;
 use Eventin\Order\OrderModel;
+use Eventin\PreviewPlaceholder\PreviewPlaceholder;
 use Etn\Core\Attendee\Attendee_Model;
 use Etn\Utils\Helper;
 
@@ -93,44 +94,72 @@ class OrderTicket implements HookableInterface {
      * @return void
      */
     public function eventin_release_pending_seats_and_tickets() {
-        // Every event that holds something, or carries a counter written before
-        // the ledger existed. No limit: the old version walked *every* published
-        // event and did work on each, so this is strictly less. Ids only, and
-        // TicketHold::sync() returns without a write when nothing is out of step.
-        $events = get_posts( [
-            'post_type'        => 'etn',
-            'post_status'      => 'any',
-            'posts_per_page'   => -1,
-            'fields'           => 'ids',
-            'no_found_rows'    => true,
-            'suppress_filters' => false,
-            'meta_query'       => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
-                'relation' => 'OR',
+        foreach ( self::events_holding_something() as $event_id ) {
+            TicketHold::sync( $event_id );
+        }
+    }
+
+    /**
+     * Ids of every event that holds something, or carries a counter written
+     * before the ledger existed.
+     *
+     * Hand-written SQL on purpose. The three markers below are alternatives, and
+     * a WP_Query `meta_query` with `'relation' => 'OR'` turns each one into its
+     * own join against the meta table, keyed on `post_id` alone, with every
+     * `meta_key` test moved into an OR'd WHERE:
+     *
+     *     INNER JOIN wp_postmeta     ON ( wp_posts.ID = wp_postmeta.post_id )
+     *     INNER JOIN wp_postmeta mt1 ON ( wp_posts.ID = mt1.post_id )
+     *     INNER JOIN wp_postmeta mt2 ON ( wp_posts.ID = mt2.post_id )
+     *     WHERE ( wp_postmeta.meta_key = ... OR mt1.meta_key = ... OR ... )
+     *
+     * No index can restrict a join whose only condition is `post_id`, so MySQL
+     * built one row per *combination* of the event's meta rows - cubed, for three
+     * joins — and then sorted the pile. Events routinely carry 25-80+ meta rows,
+     * which is up to ~590k rows for a single event, so sites with a few hundred
+     * events had the hourly sweep dropped mid-query with "MySQL server has gone
+     * away". A dropped query returns nothing, which silently turned the safety
+     * net off and left tickets looking sold out with stock free.
+     *
+     * One join, with the keys inside the WHERE, keeps the `meta_key` index in
+     * play and reads the matching meta rows once.
+     *
+     * @return int[]
+     */
+    private static function events_holding_something() {
+        global $wpdb;
+
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- hourly maintenance sweep; see above for why WP_Query cannot do this.
+        $ids = $wpdb->get_col(
+            $wpdb->prepare(
+                "SELECT DISTINCT pm.post_id
+                 FROM {$wpdb->postmeta} pm
+                 INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id AND p.post_type = 'etn'
+                 WHERE p.post_status NOT IN ( 'trash', 'auto-draft' )
+                   AND (
+                        pm.meta_key IN ( %s, %s )
+                        OR ( pm.meta_key = %s AND pm.meta_value LIKE %s )
+                   )",
                 // A live hold.
-                [
-                    'key'     => TicketHold::META_KEY,
-                    'compare' => 'EXISTS',
-                ],
+                TicketHold::META_KEY,
                 // Seats marked as held, with or without a ledger behind them.
-                [
-                    'key'     => 'pending_seats',
-                    'compare' => 'EXISTS',
-                ],
+                'pending_seats',
                 // Any variation carrying a `pending` key at all. This matches
                 // zero counters too — narrowing it further would mean matching
                 // on serialized text, which breaks as soon as the value type
                 // changes (i:17 vs s:2:"17"). sync() no-ops on those.
-                [
-                    'key'     => 'etn_ticket_variations',
-                    'value'   => '"pending"',
-                    'compare' => 'LIKE',
-                ],
-            ],
-        ] );
+                'etn_ticket_variations',
+                '%' . $wpdb->esc_like( '"pending"' ) . '%'
+            )
+        );
 
-        foreach ( $events as $event_id ) {
-            TicketHold::sync( $event_id );
-        }
+        $ids = array_map( 'intval', (array) $ids );
+
+        // The query the ledger replaced ran through WP_Query, where
+        // PreviewPlaceholderVisibility kept the preview placeholder event out of
+        // it. Raw SQL never sees that filter, so the placeholder is dropped here
+        // instead — it is demo furniture, and nothing can be bought from it.
+        return PreviewPlaceholder::strip_post_ids( $ids );
     }
 
     /**

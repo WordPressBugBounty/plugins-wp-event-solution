@@ -11,3 +11,5 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 }
 
 delete_option( 'etn_wizard' );
+
+delete_option( 'etn_custom_endpoints_flushed' );
