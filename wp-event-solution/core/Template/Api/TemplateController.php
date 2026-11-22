@@ -210,7 +210,12 @@ class TemplateController extends WP_REST_Controller {
         }
 
         if ( ! current_user_can( 'manage_options' ) ) {
-            $args['author'] = get_current_user_id(); 
+            // The event editor offers every published template; elsewhere owners see their own.
+            if ( $is_for_edit && ! $is_remote ) {
+                $args['post_status'] = 'publish';
+            } else {
+                $args['author'] = get_current_user_id();
+            }
         }
 
         $meta_query = [];
@@ -297,7 +302,7 @@ class TemplateController extends WP_REST_Controller {
             'is_clone'      => $item->is_clone,
             'is_pro'        => $item->is_pro,
             'template_css'  => $item->template_css,
-            'edit_link'     => $is_static ? '' : $this->get_template_edit_link( $item->id ),
+            'edit_link'     => ( $is_static || ! current_user_can( 'edit_post', $item->id ) ) ? '' : $this->get_template_edit_link( $item->id ),
             'preview_link'  => $is_static ? $item->preview_link : get_preview_post_link( $item->id ),
             'preview_event_id' => $item->preview_event_id,
             'template_builder' => ! empty( $item->get_template_builder() ) ? $item->get_template_builder() : ( $is_static ? '' : $this->get_legacy_template_models_template_builder( $item ) ),
@@ -470,7 +475,14 @@ class TemplateController extends WP_REST_Controller {
             return true;
         }
 
-        return current_user_can( 'etn_manage_template' );
+        if ( current_user_can( 'etn_manage_template' ) ) {
+            return true;
+        }
+
+        // Event editors must be able to pick a template without managing them.
+        $is_for_edit = isset( $request['is_for_edit'] ) && filter_var( $request['is_for_edit'], FILTER_VALIDATE_BOOLEAN );
+
+        return $is_for_edit && current_user_can( 'etn_manage_event' );
     }
 
     /**

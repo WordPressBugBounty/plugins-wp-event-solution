@@ -346,19 +346,29 @@ class Hooks {
                 $banner_id = get_post_meta( $parent_post_id, 'event_banner_id', true );
                 set_post_thumbnail( $recurrence_id, $banner_id );
 
+                // A child edited on its own keeps its own date and time.
+                $child_is_overridden = $this->is_child_overridden( $recurrence_id );
+
+                if ( $child_is_overridden ) {
+                    $child_args = $args;
+                    unset( $child_args['etn_start_date'], $child_args['etn_end_date'], $child_args['etn_start_time'], $child_args['etn_end_time'] );
+                } else {
+                    $child_args = $args;
+                }
+
 				// generate new start-date and end-date according to updated span days
-                if ( !empty( get_post_meta( $recurrence_id, 'etn_start_date', true ) ) ) {
+                if ( ! $child_is_overridden && !empty( get_post_meta( $recurrence_id, 'etn_start_date', true ) ) ) {
         $recurrence_start_date           = get_post_meta( $recurrence_id, 'etn_start_date', true );
                     $recurrence_end_date             = gmdate( 'Y-m-d', strtotime( " + $recurrence_span day", strtotime( $recurrence_start_date ) ) );
 
-                    $args['etn_end_date'] = $recurrence_end_date;
+                    $child_args['etn_end_date'] = $recurrence_end_date;
                 }
 
                 //generate new available and sold ticket
                 $ticket_variations = $this->prepare_child_ticket_data( $recurrence_id, $ticket_variations );
-                $args['etn_ticket_variations'] = $ticket_variations;
+                $child_args['etn_ticket_variations'] = $ticket_variations;
                 
-                $recurring_child_event->update( $args );
+                $recurring_child_event->update( $child_args );
 
                 // Update category.
                 $recurring_child_event->assign_post_terms( 'etn_category', $categories );
@@ -550,7 +560,13 @@ class Hooks {
                 continue;
             }
 
-            if ( in_array( $child_date, $valid_dates, true ) ) {
+            // Same test as detach_mismatched_children(), so the popup lists
+            // exactly the children that will really be detached.
+            if ( $this->is_child_overridden( $child->ID ) ) {
+                if ( $recurring_enabled && $this->overridden_child_fits_series( $child->ID, $valid_dates, $start_date, $end_date ) ) {
+                    continue;
+                }
+            } elseif ( in_array( $child_date, $valid_dates, true ) ) {
                 continue;
             }
 
@@ -1015,6 +1031,9 @@ class Hooks {
             return gmdate( 'Y-m-d', (int) $ts );
         }, (array) $new_matching_events );
 
+        $window_start = get_post_meta( $parent_post_id, 'etn_start_date', true );
+        $window_end   = get_post_meta( $parent_post_id, 'etn_end_date', true );
+
         foreach ( $children as $child ) {
             $child_id   = $child->ID;
             $child_date = get_post_meta( $child_id, 'etn_start_date', true );
@@ -1023,7 +1042,12 @@ class Hooks {
                 continue;
             }
 
-            if ( in_array( $child_date, $valid_dates, true ) ) {
+            // A child edited on its own keeps its place while it still fits.
+            if ( $this->is_child_overridden( $child_id ) ) {
+                if ( $this->overridden_child_fits_series( $child_id, $valid_dates, $window_start, $window_end ) ) {
+                    continue;
+                }
+            } elseif ( in_array( $child_date, $valid_dates, true ) ) {
                 continue;
             }
 
@@ -1036,6 +1060,7 @@ class Hooks {
             delete_post_meta( $child_id, 'recurring_enabled' );
             delete_post_meta( $child_id, 'etn_event_recurrence' );
             delete_post_meta( $child_id, 'etn_recurrence_timestamps' );
+            $this->clear_child_override( $child_id );
 
             clean_post_cache( $child_id );
 
@@ -1138,6 +1163,298 @@ class Hooks {
             wp_update_post( ['ID' => $child_event_id, 'post_parent' => 0] );
         }
 
+    }
+
+    /**
+     * Meta key set on a child whose date or time was edited on its own.
+     */
+    const OVERRIDE_META = 'etn_recurrence_override';
+
+    /**
+     * Meta key holding the date the series rule originally gave this child.
+     */
+    const ORIGINAL_DATE_META = 'etn_recurrence_original_date';
+
+    /**
+     * Schedule fields a child can carry on its own.
+     *
+     * @var string[]
+     */
+    const SCHEDULE_FIELDS = [ 'etn_start_date', 'etn_end_date', 'etn_start_time', 'etn_end_time' ];
+
+    /**
+     * Whether a child was edited on its own (its schedule is no longer the series one).
+     *
+     * @param int $child_id Child event ID.
+     * @return bool
+     */
+    public function is_child_overridden( $child_id ) {
+        return 'yes' === get_post_meta( $child_id, self::OVERRIDE_META, true );
+    }
+
+    /**
+     * Remove the "edited on its own" mark from a child.
+     *
+     * @param int $child_id Child event ID.
+     * @return void
+     */
+    public function clear_child_override( $child_id ) {
+        delete_post_meta( $child_id, self::OVERRIDE_META );
+        delete_post_meta( $child_id, self::ORIGINAL_DATE_META );
+    }
+
+    /**
+     * Number of extra days each occurrence lasts, the same way the series
+     * creates them (start date + N days = end date).
+     *
+     * @param int $parent_id Parent event ID.
+     * @return int
+     */
+    public function series_span_days( $parent_id ) {
+        $freq = get_post_meta( $parent_id, 'etn_event_recurrence', true );
+
+        if ( ! is_array( $freq ) || ( ! empty( $freq['span_type'] ) && 'single' === $freq['span_type'] ) ) {
+            return 0;
+        }
+
+        $span = ! empty( $freq['recurrence_span'] ) ? absint( $freq['recurrence_span'] ) : 1;
+
+        return max( 0, $span - 1 );
+    }
+
+    /**
+     * Compare two stored schedule values. Dates and times can be written in
+     * different shapes ("9:00 am" and "09:00 AM"), so compare them as time.
+     *
+     * @param mixed $a First value.
+     * @param mixed $b Second value.
+     * @return bool True when the values mean the same thing.
+     */
+    private function same_schedule_value( $a, $b ) {
+        $a = trim( (string) $a );
+        $b = trim( (string) $b );
+
+        if ( $a === $b ) {
+            return true;
+        }
+
+        $ta = strtotime( $a );
+        $tb = strtotime( $b );
+
+        return false !== $ta && false !== $tb && $ta === $tb;
+    }
+
+    /**
+     * Which schedule fields in an incoming update differ from what is saved.
+     *
+     * @param int   $child_id Child event ID.
+     * @param array $incoming Prepared event data (keys like etn_start_date).
+     * @return string[] Changed field names.
+     */
+    public function changed_schedule_fields( $child_id, $incoming ) {
+        $changed = [];
+
+        foreach ( self::SCHEDULE_FIELDS as $field ) {
+            if ( ! array_key_exists( $field, (array) $incoming ) ) {
+                continue;
+            }
+
+            if ( ! $this->same_schedule_value( get_post_meta( $child_id, $field, true ), $incoming[ $field ] ) ) {
+                $changed[] = $field;
+            }
+        }
+
+        return $changed;
+    }
+
+    /**
+     * Whether a date (Y-m-d) sits inside a window, edges included.
+     * An empty edge means "no limit" on that side.
+     *
+     * @param string $date         Date to test.
+     * @param string $window_start Window start date.
+     * @param string $window_end   Window end date.
+     * @return bool
+     */
+    public function date_in_window( $date, $window_start, $window_end ) {
+        $date = strtotime( (string) $date );
+
+        if ( false === $date ) {
+            return false;
+        }
+
+        if ( ! empty( $window_start ) && false !== strtotime( $window_start ) && $date < strtotime( $window_start ) ) {
+            return false;
+        }
+
+        if ( ! empty( $window_end ) && false !== strtotime( $window_end ) && $date > strtotime( $window_end ) ) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Check a child schedule edit before it is saved. Dates that changed must
+     * stay inside the parent's start and end dates, and the end must not come
+     * before the start. Times are free.
+     *
+     * @param int   $child_id  Child event ID.
+     * @param int   $parent_id Parent event ID.
+     * @param array $incoming  Prepared event data.
+     * @return true|\WP_Error
+     */
+    public function validate_child_schedule( $child_id, $parent_id, $incoming ) {
+        $changed = $this->changed_schedule_fields( $child_id, $incoming );
+
+        if ( ! array_intersect( $changed, [ 'etn_start_date', 'etn_end_date' ] ) ) {
+            return true;
+        }
+
+        $window_start = get_post_meta( $parent_id, 'etn_start_date', true );
+        $window_end   = get_post_meta( $parent_id, 'etn_end_date', true );
+
+        foreach ( [ 'etn_start_date', 'etn_end_date' ] as $field ) {
+            if ( in_array( $field, $changed, true ) && ! $this->date_in_window( $incoming[ $field ], $window_start, $window_end ) ) {
+                return new \WP_Error(
+                    'recurrence_date_outside_series',
+                    sprintf(
+                        /* translators: 1: series start date, 2: series end date. */
+                        __( 'The date must be between %1$s and %2$s, the dates of the recurring event.', 'wp-event-solution' ),
+                        $window_start,
+                        $window_end
+                    ),
+                    [ 'status' => 400 ]
+                );
+            }
+        }
+
+        $start = array_key_exists( 'etn_start_date', (array) $incoming ) ? $incoming['etn_start_date'] : get_post_meta( $child_id, 'etn_start_date', true );
+        $end   = array_key_exists( 'etn_end_date', (array) $incoming ) ? $incoming['etn_end_date'] : get_post_meta( $child_id, 'etn_end_date', true );
+
+        if ( strtotime( (string) $end ) && strtotime( (string) $start ) && strtotime( $end ) < strtotime( $start ) ) {
+            return new \WP_Error(
+                'recurrence_end_before_start',
+                __( 'The end date can not be before the start date.', 'wp-event-solution' ),
+                [ 'status' => 400 ]
+            );
+        }
+
+        return true;
+    }
+
+    /**
+     * After a child was saved with a changed schedule, set or clear the mark.
+     * The mark is cleared when the child is back on the series schedule.
+     *
+     * @param int    $child_id       Child event ID.
+     * @param int    $parent_id      Parent event ID.
+     * @param string $previous_start The child start date before this save.
+     * @return void
+     */
+    public function refresh_child_override( $child_id, $parent_id, $previous_start ) {
+        $original = get_post_meta( $child_id, self::ORIGINAL_DATE_META, true );
+
+        if ( empty( $original ) ) {
+            $original = $previous_start;
+        }
+
+        $span_days = $this->series_span_days( $parent_id );
+        $start     = get_post_meta( $child_id, 'etn_start_date', true );
+        $end       = get_post_meta( $child_id, 'etn_end_date', true );
+
+        $series_end = gmdate( 'Y-m-d', strtotime( "+ $span_days day", strtotime( (string) $original ) ) );
+
+        $on_series = $this->same_schedule_value( $start, $original )
+            && $this->same_schedule_value( $end, $series_end )
+            && $this->same_schedule_value( get_post_meta( $child_id, 'etn_start_time', true ), get_post_meta( $parent_id, 'etn_start_time', true ) )
+            && $this->same_schedule_value( get_post_meta( $child_id, 'etn_end_time', true ), get_post_meta( $parent_id, 'etn_end_time', true ) );
+
+        if ( $on_series ) {
+            $this->clear_child_override( $child_id );
+            return;
+        }
+
+        update_post_meta( $child_id, self::OVERRIDE_META, 'yes' );
+        update_post_meta( $child_id, self::ORIGINAL_DATE_META, $original );
+    }
+
+    /**
+     * Whether an edited child still belongs to the series: the date the rule
+     * gave it is still produced, and where it sits now is still inside the window.
+     *
+     * @param int      $child_id     Child event ID.
+     * @param string[] $valid_dates  Y-m-d dates the rule produces.
+     * @param string   $window_start Series start date.
+     * @param string   $window_end   Series end date.
+     * @return bool
+     */
+    public function overridden_child_fits_series( $child_id, $valid_dates, $window_start, $window_end ) {
+        $original = get_post_meta( $child_id, self::ORIGINAL_DATE_META, true );
+
+        if ( empty( $original ) ) {
+            $original = get_post_meta( $child_id, 'etn_start_date', true );
+        }
+
+        return in_array( $original, (array) $valid_dates, true )
+            && $this->date_in_window( get_post_meta( $child_id, 'etn_start_date', true ), $window_start, $window_end );
+    }
+
+    /**
+     * Put an edited child back on the series schedule.
+     *
+     * @param int $child_id Child event ID.
+     * @return true|\WP_Error
+     */
+    public function reset_child_to_series( $child_id ) {
+        $parent_id = (int) wp_get_post_parent_id( $child_id );
+
+        if ( $parent_id <= 0 || ! $this->is_child_overridden( $child_id ) ) {
+            return new \WP_Error(
+                'recurrence_not_edited',
+                __( 'This event already follows the recurring schedule.', 'wp-event-solution' ),
+                [ 'status' => 400 ]
+            );
+        }
+
+        $original = get_post_meta( $child_id, self::ORIGINAL_DATE_META, true );
+
+        if ( empty( $original ) ) {
+            $this->clear_child_override( $child_id );
+            return true;
+        }
+
+        $taken = get_posts( [
+            'post_type'      => 'etn',
+            'post_parent'    => $parent_id,
+            'post_status'    => [ 'publish', 'private', 'draft', 'pending', 'future' ],
+            'post__not_in'   => [ $child_id ],
+            'posts_per_page' => 1,
+            'fields'         => 'ids',
+            'meta_query'     => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+                [
+                    'key'   => 'etn_start_date',
+                    'value' => $original,
+                ],
+            ],
+        ] );
+
+        if ( ! empty( $taken ) ) {
+            return new \WP_Error(
+                'recurrence_date_taken',
+                __( 'Another event of this series already uses the original date.', 'wp-event-solution' ),
+                [ 'status' => 409 ]
+            );
+        }
+
+        update_post_meta( $child_id, 'etn_start_date', $original );
+        update_post_meta( $child_id, 'etn_end_date', gmdate( 'Y-m-d', strtotime( '+ ' . $this->series_span_days( $parent_id ) . ' day', strtotime( $original ) ) ) );
+        update_post_meta( $child_id, 'etn_start_time', get_post_meta( $parent_id, 'etn_start_time', true ) );
+        update_post_meta( $child_id, 'etn_end_time', get_post_meta( $parent_id, 'etn_end_time', true ) );
+
+        $this->clear_child_override( $child_id );
+
+        return true;
     }
 
     /**

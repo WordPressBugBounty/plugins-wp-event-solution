@@ -23,6 +23,27 @@ class EnsHooks {
      * @var string
      */
     private $attendee_name = '';
+
+    /**
+     * Recipient name for the waiting-list email (attendee or customer), reused by the subject filter.
+     *
+     * @var string
+     */
+    private $recipient_name = '';
+
+    /**
+     * Trigger, receiver, payload and position of the email being rendered.
+     *
+     * @var array
+     */
+    private $context = [];
+
+    /**
+     * Plain-text variable values of the email being rendered, reused by the subject filter.
+     *
+     * @var array
+     */
+    private $subject_values = [];
     /**
      * Store email body
      *
@@ -36,9 +57,10 @@ class EnsHooks {
      * @return  void
      */
     public function __construct() {
-        add_filter( 'notification_sdk_email_message', array($this, 'get_latest_email_content'), 10, 5 );
+        add_filter( 'notification_sdk_email_message', array($this, 'get_latest_email_content'), 10, 6 );
         add_filter( 'notification_sdk_to_emails', array($this, 'get_to_attendee_emails'), 10, 3 );
         add_filter( 'wp_mail', array($this, 'replace_attendee_placeholder_in_subject') );
+        add_filter( 'eventin_email_headers', array($this, 'default_from_header') );
     }
 
     /**
@@ -50,12 +72,26 @@ class EnsHooks {
      *
      * @return string|false
      */
-    public function get_latest_email_content( $message, $receiver_type, $action_name, $action_data, $count ) {
+    public function get_latest_email_content( $message, $receiver_type, $action_name, $action_data, $count, $node_data = [] ) {
         // Reset per-call state so a missing/invalid id never reuses the previous email's object.
         $this->attendee      = null;
         $this->event         = null;
-        $this->order         = null;
-        $this->attendee_name = '';
+        $this->order          = null;
+        $this->attendee_name  = '';
+        $this->recipient_name = '';
+        $this->context        = compact( 'receiver_type', 'action_name', 'action_data', 'count' );
+
+        // Step saved as Custom: the admin's text only, inside header and footer.
+        // A step with no saved choice (every flow made before this setting)
+        // falls through and sends exactly what it sent before.
+        if ( 'custom' === EmailDesign::mode( $node_data ) && EmailDesign::is_known( $action_name ) ) {
+            $attendee_id = AutomationPlaceholders::recipient_attendee_id( $action_name, $receiver_type, $action_data, $count );
+            if ( $attendee_id ) {
+                $this->attendee = new \Etn\Core\Attendee\Attendee_Model( $attendee_id );
+            }
+
+            return $this->replace_attendee_placeholders( Content::get( 'custom-body-email-template', [ 'content' => $message ] ) );
+        }
 
         if($action_name == 'event_ticket_purchase' && $receiver_type == 'attendee_email') {
             $this->email_body = $message;
@@ -154,6 +190,61 @@ class EnsHooks {
 
             return $this->replace_attendee_placeholders( $this->email_body );
         }
+        elseif($action_name == OrderNoticeAutomation::WAITING_LIST_TRIGGER && ($receiver_type == 'customer_email' || $receiver_type == 'attendee_email')) {
+            if($receiver_type == 'attendee_email' && !empty($action_data['attendee_id'][$count])) {
+                $this->attendee = new \Etn\Core\Attendee\Attendee_Model( $action_data['attendee_id'][$count] );
+            }
+
+            // Local first: Post_Model has __get() without __isset().
+            $recipient_name = $this->attendee ? (string) $this->attendee->etn_name : (string) ( $action_data['customer_name'] ?? '' );
+            $this->recipient_name = $recipient_name;
+
+            if(empty($action_data['event_id'])) {
+                return $this->replace_attendee_placeholders( $message );
+            }
+
+            $content = Content::get( 'waiting-list-confirmation-email-template', [
+                'event'          => new \Etn\Core\Event\Event_Model( $action_data['event_id'] ),
+                'recipient_name' => $recipient_name,
+                'content'        => strtr( $message, [ '{%recipient_name%}' => esc_html( $recipient_name ) ] ),
+            ] );
+
+            return $this->replace_attendee_placeholders( $content );
+        }
+        elseif(($action_name == OrderNoticeAutomation::REFUND_TRIGGER || $action_name == OrderNoticeAutomation::PARTIAL_REFUND_TRIGGER) && $receiver_type == 'customer_email') {
+            $refund = null;
+
+            if(!empty($action_data['order_id']) && isset($action_data['refund_id'])) {
+                $refund = ( new \Eventin\Refund\RefundModel() )->find( $action_data['order_id'], $action_data['refund_id'] );
+            }
+
+            if(!$refund) {
+                return $this->replace_attendee_placeholders( $message );
+            }
+
+            $content = Content::get( 'refund-confirmation', [
+                'order'   => new \Eventin\Order\OrderModel( $action_data['order_id'] ),
+                'refund'  => $refund,
+                'content' => $message,
+            ] );
+
+            return $this->replace_attendee_placeholders( $content );
+        }
+
+        elseif($action_name == OrderNoticeAutomation::PAYMENT_LINK_TRIGGER && $receiver_type == 'customer_email') {
+            if(empty($action_data['order_id']) || 'etn-order' !== get_post_type($action_data['order_id'])) {
+                return $this->replace_attendee_placeholders( $message );
+            }
+
+            $order = new \Eventin\Order\OrderModel( $action_data['order_id'] );
+
+            return $this->replace_attendee_placeholders( Content::get( 'waiting-list-payment-email-template', [
+                'order'       => $order,
+                'event'       => new \Etn\Core\Event\Event_Model( $order->event_id ),
+                'payment_url' => (string) ( $action_data['payment_link'] ?? '' ),
+                'content'     => $message,
+            ] ) );
+        }
 
         return $this->replace_attendee_placeholders( $message );
     }
@@ -175,10 +266,94 @@ class EnsHooks {
 
         $this->attendee_name = $attendee_name;
 
-        return strtr( $content, [
+        $replace = [
             '{%attendee_name%}' => esc_html( $attendee_name ),
             '{{attendee_name}}' => esc_html( $attendee_name ),
-        ] );
+        ];
+
+        // Every other variable of this trigger (order, ticket, links …). A value
+        // this receiver has no data for becomes empty instead of a raw token.
+        $this->subject_values = [];
+        if ( $this->context ) {
+            $values = AutomationPlaceholders::values(
+                $this->context['action_name'],
+                $this->context['receiver_type'],
+                $this->context['action_data'],
+                $this->context['count']
+            );
+
+            // All known keys, not only this trigger's: a body copied from another
+            // flow must not mail a raw token.
+            foreach ( array_keys( AutomationPlaceholders::labels() ) as $key ) {
+                if ( 'attendee_name' === $key ) {
+                    continue;
+                }
+
+                $value = $values[ $key ] ?? '';
+                $html  = $this->email_value( $key, $value );
+
+                $replace[ '{%' . $key . '%}' ] = $html;
+                $replace[ '{{' . $key . '}}' ] = $html;
+
+                $this->subject_values[ $key ] = $value;
+            }
+        }
+
+        return strtr( $content, $replace );
+    }
+
+    /**
+     * HTML for one variable in an email body.
+     *
+     * Links are clickable. Ticket, certificate and edit links keep the short
+     * link text the certificate email already used.
+     *
+     * @param   string  $key    Variable key.
+     * @param   string  $value  Plain value.
+     *
+     * @return  string
+     */
+    private function email_value( $key, $value ) {
+        if ( '' === $value || ! in_array( $key, AutomationPlaceholders::LINK_KEYS, true ) ) {
+            return esc_html( $value );
+        }
+
+        $texts = [
+            'ticket_link'      => __( 'Download Ticket', 'wp-event-solution' ),
+            'certificate_link' => __( 'Download Certificate', 'wp-event-solution' ),
+            'edit_info_link'   => __( 'Edit Information', 'wp-event-solution' ),
+            'payment_link'     => __( 'View Order & Pay', 'wp-event-solution' ),
+        ];
+
+        return sprintf( '<a href="%s">%s</a>', esc_url( $value ), esc_html( $texts[ $key ] ?? $value ) );
+    }
+
+    /**
+     * Give an automation email with no From Address the site's admin email.
+     *
+     * With no From header WordPress uses wordpress@<site domain>, which mail
+     * servers reject on a local or IP-only site ("Invalid address (From)").
+     * Only automation emails being sent right now, and only when the flow has
+     * no From of its own.
+     *
+     * @param   array  $headers  Email headers.
+     *
+     * @return  array
+     */
+    public function default_from_header( $headers ) {
+        if ( empty( $this->context ) || ! is_array( $headers ) || preg_grep( '/^\s*From:/i', $headers ) ) {
+            return $headers;
+        }
+
+        $email = sanitize_email( get_option( 'admin_email' ) );
+        if ( ! is_email( $email ) ) {
+            return $headers;
+        }
+
+        $name      = wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES );
+        $headers[] = sprintf( 'From: %s <%s>', $name, $email );
+
+        return $headers;
     }
 
     /**
@@ -193,18 +368,38 @@ class EnsHooks {
      * @return  array
      */
     public function replace_attendee_placeholder_in_subject( $args ) {
-        if ( empty( $args['subject'] ) || false === strpos( $args['subject'], 'attendee_name' ) ) {
+        // An automation email is being sent right now (its body was just built).
+        $is_automation = ! empty( $this->context );
+        $this->context = [];
+
+        if ( empty( $args['subject'] ) || ( ! $is_automation && false === strpos( $args['subject'], '{%' ) && false === strpos( $args['subject'], '{{' ) ) ) {
             return $args;
         }
 
-        $attendee_name = wp_strip_all_tags( $this->attendee_name );
+        $attendee_name  = wp_strip_all_tags( $this->attendee_name );
+        $recipient_name = wp_strip_all_tags( $this->recipient_name );
 
-        $args['subject'] = strtr( $args['subject'], [
-            '{%attendee_name%}' => $attendee_name,
-            '{{attendee_name}}' => $attendee_name,
-        ] );
+        $replace = [
+            '{%attendee_name%}'  => $attendee_name,
+            '{{attendee_name}}'  => $attendee_name,
+            '{%recipient_name%}' => $recipient_name,
+            '{{recipient_name}}' => $recipient_name,
+        ];
+        foreach ( $this->subject_values as $key => $value ) {
+            $replace[ '{%' . $key . '%}' ] = wp_strip_all_tags( $value );
+            $replace[ '{{' . $key . '}}' ] = wp_strip_all_tags( $value );
+        }
 
-        $this->attendee_name = '';
+        $args['subject'] = strtr( $args['subject'], $replace );
+
+        // A subject is plain text: event titles come HTML-escaped ("AI &amp; ML").
+        if ( $is_automation ) {
+            $args['subject'] = html_entity_decode( $args['subject'], ENT_QUOTES, 'UTF-8' );
+        }
+
+        $this->attendee_name  = '';
+        $this->recipient_name = '';
+        $this->subject_values = [];
 
         return $args;
     }

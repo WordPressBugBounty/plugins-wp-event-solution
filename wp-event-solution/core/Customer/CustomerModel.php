@@ -97,6 +97,9 @@ class CustomerModel {
             return $user;
         }
 
+        // Marks that Eventin made this user (not WooCommerce or an admin).
+        update_user_meta( $user, 'etn_created_by_eventin', 1 );
+
         $static->id = $user;
 
         return $static->get_customer_object( $user );

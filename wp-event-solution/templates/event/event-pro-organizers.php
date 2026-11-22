@@ -4,7 +4,7 @@ defined( 'ABSPATH' ) || exit;
 
 use Etn\Utils\Helper;
 
-$organizers = is_serialized( $etn_organizer_events ) ? maybe_unserialize( $etn_organizer_events ) : $etn_organizer_events;
+$organizers = etn_safe_decode( $etn_organizer_events );
 
 $args = [
     'include' 	=> $organizers

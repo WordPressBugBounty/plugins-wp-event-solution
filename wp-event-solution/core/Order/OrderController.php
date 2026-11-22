@@ -12,6 +12,7 @@ use Eventin\Customer\CustomerModel;
 use Eventin\Input;
 use Eventin\Emails\AdminOrderEmail;
 use Eventin\Emails\AttendeeOrderEmail;
+use Eventin\Emails\OrderNoticeAutomation;
 use Eventin\Emails\WaitingListConfirmationEmail;
 use Eventin\Emails\WaitingListPaymentEmail;
 use Eventin\Integrations\Webhook\FluentCRM;
@@ -143,6 +144,21 @@ class OrderController extends WP_REST_Controller {
                 'permission_callback' => function( $request ) {
                     return wp_verify_nonce( $request->get_header( 'X-WP-Nonce' ), 'wp_rest' );
                 },
+            ],
+        ] );
+
+        register_rest_route( $this->namespace, $this->rest_base . '/member-discount', [
+            [
+                'methods'             => WP_REST_Server::CREATABLE,
+                'callback'            => [ $this, 'member_discount_preview' ],
+                // Nonce-only like checkout itself: guests reach it, and it only reads the caller's own discount.
+                'permission_callback' => function( $request ) {
+                    return (bool) wp_verify_nonce( $request->get_header( 'X-WP-Nonce' ), 'wp_rest' );
+                },
+                'args'                => [
+                    'event_id' => [ 'type' => 'integer', 'required' => true ],
+                    'subtotal' => [ 'type' => 'number', 'required' => true, 'minimum' => 0 ],
+                ],
             ],
         ] );
 
@@ -471,6 +487,8 @@ class OrderController extends WP_REST_Controller {
 
         do_action( 'eventin_before_attendees_create', $order);
 
+        $prepared_order['attendees'] = $this->maybe_use_buyer_as_attendees( $prepared_order, $order, $request );
+
         // Create attendees.
         $attendees = $this->prepare_attendee_data( $prepared_order['attendees'], $prepared_order['event_id'], $order->id );
 
@@ -501,6 +519,59 @@ class OrderController extends WP_REST_Controller {
         }
 	    
         return rest_ensure_response( $response );
+    }
+
+    /**
+     * Use the buyer as the attendee when attendee registration is off
+     *
+     * Runs only when the order has no attendee rows, attendee registration is
+     * not on, and the `eventin_create_buyer_attendee` filter returns true.
+     * One row is made for each ticket, using the buyer name, email and phone.
+     *
+     * @param array           $prepared_order Prepared order data.
+     * @param OrderModel      $order          Order.
+     * @param WP_REST_Request $request        Request.
+     *
+     * @return array Attendee rows.
+     */
+    private function maybe_use_buyer_as_attendees( $prepared_order, $order, $request ) {
+        $attendees = isset( $prepared_order['attendees'] ) ? $prepared_order['attendees'] : [];
+
+        if ( ! empty( $attendees ) || 'on' === etn_get_option( 'attendee_registration' ) ) {
+            return $attendees;
+        }
+
+        /**
+         * Make the buyer the attendee when attendee registration is off.
+         *
+         * @param bool       $enabled Default false.
+         * @param OrderModel $order   Order.
+         * @param \WP_REST_Request $request Request.
+         */
+        if ( ! apply_filters( 'eventin_create_buyer_attendee', false, $order, $request ) ) {
+            return $attendees;
+        }
+
+        $name = trim(
+            ( isset( $prepared_order['customer_fname'] ) ? $prepared_order['customer_fname'] : '' ) . ' ' .
+            ( isset( $prepared_order['customer_lname'] ) ? $prepared_order['customer_lname'] : '' )
+        );
+
+        foreach ( (array) $prepared_order['tickets'] as $ticket ) {
+            $quantity = isset( $ticket['ticket_quantity'] ) ? (int) $ticket['ticket_quantity'] : 0;
+
+            for ( $i = 0; $i < $quantity; $i++ ) {
+                $attendees[] = [
+                    'name'        => $name,
+                    'email'       => isset( $prepared_order['customer_email'] ) ? $prepared_order['customer_email'] : '',
+                    'phone'       => isset( $prepared_order['customer_phone'] ) ? $prepared_order['customer_phone'] : '',
+                    'ticket_slug' => isset( $ticket['ticket_slug'] ) ? $ticket['ticket_slug'] : '',
+                    'buyer_row'   => true,
+                ];
+            }
+        }
+
+        return $attendees;
     }
 
     /**
@@ -751,6 +822,13 @@ class OrderController extends WP_REST_Controller {
      * @return  void
      */
     protected function send_waiting_list_confirmation( $order ) {
+        // Automation on (and a flow exists) → the flow sends it instead.
+        if ( OrderNoticeAutomation::should_use( OrderNoticeAutomation::WAITING_LIST_TRIGGER ) ) {
+            OrderNoticeAutomation::dispatch_waiting_list( $order );
+
+            return;
+        }
+
         $event = new Event_Model( $order->event_id );
         $from  = etn_get_email_settings( 'purchase_email' )['from'];
         $sent  = [];
@@ -1533,6 +1611,8 @@ class OrderController extends WP_REST_Controller {
             'refunded_amount'       => $refunded_amount,
             'discount_total'        => $order->discount_total,
             'coupon_code'           => $order->coupon_code,
+            'member_discount'       => $order->member_discount,
+            'member_discount_label' => $order->member_discount_label,
             'tax_total'             => $order->tax_total,
             'tax_display_mode'      => $order->tax_display_mode,
             // Add-on (Optiontics) breakdown: aggregate total for the pricing panel
@@ -1662,6 +1742,30 @@ class OrderController extends WP_REST_Controller {
 
         if ( is_wp_error( $validate ) ) {
             return $validate;
+        }
+
+        // Attendee accounts need an email for every attendee. With attendee
+        // registration off there are no attendee rows, so the buyer is checked.
+        if ( ! $is_update && \Eventin\Attendee\Account\AttendeeAccountSettings::is_enabled() ) {
+            $emails = [];
+
+            if ( ! empty( $input_data['attendees'] ) && is_array( $input_data['attendees'] ) ) {
+                foreach ( $input_data['attendees'] as $attendee ) {
+                    $emails[] = is_array( $attendee ) ? ( $attendee['email'] ?? '' ) : '';
+                }
+            } else {
+                $emails[] = $input_data['customer_email'] ?? '';
+            }
+
+            foreach ( $emails as $email ) {
+                if ( ! is_string( $email ) || ! is_email( trim( $email ) ) ) {
+                    return new WP_Error(
+                        'attendee_email_required',
+                        __( 'A valid email is required for every attendee.', 'wp-event-solution' ),
+                        [ 'status' => 400 ]
+                    );
+                }
+            }
         }
 
         // A recurring parent event sells no tickets of its own - every ticket
@@ -1879,7 +1983,52 @@ class OrderController extends WP_REST_Controller {
         // Coupon: recompute the discount server-side and fold it into total_price.
         $order_data = $this->apply_coupon( $input_data, $order_data );
 
+        // Priced once at creation; an edit by staff or a guest must not re-price it.
+        if ( ! $is_update && ! $is_waiting ) {
+            $order_data = $this->apply_member_discount( $input_data, $order_data );
+        } elseif ( $is_update ) {
+            // The edit re-priced tickets at full price; keep the frozen member discount off.
+            $frozen                    = floatval( ( new OrderModel( intval( $request['id'] ) ) )->member_discount );
+            $order_data['total_price'] = max( 0, floatval( $order_data['total_price'] ) - $frozen );
+        }
+
         return $order_data;
+    }
+
+    /**
+     * Take a loyalty plugin's member discount off the order, after the coupon.
+     *
+     * @param array $input_data Raw request body.
+     * @param array $order_data Prepared order data, coupon already applied.
+     * @return array
+     */
+    protected function apply_member_discount( $input_data, $order_data ) {
+        $discount = MemberDiscount::resolve( $order_data, (array) $input_data );
+
+        if ( $discount['amount'] <= 0 ) {
+            return $order_data;
+        }
+
+        $order_data['member_discount']       = $discount['amount'];
+        $order_data['member_discount_label'] = $discount['label'];
+        $order_data['total_price']           = max( 0, floatval( $order_data['total_price'] ) - $discount['amount'] );
+
+        return $order_data;
+    }
+
+    /**
+     * Preview the member discount for the checkout summary; the order reprices it on create.
+     *
+     * @param WP_REST_Request $request Full data about the request.
+     * @return WP_REST_Response
+     */
+    public function member_discount_preview( $request ) {
+        $order_data = [
+            'event_id'    => absint( $request->get_param( 'event_id' ) ),
+            'total_price' => max( 0, floatval( $request->get_param( 'subtotal' ) ) ),
+        ];
+
+        return rest_ensure_response( MemberDiscount::resolve( $order_data, (array) $request->get_json_params() ) );
     }
 
     /**
@@ -2154,6 +2303,11 @@ class OrderController extends WP_REST_Controller {
                     'post_status'          => 'publish',
                     'etn_option_selections' => isset( $attendee['_option_rows'] ) && is_array( $attendee['_option_rows'] ) ? $attendee['_option_rows'] : [],
                 ];
+
+                // Mark rows made from the buyer so ticket emails skip them.
+                if ( ! empty( $attendee['buyer_row'] ) ) {
+                    $new_attendee['etn_buyer_attendee'] = 1;
+                }
 
                 $extra_fields = isset( $attendee['extra_fields'] ) ? $this->prepare_attendee_extra_fields( $attendee['extra_fields'] ) : [];
 				
@@ -2751,8 +2905,13 @@ class OrderController extends WP_REST_Controller {
             site_url( 'eventin-purchase/preview/' )
         );
 
-        $from = etn_get_email_settings( 'purchase_email' )['from'];
-        Mail::to( $order->customer_email )->from( $from )->send( new WaitingListPaymentEmail( $order, $payment_url ) );
+        // Automation on (and a flow exists) → the flow sends it instead.
+        if ( OrderNoticeAutomation::should_use( OrderNoticeAutomation::PAYMENT_LINK_TRIGGER ) ) {
+            OrderNoticeAutomation::dispatch_payment_link( $order, $payment_url );
+        } else {
+            $from = etn_get_email_settings( 'purchase_email' )['from'];
+            Mail::to( $order->customer_email )->from( $from )->send( new WaitingListPaymentEmail( $order, $payment_url ) );
+        }
 
         return rest_ensure_response( [
             'message'     => __( 'Payment link sent successfully.', 'wp-event-solution' ),

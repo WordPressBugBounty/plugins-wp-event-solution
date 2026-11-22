@@ -52,6 +52,41 @@ class SetupNotification extends WP_REST_Controller {
                 ),
             )
         );
+
+        register_rest_route(
+            $this->namespace,
+            '/' . $this->rest_base . '/demo-data',
+            array(
+                'methods'             => WP_REST_Server::CREATABLE,
+                'callback'            => array( $this, 'save_demo_data_consent' ),
+                'args'                => array(
+                    'import' => array(
+                        'type'     => 'boolean',
+                        'required' => true,
+                    ),
+                ),
+                'permission_callback' => array( $this, 'update_notification_dismiss_permissions_check' ),
+            )
+        );
+    }
+
+    /**
+     * Save the setup wizard answer on demo data and, on yes, add the sample data.
+     *
+     * @param WP_REST_Request $request Full data about the request.
+     * @return WP_REST_Response
+     */
+    public function save_demo_data_consent( $request ) {
+        $import = rest_sanitize_boolean( $request->get_param( 'import' ) );
+
+        update_option( 'etn_demo_data_consent', $import ? 'yes' : 'no' );
+
+        if ( $import ) {
+            ( new \Eventin\Upgrade\Upgraders\V_4_0_29() )->run();
+            ( new \Eventin\PreviewPlaceholder\PreviewPlaceholderEventSeeder() )->seed();
+        }
+
+        return rest_ensure_response( array( 'status' => 'success', 'import' => $import ) );
     }
 
     /**

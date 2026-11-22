@@ -44,9 +44,11 @@ if ( ! function_exists( 'etn_sanitize_array_input' ) ) {
      * @return array|string Returns array if input is array, string if input is non-serialized string, empty array otherwise.
      */
     function etn_sanitize_array_input( $input ) {
-        // If it's already an array, return it
+        // An array is returned with every nested serialized string removed.
+        // Before 4.1.31 arrays came back unchanged, so a serialized object
+        // one level down (e.g. inside rsvp_settings) still reached post meta.
         if ( is_array( $input ) ) {
-            return $input;
+            return etn_strip_serialized_strings( $input );
         }
         // If it's a serialized string, reject it to prevent PHP Object Injection
         if ( is_string( $input ) && is_serialized( $input ) ) {
@@ -58,6 +60,97 @@ if ( ! function_exists( 'etn_sanitize_array_input' ) ) {
         }
         // Return empty array for other non-array input types
         return [];
+    }
+}
+
+if ( ! function_exists( 'etn_strip_serialized_strings' ) ) {
+    /**
+     * Replace every serialized PHP string inside a value with ''.
+     *
+     * WordPress stores an already-serialized string wrapped once more, and the
+     * normal meta read hands the inner string back. Any later
+     * maybe_unserialize()/unserialize() on that string then builds the objects
+     * it names (PHP Object Injection). Removing such strings before they are
+     * saved closes that path for every reader. Objects are dropped too.
+     *
+     * Legitimate event data never contains a serialized PHP string.
+     *
+     * @since 4.1.31
+     * @param mixed $value Any value.
+     * @return mixed The value with serialized strings replaced by ''.
+     */
+    function etn_strip_serialized_strings( $value ) {
+        if ( is_array( $value ) ) {
+            foreach ( $value as $key => $item ) {
+                $value[ $key ] = etn_strip_serialized_strings( $item );
+            }
+            return $value;
+        }
+
+        if ( is_object( $value ) ) {
+            return '';
+        }
+
+        if ( is_string( $value ) && is_serialized( $value ) ) {
+            return '';
+        }
+
+        return $value;
+    }
+}
+
+if ( ! function_exists( 'etn_sanitize_location' ) ) {
+    /**
+     * Sanitize an event location before it is saved.
+     *
+     * A location is a plain address string or an array (address, integration,
+     * custom_url, online/offline parts). A serialized PHP string, at any depth,
+     * is removed: strip_private_location() used to unserialize the stored value
+     * a second time with classes allowed (Patchstack 8ddf061c, PHP Object
+     * Injection by a Contributor, triggered by anonymous reads).
+     *
+     * @since 4.1.31
+     * @param mixed $location Raw location input.
+     * @return array|string
+     */
+    function etn_sanitize_location( $location ) {
+        if ( is_array( $location ) ) {
+            return etn_strip_serialized_strings( $location );
+        }
+
+        if ( is_string( $location ) ) {
+            return is_serialized( $location ) ? '' : $location;
+        }
+
+        if ( is_int( $location ) || is_float( $location ) ) {
+            return (string) $location;
+        }
+
+        return '';
+    }
+
+    /*
+     * Last line of defence for every writer (v2 REST, importer, v1, Pro,
+     * add-ons): location meta on an event never stores a serialized string.
+     */
+    add_filter( 'sanitize_post_meta_etn_event_location_for_etn', 'etn_sanitize_location_meta' );
+    add_filter( 'sanitize_post_meta_location_for_etn', 'etn_sanitize_location_meta' );
+}
+
+if ( ! function_exists( 'etn_sanitize_location_meta' ) ) {
+    /**
+     * Meta-save callback for the event location keys. Leaves '' and null alone.
+     *
+     * @since 4.1.31
+     * @param mixed $value Meta value about to be stored.
+     * @return mixed
+     */
+    function etn_sanitize_location_meta( $value ) {
+        if ( '' === $value || null === $value || is_bool( $value ) ) {
+            return $value;
+        }
+
+        return etn_sanitize_location( $value );
     }
 }
 
@@ -103,6 +196,58 @@ if ( ! function_exists( 'etn_sanitize_faq_array' ) ) {
             },
             $faqs
         );
+    }
+}
+
+if ( ! function_exists( 'etn_remove_empty_faqs' ) ) {
+    /**
+     * Keep only real FAQ items, with both keys always set.
+     *
+     * A CSV import with an empty FAQ column saved [ [ '' ] ]: one item with no
+     * etn_faq_title / etn_faq_content keys. Every event page then logged two
+     * "Undefined array key" warnings. Items that are not arrays, or have no
+     * title and no content, are dropped.
+     *
+     * @since 4.1.30
+     * @param mixed $faqs Stored or imported FAQ list.
+     * @return array
+     */
+    function etn_remove_empty_faqs( $faqs ) {
+        if ( ! is_array( $faqs ) ) {
+            return [];
+        }
+
+        $clean = [];
+
+        foreach ( $faqs as $faq ) {
+            if ( ! is_array( $faq ) ) {
+                continue;
+            }
+
+            $faq['etn_faq_title']   = isset( $faq['etn_faq_title'] ) ? (string) $faq['etn_faq_title'] : '';
+            $faq['etn_faq_content'] = isset( $faq['etn_faq_content'] ) ? (string) $faq['etn_faq_content'] : '';
+
+            if ( '' === trim( $faq['etn_faq_title'] ) && '' === trim( $faq['etn_faq_content'] ) ) {
+                continue;
+            }
+
+            $clean[] = $faq;
+        }
+
+        return $clean;
+    }
+}
+
+if ( ! function_exists( 'etn_get_event_faqs' ) ) {
+    /**
+     * The event's FAQ items, safe to print. See etn_remove_empty_faqs().
+     *
+     * @since 4.1.30
+     * @param int $event_id Event ID.
+     * @return array
+     */
+    function etn_get_event_faqs( $event_id ) {
+        return etn_remove_empty_faqs( get_post_meta( $event_id, 'etn_event_faq', true ) );
     }
 }
 
@@ -171,6 +316,157 @@ if ( ! function_exists( 'etn_sanitize_schedule_slots' ) ) {
             },
             $slots
         );
+    }
+}
+
+if ( ! function_exists( 'etn_sanitize_ticket_variations' ) ) {
+    /**
+     * Sanitize an event's ticket rows (`etn_ticket_variations`) field by field.
+     *
+     * etn_sanitize_array_input() returns arrays unchanged, so a ticket row used
+     * to be stored exactly as posted. A Contributor could put markup into
+     * etn_ticket_price and the [events_calendar] bundle rendered it as HTML for
+     * every visitor (Patchstack #38733, stored XSS).
+     *
+     * Rules:
+     * - Numeric fields: a numeric value is kept as it is (type unchanged), an
+     *   empty value is kept, anything else is cast to a number.
+     * - The description keeps line breaks (sanitize_textarea_field).
+     * - Every other string, at any depth, goes through sanitize_text_field.
+     * - Non-string scalars (int, float, bool, null) are kept.
+     * - Keys must be plain identifiers; any other key is dropped.
+     *
+     * Valid data from the admin form comes out unchanged.
+     *
+     * @since 4.1.31
+     * @param mixed $variations The raw ticket rows (expected: array of rows).
+     * @return array The sanitized ticket rows (empty array for non-array input).
+     */
+    function etn_sanitize_ticket_variations( $variations ) {
+        if ( is_string( $variations ) ) {
+            $decoded = etn_safe_decode( $variations );
+
+            if ( is_string( $decoded ) ) {
+                $decoded = json_decode( $decoded, true );
+            }
+
+            $variations = $decoded;
+        }
+
+        if ( ! is_array( $variations ) ) {
+            return [];
+        }
+
+        $number_fields = [
+            'etn_ticket_price'              => 'float',
+            'etn_avaiilable_tickets'        => 'int',
+            'etn_min_ticket'                => 'int',
+            'etn_max_ticket'                => 'int',
+            'etn_sold_tickets'              => 'int',
+            'etn_ticket_waiting_list_limit' => 'int',
+            'pending'                       => 'int',
+            'waiting_list_count'            => 'int',
+        ];
+
+        $textarea_fields = [ 'etn_ticket_description' ];
+
+        $clean_value = function ( $value ) use ( &$clean_value ) {
+            if ( is_array( $value ) ) {
+                $clean = [];
+                foreach ( $value as $key => $item ) {
+                    if ( is_string( $key ) && ! preg_match( '/^[A-Za-z0-9_\-]+$/', $key ) ) {
+                        continue;
+                    }
+                    $clean[ $key ] = $clean_value( $item );
+                }
+                return $clean;
+            }
+
+            if ( is_string( $value ) ) {
+                return sanitize_text_field( $value );
+            }
+
+            // Objects never belong in a ticket row.
+            return is_scalar( $value ) || null === $value ? $value : '';
+        };
+
+        $clean_rows = [];
+
+        foreach ( $variations as $index => $ticket ) {
+            if ( ! is_array( $ticket ) ) {
+                // A malformed row: keep the slot only if it is harmless.
+                $clean_rows[ $index ] = is_scalar( $ticket ) || null === $ticket
+                    ? ( is_string( $ticket ) ? sanitize_text_field( $ticket ) : $ticket )
+                    : [];
+                continue;
+            }
+
+            $clean_ticket = [];
+
+            foreach ( $ticket as $key => $value ) {
+                if ( ! is_string( $key ) || ! preg_match( '/^[A-Za-z0-9_\-]+$/', $key ) ) {
+                    continue;
+                }
+
+                if ( isset( $number_fields[ $key ] ) ) {
+                    if ( is_int( $value ) || is_float( $value ) || '' === $value || null === $value ) {
+                        $clean_ticket[ $key ] = $value;
+                    } elseif ( is_string( $value ) && is_numeric( trim( $value ) ) ) {
+                        $clean_ticket[ $key ] = trim( $value );
+                    } elseif ( 'float' === $number_fields[ $key ] ) {
+                        $clean_ticket[ $key ] = is_scalar( $value ) ? floatval( $value ) : 0;
+                    } else {
+                        $clean_ticket[ $key ] = is_scalar( $value ) ? intval( $value ) : 0;
+                    }
+                    continue;
+                }
+
+                if ( in_array( $key, $textarea_fields, true ) && is_string( $value ) ) {
+                    $clean_ticket[ $key ] = sanitize_textarea_field( $value );
+                    continue;
+                }
+
+                $clean_ticket[ $key ] = $clean_value( $value );
+            }
+
+            $clean_rows[ $index ] = $clean_ticket;
+        }
+
+        return $clean_rows;
+    }
+
+    /*
+     * Last line of defence: every write of `etn_ticket_variations` through
+     * add/update_post_meta() is cleaned, whoever writes it (v2 REST, the event
+     * importer, the legacy v1 API, Pro, WooCommerce stock sync, add-ons).
+     */
+    add_filter( 'sanitize_post_meta_etn_ticket_variations', 'etn_sanitize_ticket_variations_meta', 10, 1 );
+}
+
+if ( ! function_exists( 'etn_sanitize_ticket_variations_meta' ) ) {
+    /**
+     * `sanitize_post_meta_etn_ticket_variations` callback.
+     *
+     * Same as etn_sanitize_ticket_variations(), but an empty value stays
+     * empty and a plain string that is not a ticket list is only stripped of
+     * tags, so no existing write is turned into a different type.
+     *
+     * @since 4.1.31
+     * @param mixed $value Meta value about to be stored.
+     * @return mixed
+     */
+    function etn_sanitize_ticket_variations_meta( $value ) {
+        if ( is_array( $value ) ) {
+            return etn_sanitize_ticket_variations( $value );
+        }
+
+        if ( ! is_string( $value ) || '' === $value ) {
+            return $value;
+        }
+
+        $decoded = etn_sanitize_ticket_variations( $value );
+
+        return $decoded ? $decoded : sanitize_text_field( $value );
     }
 }
 
@@ -1488,6 +1784,19 @@ if ( ! function_exists( 'etn_validate_event_tickets' ) ) {
         if ( $enable_global_stock ) {
             $total_requested = 0;
             foreach ( $order_tickets as $ticket ) {
+                // Global stock caps the total quantity, but each line must still
+                // name a real ticket on this event. The non-global branch below
+                // already rejects unknown slugs; without the same check here an
+                // unknown slug prices at 0 in OrderController::total_price() and
+                // then slips through the free-ticket gate in payment_complete(),
+                // letting a guest complete a paid order for $0 and burn stock.
+                // Note: Event_Model::get_ticket('') returns EVERY variation, so an
+                // empty slug must be rejected explicitly before that lookup.
+                $slug = isset( $ticket['ticket_slug'] ) ? (string) $ticket['ticket_slug'] : '';
+                if ( '' === $slug || ! $event->get_ticket( $slug ) ) {
+                    return new WP_Error( 'ticket_not_found', __( 'Ticket not found', 'wp-event-solution' ), ['status' => 422] );
+                }
+
                 $total_requested += intval( $ticket['ticket_quantity'] );
             }
 

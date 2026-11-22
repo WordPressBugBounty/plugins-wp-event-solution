@@ -310,10 +310,12 @@ class Hooks {
             ? esc_html__( 'Organizer', 'wp-event-solution' )
             : esc_html__( 'Speaker', 'wp-event-solution' );
 
-        // translators: %s is the speaker / organizer name.
+        // Escaped once at output (esc_html( sprintf( ... ) )), so use plain __() here.
         $events_label_template = ( 'organizer' === $type )
-            ? esc_html__( 'Events by %s', 'wp-event-solution' )
-            : esc_html__( 'Events featuring %s', 'wp-event-solution' );
+            /* translators: %s: organizer name. */
+            ? __( 'Events by %s', 'wp-event-solution' )
+            /* translators: %s: speaker name. */
+            : __( 'Events featuring %s', 'wp-event-solution' );
 
         ob_start();
         $this->print_user_profile_header_styles();
@@ -904,17 +906,37 @@ class Hooks {
      * Zoom meeting info function
      */
     public function etn_zoom_api_link( $atts, $content ) {
-        extract( shortcode_atts( ['meeting_id' => 'javascript:void(0);', 'link_only' => 'no'], $atts ) );
+        $atts       = shortcode_atts( [ 'meeting_id' => 0, 'link_only' => 'no' ], $atts );
+        $meeting_id = absint( $atts['meeting_id'] );
 
         ob_start();
+
+        // The id is written by whoever wrote the post, so it must be an event,
+        // and the join link (a private value, stripped by the REST API) is only
+        // shown to people allowed to see it (Patchstack 866bfb05).
+        if ( ! $meeting_id || 'etn' !== get_post_type( $meeting_id ) ) {
+            ?>
+                <p><?php echo esc_html__( 'This is not a zoom event', 'wp-event-solution' ); ?></p>
+            <?php
+            return ob_get_clean();
+        }
 
         $event = new Event_Model( $meeting_id );
         $location = $event->etn_event_location;
 
         $integration = ! empty( $location['integration'] ) ? $location['integration'] : '';
+        $is_zoom     = ( 'online' == $event->event_type || 'hybrid' == $event->event_type ) && 'zoom' == $integration;
+
+        if ( $is_zoom && ! \Eventin\AccessControl\Ownership::can_view_meeting_link( $meeting_id, get_post() ) ) {
+            ?>
+                <p><?php echo esc_html__( 'Get a ticket for this event to receive the join link.', 'wp-event-solution' ); ?></p>
+            <?php
+            return ob_get_clean();
+        }
+
         $meeting_link = $event->meeting_link;
 
-        if ( ('online' == $event->event_type || 'hybrid' == $event->event_type) && 'zoom' == $integration ) {
+        if ( $is_zoom ) {
             ?>
                 <div class="meeting-wrapper">
                     <div class="meeting-row">

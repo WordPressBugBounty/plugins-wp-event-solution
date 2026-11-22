@@ -318,6 +318,8 @@ class Register {
 			}
 		}
 
+		$etn_custom_css .= ":root{--etn-primary-color:{$primary_color};}";
+
 		$etn_custom_css .= "
         .etn-event-single-content-wrap .etn-event-meta .etn-event-category span,
         .etn-event-item .etn-event-footer .etn-atend-btn .etn-btn-border,
@@ -421,9 +423,9 @@ class Register {
         .etn-attendee-form .etn-btn:hover,
         .etn-ticket-widget .etn-btn:hover,
         .speaker-style4 .etn-speaker-content p,
-        .etn-btn, button.etn-btn.etn-btn-primary:hover,
-        .etn-zoom-btn,
-		.events_calendar_list .calendar-event-details .event-calendar-action .etn-btn, .events_calendar_list .calendar-event-details .event-calendar-action .etn-price.event-calendar-details-btn,
+        button.etn-btn.etn-btn-primary:hover,
+        .etn-zoom-btn:hover,
+		.events_calendar_list .calendar-event-details .event-calendar-action .etn-btn:hover, .events_calendar_list .calendar-event-details .event-calendar-action .etn-price.event-calendar-details-btn:hover,
         .etn-speaker-item.style-3 .etn-speaker-content .etn-speakers-social a:hover,
         .etn-single-speaker-item .etn-speaker-thumb .etn-speakers-social a:hover,
 		.etn-recurring-event-wrapper #seeMore:hover, .etn-recurring-event-wrapper #seeMore:focus,

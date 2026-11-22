@@ -10,7 +10,7 @@ defined('ABSPATH') || exit;
  * Plugin Name:       Eventin
  * Plugin URI:        https://themewinter.com/eventin/
  * Description:       Simple and Easy to use Event Management Solution
- * Version:           4.1.30
+ * Version:           4.1.31
  * Author:            Themewinter
  * Author URI:        https://themewinter.com/
  * License:           GPL-2.0+
@@ -44,7 +44,7 @@ class Wpeventin
 	 * @var string The plugin version.
 	 */
 	public static function version() {
-		return "4.1.30";
+		return "4.1.31";
 	}
     /**
      * Initializes the Wpeventin() class
@@ -372,7 +372,10 @@ class Wpeventin
      */
     public function maybe_seed_automation_flows()
     {
-        if (get_option('etn_email_automation_migrated')) {
+        $notice_option  = \Eventin\Extensions\ImportAutomation::ORDER_NOTICE_MIGRATED_OPTION;
+        $payment_option = \Eventin\Extensions\ImportAutomation::PAYMENT_LINK_MIGRATED_OPTION;
+
+        if (get_option('etn_email_automation_migrated') && get_option($notice_option) && get_option($payment_option)) {
             return;
         }
 
@@ -395,11 +398,16 @@ class Wpeventin
         try {
             // Re-check under the lock: a run that finished between the guard above
             // and acquiring the lock has already created the flows.
-            if (get_option('etn_email_automation_migrated')) {
-                return;
+            if (!get_option('etn_email_automation_migrated')) {
+                \Eventin\Extensions\ImportAutomation::create_automation_flows();
+            } elseif (!get_option($notice_option)) {
+                // Existing site: the other default flows were created before the
+                // waiting-list and refund flows existed. Add only those, once.
+                \Eventin\Extensions\ImportAutomation::create_order_notice_flows();
+            } elseif (!get_option($payment_option)) {
+                // Existing site: add the waiting-list payment-link flow, once.
+                \Eventin\Extensions\ImportAutomation::create_payment_link_flow();
             }
-
-            \Eventin\Extensions\ImportAutomation::create_automation_flows();
         } finally {
             \Eventin\Support\DbLock::release('etn_automation_flow_seed_lock');
         }
@@ -485,54 +493,15 @@ class Wpeventin
             // type registered. create_automation_flows() sets the migrated flag,
             // so this runs at most once.
             add_action('admin_init', [$this, 'maybe_seed_automation_flows']);
+            // Fix the "Hereu2019s" apostrophe saved in old default flows, once.
+            add_action('admin_init', [\Eventin\Extensions\ImportAutomation::class, 'repair_broken_quotes']);
 
             add_filter('ens_eve_available_actions', function ($actions) {
                 $actions = [ // Array of all actions, on which you want to send email
                     [
-                        "trigger_label"            => "Event Ticket Purchase", // Name of the event
+                        "trigger_label"            => __( 'Event Ticket Purchase', 'wp-event-solution' ), // Name of the event
                         "trigger_value"            => "event_ticket_purchase", // Event slug
-                        "trigger_data"             => [                        // Data you have after the event happened
-                            [
-                                "label" => "Site Name",
-                                "value" => "site_name",
-                                "type"  => "string",
-                            ],
-                            [
-                                "label" => "Site Link",
-                                "value" => "site_link",
-                                "type"  => "string",
-                            ],
-                            [
-                                "label" => "Site Logo",
-                                "value" => "site_logo",
-                                "type"  => "string",
-                            ],
-                            [
-                                "label" => "Event Title",
-                                "value" => "event_title",
-                                "type"  => "string",
-                            ],
-                            [
-                                "label" => "Event Date",
-                                "value" => "event_date",
-                                "type"  => "date",
-                            ],
-                            [
-                                "label" => "Event Time",
-                                "value" => "event_time",
-                                "type"  => "string",
-                            ],
-                            [
-                                "label" => "Event Location",
-                                "value" => "event_location",
-                                "type"  => "string",
-                            ],
-                            [
-                                "label" => "Attendee Name",
-                                "value" => "attendee_name",
-                                "type"  => "string",
-                            ],
-                        ],
+                        "trigger_data"             => \Eventin\Emails\AutomationPlaceholders::trigger_data( 'event_ticket_purchase' ), // Variables the builder offers for this trigger
                         "conditional_dependencies" => [ // Data you have after the event happened
                             [
                                 "label" => "Event Title",
@@ -562,41 +531,9 @@ class Wpeventin
                         ],
                     ],
                     [
-                        "trigger_label"            => "RSVP Email",       // Name of the event
+                        "trigger_label"            => __( 'RSVP Email', 'wp-event-solution' ),       // Name of the event
                         "trigger_value"            => "event_rsvp_email", // Event slug
-                        "trigger_data"             => [                   // Data you have after the event happened
-                            [
-                                "label" => "Site Name",
-                                "value" => "site_name",
-                                "type"  => "string",
-                            ],
-                            [
-                                "label" => "Site Link",
-                                "value" => "site_link",
-                                "type"  => "string",
-                            ],
-                            [
-                                "label" => "Event Title",
-                                "value" => "event_title",
-                                "type"  => "string",
-                            ],
-                            [
-                                "label" => "Event Date",
-                                "value" => "event_date",
-                                "type"  => "date",
-                            ],
-                            [
-                                "label" => "Event Time",
-                                "value" => "event_time",
-                                "type"  => "string",
-                            ],
-                            [
-                                "label" => "Event Location",
-                                "value" => "event_location",
-                                "type"  => "string",
-                            ],
-
-                        ],
+                        "trigger_data"             => \Eventin\Emails\AutomationPlaceholders::trigger_data( 'event_rsvp_email' ), // Variables the builder offers for this trigger
                         "conditional_dependencies" => [ // Data you have after the event happened
                             [
                                 "label" => "Event Title",
@@ -622,45 +559,9 @@ class Wpeventin
                         ],
                     ],
                     [
-                        "trigger_label"            => "Event Reminder Email", // Name of the event
+                        "trigger_label"            => __( 'Event Reminder Email', 'wp-event-solution' ), // Name of the event
                         "trigger_value"            => "event_reminder_email", // Event slug
-                        "trigger_data"             => [                       // Data you have after the event happened
-                            [
-                                "label" => "Site Name",
-                                "value" => "site_name",
-                                "type"  => "string",
-                            ],
-                            [
-                                "label" => "Site Link",
-                                "value" => "site_link",
-                                "type"  => "string",
-                            ],
-                            [
-                                "label" => "Event Title",
-                                "value" => "event_title",
-                                "type"  => "string",
-                            ],
-                            [
-                                "label" => "Event Date",
-                                "value" => "event_date",
-                                "type"  => "date",
-                            ],
-                            [
-                                "label" => "Event Time",
-                                "value" => "event_time",
-                                "type"  => "string",
-                            ],
-                            [
-                                "label" => "Event Location",
-                                "value" => "event_location",
-                                "type"  => "string",
-                            ],
-                            [
-                                "label" => "Attendee Name",
-                                "value" => "attendee_name",
-                                "type"  => "string",
-                            ],
-                        ],
+                        "trigger_data"             => \Eventin\Emails\AutomationPlaceholders::trigger_data( 'event_reminder_email' ), // Variables the builder offers for this trigger
                         "conditional_dependencies" => [ // Data you have after the event happened
                             [
                                 "label" => "Event Title",
@@ -694,45 +595,9 @@ class Wpeventin
                         ],
                     ],
                     [
-                        "trigger_label"            => "Send Email To All Attendees", // Name of the event
+                        "trigger_label"            => __( 'Send Email To All Attendees', 'wp-event-solution' ), // Name of the event
                         "trigger_value"            => "send_email_to_all_attendees", // Event slug
-                        "trigger_data"             => [                              // Data you have after the event happened
-                            [
-                                "label" => "Site Name",
-                                "value" => "site_name",
-                                "type"  => "string",
-                            ],
-                            [
-                                "label" => "Site Link",
-                                "value" => "site_link",
-                                "type"  => "string",
-                            ],
-                            [
-                                "label" => "Event Title",
-                                "value" => "event_title",
-                                "type"  => "string",
-                            ],
-                            [
-                                "label" => "Event Date",
-                                "value" => "event_date",
-                                "type"  => "date",
-                            ],
-                            [
-                                "label" => "Event Time",
-                                "value" => "event_time",
-                                "type"  => "string",
-                            ],
-                            [
-                                "label" => "Event Location",
-                                "value" => "event_location",
-                                "type"  => "string",
-                            ],
-                            [
-                                "label" => "Attendee Name",
-                                "value" => "attendee_name",
-                                "type"  => "string",
-                            ],
-                        ],
+                        "trigger_data"             => \Eventin\Emails\AutomationPlaceholders::trigger_data( 'send_email_to_all_attendees' ), // Variables the builder offers for this trigger
                         "conditional_dependencies" => [ // Data you have after the event happened
                             [
                                 "label" => "Event Title",
@@ -766,55 +631,9 @@ class Wpeventin
                         ],
                     ],
                     [
-                        "trigger_label"            => "Send Certificate",  // Name of the event
+                        "trigger_label"            => __( 'Send Certificate', 'wp-event-solution' ),  // Name of the event
                         "trigger_value"            => "send_certificate",  // Event slug
-                        "trigger_data"             => [                    // Data you have after the event happened
-                            [
-                                "label" => "Site Name",
-                                "value" => "site_name",
-                                "type"  => "string",
-                            ],
-                            [
-                                "label" => "Site Link",
-                                "value" => "site_link",
-                                "type"  => "string",
-                            ],
-                            [
-                                "label" => "Event Title",
-                                "value" => "event_title",
-                                "type"  => "string",
-                            ],
-                            [
-                                "label" => "Event Date",
-                                "value" => "event_date",
-                                "type"  => "date",
-                            ],
-                            [
-                                "label" => "Event Time",
-                                "value" => "event_time",
-                                "type"  => "string",
-                            ],
-                            [
-                                "label" => "Event Location",
-                                "value" => "event_location",
-                                "type"  => "string",
-                            ],
-                            [
-                                "label" => "Certificate Link",
-                                "value" => "certificate_link",
-                                "type"  => "string",
-                            ],
-                            [
-                                "label" => "Ticket Link",
-                                "value" => "ticket_link",
-                                "type"  => "string",
-                            ],
-                            [
-                                "label" => "Attendee Name",
-                                "value" => "attendee_name",
-                                "type"  => "string",
-                            ],
-                        ],
+                        "trigger_data"             => \Eventin\Emails\AutomationPlaceholders::trigger_data( 'send_certificate' ), // Variables the builder offers for this trigger
                         "conditional_dependencies" => [ // Data you have after the event happened
                             [
                                 "label" => "Event Title",
@@ -854,45 +673,9 @@ class Wpeventin
                         // "before event start" delay, so reusing it would make the
                         // click schedule instead of send, or duplicate the reminder
                         // the attendee already got. See Eventin\Emails\ReminderAutomation.
-                        "trigger_label"            => "Send Reminder To All Attendees",        // Name of the event
+                        "trigger_label"            => __( 'Send Reminder To All Attendees', 'wp-event-solution' ),        // Name of the event
                         "trigger_value"            => \Eventin\Emails\ReminderAutomation::TRIGGER, // Event slug
-                        "trigger_data"             => [                                        // Data you have after the event happened
-                            [
-                                "label" => "Site Name",
-                                "value" => "site_name",
-                                "type"  => "string",
-                            ],
-                            [
-                                "label" => "Site Link",
-                                "value" => "site_link",
-                                "type"  => "string",
-                            ],
-                            [
-                                "label" => "Event Title",
-                                "value" => "event_title",
-                                "type"  => "string",
-                            ],
-                            [
-                                "label" => "Event Date",
-                                "value" => "event_date",
-                                "type"  => "date",
-                            ],
-                            [
-                                "label" => "Event Time",
-                                "value" => "event_time",
-                                "type"  => "string",
-                            ],
-                            [
-                                "label" => "Event Location",
-                                "value" => "event_location",
-                                "type"  => "string",
-                            ],
-                            [
-                                "label" => "Attendee Name",
-                                "value" => "attendee_name",
-                                "type"  => "string",
-                            ],
-                        ],
+                        "trigger_data"             => \Eventin\Emails\AutomationPlaceholders::trigger_data( \Eventin\Emails\ReminderAutomation::TRIGGER ), // Variables the builder offers for this trigger
                         "conditional_dependencies" => [ // Data you have after the event happened
                             [
                                 "label" => "Event Title",
@@ -908,6 +691,92 @@ class Wpeventin
                             [
                                 "label" => "Attendee",
                                 "value" => "attendee_email",
+                            ],
+                        ],
+                    ],
+                    [
+                        // Waiting-list, refund and partial-refund emails. See
+                        // Eventin\Emails\OrderNoticeAutomation.
+                        "trigger_label"            => "Waiting List Request",
+                        "trigger_value"            => \Eventin\Emails\OrderNoticeAutomation::WAITING_LIST_TRIGGER,
+                        "trigger_data"             => \Eventin\Emails\AutomationPlaceholders::trigger_data( \Eventin\Emails\OrderNoticeAutomation::WAITING_LIST_TRIGGER ), // Variables the builder offers for this trigger
+                        "conditional_dependencies" => [
+                            [
+                                "label" => "Event Title",
+                                "value" => "event_title",
+                                "type"  => "string",
+                            ],
+                        ],
+                        // Sent right away; no delay options.
+                        "delay_dependencies"       => [],
+                        "email_receivers"          => [
+                            [
+                                "label" => "Customer",
+                                "value" => "customer_email",
+                            ],
+                            [
+                                "label" => "Attendee",
+                                "value" => "attendee_email",
+                            ],
+                        ],
+                    ],
+                    [
+                        "trigger_label"            => "Booking Refund",
+                        "trigger_value"            => \Eventin\Emails\OrderNoticeAutomation::REFUND_TRIGGER,
+                        "trigger_data"             => \Eventin\Emails\AutomationPlaceholders::trigger_data( \Eventin\Emails\OrderNoticeAutomation::REFUND_TRIGGER ), // Variables the builder offers for this trigger
+                        "conditional_dependencies" => [
+                            [
+                                "label" => "Event Title",
+                                "value" => "event_title",
+                                "type"  => "string",
+                            ],
+                        ],
+                        // Sent right away; no delay options.
+                        "delay_dependencies"       => [],
+                        "email_receivers"          => [
+                            [
+                                "label" => "Customer",
+                                "value" => "customer_email",
+                            ],
+                        ],
+                    ],
+                    [
+                        "trigger_label"            => "Booking Partial Refund",
+                        "trigger_value"            => \Eventin\Emails\OrderNoticeAutomation::PARTIAL_REFUND_TRIGGER,
+                        "trigger_data"             => \Eventin\Emails\AutomationPlaceholders::trigger_data( \Eventin\Emails\OrderNoticeAutomation::PARTIAL_REFUND_TRIGGER ), // Variables the builder offers for this trigger
+                        "conditional_dependencies" => [
+                            [
+                                "label" => "Event Title",
+                                "value" => "event_title",
+                                "type"  => "string",
+                            ],
+                        ],
+                        // Sent right away; no delay options.
+                        "delay_dependencies"       => [],
+                        "email_receivers"          => [
+                            [
+                                "label" => "Customer",
+                                "value" => "customer_email",
+                            ],
+                        ],
+                    ],
+                    [
+                        "trigger_label"            => "Waiting List Payment Link",
+                        "trigger_value"            => \Eventin\Emails\OrderNoticeAutomation::PAYMENT_LINK_TRIGGER,
+                        "trigger_data"             => \Eventin\Emails\AutomationPlaceholders::trigger_data( \Eventin\Emails\OrderNoticeAutomation::PAYMENT_LINK_TRIGGER ), // Variables the builder offers for this trigger
+                        "conditional_dependencies" => [
+                            [
+                                "label" => "Event Title",
+                                "value" => "event_title",
+                                "type"  => "string",
+                            ],
+                        ],
+                        // Sent when the admin clicks "Send Payment Link"; no delay options.
+                        "delay_dependencies"       => [],
+                        "email_receivers"          => [
+                            [
+                                "label" => "Customer",
+                                "value" => "customer_email",
                             ],
                         ],
                     ],

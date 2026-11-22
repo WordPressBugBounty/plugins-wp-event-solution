@@ -4,8 +4,7 @@ defined( 'ABSPATH' ) || exit;
 use Eventin\Template\TemplateModel;
 
 if ( wp_is_block_theme() ) {
-    block_header_area();
-    wp_head();
+    include \Wpeventin::templates_dir() . 'template-parts/block-theme-header.php';
 } else {
     get_header();
 }
@@ -44,8 +43,7 @@ if ( wp_is_block_theme() ) {
     }
 
     if ( wp_is_block_theme() ) {
-        block_footer_area();
-        wp_footer();
+        include \Wpeventin::templates_dir() . 'template-parts/block-theme-footer.php';
     } else {
         get_footer();
     }

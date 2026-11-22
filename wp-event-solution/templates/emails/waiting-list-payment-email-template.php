@@ -8,6 +8,7 @@
  *   $order       Eventin\Order\OrderModel
  *   $event       Etn\Core\Event\Event_Model
  *   $payment_url string  Signed preview page URL
+ *   $content     string  Optional: Automation flow text shown instead of the intro
  */
 defined( 'ABSPATH' ) || exit;
 ?>
@@ -16,6 +17,11 @@ defined( 'ABSPATH' ) || exit;
     <?php esc_html_e( 'A spot has opened up for you!', 'wp-event-solution' ); ?>
 </h2>
 
+<?php if ( ! empty( $content ) ) : // Automation flow text replaces the built-in intro. ?>
+<div style="font-size:14px;line-height:22px;color:#556880;margin:0 0 24px;">
+    <?php echo wp_kses_post( $content ); ?>
+</div>
+<?php else : ?>
 <p style="font-size:14px;line-height:22px;color:#556880;margin:0 0 24px;">
     <?php
     printf(
@@ -26,6 +32,7 @@ defined( 'ABSPATH' ) || exit;
     );
     ?>
 </p>
+<?php endif; ?>
 
 <!-- Order summary -->
 <div style="background:#f1f5f9;padding:10px 20px;border-radius:5px;margin-bottom:16px;">

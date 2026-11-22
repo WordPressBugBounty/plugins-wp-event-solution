@@ -78,6 +78,7 @@ $data = [
     // server would have gated the item on — a user with etn_manage_setting does
     // not necessarily hold etn_manage_attendee.
     'can_manage_attendee'         => current_user_can( 'etn_manage_attendee' ),
+    'can_manage_template'         => current_user_can( 'etn_manage_template' ),
 ];
 
 // Expose the logged-in user's billing details so the checkout form can prefill them.

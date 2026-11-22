@@ -121,6 +121,8 @@ class RefundController extends WP_REST_Controller {
             // are lower than the sticker price (net = after the coupon discount).
             'coupon_code'      => $order->coupon_code,
             'discount_total'   => (float) $order->discount_total,
+            'member_discount'       => (float) $order->member_discount,
+            'member_discount_label' => (string) $order->member_discount_label,
             // Currency captured on the order at purchase time (reflects the
             // gateway/currency actually used), falling back to the global setting.
             'currency'         => $order->currency ? $order->currency : etn_currency(),

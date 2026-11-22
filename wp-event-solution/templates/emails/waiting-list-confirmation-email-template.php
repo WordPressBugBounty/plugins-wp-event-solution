@@ -7,6 +7,7 @@
  * Variables in scope:
  *   $event          Etn\Core\Event\Event_Model
  *   $recipient_name string  Display name for the greeting (may be empty)
+ *   $content        string  Optional. Body text from an Automation flow; replaces the default text.
  */
 defined( 'ABSPATH' ) || exit;
 
@@ -17,6 +18,11 @@ $greeting_name = ! empty( $recipient_name ) ? $recipient_name : __( 'there', 'wp
     <?php esc_html_e( 'You\'re on the waiting list!', 'wp-event-solution' ); ?>
 </h2>
 
+<?php if ( ! empty( $content ) ) : ?>
+<div style="font-size:14px;line-height:22px;color:#556880;margin:0 0 24px;">
+    <?php echo wp_kses_post( $content ); ?>
+</div>
+<?php else : ?>
 <p style="font-size:14px;line-height:22px;color:#556880;margin:0 0 24px;">
     <?php
     printf(
@@ -27,6 +33,7 @@ $greeting_name = ! empty( $recipient_name ) ? $recipient_name : __( 'there', 'wp
     );
     ?>
 </p>
+<?php endif; ?>
 
 <!-- Event info -->
 <hr style="border:none;border-top:1px solid #e2e8f0;margin:28px 0;">

@@ -174,8 +174,15 @@ class RefundService {
         $new_status = $this->recompute_order_status( $order );
 
         try {
-            \Eventin\Mails\Mail::to( (string) $order->customer_email )
-                ->send( new \Eventin\Emails\RefundConfirmationMail( $order, $refund_row ) );
+            $trigger = \Eventin\Emails\OrderNoticeAutomation::refund_trigger( $new_status );
+
+            // Automation on (and a flow exists) → the flow sends it instead.
+            if ( \Eventin\Emails\OrderNoticeAutomation::should_use( $trigger ) ) {
+                \Eventin\Emails\OrderNoticeAutomation::dispatch_refund( $order, $refund_row, $new_status );
+            } else {
+                \Eventin\Mails\Mail::to( (string) $order->customer_email )
+                    ->send( new \Eventin\Emails\RefundConfirmationMail( $order, $refund_row ) );
+            }
         } catch ( \Throwable $e ) {
             error_log( '[eventin] refund email failed: ' . $e->getMessage() );
         }
@@ -480,7 +487,7 @@ class RefundService {
     protected function addons_total( $selections ) {
         if ( is_string( $selections ) ) {
             $decoded    = json_decode( $selections, true );
-            $selections = is_array( $decoded ) ? $decoded : maybe_unserialize( $selections );
+            $selections = is_array( $decoded ) ? $decoded : etn_safe_decode( $selections );
         }
 
         if ( ! is_array( $selections ) ) {

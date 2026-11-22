@@ -52,6 +52,9 @@ class OrderModel extends Post_Model {
         // \Eventin\Refund\RefundService::discountable_worth().
         'discount_scope'        => '',
         'discount_ticket_slugs' => [],
+        // Kept apart from discount_total, which is the coupon's alone.
+        'member_discount'       => 0,
+        'member_discount_label' => '',
         'tax_total'         => 0,
         'tax_display_mode'  => 'excl',
         'payment_id'        => '',

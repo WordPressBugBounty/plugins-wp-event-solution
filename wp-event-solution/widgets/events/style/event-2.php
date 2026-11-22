@@ -179,7 +179,11 @@ if ($enable_pagination === 'yes' && !empty($data)) {
     $args = [
         'post_type' => 'etn',
         'post_status' => 'publish',
-        'posts_per_page' => -1, // Get all posts to count
+        // Only found_posts is read. Load one ID, not every event and its meta.
+        'posts_per_page' => 1,
+        'fields' => 'ids',
+        'update_post_meta_cache' => false,
+        'update_post_term_cache' => false,
         'meta_query' => [], // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
         'tax_query' => [], // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
     ];

@@ -16,6 +16,103 @@ use Exception;
  * Class extention
  */
 class ImportAutomation {
+    /**
+     * Default subject and body of the "Purchase Email Automation For Customer" flow.
+     *
+     * The customer is the person who paid, so this one mail has to carry every
+     * attendee's ticket link, even when none of the attendees uses the customer's
+     * own email address. The ticket links are added below the body by the order
+     * email template.
+     */
+    const CUSTOMER_PURCHASE_SUBJECT = 'Your tickets for {%event_title%}';
+    const CUSTOMER_PURCHASE_BODY    = '<p>Hi {%customer_name%},</p><p>Thank you for your booking. You booked {%ticket_quantity%} ticket(s) for "{%event_title%}" on {%event_date%} at {%event_time%}.</p><p>Your booking number is #{%order_id%}. The ticket for each attendee is listed below. Use the Download Ticket link to save it, or forward the link to the attendee.</p>';
+
+    /**
+     * Subject and body this flow shipped with before the wording above.
+     * Only used to tell an untouched flow from one the admin has edited.
+     */
+    const LEGACY_CUSTOMER_PURCHASE_SUBJECT = 'Ticket purchase successful';
+    const LEGACY_CUSTOMER_PURCHASE_BODY    = 'You have purchased ticket(s). Attendee ticket details are as follows.';
+
+    /**
+     * Set once the waiting-list and refund flows were created on this site.
+     */
+    const ORDER_NOTICE_MIGRATED_OPTION = 'etn_order_notice_automation_migrated';
+    const PAYMENT_LINK_MIGRATED_OPTION = 'etn_payment_link_automation_migrated';
+
+    /**
+     * Set once saved default flows had their wrong text repaired (v2 adds the RSVP subject).
+     */
+    const QUOTE_REPAIR_OPTION = 'etn_automation_default_text_repaired_v2';
+
+    /**
+     * The shipped RSVP subject was "Event Reminder", which is wrong for an RSVP.
+     */
+    const OLD_RSVP_SUBJECT = 'Event Reminder';
+    const NEW_RSVP_SUBJECT = 'RSVP: {%event_title%}';
+
+    /**
+     * Repair wrong text in saved default flows, once.
+     *
+     * 1. RSVP flows still using the shipped subject "Event Reminder" get
+     *    "RSVP: {%event_title%}".
+     * 2. The apostrophe:
+     * Older versions wrote "Here\u2019s" in a PHP string where \u2019 is not
+     * an escape, so flows were saved with "Hereu2019s Whatu2019s" and every
+     * email showed it. Only a "u2019" between letters is changed, so text an
+     * admin wrote is left alone.
+     *
+     * @return void
+     */
+    public static function repair_broken_quotes() {
+        if ( get_option( self::QUOTE_REPAIR_OPTION ) ) {
+            return;
+        }
+
+        $ids = get_posts( [
+            'post_type'      => 'eve-flow',
+            'post_status'    => 'any',
+            'posts_per_page' => -1,
+            'fields'         => 'ids',
+        ] );
+
+        foreach ( $ids as $id ) {
+            $config = get_post_meta( $id, '_eve_notification_flow_flow_config', true );
+            if ( ! is_array( $config ) || empty( $config['nodes'] ) || ! is_array( $config['nodes'] ) ) {
+                continue;
+            }
+
+            $changed = false;
+            $is_rsvp = 'event_rsvp_email' === get_post_meta( $id, '_eve_notification_flow_trigger', true );
+            foreach ( $config['nodes'] as &$node ) {
+                // Only the untouched shipped subject; an admin's own subject stays.
+                if ( $is_rsvp && 'email' === ( $node['name'] ?? '' ) && self::OLD_RSVP_SUBJECT === ( $node['data']['subject'] ?? null ) ) {
+                    $node['data']['subject']  = self::NEW_RSVP_SUBJECT;
+                    $node['data']['subtitle'] = 'Subject: ' . self::NEW_RSVP_SUBJECT;
+                    $changed                  = true;
+                }
+
+                foreach ( [ 'subject', 'subtitle', 'body' ] as $field ) {
+                    if ( ! isset( $node['data'][ $field ] ) || ! is_string( $node['data'][ $field ] ) ) {
+                        continue;
+                    }
+
+                    $fixed = preg_replace( '/(?<=[A-Za-z])u2019(?=[A-Za-z.])/', '’', $node['data'][ $field ] );
+                    if ( $fixed !== $node['data'][ $field ] ) {
+                        $node['data'][ $field ] = $fixed;
+                        $changed                = true;
+                    }
+                }
+            }
+            unset( $node );
+
+            if ( $changed ) {
+                update_post_meta( $id, '_eve_notification_flow_flow_config', $config );
+            }
+        }
+
+        update_option( self::QUOTE_REPAIR_OPTION, 1, false );
+    }
 
     public static function create_automation_flows() {
         $result = array(
@@ -63,10 +160,10 @@ class ImportAutomation {
                             "data" => [
                                 "actionType" => "send_email",
                                 "label" => "send_email",
-                                "subtitle" => "Subject: Thanks for Joining Us -  Here\u2019...",
+                                "subtitle" => "Subject: Thanks for Joining Us -  Here’...",
                                 "receiverType" => "attendee_email",
                                 "from" => "admin@example.com",
-                                "subject" => "Thanks for Joining Us -  Here\u2019s What\u2019s Next",
+                                "subject" => "Thanks for Joining Us -  Here’s What’s Next",
                                 "body" => "<p>Hi Attendees ,<\/p><p>Thanks for attending \"{%event_title%}\". We appreciate your time and hope the session delivered real value.<\/p><p>&nbsp;<\/p><p>If you would like updates on future sessions or have feedback, reply directly to this email. we review every message.<\/p><p>&nbsp;<\/p><p>Thanks again,<\/p>",
                                 "processed_session_ids" => []
                             ],
@@ -219,8 +316,8 @@ class ImportAutomation {
                                 'subtitle' => 'Subject: Customer ticket purchase',
                                 'receiverType' => 'customer_email',
                                 'from' => 'admin@gmail.com',
-                                'subject' => 'Ticket purchase successful',
-                                'body' => 'You have purchased ticket(s). Attendee ticket details are as follows.',
+                                'subject' => self::CUSTOMER_PURCHASE_SUBJECT,
+                                'body' => self::CUSTOMER_PURCHASE_BODY,
                             ],
                             'position' => [
                                 'x' => 200,
@@ -368,10 +465,10 @@ class ImportAutomation {
                             'data' => [
                                 'actionType' => 'send_email',
                                 'label' => 'send_email',
-                                'subtitle' => 'Subject: RSVP ATTENDEES REMINDER',
+                                'subtitle' => 'Subject: RSVP: {%event_title%}',
                                 'receiverType' => 'attendee_email',
                                 'from' => 'admin@gmail.com',
-                                'subject' => 'Event Reminder',
+                                'subject' => 'RSVP: {%event_title%}',
                                 'body' => 'You have been invited to attend an event. The details are provided below:',
                             ],
                             'position' => [
@@ -511,6 +608,7 @@ class ImportAutomation {
             self::send_certificate_flow_definition(),
             self::reminder_all_attendees_flow_definition(),
         ];
+        $automation_flows = array_merge( $automation_flows, self::order_notice_flow_definitions() );
         try {
             foreach ( $automation_flows as $key => $automation_flow ) {
                 $flow = new Flow( 'eve',0 );
@@ -527,6 +625,10 @@ class ImportAutomation {
             update_option( 'etn_send_certificate_automation_migrated', true );
             // Same for the on-demand reminder flow and its back-fill (V_4_1_26).
             update_option( 'etn_reminder_all_attendees_automation_migrated', true );
+            // Same for the waiting-list and refund flows and their back-fill.
+            update_option( self::ORDER_NOTICE_MIGRATED_OPTION, true );
+            // The payment-link flow is part of the same default set.
+            update_option( self::PAYMENT_LINK_MIGRATED_OPTION, true );
         } catch ( Exception $e ) {
             $result['errors'][] = 'Failed to create service: ' . $e->getMessage();
         }
@@ -775,6 +877,253 @@ class ImportAutomation {
     }
 
     /**
+     * Default flows for the waiting-list request and refund emails.
+     *
+     * Published, because each one replaces an email that is sent today. A draft
+     * would stop that email (see Eventin\Emails\OrderNoticeAutomation).
+     *
+     * The body text is shown inside the same email design as the direct email:
+     * the event details (waiting list) and the refund table (refund) are added
+     * below it by EnsHooks.
+     *
+     * @return array[]
+     */
+    public static function order_notice_flow_definitions() {
+        $waiting_list_body = '<p>Hi {%recipient_name%},</p><p>You have been added to the waiting list for {%event_title%}. We will email you as soon as a spot opens up so you can complete your registration.</p>';
+
+        return [
+            self::order_notice_flow_definition(
+                'Waiting List Request',
+                \Eventin\Emails\OrderNoticeAutomation::WAITING_LIST_TRIGGER,
+                [
+                    [
+                        'receiverType' => 'customer_email',
+                        'subtitle'     => 'Send waiting list email to customer',
+                        'subject'      => "You're on the waiting list for {%event_title%}",
+                        'body'         => $waiting_list_body,
+                    ],
+                    [
+                        'receiverType' => 'attendee_email',
+                        'subtitle'     => 'Send waiting list email to attendee',
+                        'subject'      => "You're on the waiting list for {%event_title%}",
+                        'body'         => $waiting_list_body,
+                    ],
+                ]
+            ),
+            self::order_notice_flow_definition(
+                'Booking Refund',
+                \Eventin\Emails\OrderNoticeAutomation::REFUND_TRIGGER,
+                [
+                    [
+                        'receiverType' => 'customer_email',
+                        'subtitle'     => 'Send refund email to customer',
+                        'subject'      => 'Refund processed for order #{%order_id%}',
+                        'body'         => '<p>Hi {%customer_name%},</p><p>Your order #{%order_id%} for {%event_title%} has been fully refunded. Refund amount: {%refund_amount%}. Details below:</p>',
+                    ],
+                ]
+            ),
+            self::order_notice_flow_definition(
+                'Booking Partial Refund',
+                \Eventin\Emails\OrderNoticeAutomation::PARTIAL_REFUND_TRIGGER,
+                [
+                    [
+                        'receiverType' => 'customer_email',
+                        'subtitle'     => 'Send partial refund email to customer',
+                        'subject'      => 'Partial refund processed for order #{%order_id%}',
+                        'body'         => '<p>Hi {%customer_name%},</p><p>A partial refund of {%refund_amount%} has been processed for your order #{%order_id%} for {%event_title%}. Details below:</p>',
+                    ],
+                ]
+            ),
+            self::payment_link_flow_definition(),
+        ];
+    }
+
+    /**
+     * Default "Waiting List Payment Link" flow: same subject and intro as the old direct email.
+     *
+     * @return array
+     */
+    public static function payment_link_flow_definition() {
+        return self::order_notice_flow_definition(
+            'Waiting List Payment Link',
+            \Eventin\Emails\OrderNoticeAutomation::PAYMENT_LINK_TRIGGER,
+            [
+                [
+                    'receiverType' => 'customer_email',
+                    'subtitle'     => 'Send payment link to customer',
+                    'subject'      => 'Your spot is ready — complete your payment for {%event_title%}',
+                    'body'         => '<p>Hi {%customer_name%}, great news — a ticket for {%event_title%} is now available. Click the button below to review your order and complete payment before the spot is taken.</p>',
+                ],
+            ]
+        );
+    }
+
+    /**
+     * Add the payment-link flow to a site that already has the other default flows, once.
+     *
+     * Its own option, so a site that deleted one of the other default flows
+     * does not get that flow back.
+     *
+     * @return void
+     */
+    public static function create_payment_link_flow() {
+        if ( get_option( self::PAYMENT_LINK_MIGRATED_OPTION ) ) {
+            return;
+        }
+
+        if ( ! \Eventin\Emails\OrderNoticeAutomation::has_flow( \Eventin\Emails\OrderNoticeAutomation::PAYMENT_LINK_TRIGGER ) ) {
+            $flow = new Flow( 'eve', 0 );
+            $flow->set_props( self::payment_link_flow_definition() );
+            $flow->save();
+        }
+
+        update_option( self::PAYMENT_LINK_MIGRATED_OPTION, true );
+    }
+
+    /**
+     * Build one flow: trigger → email step(s) in order → end.
+     *
+     * Contains exactly the four keys the Flow model persists
+     * ( name, trigger, flow_config, status ).
+     *
+     * @param string $name
+     * @param string $trigger
+     * @param array  $emails  Each: receiverType, subtitle, subject, body.
+     *
+     * @return array
+     */
+    private static function order_notice_flow_definition( $name, $trigger, $emails ) {
+        $nodes = [
+            [
+                'id'       => 'node_1',
+                'type'     => 'trigger',
+                'name'     => 'trigger',
+                'data'     => [
+                    'label'        => 'trigger: ' . $trigger,
+                    'subtitle'     => 'On "' . $name . '" event fires',
+                    'triggerValue' => $trigger,
+                ],
+                'position' => [ 'x' => 300, 'y' => 100 ],
+            ],
+        ];
+        $edges    = [];
+        $previous = 'node_1';
+        $y        = 280;
+
+        foreach ( $emails as $index => $email ) {
+            $id = 'node_' . ( $index + 2 );
+
+            $nodes[] = [
+                'id'       => $id,
+                'type'     => 'action',
+                'name'     => 'email',
+                'data'     => [
+                    'actionType'            => 'send_email',
+                    'label'                 => 'send_email',
+                    'subtitle'              => $email['subtitle'],
+                    'operator'              => '=',
+                    'value'                 => '',
+                    'receiverType'          => $email['receiverType'],
+                    'from'                  => '',
+                    'subject'               => $email['subject'],
+                    'body'                  => $email['body'],
+                    'processed_session_ids' => [],
+                ],
+                'position' => [ 'x' => 300, 'y' => $y ],
+            ];
+            $edges[] = self::order_notice_edge( $previous, $id );
+
+            $previous = $id;
+            $y       += 180;
+        }
+
+        $nodes[] = [
+            'id'       => 'end_1',
+            'type'     => 'end',
+            'name'     => 'end',
+            'data'     => [
+                'label'    => 'end_flow',
+                'subtitle' => 'Automation stops here',
+            ],
+            'position' => [ 'x' => 300, 'y' => $y ],
+        ];
+        $edges[] = self::order_notice_edge( $previous, 'end_1' );
+
+        return [
+            'name'        => $name,
+            'trigger'     => $trigger,
+            'flow_config' => [
+                'nodes' => $nodes,
+                'edges' => $edges,
+            ],
+            'status'      => 'publish',
+        ];
+    }
+
+    /**
+     * One flow edge between two nodes.
+     *
+     * @param string $source
+     * @param string $target
+     *
+     * @return array
+     */
+    private static function order_notice_edge( $source, $target ) {
+        return [
+            'id'        => 'edge_' . $source . '-' . $target,
+            'type'      => 'smoothstep',
+            'markerEnd' => [
+                'type' => 'arrowclosed',
+            ],
+            'source'    => $source,
+            'target'    => $target,
+            'data'      => [
+                'animated' => false,
+            ],
+        ];
+    }
+
+    /**
+     * Create the waiting-list and refund flows on a site that already has the
+     * other default flows (they were created before these flows existed).
+     *
+     * Skips a trigger that already has a flow — the admin may have built one
+     * by hand. Two flows on one trigger would send every email twice.
+     *
+     * @return array { flow_ids: int[], errors: string[] }
+     */
+    public static function create_order_notice_flows() {
+        $result = array(
+            'flow_ids' => array(),
+            'errors'   => array(),
+        );
+
+        try {
+            foreach ( self::order_notice_flow_definitions() as $definition ) {
+                if ( \Eventin\Emails\OrderNoticeAutomation::has_flow( $definition['trigger'] ) ) {
+                    continue;
+                }
+
+                $flow = new Flow( 'eve', 0 );
+                $flow->set_props( $definition );
+                $flow_id = $flow->save();
+
+                if ( $flow_id ) {
+                    $result['flow_ids'][] = $flow_id;
+                }
+            }
+
+            update_option( self::ORDER_NOTICE_MIGRATED_OPTION, true );
+            // The payment-link flow is part of the same default set.
+            update_option( self::PAYMENT_LINK_MIGRATED_OPTION, true );
+        } catch ( Exception $e ) {
+            $result['errors'][] = 'Failed to create service: ' . $e->getMessage();
+        }
+
+        return $result;
+    }
+
+    /**
      * Create only the "Send Certificate" flow.
      *
      * Used by the V_4_1_16 upgrader to back-fill existing customers who already
@@ -801,6 +1150,67 @@ class ImportAutomation {
         }
 
         return $result;
+    }
+
+    /**
+     * Give existing sites the new customer purchase mail wording.
+     *
+     * Only the customer node of a flow that still has the old shipped subject AND
+     * body is changed. If the admin edited either one, the flow is left alone.
+     *
+     * @return int Number of flows updated.
+     */
+    public static function refresh_customer_purchase_flows() {
+        if ( ! class_exists( Flow::class ) ) {
+            return 0;
+        }
+
+        $flow_model = new Flow( 'eve', 0 );
+        $found      = $flow_model->all( [
+            'trigger'        => 'event_ticket_purchase',
+            'posts_per_page' => -1,
+            'post_status'    => 'any',
+        ] );
+
+        $updated = 0;
+
+        foreach ( $found['items'] as $post ) {
+            $flow   = new Flow( 'eve', $post->ID );
+            $config = $flow->get_flow_config();
+
+            if ( empty( $config['nodes'] ) || ! is_array( $config['nodes'] ) ) {
+                continue;
+            }
+
+            $changed = false;
+
+            foreach ( $config['nodes'] as $i => $node ) {
+                $data = $node['data'] ?? [];
+
+                if ( ( $data['receiverType'] ?? '' ) !== 'customer_email' ) {
+                    continue;
+                }
+
+                // The editor may wrap the body in <p>, so compare the plain text.
+                $same_subject = trim( (string) ( $data['subject'] ?? '' ) ) === self::LEGACY_CUSTOMER_PURCHASE_SUBJECT;
+                $same_body    = trim( wp_strip_all_tags( (string) ( $data['body'] ?? '' ) ) ) === self::LEGACY_CUSTOMER_PURCHASE_BODY;
+
+                if ( ! $same_subject || ! $same_body ) {
+                    continue;
+                }
+
+                $config['nodes'][ $i ]['data']['subject'] = self::CUSTOMER_PURCHASE_SUBJECT;
+                $config['nodes'][ $i ]['data']['body']    = self::CUSTOMER_PURCHASE_BODY;
+                $changed = true;
+            }
+
+            if ( $changed ) {
+                update_post_meta( $post->ID, $flow->prefix . 'flow_config', $config );
+                $updated++;
+            }
+        }
+
+        return $updated;
     }
 
     /**
@@ -852,10 +1262,10 @@ class ImportAutomation {
                             "data" => [
                                 "actionType" => "send_email",
                                 "label" => "send_email",
-                                "subtitle" => "Subject: Thanks for Joining Us -  Here\u2019...",
+                                "subtitle" => "Subject: Thanks for Joining Us -  Here’...",
                                 "receiverType" => "attendee_email",
                                 "from" => "admin@example.com",
-                                "subject" => "Thanks for Joining Us -  Here\u2019s What\u2019s Next",
+                                "subject" => "Thanks for Joining Us -  Here’s What’s Next",
                                 "body" => "<p>Hi Attendees ,<\/p><p>Thanks for attending \"{%event_title%}\". We appreciate your time and hope the session delivered real value.<\/p><p>&nbsp;<\/p><p>If you would like updates on future sessions or have feedback, reply directly to this email. we review every message.<\/p><p>&nbsp;<\/p><p>Thanks again,<\/p>",
                                 "processed_session_ids" => []
                             ],

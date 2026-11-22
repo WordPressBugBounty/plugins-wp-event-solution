@@ -13,6 +13,7 @@ use Eventin\AccessControl\Ownership;
 use Eventin\Speaker\SpeakerExporter;
 use Eventin\Speaker\SpeakerImporter;
 use Etn\Core\Speaker\User_Model;
+use Etn\Utils\Helper;
 use WP_Error;
 use WP_User_Query;
 use WP_REST_Controller;
@@ -57,7 +58,7 @@ class SpeakerController extends WP_REST_Controller {
             [
                 'methods'             => WP_REST_Server::CREATABLE,
                 'callback'            => [$this, 'create_item'],
-                'permission_callback' => [$this, 'get_item_permissions_check'],
+                'permission_callback' => [$this, 'create_item_permissions_check'],
             ],
             [
                 'methods'             => WP_REST_Server::DELETABLE,
@@ -524,6 +525,12 @@ class SpeakerController extends WP_REST_Controller {
      * @return null|WP_Error Null when the account may be created.
      */
     private function check_user_creation_permission( $data, $assigns_role = null ) {
+        // No escalation when the speaker/organizer roles grant nothing the caller lacks:
+        // Editor passes, Author/Contributor (no publish_pages / edit_pages) still fail.
+        if ( Ownership::can_grant_roles( [ 'etn-speaker', 'etn-organizer' ] ) ) {
+            return null;
+        }
+
         if ( ! current_user_can( 'create_users' ) ) {
             return new WP_Error(
                 'rest_forbidden',
@@ -554,6 +561,11 @@ class SpeakerController extends WP_REST_Controller {
      * @return WP_Error|boolean
      */
     public function create_item_permissions_check( $request ) {
+        // Vendors may only view speakers and organizers.
+        if ( Helper::is_vendor_user( get_current_user_id() ) ) {
+            return false;
+        }
+
         return current_user_can( 'etn_manage_organizer' )
                     || current_user_can( 'etn_manage_event' );
     }
@@ -574,8 +586,8 @@ class SpeakerController extends WP_REST_Controller {
             return new WP_Error('user_not_found', __( 'User does not exist', 'wp-event-solution' ), array('status' => 404));
         }
         
-        // only allow to edit `speaker` or `organizer`
-        if ( ! current_user_can( 'edit_user', $target_user_id ) ) {
+        // WP's edit_user, or Ownership's no-escalation path for managers without edit_users (Editor).
+        if ( ! current_user_can( 'edit_user', $target_user_id ) && ! Ownership::can_manage_user( $target_user_id ) ) {
             return new WP_Error('forbidden', __( 'Forbidden', 'wp-event-solution' ), array('status' => 403));
         }
         
@@ -637,6 +649,11 @@ class SpeakerController extends WP_REST_Controller {
      * @return WP_Error|boolean
      */
     public function update_item_permissions_check( $request ) {
+        // Vendors may only view speakers and organizers.
+        if ( Helper::is_vendor_user( get_current_user_id() ) ) {
+            return false;
+        }
+
         return current_user_can( 'etn_manage_organizer' )
                     || current_user_can( 'etn_manage_event' );
     }
@@ -798,6 +815,10 @@ class SpeakerController extends WP_REST_Controller {
      * @return WP_Error|boolean
      */
     public function delete_item_permissions_check( $request ) {
+        if ( Helper::is_vendor_user( get_current_user_id() ) ) {
+            return false;
+        }
+
         if ( ! current_user_can( 'etn_manage_organizer' ) && ! current_user_can( 'etn_manage_event' ) ) {
             return false;
         }
@@ -895,8 +916,87 @@ class SpeakerController extends WP_REST_Controller {
         if ( isset( $input_data['hide_user'] ) ) {
             $prepared_data['hide_user'] = rest_sanitize_boolean( $input_data['hide_user'] );
         }
-        
-        return $prepared_data;
+
+        /**
+         * Filters the speaker/organizer fields about to be saved.
+         *
+         * Every key in the returned array is written with update_user_meta()
+         * (and handed to wp_insert_user() on create), so callbacks must
+         * sanitize what they add. New keys must start with `etn_` or be
+         * allowed through `eventin_speaker_meta_keys`; anything else, and any
+         * key that grants roles, sets a password or touches sessions, is
+         * dropped after the filter.
+         *
+         * @since 4.1.26
+         *
+         * @param array           $prepared_data Sanitized fields keyed by meta key.
+         * @param array           $input_data    Raw decoded request body.
+         * @param WP_REST_Request $request       Full request.
+         */
+        $core_keys     = array_keys( $prepared_data );
+        $prepared_data = apply_filters( 'eventin_speaker_prepared_data', $prepared_data, (array) $input_data, $request );
+
+        return $this->restrict_addon_keys( (array) $prepared_data, $core_keys );
+    }
+
+    /**
+     * Keep core keys plus addon keys that are `etn_`-prefixed or allowlisted,
+     * then drop protected user keys whatever their source.
+     *
+     * @param array    $data      Filtered data.
+     * @param string[] $core_keys Keys core prepared before the filter.
+     *
+     * @return array
+     */
+    protected function restrict_addon_keys( array $data, array $core_keys ) {
+        /**
+         * Filters extra user meta keys addons may save on speakers/organizers
+         * beyond the `etn_` prefix.
+         *
+         * @since 4.1.26
+         *
+         * @param string[] $keys Allowed meta keys.
+         */
+        $allowed = (array) apply_filters( 'eventin_speaker_meta_keys', [] );
+
+        foreach ( array_keys( $data ) as $key ) {
+            $is_core  = in_array( $key, $core_keys, true );
+            $is_addon = is_string( $key ) && ( 0 === strpos( $key, 'etn_' ) || in_array( $key, $allowed, true ) );
+
+            if ( ! $is_core && ! $is_addon ) {
+                unset( $data[ $key ] );
+            }
+        }
+
+        return array_diff_key( $data, array_flip( $this->protected_user_keys() ) );
+    }
+
+    /**
+     * User keys no request may set. A filter callback that passes request
+     * fields through would otherwise let an organizer manager grant roles,
+     * change passwords or hijack sessions.
+     *
+     * @return string[]
+     */
+    protected function protected_user_keys() {
+        global $wpdb;
+
+        $keys = [
+            'ID',
+            'role',
+            'user_pass',
+            'user_activation_key',
+            'meta_input',
+            'session_tokens',
+            \WP_Application_Passwords::USERMETA_KEY_APPLICATION_PASSWORDS,
+        ];
+
+        foreach ( array_unique( [ $wpdb->base_prefix, $wpdb->get_blog_prefix() ] ) as $prefix ) {
+            $keys[] = $prefix . 'capabilities';
+            $keys[] = $prefix . 'user_level';
+        }
+
+        return $keys;
     }
 
     public static function get_etn_user_role( $category = null ) {
@@ -1075,6 +1175,10 @@ class SpeakerController extends WP_REST_Controller {
      * @return  bool
      */
     public function import_item_permissions_check( $request ) {
+	    if ( Helper::is_vendor_user( get_current_user_id() ) ) {
+	        return false;
+	    }
+
 	    return current_user_can( 'etn_manage_organizer' ) || current_user_can( 'etn_manage_event' );
     }
 

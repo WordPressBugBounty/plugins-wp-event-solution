@@ -202,6 +202,30 @@ defined( 'ABSPATH' ) || exit;
             </td>
         </tr>
         <?php endif; ?>
+        <?php // Already out of total_price, like the native coupon, so only shown here. ?>
+        <?php if ( floatval( $order->member_discount ) > 0 ) : ?>
+        <tr>
+            <td
+                style="padding: 10px 0; font-size: 14px; color: #334155"
+            >
+                <?php echo esc_html( ( $order->member_discount_label ? $order->member_discount_label : __( 'Member discount', 'wp-event-solution' ) ) . ':' ); ?>
+            </td>
+            <td
+                style="
+                padding: 10px 0;
+                text-align: right;
+                font-size: 14px;
+                color: #334155;
+                "
+            >
+             <?php
+                $member_discount_with_currency = \Etn\Core\Event\Helper::instance()->currency_with_position( number_format( floatval( $order->member_discount ), 2 ), $order );
+                printf( '%s', esc_html( $member_discount_with_currency ) );
+              ?>
+
+            </td>
+        </tr>
+        <?php endif; ?>
         <?php if ( ! $tax_included_in_total && $order->tax_total > 0 ) : ?>
         <!-- Tax -->
         <tr>

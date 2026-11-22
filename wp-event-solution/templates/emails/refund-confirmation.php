@@ -4,6 +4,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * @var \Eventin\Order\OrderModel $order
  * @var array                     $refund
+ * @var string                    $content Optional. Body text from an Automation flow; replaces the greeting.
  */
 
 $is_ticket = isset( $refund['type'] ) && 'ticket' === $refund['type'];
@@ -12,9 +13,13 @@ if ( '' === $customer ) {
     $customer = (string) $order->customer_email;
 }
 ?>
+<?php if ( ! empty( $content ) ) : ?>
+<div><?php echo wp_kses_post( $content ); ?></div>
+<?php else : ?>
 <p><?php echo esc_html__( 'Hi', 'wp-event-solution' ); ?> <?php echo esc_html( $customer ); ?>,</p>
 
 <p><?php esc_html_e( 'A refund has been processed for your order. Details below:', 'wp-event-solution' ); ?></p>
+<?php endif; ?>
 
 <table style="width:100%;border-collapse:collapse;margin:16px 0;">
     <tr>

@@ -33,7 +33,7 @@ class AttendeeImporter implements PostImporterInterface {
     /**
      * Attendee import
      *
-     * @return  void
+     * @return  int[]|\WP_Error Imported attendee ids.
      */
     public function import( $file ) {
         $this->file  = $file;
@@ -44,19 +44,21 @@ class AttendeeImporter implements PostImporterInterface {
         }
 
         $this->data = $file_reader->read_file();
-        $this->create_attendee();
+
+        return $this->create_attendee();
     }
 
     /**
      * Create Attendee
      *
-     * @return  void
+     * @return  int[] Created attendee ids.
      */
     private function create_attendee() {
         $attendee  = new Attendee_Model();
         $file_type = ! empty( $this->file['type'] ) ? $this->file['type'] : '';
 
         $rows = $this->data;
+        $ids  = [];
 
         foreach ( $rows as $row ) {
             $args = [
@@ -80,8 +82,13 @@ class AttendeeImporter implements PostImporterInterface {
             $attendee->create( $args );
 
             $this->update_extra_fields( $attendee->id, $extra_fields );
+
+            if ( ! empty( $attendee->id ) ) {
+                $ids[] = (int) $attendee->id;
+            }
         }
 
+        return $ids;
     }
 
     /**

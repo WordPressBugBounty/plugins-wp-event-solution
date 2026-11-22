@@ -3,7 +3,7 @@ Contributors: arraytics, ehsanriyadh
 Tags: events calendar, events, calendar, event registration, event tickets, event booking, RSVP
 Requires at least: 6.2
 Tested up to: 7.1
-Stable tag: 4.1.30
+Stable tag: 4.1.31
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: [https://www.gnu.org/licenses/gpl-2.0.html](https://www.gnu.org/licenses/gpl-2.0.html)
@@ -78,7 +78,7 @@ With Eventin, you can:
 * 📚 **Corporate Trainers** – Organize training sessions, workshops, and learning programs with structured schedules.
 * 📢 **Digital Marketers** – Promote events, collect registrations, automate email follow-ups, and track conversion analytics.
 
-[youtube https://youtu.be/KI5OrmgCtmY?si=qoQySLtPz8_QMuU-]
+[youtube https://youtu.be/i9UGneHb8nc?si=ckQzPt1oTDLAlWOd]
 
 
 == 🔥 Eventin Free Features — Complete Event Management at $0 ==
@@ -128,7 +128,7 @@ Eventin's free version gives you a full event management experience with no hidd
 * FAQ section per event page
 * SEO & Event Schema (JSON-LD structured data) for rich search results
 
-[youtube https://youtu.be/ZrE12_V9CGM?si=2r0b6EZzuZrRy0L6]
+[youtube https://youtu.be/j244W58Zv34?si=K8-XglAnaqzee9V-]
 
 == 🔥 Eventin PRO — Advanced Features & AI Capability ==
 The free version handles complete event management. Eventin Pro adds enterprise-level tools for event planners who need more:
@@ -136,9 +136,10 @@ The free version handles complete event management. Eventin Pro adds enterprise-
 * **Landing Page Builder** – Design custom event landing pages with pre-built templates.
 * **[Ticket Template Builder](https://themewinter.com/custom-event-template-builder-wordpress/)** – Design fully branded, custom PDF event tickets.
 * **Certificate Builder** – Award attendees with branded PDF certificates for completed events or training sessions.
-* **QR Code** – Make an easy event registration experience** with event QR codes check-in. Scan event tickets of your event attendees in just a few seconds.
+* **QR Code** – Make an easy event registration experience with event QR codes check-in. Scan event tickets of your event attendees in just a few seconds.
+* **[𝗔𝗜 𝗠𝗮𝘁𝗰𝗵𝗺𝗮𝗸𝗶𝗻𝗴 & 𝗡𝗲𝘁𝘄𝗼𝗿𝗸𝗶𝗻𝗴](https://themewinter.com/eventin/ai-event-matchmaking/)** – Discover relevant people through AI-powered recommendations. Speakers, attendees, and organizers can build meaningful connections..
 * **[Visual Seat Map](https://themewinter.com/eventin-timetics-integration-visual-seatplan/)** – Create an interactive seating plan and sell tickets by seat location.
-* **[Multi-Tier Event Tickets](https://themewinter.com/multi-tier-ticket-pricing-for-events-2/)** – Advanced tier management with VIP, Gold, group pricing, and bulk sales.
+* **Multi-Tier Event Tickets** – Advanced tier management with VIP, Gold, group pricing, and bulk sales.
 * **[Multivendor Event Marketplace](https://themewinter.com/build-a-multivendor-event-marketplace/)** – Build a Dokan-powered marketplace where multiple organizers can list and sell events.
 
 
@@ -287,6 +288,25 @@ Yes. Eventin is translation-ready and compatible with WPML and Loco Translate. I
 Please report security bugs found in the source code of the WP Event Solution plugin through the [Patchstack Vulnerability Disclosure Program](https://patchstack.com/database/vdp/5b5e63df-930d-4f15-9bf8-db51f5732488). The Patchstack team will assist you with verification, CVE assignment, and notify the developers of this plugin.
 
 == Changelog ==
+
+= 4.1.31 (November 22, 2026) =
+New: Setup Wizard - You now choose whether to import demo data. Nothing is added before you answer.
+New: Attendees - Option to create a WordPress user account for each attendee.
+New: Automation - Waiting list, refund, partial refund and payment link emails can now be edited in Automation.
+New: Automation - The email step can use a Default or Custom design, with a preview.
+New: WhatsApp Automation - Messages now use approved WhatsApp templates.
+New: RSVP - Per-event setting to make the phone number required.
+New: Checkout - Member discounts now show at checkout and on orders.
+Tweak: Purchase Email - The buyer email now says "Your tickets for {event}" and shows all attendee ticket links clearly.
+Tweak: Vendor Dashboard - Vendors can only view speakers, organizers, categories and tags.
+Tweak: Compatibility - Tested with WordPress 7.1.
+Fix: Recurring Events - Changing a child event's date or time no longer removes it from its series.
+Fix: Seat Map - Updating an event no longer deletes the saved seat map.
+Fix: Block Themes - Event pages now print a full HTML page, so SEO titles and social previews work.
+Fix: Speakers - Editors with full Eventin access can manage speakers and organizers again.
+Fix: Performance - Event widgets no longer run a very slow database query.
+Fix: Tickets - The ticket price now shows two decimals on attendee tickets and ticket templates.
+Fix: Security - Plugin security is stronger.
 
 = 4.1.30 (Nov 01, 2026) =
 Fix: Performance – Pages now load faster and links work reliably.

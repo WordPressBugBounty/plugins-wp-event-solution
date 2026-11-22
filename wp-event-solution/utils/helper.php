@@ -1096,6 +1096,18 @@
         }
 
         /**
+         * Whether the current user is a vendor barred from changing event terms
+         * by the "Vendor Event Category & Tags" setting.
+         *
+         * @return  bool
+         */
+        public static function is_vendor_terms_locked()
+        {
+            return 'on' === \Eventin\Settings::get('disable_category_and_tags')
+                && self::is_vendor_user(get_current_user_id());
+        }
+
+        /**
          * validation for nonce
          */
         public static function is_secured($nonce_field, $action, $post_id = null, $post = [])
@@ -3048,68 +3060,112 @@
             }
 
             /**
+             * Meta key of the placeholder clause returned by get_not_expired_meta_query().
+             * No event stores this key. filter_not_expired_meta_sql() swaps the clause
+             * for the real "not expired" condition.
+             */
+            const NOT_EXPIRED_MARKER_KEY = 'etn_not_expired_marker';
+
+            /**
              * The meta_query clause that keeps only events that have not ended yet.
              *
              * Used by the event search (etn_show_expired_in_search) and by the
              * event widgets when their status filter is "All".
              *
-             * @return array One meta_query clause with an OR relation.
+             * The condition reads two meta keys with OR, and one branch needs
+             * "end date row is missing". Written as a normal meta_query, WordPress
+             * joins wp_postmeta five times with LEFT JOINs that match every meta
+             * row of the event, so MySQL reads (rows per event)^5 rows per event.
+             * One live site saw a single widget query run 37 minutes.
+             *
+             * So this returns a placeholder clause instead. When WordPress builds
+             * the SQL, filter_not_expired_meta_sql() replaces it with one
+             * "ID IN (...)" condition that joins each meta key once. Callers
+             * (free and Pro widgets) keep merging it into meta_query as before.
+             *
+             * @return array One meta_query clause.
              */
             public static function get_not_expired_meta_query()
             {
-                // Event dates are stored in the site's own timezone, so the
-                // cut-over has to be computed there too. gmdate() put the
-                // boundary up to a day out on any site away from UTC — an
-                // event was still "today" in Dhaka while UTC had moved on,
-                // and vice versa in the Americas.
-                $today = current_time('Y-m-d');
+                if (! has_filter('get_meta_sql', [self::class, 'filter_not_expired_meta_sql'])) {
+                    add_filter('get_meta_sql', [self::class, 'filter_not_expired_meta_sql'], 10, 6);
+                }
 
                 return [
-                    'relation' => 'OR',
-                    // Ends today or later — still running.
-                    [
-                        'key'     => 'etn_end_date',
-                        'value'   => $today,
-                        'compare' => '>=',
-                        'type'    => 'DATE',
-                    ],
-                    // No end date stored (single-day events often keep it
-                    // empty, and older events have no row at all): decide
-                    // from the start date instead. Passing every such event
-                    // through unconditionally — which an unqualified
-                    // "end date is empty" branch did — showed events that
-                    // finished years ago while the setting said to hide
-                    // expired ones.
-                    [
-                        'relation' => 'AND',
-                        [
-                            'relation' => 'OR',
-                            [
-                                'key'     => 'etn_end_date',
-                                'value'   => '',
-                                'compare' => '=',
-                            ],
-                            [
-                                'key'     => 'etn_end_date',
-                                'compare' => 'NOT EXISTS',
-                            ],
-                        ],
-                        [
-                            'key'     => 'etn_start_date',
-                            'value'   => $today,
-                            'compare' => '>=',
-                            'type'    => 'DATE',
-                        ],
-                    ],
-                    // Has not started yet: never expired, whatever shape the
-                    // end date is stored in.
-                    [
-                        'key'     => 'etn_start_date',
-                        'value'   => $today,
-                        'compare' => '>',
-                        'type'    => 'DATE',
-                    ],
+                    'key'     => self::NOT_EXPIRED_MARKER_KEY,
+                    'compare' => 'NOT EXISTS',
                 ];
+            }
+
+            /**
+             * Swap the placeholder clause from get_not_expired_meta_query() for the
+             * real "not expired" condition.
+             *
+             * WordPress writes a NOT EXISTS clause as
+             * "LEFT JOIN wp_postmeta AS mtN ON ( ... AND mtN.meta_key = 'etn_not_expired_marker' )"
+             * plus "mtN.post_id IS NULL" in WHERE. The JOIN is removed and the
+             * WHERE part becomes "ID IN (...)" at the same place, so AND / OR
+             * nesting around the clause still works.
+             *
+             * If the pattern is not found, the placeholder stays. It is always
+             * true, so the list shows expired events too, but it never fails.
+             *
+             * @param array  $sql               ['join' => string, 'where' => string].
+             * @param array  $queries           Meta query clauses.
+             * @param string $type              Meta type.
+             * @param string $primary_table     Primary table name.
+             * @param string $primary_id_column Primary ID column.
+             * @param mixed  $context           The query object.
+             *
+             * @return array
+             */
+            public static function filter_not_expired_meta_sql($sql, $queries, $type, $primary_table, $primary_id_column, $context = null)
+            {
+                global $wpdb;
+
+                if ('post' !== $type || ! is_array($sql) || empty($sql['join']) || false === strpos($sql['join'], self::NOT_EXPIRED_MARKER_KEY)) {
+                    return $sql;
+                }
+
+                $pattern = '/ LEFT JOIN ' . preg_quote($wpdb->postmeta, '/') . '(?: AS \w+)? ON \( \S+ = (\w+)\.post_id AND \1\.meta_key = \'' . self::NOT_EXPIRED_MARKER_KEY . '\' \)/';
+
+                if (! preg_match_all($pattern, $sql['join'], $matches, PREG_SET_ORDER)) {
+                    return $sql;
+                }
+
+                $today = current_time('Y-m-d');
+
+                // The inner SELECT is wrapped in a derived table so MySQL and
+                // MariaDB run it once, not once per outer row.
+                $not_expired_sql = $wpdb->prepare(
+                    "{$primary_table}.{$primary_id_column} IN ( SELECT etn_ne.ID FROM (
+                        SELECT etn_p.ID FROM {$wpdb->posts} AS etn_p
+                        LEFT JOIN {$wpdb->postmeta} AS etn_end ON ( etn_end.post_id = etn_p.ID AND etn_end.meta_key = 'etn_end_date' )
+                        LEFT JOIN {$wpdb->postmeta} AS etn_start ON ( etn_start.post_id = etn_p.ID AND etn_start.meta_key = 'etn_start_date' )
+                        WHERE etn_p.post_type = 'etn' AND (
+                            CAST( etn_end.meta_value AS DATE ) >= %s
+                            OR ( ( etn_end.meta_value = '' OR etn_end.post_id IS NULL ) AND CAST( etn_start.meta_value AS DATE ) >= %s )
+                            OR CAST( etn_start.meta_value AS DATE ) > %s
+                        )
+                    ) AS etn_ne )",
+                    $today,
+                    $today,
+                    $today
+                );
+
+                foreach ($matches as $match) {
+                    $sql['join']  = str_replace($match[0], '', $sql['join']);
+                    $sql['where'] = str_replace($match[1] . '.post_id IS NULL', $not_expired_sql, $sql['where']);
+                }
+
+                // WordPress turned every INNER JOIN into a LEFT JOIN because of the
+                // placeholder's NOT EXISTS. If no other NOT EXISTS join is left, turn
+                // them back so MySQL can use the normal plan.
+                if (! preg_match('/ LEFT JOIN \S+(?: AS \w+)? ON \( [^)]*\.meta_key /', $sql['join'])) {
+                    $sql['join'] = str_replace(' LEFT JOIN ', ' INNER JOIN ', $sql['join']);
+                }
+
+                return $sql;
             }
 
             /**
@@ -4059,7 +4115,12 @@
 
                             if (! empty($etn_ticket_variations) && is_array($etn_ticket_variations)) {
                                 foreach ($etn_ticket_variations as $index => $price) {
-                                    $variation_price[$index] = $price['etn_ticket_price'];
+                                    // Cast to a number: this string is served on the public
+                                    // calendar route, and rows saved before 4.1.31 may still
+                                    // hold markup in the price (Patchstack #38733).
+                                    $variation_price[$index] = is_array($price) && isset($price['etn_ticket_price']) && is_scalar($price['etn_ticket_price'])
+                                        ? floatval($price['etn_ticket_price'])
+                                        : 0;
                                 }
                                 $min_price = min($variation_price);
                                 $max_price = max($variation_price);
@@ -4120,7 +4181,8 @@
                             // This feeds the public [events_calendar] endpoint
                             // (v1 event/events), so it must not carry the body
                             // of a password-protected event.
-                            $event->description = etn_readable_post_text($event_id);
+                            // The calendar renders this as HTML, so keep only safe markup.
+                            $event->description = wp_kses_post(etn_readable_post_text($event_id));
                             $event->thumbnail   = get_the_post_thumbnail_url($event_id);
                             $event->category    = $cat_names;
                             // Public calendar: the JS shows `address` or the

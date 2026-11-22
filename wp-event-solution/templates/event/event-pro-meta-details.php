@@ -15,8 +15,14 @@ defined( 'ABSPATH' ) || exit;
             $start_date_time = $event->etn_start_date . ' ' . $event->etn_start_time;
             $end_date_time   = $event->etn_end_date . ' ' . $event->etn_end_time;
 
-            $start_time	  = date( $time_format, strtotime( $start_date_time ) );
-            $end_time	  = date( $time_format, strtotime( $end_date_time ) );
+            // Stored times are already the event's local wall-clock time, so
+            // read and print them in one fixed zone. date() followed the PHP
+            // default zone, which other code can change mid-request.
+            $utc        = new \DateTimeZone( 'UTC' );
+            $start_obj  = date_create( $start_date_time, $utc );
+            $end_obj    = date_create( $end_date_time, $utc );
+            $start_time = $start_obj ? $start_obj->format( $time_format ) : '';
+            $end_time   = $end_obj ? $end_obj->format( $time_format ) : '';
         if (empty($event_options["etn_hide_time_from_details"]) && ( !empty( $data['event_start_time'] ) || !empty( $data['event_end_time'] ) )) { ?>
             <li>
                 <span><?php echo esc_html__('Time : ', 'wp-event-solution'); ?></span>

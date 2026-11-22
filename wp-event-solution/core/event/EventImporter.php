@@ -98,10 +98,10 @@ class EventImporter implements PostImporterInterface {
                 'post_status'                       => ! empty( $row['status'] ) ? $row['status'] : 'publish',
                 'post_title'                        => ! empty( $row['title'] ) ? sanitize_text_field( $row['title'] ) : '',
                 'post_content'                      => ! empty( $row['description'] ) ? wp_kses_post( $row['description'] ) : '',
-                'etn_start_date'                    => ! empty( $row['start_date'] ) ? sanitize_text_field( $row['start_date'] ) : '',
-                'etn_end_date'                      => ! empty( $row['end_date'] ) ? sanitize_text_field( $row['end_date'] ) : '',
-                'etn_start_time'                    => ! empty( $row['start_time'] ) ? sanitize_text_field( $row['start_time'] ) : '',
-                'etn_end_time'                      => ! empty( $row['end_time'] ) ? sanitize_text_field( $row['end_time'] ) : '',
+                'etn_start_date'                    => ! empty( $row['start_date'] ) ? trim( sanitize_text_field( $row['start_date'] ), "\"' " ) : '',
+                'etn_end_date'                      => ! empty( $row['end_date'] ) ? trim( sanitize_text_field( $row['end_date'] ), "\"' " ) : '',
+                'etn_start_time'                    => ! empty( $row['start_time'] ) ? trim( sanitize_text_field( $row['start_time'] ), "\"' " ) : '',
+                'etn_end_time'                      => ! empty( $row['end_time'] ) ? trim( sanitize_text_field( $row['end_time'] ), "\"' " ) : '',
                 'event_timezone'                    => ! empty( $row['timezone'] ) ? sanitize_text_field( $row['timezone'] ) : '',
                 'event_type'                        => ! empty( $row['event_type'] ) ? sanitize_text_field( $row['event_type'] ) : '',
                 'speaker_type'                      => ! empty( $row['speaker_type'] ) ? sanitize_text_field( $row['speaker_type'] ) : '',
@@ -136,6 +136,10 @@ class EventImporter implements PostImporterInterface {
             // list filters (a DATETIME meta_query against etn_end_date) can't
             // match at all. The event editor makes both fields required, so mirror
             // that here: an event with no end ends when it starts.
+            // The admin SPA only reads Y-m-d; "Dec 14, 2026" showed blank, "14-12-2026" Invalid date.
+            $args['etn_start_date'] = $this->normalize_date( $args['etn_start_date'] );
+            $args['etn_end_date']   = $this->normalize_date( $args['etn_end_date'] );
+
             if ( empty( $args['etn_end_date'] ) ) {
                 $args['etn_end_date'] = $args['etn_start_date'];
 
@@ -165,7 +169,7 @@ class EventImporter implements PostImporterInterface {
                 $args['etn_ticket_variations'] = $this->format_tickets( $ticket_variations );
                 $args['etn_event_socials']     = etn_get_valid_event_socials( etn_csv_column_multi_dimension_array( $event_socials ) );
                 $args['etn_event_schedule']    = etn_csv_column_array( $event_schedule );
-                $args['etn_event_faq']         = etn_sanitize_faq_array( etn_csv_column_multi_dimension_array( $event_faq ) );
+                $args['etn_event_faq']         = etn_remove_empty_faqs( etn_sanitize_faq_array( etn_csv_column_multi_dimension_array( $event_faq ) ) );
                 $args['attendee_extra_fields'] = etn_csv_column_multi_dimension_array( $attendee_extra_fields );
                 $args['etn_event_speaker']     = etn_csv_column_array( $speaker );
                 $args['speaker_group']         = etn_csv_column_array( $speaker_group );
@@ -185,8 +189,8 @@ class EventImporter implements PostImporterInterface {
                 // damaged still carries the join link inside another field.
                 $args['etn_event_location']  = EventLocation::repair(
                     is_array( $location )
-                        ? etn_sanitize_array_input( $location )
-                        : sanitize_text_field( $location )
+                        ? etn_sanitize_location( $location )
+                        : sanitize_text_field( etn_sanitize_location( $location ) )
                 );
             }
 
@@ -208,6 +212,19 @@ class EventImporter implements PostImporterInterface {
 
             $this->import_event_images( $event->id, $logo_url, $banner_url );
         }
+    }
+
+    /**
+     * Convert a date PHP can read to Y-m-d, keep it as is otherwise
+     *
+     * @param   string  $date
+     *
+     * @return  string
+     */
+    private function normalize_date( $date ) {
+        $parsed = $date ? date_create( $date ) : false;
+
+        return $parsed ? $parsed->format( 'Y-m-d' ) : $date;
     }
 
     /**
@@ -376,7 +393,7 @@ class EventImporter implements PostImporterInterface {
         $id = media_handle_sideload( $file_array, $post_id );
 
         if ( is_wp_error( $id ) ) {
-            @unlink( $file_array['tmp_name'] );
+            wp_delete_file( $file_array['tmp_name'] );
             return false;
         }
 

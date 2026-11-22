@@ -1,7 +1,7 @@
 <?php
 
 defined( 'ABSPATH' ) || exit;
-    $etn_faqs = get_post_meta($event_id, 'etn_event_faq', true);
+    $etn_faqs = etn_get_event_faqs($event_id);
     if (! empty($etn_faqs)):
 ?>
 <div class="etn-accordion-wrap etn-event-single-content-wrap etn-faq-style-2

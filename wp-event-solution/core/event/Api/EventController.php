@@ -186,6 +186,25 @@ class EventController extends WP_REST_Controller {
             ),
         );
 
+        // Put a child that was edited on its own back on the series schedule.
+        register_rest_route(
+            $this->namespace,
+            '/' . $this->rest_base . '/(?P<id>[\d]+)' . '/recurrence-reset',
+            array(
+                'args' => array(
+                    'id' => array(
+                        'description' => __( 'Unique identifier for the post.', 'wp-event-solution' ),
+                        'type'        => 'integer',
+                    ),
+                ),
+                array(
+                    'methods'             => WP_REST_Server::CREATABLE,
+                    'callback'            => array( $this, 'reset_recurrence_child' ),
+                    'permission_callback' => array( $this, 'update_item_permissions_check' ),
+                ),
+            ),
+        );
+
         register_rest_route(
             $this->namespace,
             '/' . $this->rest_base . '/export',
@@ -901,9 +920,10 @@ class EventController extends WP_REST_Controller {
      * @since 4.0.0
      *
      * @param array|WP_Error $prepared_event Prepared event data.
+     * @param int            $event_id       Event id on update, 0 on create.
      * @return array|WP_Error
      */
-    protected function maybe_restrict_publish( $prepared_event ) {
+    protected function maybe_restrict_publish( $prepared_event, $event_id = 0 ) {
         if ( is_wp_error( $prepared_event ) ) {
             return $prepared_event;
         }
@@ -926,6 +946,47 @@ class EventController extends WP_REST_Controller {
 
         if ( $restricted ) {
             $prepared_event['post_status'] = 'draft';
+        }
+
+        /*
+         * A user who cannot publish ordinary posts (e.g. Contributor, which
+         * holds etn_manage_event by default) must not make an event live on
+         * their own request. Before this, visibility_status was copied
+         * straight into post_status and a Contributor's event went out as
+         * `publish` with no review (Patchstack #38733).
+         *
+         * An update that keeps the status the event already has is left
+         * alone, so editing an event an admin already approved does not
+         * take it offline.
+         *
+         * Integrations with their own approval flow (e.g. a marketplace
+         * vendor role without publish_posts) can allow publishing through
+         * the `eventin_user_can_publish_event` filter.
+         */
+        $live_statuses = [ 'publish', 'future', 'private' ];
+        $new_status    = isset( $prepared_event['post_status'] ) ? $prepared_event['post_status'] : '';
+
+        if ( in_array( $new_status, $live_statuses, true ) ) {
+            $can_publish = $user && user_can( $user, 'publish_posts' );
+
+            /**
+             * Filters whether the current user may make an event live.
+             *
+             * @since 4.1.31
+             *
+             * @param bool          $can_publish Whether the user may publish.
+             * @param WP_User|false $user        The user whose rights apply (store owner for vendor staff).
+             * @param int           $event_id    Event id on update, 0 on create.
+             */
+            $can_publish = (bool) apply_filters( 'eventin_user_can_publish_event', $can_publish, $user, (int) $event_id );
+
+            if ( ! $can_publish ) {
+                $current_status = $event_id ? get_post_status( $event_id ) : '';
+
+                if ( $current_status !== $new_status ) {
+                    $prepared_event['post_status'] = 'draft';
+                }
+            }
         }
 
         return $prepared_event;
@@ -1105,6 +1166,47 @@ class EventController extends WP_REST_Controller {
     }
 
     /**
+     * Put a recurring child that was edited on its own back on the series
+     * schedule (original date, series duration, parent's start and end time).
+     *
+     * @param WP_REST_Request $request Full details about the request.
+     * @return WP_REST_Response|WP_Error
+     */
+    public function reset_recurrence_child( $request ) {
+        $id   = Ownership::route_subject_id( $request );
+        $post = get_post( $id );
+
+        if ( ! $post || 'etn' !== $post->post_type ) {
+            return new WP_Error( 'rest_event_invalid', __( 'Invalid event.', 'wp-event-solution' ), array( 'status' => 404 ) );
+        }
+
+        $event = new Event_Model( $id );
+
+        $previous = array(
+            'previous_event_start_date' => $event->etn_start_date,
+            'previous_event_start_time' => $event->etn_start_time,
+            'previous_event_timezone'   => $event->event_timezone,
+        );
+
+        $result = \Etn\Core\Recurring_Event\Hooks::instance()->reset_child_to_series( $id );
+
+        if ( is_wp_error( $result ) ) {
+            return $result;
+        }
+
+        clean_post_cache( $id );
+        wp_cache_delete( $id, 'post_meta' );
+
+        $event = new Event_Model( $id );
+
+        do_action( 'eventin_reset_reminder_email', $event, $previous );
+
+        delete_transient( $this->event_cache_key );
+
+        return rest_ensure_response( $this->prepare_item_for_response( get_post( $id ), $request ) );
+    }
+
+    /**
      * Updates a single event.
      *
      * @since 4.0.0
@@ -1119,7 +1221,7 @@ class EventController extends WP_REST_Controller {
 
         $prepared_event = $this->prepare_item_for_database( $request );
 
-        $prepared_event = $this->maybe_restrict_publish( $prepared_event );
+        $prepared_event = $this->maybe_restrict_publish( $prepared_event, $id );
 
         if ( is_wp_error( $prepared_event ) ) {
             return $prepared_event;
@@ -1129,6 +1231,23 @@ class EventController extends WP_REST_Controller {
 
         if ( $event->is_clone ) {
             $prepared_event['is_clone'] = false;
+        }
+
+        // A recurring child may change its own date and time and stay in the
+        // series, as long as the dates stay inside the parent's dates.
+        $series_parent_id      = (int) wp_get_post_parent_id( $id );
+        $series_changes        = array();
+        $series_previous_start = get_post_meta( $id, 'etn_start_date', true );
+
+        if ( $series_parent_id > 0 && ! $request->get_param( 'detach_from_parent' ) ) {
+            $recurring_hooks = \Etn\Core\Recurring_Event\Hooks::instance();
+            $series_check    = $recurring_hooks->validate_child_schedule( $id, $series_parent_id, $prepared_event );
+
+            if ( is_wp_error( $series_check ) ) {
+                return $series_check;
+            }
+
+            $series_changes = $recurring_hooks->changed_schedule_fields( $id, $prepared_event );
         }
 
         // Manage online event.
@@ -1200,6 +1319,10 @@ class EventController extends WP_REST_Controller {
                 __( 'Event can not be updated.', 'wp-event-solution' ),
                 array( 'status' => 500 )
             );
+        }
+
+        if ( $series_changes ) {
+            \Etn\Core\Recurring_Event\Hooks::instance()->refresh_child_override( $id, $series_parent_id, $series_previous_start );
         }
 
         // Detach previously-generated child recurring events when admin toggles recurring off.
@@ -1755,6 +1878,11 @@ class EventController extends WP_REST_Controller {
             'category_names'          => $category_names,
             'meeting_link'            => $meeting_link,
             'parent'                  => $parent,
+            // Recurring child only: edited on its own, and the parent's dates
+            // the child's dates must stay inside.
+            'recurrence_override'     => $parent ? \Etn\Core\Recurring_Event\Hooks::instance()->is_child_overridden( $id ) : false,
+            'parent_start_date'       => $parent ? get_post_meta( $parent, 'etn_start_date', true ) : '',
+            'parent_end_date'         => $parent ? get_post_meta( $parent, 'etn_end_date', true ) : '',
             'has_children'            => null !== $child_tickets,
             // Roll-up of every child occurrence, so a recurring parent row can
             // show "sold / capacity" of the whole series. 0 / 0 when the event
@@ -1904,8 +2032,12 @@ class EventController extends WP_REST_Controller {
      * @return mixed
      */
     public static function strip_private_location( $location ) {
-        // Raw meta dumps (v1) pass the serialized string straight from the database.
-        $location = EventLocation::repair( maybe_unserialize( $location ) );
+        // Raw meta dumps (v1) pass the serialized string straight from the
+        // database. Decode without classes: a value that already came through
+        // get_post_meta() can be an attacker's serialized object string, and
+        // maybe_unserialize() would build that object (Patchstack 8ddf061c).
+        // A decoded object (never a real location) is dropped.
+        $location = EventLocation::repair( etn_strip_serialized_strings( etn_safe_decode( $location ) ) );
 
         if ( ! is_array( $location ) ) {
             return $location;
@@ -2482,7 +2614,8 @@ class EventController extends WP_REST_Controller {
             $event_data['excerpt_enable'] = $input_data['excerpt_enable'];
         }
 
-        if ( isset( $input_data['enable_seatmap'] ) ) {
+        // '' is the form's stale load-time value, not a choice; the toggle sends a bool.
+        if ( isset( $input_data['enable_seatmap'] ) && '' !== $input_data['enable_seatmap'] ) {
             $event_data['enable_seatmap'] = $input_data['enable_seatmap'];
         }
 
@@ -2536,7 +2669,10 @@ class EventController extends WP_REST_Controller {
         }
 
         if ( isset( $input_data['ticket_variations'] ) ) {
-            $event_data['etn_ticket_variations'] = etn_sanitize_array_input( $input_data['ticket_variations'] );
+            // Field-by-field: etn_sanitize_array_input() returns arrays unchanged,
+            // which let a Contributor store markup in etn_ticket_price
+            // (Patchstack #38733).
+            $event_data['etn_ticket_variations'] = etn_sanitize_ticket_variations( $input_data['ticket_variations'] );
         }
 
         if ( isset( $input_data['etn_enable_global_stock'] ) ) {
@@ -2592,7 +2728,9 @@ class EventController extends WP_REST_Controller {
         }
 
         if ( isset( $input_data['location'] ) ) {
-            $event_data['etn_event_location'] = $input_data['location'];
+            // No serialized strings: they were unserialized again on read
+            // (Patchstack 8ddf061c, PHP Object Injection).
+            $event_data['etn_event_location'] = etn_sanitize_location( $input_data['location'] );
         }
 
         if ( isset( $input_data['zoom_event'] ) ) {
@@ -2789,14 +2927,9 @@ class EventController extends WP_REST_Controller {
             $event_data['rsvp_settings'] = etn_sanitize_array_input( $input_data['rsvp_settings'] );
         }
 
-        // Seat Plan Support.
-        if ( isset( $input_data['seat_plan'] ) ) {
-            $event_data['seat_plan'] = etn_sanitize_array_input( $input_data['seat_plan'] );
-        }
-
-        if ( isset( $input_data['seat_plan_settings'] ) ) {
-            $event_data['seat_plan_settings'] = etn_sanitize_array_input( $input_data['seat_plan_settings'] );
-        }
+        // seat_plan / seat_plan_settings are written only by the seat editor
+        // (eventin/v1 event/seatmap). The event form echoes back the copy it
+        // loaded, so an Update from a stale tab would wipe a freshly saved map.
 
         // Template support.
         if ( isset( $input_data['ticket_template'] ) ) {
@@ -2855,7 +2988,7 @@ class EventController extends WP_REST_Controller {
         }
 
         if ( isset( $input_data['location'] ) ) {
-            $event_data['location'] = $input_data['location'];
+            $event_data['location'] = etn_sanitize_location( $input_data['location'] );
         }
 
         // certificate prefference.

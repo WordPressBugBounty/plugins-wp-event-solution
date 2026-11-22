@@ -49,9 +49,66 @@ class WhatsappRecipients {
     public function __construct() {
         // Off by default. Eventin Pro turns it on when the WhatsApp module is on.
         add_filter( 'eve_ens_whatsapp_enabled', '__return_false', 5 );
+        add_filter( 'ens_eve_channels', [ $this, 'channels' ] );
+        add_filter( 'eve_notification_sdk_whatsapp_template_params', [ $this, 'template_params' ], 10, 5 );
+        add_filter( 'eve_ens_whatsapp_empty_param', [ AutomationPlaceholders::class, 'empty_text' ] );
         add_filter( 'eve_notification_sdk_to_whatsapp_numbers', [ $this, 'resolve_numbers' ], 10, 3 );
         // After eventin.php builds the trigger list (priority 10).
         add_filter( 'ens_eve_available_actions', [ $this, 'add_whatsapp_receivers' ], 20 );
+    }
+
+    /**
+     * WhatsApp sends approved templates only.
+     *
+     * Meta delivers a free text message only inside 24 hours after the
+     * person wrote to the business, which event messages almost never are.
+     * `whatsapp` is left alone: the SDK reads it from `eve_ens_whatsapp_enabled`,
+     * which Pro turns on, so an older Pro keeps working.
+     *
+     * @param   array  $channels  Channel name => on/off.
+     *
+     * @return  array
+     */
+    public function channels( $channels ) {
+        $channels = is_array( $channels ) ? $channels : [];
+        $channels['whatsapp_text'] = false;
+
+        return $channels;
+    }
+
+    /**
+     * Fill WhatsApp template blanks for one recipient.
+     *
+     * The SDK has already put in the payload's plain-text values. This fills
+     * the rest (order, ticket, links …) for this recipient, then makes every
+     * value one plain line Meta accepts.
+     *
+     * @param   array   $params         Template values, in order.
+     * @param   string  $receiver_type  Receiver key, e.g. attendee_number.
+     * @param   string  $action_name    Trigger slug.
+     * @param   array   $action_data    Hook payload.
+     * @param   int     $count          Recipient position.
+     *
+     * @return  array
+     */
+    public function template_params( $params, $receiver_type, $action_name, $action_data, $count ) {
+        $values  = AutomationPlaceholders::values( $action_name, $receiver_type, $action_data, $count );
+        $replace = [];
+
+        // All known keys: a template copied from another flow must not send a raw token.
+        foreach ( array_keys( AutomationPlaceholders::labels() ) as $key ) {
+            $value = $values[ $key ] ?? '';
+
+            $replace[ '{%' . $key . '%}' ] = $value;
+            $replace[ '{{' . $key . '}}' ] = $value;
+        }
+
+        $result = [];
+        foreach ( (array) $params as $param ) {
+            $result[] = AutomationPlaceholders::whatsapp_text( strtr( is_scalar( $param ) ? (string) $param : '', $replace ) );
+        }
+
+        return $result;
     }
 
     /**

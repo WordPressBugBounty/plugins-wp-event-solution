@@ -341,6 +341,8 @@ class AttendeeController extends WP_REST_Controller {
                     // applies to the order total).
                     'coupon_code'     => get_post_meta( $order_id, 'coupon_code', true ),
                     'discount_total'  => get_post_meta( $order_id, 'discount_total', true ),
+                    'member_discount'       => get_post_meta( $order_id, 'member_discount', true ),
+                    'member_discount_label' => get_post_meta( $order_id, 'member_discount_label', true ),
                 ];
             }
             $cached_currency              = $order_id ? ( $currency_cache[ $order_id ] ?? [] ) : [];
@@ -350,6 +352,8 @@ class AttendeeController extends WP_REST_Controller {
                 : html_entity_decode( etn_currency_symbol() );
             $post_data['coupon_code']     = ! empty( $cached_currency['coupon_code'] ) ? $cached_currency['coupon_code'] : '';
             $post_data['discount_total']  = ! empty( $cached_currency['discount_total'] ) ? (float) $cached_currency['discount_total'] : 0;
+            $post_data['member_discount']       = ! empty( $cached_currency['member_discount'] ) ? (float) $cached_currency['member_discount'] : 0;
+            $post_data['member_discount_label'] = ! empty( $cached_currency['member_discount_label'] ) ? (string) $cached_currency['member_discount_label'] : '';
 
             $attendees[] = $this->prepare_response_for_collection( $post_data );
         }
@@ -424,6 +428,19 @@ class AttendeeController extends WP_REST_Controller {
      * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
      */
     public function create_item( $request ) {
+        if ( \Eventin\Attendee\Account\AttendeeAccountSettings::is_enabled() ) {
+            $input_data = json_decode( $request->get_body(), true );
+            $email      = is_array( $input_data ) ? ( $input_data['etn_email'] ?? '' ) : '';
+
+            if ( ! is_string( $email ) || ! is_email( trim( $email ) ) ) {
+                return new WP_Error(
+                    'attendee_email_required',
+                    __( 'A valid email is required for every attendee.', 'wp-event-solution' ),
+                    [ 'status' => 400 ]
+                );
+            }
+        }
+
         $prepared_item = $this->prepare_item_for_database( $request );
 
         if ( is_wp_error( $prepared_item ) ) {
@@ -529,6 +546,10 @@ class AttendeeController extends WP_REST_Controller {
      */
     public function update_item( $request ) {
         $prepared_item = $this->prepare_item_for_database( $request );
+
+        if ( is_wp_error( $prepared_item ) ) {
+            return $prepared_item;
+        }
 
         $order_id = get_post_meta( $request['id'], 'eventin_order_id', true );
         $previous_status = get_post_meta( $request['id'], 'etn_status', true );
@@ -809,8 +830,17 @@ class AttendeeController extends WP_REST_Controller {
             $prepared_item['etn_name'] = $input_data['etn_name'];
         }
 
-        if ( ! empty( $input_data['etn_email'] ) ) {
-            $prepared_item['etn_email'] = $input_data['etn_email'];
+        if ( ! empty( $input_data['etn_email'] ) && is_string( $input_data['etn_email'] ) ) {
+            $prepared_item['etn_email'] = sanitize_email( $input_data['etn_email'] );
+
+            // sanitize_email() returns '' for a bad address. Refuse it, do not save ''.
+            if ( '' === $prepared_item['etn_email'] ) {
+                return new WP_Error(
+                    'invalid_attendee_email',
+                    __( 'Please enter a valid email address.', 'wp-event-solution' ),
+                    [ 'status' => 400 ]
+                );
+            }
         }
 
         if ( ! empty( $input_data['etn_phone'] ) ) {
@@ -1012,6 +1042,14 @@ class AttendeeController extends WP_REST_Controller {
         if ( is_wp_error( $result ) ) {
             return $result;
         }
+
+        /**
+         * Fires after attendees are imported from a file.
+         *
+         * @param int[] $attendee_ids Imported attendee ids.
+         * @param bool  $send_email   Admin asked to send the account email.
+         */
+        do_action( 'eventin_attendees_imported', (array) $result, '1' === (string) $request->get_param( 'send_account_email' ) );
 
         $response = [
             'message' => __( 'Successfully imported attendee', 'wp-event-solution' ),

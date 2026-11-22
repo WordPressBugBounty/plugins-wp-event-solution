@@ -120,7 +120,7 @@ defined( 'ABSPATH' ) || exit;
                                             <?php echo esc_html__( "PRICE :", "wp-event-solution" ); ?>
                                             <p>
                                                 <?php
-                                                    printf( '%s %s', esc_html( $etn_ticket_currency ), esc_html( $ticket_price ) );
+                                                    printf( '%s %s', esc_html( $etn_ticket_currency ), esc_html( number_format( (float) $ticket_price, 2 ) ) );
                                                 ?>
                                             </p>
                                         </li>
@@ -203,7 +203,7 @@ defined( 'ABSPATH' ) || exit;
                                         <?php if ( $ticket_price !== "" ) { ?>
                                             <li class="etn-ticket-body-top-li flex-100">
                                                 <?php echo esc_html__( "PRICE :", "wp-event-solution" ); ?>
-                                                <p><?php printf( '%s %s', esc_html( $etn_ticket_currency ), esc_html( $ticket_price ) ); ?></p>
+                                                <p><?php printf( '%s %s', esc_html( $etn_ticket_currency ), esc_html( number_format( (float) $ticket_price, 2 ) ) ); ?></p>
                                             </li>
                                         <?php } ?>
                                         <?php foreach ( $etn_addon_rows as $etn_addon ) { ?>

@@ -205,22 +205,23 @@ class ExtensionController extends WP_REST_Controller {
             etn_update_option( 'yoast_api', 'off' === $status ? 'off' : 'on' );
         }
 
-        if ( $name == 'eventin-addon-for-surecart' ) {
-            etn_update_option('etn_surecart_enabled',$status=='on'?true:false);
-            if($status=='off'){
-                etn_update_option('surecart_status',false);
-            }
-        }
-        if ( $name == 'eventin-addon-for-fluentcart' ) {
-            etn_update_option('etn_fluentcart_enabled',$status=='on'?true:false);
-            if($status=='off'){
-                etn_update_option('fluentcart_status',false);
-            }
-        }
-        if ( $name == 'aisentic' ) {
-            etn_update_option('etn_aisentic_enabled',$status=='on'?true:false);
-            if($status=='off'){
-                etn_update_option('aisentic_status',false);
+        // The card toggle sends on/off, but the Activate/Deactivate buttons send
+        // activate/deactivate. Treat "activate" like "on" and "deactivate" like
+        // "off". "install" only installs the plugin, so it leaves the flag alone.
+        $addon_enabled_flags = [
+            'eventin-addon-for-surecart'   => [ 'etn_surecart_enabled', 'surecart_status' ],
+            'eventin-addon-for-fluentcart' => [ 'etn_fluentcart_enabled', 'fluentcart_status' ],
+            'aisentic'                     => [ 'etn_aisentic_enabled', 'aisentic_status' ],
+        ];
+
+        if ( isset( $addon_enabled_flags[ $name ] ) && 'install' !== $status ) {
+            [ $enabled_key, $status_key ] = $addon_enabled_flags[ $name ];
+            $is_enabled                   = in_array( $status, [ 'on', 'activate' ], true );
+
+            etn_update_option( $enabled_key, $is_enabled );
+
+            if ( ! $is_enabled ) {
+                etn_update_option( $status_key, false );
             }
         }
 

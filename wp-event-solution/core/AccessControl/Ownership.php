@@ -372,10 +372,9 @@ class Ownership {
             return true;
         }
 
-        // WordPress's own gate. A Contributor holds no `edit_users`, so this is
-        // false for every account but their own — which is what blocks the
-        // role/meta overwrite and the account deletion.
-        if ( ! current_user_can( 'edit_user', $target_user_id ) ) {
+        // WordPress's own gate, or — for managers without `edit_users` (Editor) — a pure
+        // speaker/organizer account holding nothing the caller lacks. Admin-promoted accounts stay locked.
+        if ( ! current_user_can( 'edit_user', $target_user_id ) && ! self::is_subordinate_person( $target_user_id ) ) {
             return false;
         }
 
@@ -390,6 +389,61 @@ class Ownership {
          * @param int  $user_id        Current user id.
          */
         return (bool) apply_filters( 'eventin_can_manage_user', $owns, $target_user_id, $user_id );
+    }
+
+    /**
+     * Does the current user already hold every capability in this list?
+     * Managing an account that carries only these caps is then no escalation (CVE-2026-84905).
+     *
+     * @param array $caps Capability => grant map (role capabilities / WP_User::$allcaps).
+     * @return bool
+     */
+    public static function holds_all_caps( array $caps ) {
+        // Speaker-portal marker caps (unused by Eventin, declared by Booktics/Timetics roles).
+        $exempt = (array) apply_filters( 'eventin_role_grant_exempt_caps', [ 'manage_eventin', 'read_booking', 'read_meeting', 'edit_profile' ] );
+
+        foreach ( array_keys( array_filter( $caps ) ) as $cap ) {
+            if ( ! in_array( $cap, $exempt, true ) && ! current_user_can( $cap ) ) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * May the current user hand these roles to a new or existing account without escalating?
+     *
+     * @param string[] $roles Role names.
+     * @return bool
+     */
+    public static function can_grant_roles( array $roles ) {
+        foreach ( $roles as $role_name ) {
+            $role = get_role( $role_name );
+
+            if ( $role && ! self::holds_all_caps( $role->capabilities ) ) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Is this account only a speaker/organizer whose every capability the current user holds?
+     *
+     * @param int $target_user_id User id.
+     * @return bool
+     */
+    private static function is_subordinate_person( $target_user_id ) {
+        $user = get_userdata( $target_user_id );
+
+        if ( ! $user || ! $user->roles || array_diff( $user->roles, [ 'etn-speaker', 'etn-organizer' ] ) ) {
+            return false;
+        }
+
+        // allcaps also lists the role names themselves; drop them, keep role + per-user caps.
+        return self::holds_all_caps( array_diff_key( $user->allcaps, array_flip( $user->roles ) ) );
     }
 
     /**
@@ -687,5 +741,136 @@ class Ownership {
         }
 
         return array_values( $allowed );
+    }
+
+    /**
+     * May the current viewer see this event's private join link (meeting_link)?
+     *
+     * The REST layer treats meeting_link as management-only. The
+     * [etn_zoom_api_link] shortcode printed it for any event id written in the
+     * shortcode, so a Contributor could preview a draft with
+     * [etn_zoom_api_link meeting_id="<admin event>"] and read the Zoom URL and
+     * its pwd token (Patchstack 866bfb05).
+     *
+     * Allowed when any of these is true:
+     *  1. The viewer can manage or edit the event.
+     *  2. The post that holds the shortcode was written by someone who can edit
+     *     the event. That author chose to publish the link (e.g. an admin's
+     *     public "Join our webinar" page). A Contributor's own post never passes
+     *     this for someone else's event.
+     *  3. The logged-in viewer holds a paid ticket for the event (an attendee
+     *     with status success, or a completed order, under their email).
+     *
+     * Case 2 needs the event to be published (the author chose to share the
+     * link, so the event password is not asked again). Case 3 needs the event
+     * to be readable by the viewer (published, password entered if any).
+     *
+     * @since 4.1.31
+     *
+     * @param int               $event_id     Event id.
+     * @param int|\WP_Post|null $context_post Post that holds the shortcode/block, if any.
+     *
+     * @return bool
+     */
+    public static function can_view_meeting_link( $event_id, $context_post = null ) {
+        $event_id = absint( $event_id );
+        $event    = $event_id ? get_post( $event_id ) : null;
+
+        if ( ! $event || 'etn' !== $event->post_type ) {
+            return false;
+        }
+
+        $allowed = false;
+
+        if ( self::can_manage_post( $event_id, 'etn' ) || current_user_can( 'edit_post', $event_id ) ) {
+            $allowed = true;
+        } elseif ( 'publish' === $event->post_status ) {
+            $context_post = $context_post ? get_post( $context_post ) : null;
+
+            if ( $context_post && $context_post->post_author ) {
+                $author_id = (int) $context_post->post_author;
+
+                // The author must be allowed to edit the event. A Contributor's
+                // post (draft, preview or published by an admin later) keeps
+                // the Contributor as author, so it never passes for an event
+                // they do not own.
+                $allowed = (int) $event->post_author === $author_id
+                    || user_can( $author_id, 'manage_options' )
+                    || user_can( $author_id, 'edit_post', $event_id );
+            }
+
+            if ( ! $allowed && self::can_read_post( $event_id, 'etn' ) ) {
+                $allowed = self::current_user_holds_ticket( $event_id );
+            }
+        }
+
+        /**
+         * Filter whether the current viewer may see an event's join link.
+         *
+         * @since 4.1.31
+         *
+         * @param bool          $allowed      Decision.
+         * @param \WP_Post      $event        The event.
+         * @param \WP_Post|null $context_post Post holding the shortcode, if any.
+         */
+        return (bool) apply_filters( 'eventin_can_view_meeting_link', $allowed, $event, $context_post ? get_post( $context_post ) : null );
+    }
+
+    /**
+     * Does the logged-in user hold a paid ticket for this event?
+     *
+     * Matches by the user's email: a successful attendee record, or a
+     * completed order, for this event (or its recurring parent's child).
+     *
+     * @since 4.1.31
+     *
+     * @param int $event_id Event id.
+     *
+     * @return bool
+     */
+    public static function current_user_holds_ticket( $event_id ) {
+        $user = wp_get_current_user();
+
+        if ( ! $user || ! $user->exists() || empty( $user->user_email ) ) {
+            return false;
+        }
+
+        $email = $user->user_email;
+
+        $attendees = get_posts(
+            [
+                'post_type'      => 'etn-attendee',
+                'post_status'    => 'any',
+                'posts_per_page' => 1,
+                'fields'         => 'ids',
+                'no_found_rows'  => true,
+                'meta_query'     => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+                    [ 'key' => 'etn_event_id', 'value' => (string) $event_id ],
+                    [ 'key' => 'etn_email', 'value' => $email ],
+                    [ 'key' => 'etn_status', 'value' => 'success' ],
+                ],
+            ]
+        );
+
+        if ( $attendees ) {
+            return true;
+        }
+
+        $orders = get_posts(
+            [
+                'post_type'      => 'etn-order',
+                'post_status'    => 'any',
+                'posts_per_page' => 1,
+                'fields'         => 'ids',
+                'no_found_rows'  => true,
+                'meta_query'     => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+                    [ 'key' => 'event_id', 'value' => (string) $event_id ],
+                    [ 'key' => 'customer_email', 'value' => $email ],
+                    [ 'key' => 'status', 'value' => 'completed' ],
+                ],
+            ]
+        );
+
+        return ! empty( $orders );
     }
 }

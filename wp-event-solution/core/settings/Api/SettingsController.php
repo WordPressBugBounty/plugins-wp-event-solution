@@ -282,6 +282,7 @@ class SettingsController extends WP_REST_Controller {
             'enable_tax'               => etn_get_option( 'enable_tax' ),
             'tax_type'                 => etn_get_option( 'tax_type', 'exclusive' ),
             'tax_rates'                => etn_get_option( 'tax_rates', [] ),
+            'attendee_create_user'     => etn_get_option( 'attendee_create_user', false ),
         ];
 
         if ( function_exists( 'WC' ) ) {

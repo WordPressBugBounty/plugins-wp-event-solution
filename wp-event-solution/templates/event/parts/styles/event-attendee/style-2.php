@@ -44,9 +44,9 @@
             <a href="<?php echo esc_url($attendee_page_url); ?>" class="etn-attendee-more-link" target="_blank">
                 <?php esc_html_e('See All Attendee', 'wp-event-solution'); ?>
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="13" viewBox="0 0 16 13" fill="none">
-                    <path d="M5.0071e-07 5.97206L15 5.97206" stroke="#5D5DFF" stroke-width="2"/>
-                    <path d="M9.96338 0.323146C10.4242 1.67272 12.0371 4.70761 14.8021 6.0506" stroke="#5D5DFF" stroke-width="2"/>
-                    <path d="M9.96338 11.778C10.4242 10.4285 12.0371 7.39359 14.8021 6.0506" stroke="#5D5DFF" stroke-width="2"/>
+                    <path d="M5.0071e-07 5.97206L15 5.97206" style="stroke:var(--etn-primary-color,#5D5DFF)" stroke-width="2"/>
+                    <path d="M9.96338 0.323146C10.4242 1.67272 12.0371 4.70761 14.8021 6.0506" style="stroke:var(--etn-primary-color,#5D5DFF)" stroke-width="2"/>
+                    <path d="M9.96338 11.778C10.4242 10.4285 12.0371 7.39359 14.8021 6.0506" style="stroke:var(--etn-primary-color,#5D5DFF)" stroke-width="2"/>
                 </svg>
             </a>
         </div>

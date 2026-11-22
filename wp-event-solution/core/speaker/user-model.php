@@ -401,8 +401,20 @@ class User_Model {
      */
     public function get_data( $id ) {
         $this->set_id( $id );
-        
-        return [
+
+        /**
+         * Filters the speaker/organizer data returned by get_data().
+         *
+         * Read by the speaker REST routes (gated on `etn_manage_organizer` /
+         * `etn_manage_event`) and by Pro's outgoing speaker webhook payload, so
+         * anything added here also leaves the site. Keep secrets out of it.
+         *
+         * @since 4.1.26
+         *
+         * @param array $data Speaker fields keyed by response field.
+         * @param int   $id   User id.
+         */
+        return apply_filters( 'eventin_speaker_data', [
             'id'                => $id,
             'name'              => $this->get_speaker_title(),
             'email'             => $this->get_speaker_email(),           
@@ -423,7 +435,7 @@ class User_Model {
             'hide_user'         => $this->get_hide_user(),
             'organizer_bio'     => $this->get_organizer_bio(),
             'phone'             => $this->get_phone(),
-        ];
+        ], $id );
 
     }    
     
@@ -692,8 +704,7 @@ class User_Model {
     
         $this->set_id( $user_id );
         $this->save_metadata( $args );
-        $this->retrieve_password();
-    
+
         return $user_id;
     }
     

@@ -322,7 +322,7 @@ class EventDetailsParts {
 	}
 
 	public static function event_single_faq( $single_event_id ) {
-		$etn_faqs = get_post_meta( $single_event_id, 'etn_event_faq', true );
+		$etn_faqs = etn_get_event_faqs( $single_event_id );
 
 		if ( ! empty( $etn_faqs ) && is_array( $etn_faqs ) ) :
 

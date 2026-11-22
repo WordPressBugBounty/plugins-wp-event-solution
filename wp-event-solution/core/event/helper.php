@@ -304,9 +304,17 @@ class Helper {
 			return true;
 		}
 
+		// Some imported events store the date with quote marks ("2025-11-05").
+		// DateTime throws on those, which stopped the whole page.
+		$event_end_date = is_string( $event_end_date ) ? trim( $event_end_date, " \t\n\r\0\x0B\"'" ) : '';
+
 		if ( $event_end_date ) {
-			$date = new DateTime( $event_end_date );
-			$event_end_date = $date->format('Y-m-d');
+			try {
+				$date           = new DateTime( $event_end_date );
+				$event_end_date = $date->format('Y-m-d');
+			} catch ( \Exception $e ) {
+				// Unreadable date: etn_is_ticket_sale_end() treats it as "not ended".
+			}
 		}
 
 		$timezone                = get_post_meta( $single_event_id, 'event_timezone', true ) ?: wp_timezone_string();

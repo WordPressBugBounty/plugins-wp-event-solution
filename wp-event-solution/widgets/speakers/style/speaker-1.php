@@ -4,13 +4,23 @@ defined( 'ABSPATH' ) || exit;
 
     use \Etn\Utils\Helper;
 
-    $speaker_id              = $settings["speaker_id"];
+    $speaker_id = ! empty( $settings["speaker_id"] ) ? absint( $settings["speaker_id"] ) : 0;
+
+    // An empty id made get_the_author_meta() fall back to the page author.
+    if ( ! $speaker_id || ! get_userdata( $speaker_id ) ) {
+        if ( class_exists( '\Elementor\Plugin' ) && \Elementor\Plugin::$instance->editor->is_edit_mode() ) {
+            echo '<p class="etn-speaker-empty">' . esc_html__( 'Please select a speaker.', 'wp-event-solution' ) . '</p>';
+        }
+        return;
+    }
+
     $etn_speaker_name        = get_the_author_meta( 'display_name', $speaker_id );
     $etn_speaker_designation = get_user_meta( $speaker_id , 'etn_speaker_designation', true);
     $social                  = get_user_meta( $speaker_id, 'etn_speaker_social', true);
     $summery                 = get_user_meta( $speaker_id , 'etn_speaker_summery', true);
     $all_logo                = get_user_meta( $speaker_id , 'etn_speaker_company_logo', true);
     $etn_speaker_image       = get_user_meta( $speaker_id, 'image', true);
+    $etn_speaker_image       = $etn_speaker_image ? $etn_speaker_image : \Wpeventin::assets_url() . 'images/avatar.jpg';
     ?>
     
     <div class="etn-speaker-wrapper">

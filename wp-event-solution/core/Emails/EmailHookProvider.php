@@ -8,6 +8,7 @@ use Eventin\Abstracts\Provider;
 use Eventin\Emails\EnsHooks;
 use Eventin\Emails\InlineImageHandler;
 use Eventin\Emails\WhatsappRecipients;
+use Eventin\Emails\EmailDesign;
 
 /**
  * Speaker Provider Class
@@ -22,5 +23,6 @@ class EmailHookProvider extends Provider {
         EnsHooks::class,
         InlineImageHandler::class,
         WhatsappRecipients::class,
+        EmailDesign::class,
     ];
 }

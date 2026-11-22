@@ -32,6 +32,11 @@
 			if ( $etn_is_migrated ) {
 				return;
 			}
+
+			// Demo data goes in only after the user agreed to it in the setup wizard.
+			if ( 'yes' !== get_option( 'etn_demo_data_consent' ) ) {
+				return;
+			}
 			if ( $etn_does_demo_data_exits ) {
 				return;
 			}

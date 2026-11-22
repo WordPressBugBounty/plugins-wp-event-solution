@@ -79,7 +79,8 @@ class EventLocation implements HookableInterface {
             return $value;
         }
 
-        $values = array_map( 'maybe_unserialize', $cache[ $meta_key ] );
+        // Raw rows: decode without classes (Patchstack 8ddf061c).
+        $values = array_map( 'etn_safe_decode', $cache[ $meta_key ] );
 
         // Leave healthy values to WordPress, so nothing changes for them.
         $repaired = array_map( [ self::class, 'repair' ], $values );
@@ -205,25 +206,32 @@ class EventLocation implements HookableInterface {
     public static function repair_stored_events() {
         global $wpdb;
 
-        $likes = [];
+        $patterns = [];
 
         foreach ( self::KEYS as $key ) {
-            $likes[] = $wpdb->prepare( 'pm.meta_value LIKE %s', '%' . $wpdb->esc_like( ',' . $key . ':' ) . '%' );
+            $patterns[] = '%' . $wpdb->esc_like( ',' . $key . ':' ) . '%';
         }
 
-        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery -- every LIKE above is prepared; one-time upgrade query.
+        $meta_placeholders = implode( ', ', array_fill( 0, count( self::META_KEYS ), '%s' ) );
+        $like_placeholders = implode( ' OR ', array_fill( 0, count( $patterns ), 'pm.meta_value LIKE %s' ) );
+
+        // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, WordPress.DB.DirectDatabaseQuery -- placeholders are built from fixed arrays; every value goes through prepare(); one-time upgrade query.
         $rows = $wpdb->get_results(
-            "SELECT pm.meta_id, pm.meta_value FROM {$wpdb->postmeta} pm
-             INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id AND p.post_type = 'etn'
-             WHERE pm.meta_key IN ( 'etn_event_location', 'location' ) AND ( " . implode( ' OR ', $likes ) . ' )'
+            $wpdb->prepare(
+                "SELECT pm.meta_id, pm.meta_value FROM {$wpdb->postmeta} pm
+                 INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id AND p.post_type = %s
+                 WHERE pm.meta_key IN ( {$meta_placeholders} ) AND ( {$like_placeholders} )",
+                array_merge( [ 'etn' ], self::META_KEYS, $patterns )
+            )
         );
+        // phpcs:enable
 
         $changed = 0;
 
         foreach ( (array) $rows as $row ) {
             // The raw row, not get_post_meta(): repair_on_read() would hand back
             // the repaired value and nothing would be saved.
-            $stored   = maybe_unserialize( $row->meta_value );
+            $stored   = etn_safe_decode( $row->meta_value );
             $repaired = self::repair( $stored );
 
             if ( $repaired !== $stored ) {

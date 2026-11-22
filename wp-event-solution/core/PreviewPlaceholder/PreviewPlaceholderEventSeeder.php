@@ -35,6 +35,11 @@ class PreviewPlaceholderEventSeeder {
      * once.
      */
     public function seed(): void {
+        // Sample users and events go in only after the user agreed to it in the setup wizard.
+        if ( 'yes' !== get_option( 'etn_demo_data_consent' ) ) {
+            return;
+        }
+
         if ( PreviewPlaceholder::event_exists() ) {
             return;
         }

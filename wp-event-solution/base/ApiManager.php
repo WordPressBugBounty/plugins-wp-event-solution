@@ -67,6 +67,7 @@ class ApiManager {
         HubSpotController::class,
         CouponController::class,
         TourController::class,
+        \Eventin\Emails\Api\EmailPreviewController::class,
     ];
 
     /**

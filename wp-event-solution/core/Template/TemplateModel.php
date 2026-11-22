@@ -246,7 +246,7 @@ class TemplateModel extends Post_Model {
             '{{event_start_time}}'    => esc_html( $start_time ),
             '{{event_end_time}}'      => esc_html( $end_time ),
             '{{event_timezone}}'      => esc_html( $event->event_timezone ),
-            '{{ticket_price}}'        => esc_html( $attendee->etn_ticket_price ),
+            '{{ticket_price}}'        => esc_html( number_format( (float) $attendee->etn_ticket_price, 2 ) ),
             '{{ticket_type}}'         => esc_html( $attendee->ticket_name ),
             '{{attendee_seat}}'       => esc_html( $attendee->attendee_seat ),
             '{{payment_status}}'      => esc_html( $attendee->etn_status ),

@@ -36,13 +36,47 @@ class Extension {
     private static function whatsapp_card_data() {
         $token = (string) etn_get_option( 'whatsapp_access_token', '' );
 
-        return [
+        $data = [
             'whatsapp_connected'           => '' !== $token && '' !== (string) etn_get_option( 'whatsapp_phone_number_id', '' ),
             'whatsapp_token_hint'          => '' === $token ? '' : str_repeat( '•', 8 ) . substr( $token, -4 ),
             'whatsapp_phone_number_id'     => (string) etn_get_option( 'whatsapp_phone_number_id', '' ),
             'whatsapp_business_account_id' => (string) etn_get_option( 'whatsapp_business_account_id', '' ),
             'whatsapp_admin_number'        => (string) etn_get_option( 'whatsapp_admin_number', '' ),
         ];
+
+        /**
+         * Pro adds the result of the Meta check (status, error, phone label) and
+         * `whatsapp_connection_api`, which tells the Configure window to save
+         * through Pro's checked route. Never put the token in here.
+         *
+         * @param array $data Card data.
+         */
+        return apply_filters( 'eventin_whatsapp_card_data', $data );
+    }
+
+    /**
+     * Short line under the WhatsApp card: the connection state, or what it needs.
+     *
+     * @param   array  $data  Card data.
+     *
+     * @return  string
+     */
+    private static function whatsapp_card_notice( $data ) {
+        if ( ! class_exists( 'Wpeventin_Pro' ) ) {
+            return __( 'NB: Requires Eventin Pro', 'wp-event-solution' );
+        }
+
+        if ( 'failed' === ( $data['whatsapp_status'] ?? '' ) ) {
+            /* translators: %s: reason from Meta */
+            return sprintf( __( 'Connection failed: %s', 'wp-event-solution' ), $data['whatsapp_error'] ?? '' );
+        }
+
+        if ( ! empty( $data['whatsapp_connection_api'] ) && ! empty( $data['whatsapp_phone_label'] ) ) {
+            /* translators: %s: WhatsApp number and business name */
+            return sprintf( __( 'Connected: %s', 'wp-event-solution' ), $data['whatsapp_phone_label'] );
+        }
+
+        return __( 'NB: Needs the Automation module and a Meta WhatsApp Business account', 'wp-event-solution' );
     }
 
     /**
@@ -688,6 +722,7 @@ class Extension {
      */
     private static function extensions() {
         $zapier_status = etn_get_option( 'zapier_api' );
+        $whatsapp_data = self::whatsapp_card_data();
 
         $extensions = [
             'dokan' => [
@@ -822,13 +857,11 @@ class Extension {
                 'title'         => __('WhatsApp', 'wp-event-solution'),
                 'description'   => __('Send WhatsApp messages to customers, attendees and admins from your Automation flows. Requires Eventin Pro.', 'wp-event-solution'),
                 'icon'          => ExtensionIcon::get('whatsapp'),
-                'notice'        => class_exists( 'Wpeventin_Pro' )
-                    ? __( 'NB: Needs the Automation module and a Meta WhatsApp Business account', 'wp-event-solution' )
-                    : __( 'NB: Requires Eventin Pro', 'wp-event-solution' ),
+                'notice'        => self::whatsapp_card_notice( $whatsapp_data ),
                 'demo_link'     => 'https://developers.facebook.com/docs/whatsapp/cloud-api',
                 'settings_link' => '',
                 'doc_link'      => '',
-                'data'          => self::whatsapp_card_data(),
+                'data'          => $whatsapp_data,
                 'badge_tags'    => ['Pro', 'New'],
             ],
             'eventin-divi-addon' => [
@@ -1427,6 +1460,32 @@ class Extension {
             'badge_tags'    => [ 'Pro', 'New' ],
         ];
 
-        return $extensions;
+        $extensions['eventin-directory-addon'] = [
+            'name'          => 'eventin-directory-addon',
+            'slug'          => 'eventin-directory-addon',
+            'type'          => 'addon',
+            'upgrade'       => true,
+            'upgrade_link'  => 'https://themewinter.com/purchase-history',
+            'status'        => 'off',
+            'is_pro'        => true,
+            'title'         => __( 'Eventin Directory Addon', 'wp-event-solution' ),
+            'description'   => __( 'A searchable public page of your events, organizers and speakers, where approved members submit their own events.', 'wp-event-solution' ),
+            'icon'          => ExtensionIcon::get( 'eventin-directory-addon' ),
+            'notice'        => '',
+            'demo_link'     => 'https://product.themewinter.com/eventin/',
+            'settings_link' => admin_url( 'admin.php?page=eventin#/settings/event-settings/directory' ),
+            'doc_link'      => 'https://themewinter.com/eventin/',
+            'badge_tags'    => [ 'Pro', 'New' ],
+        ];
+
+        /**
+         * Filter the list of extensions shown on the Extensions page.
+         *
+         * @param array $extensions All extensions, keyed by slug.
+         */
+        $filtered = apply_filters( 'eventin_extensions', $extensions );
+
+        // A filter that returns something other than an array must not break the page.
+        return is_array( $filtered ) ? $filtered : $extensions;
     }
 }
